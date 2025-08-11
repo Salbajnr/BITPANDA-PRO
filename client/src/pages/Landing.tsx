@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { 
   TrendingUp, Shield, Zap, Users, BarChart3, ChartLine, Clock, 
   Activity, DollarSign, Headphones, Star, Award, CheckCircle,
-  Smartphone, Globe, Lock, Bell
+  Smartphone, Globe, Lock, Bell, Menu, X, ArrowRight
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import logoImage from "@/assets/logo.jpeg";
@@ -28,6 +28,7 @@ interface NewsItem {
 }
 
 export default function Landing() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [marketData, setMarketData] = useState<MarketData[]>([
     { symbol: "BTC/USD", name: "Bitcoin", price: 43250.00, change: 2.45, volume: "$2.4B", color: "bg-orange-500", icon: "₿" },
     { symbol: "ETH/USD", name: "Ethereum", price: 2680.50, change: -1.23, volume: "$1.2B", color: "bg-blue-500", icon: "Ξ" },
@@ -113,11 +114,12 @@ export default function Landing() {
               <span className="text-2xl font-extrabold text-white tracking-wide">BITPANDA PRO</span>
             </div>
             
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Features</a>
-              <a href="#markets" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Markets</a>
-              <a href="#assets" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Assets</a>
-              <a href="#news" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">News</a>
+              <a href="/" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Home</a>
+              <a href="/about" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">About</a>
+              <a href="/features" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Features</a>
+              <a href="/contact" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Contact</a>
               <Button
                 onClick={handleLogin}
                 className="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-6 py-3 rounded-full transition-all font-medium shadow-md hover:shadow-lg transform hover:scale-105"
@@ -125,7 +127,69 @@ export default function Landing() {
                 Start Trading
               </Button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-white hover:bg-slate-800"
+              >
+                {isMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
           </div>
+
+          {/* Mobile Navigation Menu */}
+          {isMenuOpen && (
+            <div className="md:hidden absolute top-20 left-0 w-full bg-slate-900/95 backdrop-blur-lg border-b border-slate-700">
+              <div className="px-4 py-6 space-y-4">
+                <a 
+                  href="/" 
+                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Home
+                </a>
+                <a 
+                  href="/about" 
+                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  About Us
+                </a>
+                <a 
+                  href="/features" 
+                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Features
+                </a>
+                <a 
+                  href="/contact" 
+                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Contact
+                </a>
+                <Button
+                  onClick={() => {
+                    handleLogin();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full mt-4 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-6 py-3 rounded-full transition-all font-medium"
+                >
+                  Start Trading
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 

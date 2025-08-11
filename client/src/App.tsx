@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Landing from "@/pages/Landing";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import Features from "@/pages/Features";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
@@ -27,6 +30,9 @@ function AppContent() {
   return (
     <Switch>
       <Route path="/" component={() => user ? <Redirect to="/dashboard" /> : <Landing />} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/features" component={Features} />
       <Route path="/auth" component={() => user ? <Redirect to="/dashboard" /> : <Auth />} />
       <Route
         path="/dashboard"
