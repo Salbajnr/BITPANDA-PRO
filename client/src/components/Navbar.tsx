@@ -29,7 +29,7 @@ export default function Navbar() {
           <Link href="/">
             <div className="flex items-center cursor-pointer">
               <Leaf className="text-primary text-2xl mr-2" />
-              <span className="text-xl font-bold text-slate-900 dark:text-white">Eco Trading Pro</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
             </div>
           </Link>
 

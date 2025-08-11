@@ -15,7 +15,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Leaf className="text-green-600 text-2xl mr-2" />
-              <span className="text-xl font-bold text-slate-900 dark:text-white">Eco Trading Pro</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
             </div>
             <Button onClick={handleLogin} className="bg-green-600 hover:bg-green-700 text-white">
               Get Started
@@ -32,7 +32,7 @@ export default function Landing() {
               <div className="flex items-center bg-green-100 dark:bg-green-900 px-4 py-2 rounded-full">
                 <Star className="h-4 w-4 text-green-600 mr-2" />
                 <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                  #1 Crypto Simulation Platform
+                  #1 Professional Trading Platform
                 </span>
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Why Choose Eco Trading Pro?
+              Why Choose BITPANDA PRO?
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
               Advanced features designed for both beginners and professional cryptocurrency traders
@@ -218,7 +218,7 @@ export default function Landing() {
                   ))}
                 </div>
                 <p className="text-slate-600 dark:text-slate-400 mb-4">
-                  "Eco Trading Pro helped me understand crypto markets before I invested real money. The platform is incredibly realistic!"
+                  "BITPANDA PRO helped me understand crypto markets before I invested real money. The platform is incredibly realistic!"
                 </p>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
@@ -320,10 +320,10 @@ export default function Landing() {
             <div>
               <div className="flex items-center mb-4">
                 <Leaf className="text-green-500 text-2xl mr-2" />
-                <span className="text-xl font-bold">Eco Trading Pro</span>
+                <span className="text-xl font-bold">BITPANDA PRO</span>
               </div>
               <p className="text-slate-400">
-                The ultimate cryptocurrency trading simulation platform for learning and mastering crypto markets.
+                The ultimate professional cryptocurrency trading platform for learning and mastering crypto markets.
               </p>
             </div>
 
@@ -359,7 +359,7 @@ export default function Landing() {
           </div>
 
           <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
-            <p>&copy; 2024 Eco Trading Pro. All rights reserved.</p>
+            <p>&copy; 2024 BITPANDA PRO. All rights reserved.</p>
           </div>
         </div>
       </footer>
