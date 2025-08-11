@@ -102,10 +102,10 @@ export default function Features() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Powerful <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-400">Features</span>
+              Enterprise-Grade <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-400">Investment Platform</span>
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Discover the comprehensive suite of tools designed to make you a better crypto trader through realistic simulation and professional-grade features.
+              Institutional infrastructure and regulatory compliance trusted by Europe's leading financial institutions and 2.5 million investors.
             </p>
           </div>
         </div>
@@ -169,107 +169,107 @@ export default function Features() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Free Plan */}
+            {/* Retail Plan */}
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all">
               <CardContent className="p-8">
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
-                  <p className="text-4xl font-bold text-green-400 mb-2">$0</p>
-                  <p className="text-gray-300">Perfect for beginners</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">Retail Investor</h3>
+                  <p className="text-4xl font-bold text-green-400 mb-2">€0</p>
+                  <p className="text-gray-300">For individual investors</p>
                 </div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    $10,000 virtual funds
+                    €10,000 demo portfolio
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Basic charting tools
+                    50+ crypto assets
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    10+ cryptocurrencies
+                    Mobile & web platform
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Email support
+                    Customer support
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600">
-                  Get Started Free
+                  Start Investing
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Pro Plan */}
+            {/* Premium Plan */}
             <Card className="bg-gradient-to-b from-white/15 to-white/10 backdrop-blur-sm border-green-400/50 hover:border-green-400 transition-all transform scale-105">
               <CardContent className="p-8">
                 <div className="text-center mb-6">
                   <Badge className="bg-green-500 text-white mb-4">Most Popular</Badge>
-                  <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
-                  <p className="text-4xl font-bold text-green-400 mb-2">$29</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
+                  <p className="text-4xl font-bold text-green-400 mb-2">€39</p>
                   <p className="text-gray-300">per month</p>
                 </div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    $100,000 virtual funds
+                    €250,000 demo portfolio
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Advanced charting & indicators
+                    Bloomberg Terminal access
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    100+ cryptocurrencies
+                    200+ crypto & traditional assets
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Priority support
+                    Dedicated relationship manager
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Portfolio analytics
+                    Advanced risk analytics
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600">
-                  Start Pro Trial
+                  Start Premium Trial
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Enterprise Plan */}
+            {/* Institutional Plan */}
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all">
               <CardContent className="p-8">
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-white mb-2">Enterprise</h3>
-                  <p className="text-4xl font-bold text-blue-400 mb-2">$99</p>
-                  <p className="text-gray-300">per month</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">Institutional</h3>
+                  <p className="text-4xl font-bold text-blue-400 mb-2">Custom</p>
+                  <p className="text-gray-300">tailored pricing</p>
                 </div>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    Unlimited virtual funds
+                    Multi-million portfolio simulation
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    Custom indicators
+                    Prime brokerage access
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    All assets & markets
+                    White-label solutions
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    24/7 phone support
+                    Dedicated infrastructure
                   </li>
                   <li className="flex items-center text-gray-300">
                     <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    API access
+                    Regulatory consultation
                   </li>
                 </ul>
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-                  Contact Sales
+                  Contact Institutional Sales
                 </Button>
               </CardContent>
             </Card>

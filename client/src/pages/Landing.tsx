@@ -201,17 +201,17 @@ export default function Landing() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-1000">
               <div className="inline-block px-4 py-2 rounded-full mb-6 bg-gradient-to-r from-primary/20 to-green-500/20 border border-primary/30">
-                <span className="text-sm font-medium text-white">🚀 TRENDING: BTC +3.2% • ETH +1.8%</span>
+                <span className="text-sm font-medium text-white">🏆 TRUSTED BY 2.5M+ INVESTORS ACROSS EUROPE</span>
               </div>
               <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight mb-6">
-                Next-Generation
+                Europe's Leading
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-500">
-                  {" "}Crypto Trading
+                  {" "}Crypto Investment
                 </span>
+                {" "}Platform
               </h1>
               <p className="text-xl text-gray-300 mb-8 leading-relaxed max-w-lg">
-                Experience secure trading, live market insights, and real-time news on the most advanced crypto platform. 
-                Built for professionals, designed for everyone.
+                Regulated, secure, and trusted by millions. Start your cryptocurrency investment journey with Europe's most awarded digital asset platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
@@ -232,19 +232,19 @@ export default function Landing() {
                   <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
                     <Shield className="text-green-500 w-4 h-4" />
                   </div>
-                  <span>Bank-Grade Security</span>
+                  <span>EU Regulated & Licensed</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                    <Zap className="text-green-500 w-4 h-4" />
+                    <Award className="text-green-500 w-4 h-4" />
                   </div>
-                  <span>Lightning Fast</span>
+                  <span>€100M+ Insurance Coverage</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
                     <Users className="text-green-500 w-4 h-4" />
                   </div>
-                  <span>2M+ Users</span>
+                  <span>2.5M+ Investors</span>
                 </div>
               </div>
             </div>
@@ -343,9 +343,9 @@ export default function Landing() {
       <section id="features" className="py-20 bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-white">Professional Trading Features</h2>
+            <h2 className="text-4xl font-bold mb-4 text-white">Enterprise Investment Solutions</h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Advanced tools and enterprise-grade infrastructure built for serious traders
+              Institutional-grade infrastructure trusted by banks, hedge funds, and millions of European investors
             </p>
           </div>
 
@@ -354,9 +354,9 @@ export default function Landing() {
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
                 <Shield className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">Bank-Grade Security</h3>
+              <h3 className="text-2xl font-bold mb-4 text-white">EU Regulatory Compliance</h3>
               <p className="text-gray-400">
-                Multi-layer security protocols, cold storage, and insurance protection for your digital assets.
+                Fully regulated under MiCA framework with FSMA license. Your assets are protected by European law and €100M insurance coverage.
               </p>
             </div>
 
@@ -364,9 +364,9 @@ export default function Landing() {
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
                 <ChartLine className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">Advanced Analytics</h3>
+              <h3 className="text-2xl font-bold mb-4 text-white">Institutional Analytics</h3>
               <p className="text-gray-400">
-                Professional charting tools, technical indicators, and real-time market analysis.
+                Bloomberg Terminal-grade analytics, real-time portfolio management, and professional research tools used by top European investment firms.
               </p>
             </div>
 
@@ -374,9 +374,9 @@ export default function Landing() {
               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
                 <Activity className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">Real-Time Data</h3>
+              <h3 className="text-2xl font-bold mb-4 text-white">Market-Making Liquidity</h3>
               <p className="text-gray-400">
-                Live market data feeds with sub-millisecond latency for accurate trading decisions.
+                Direct access to institutional liquidity pools and prime brokerage services with spreads as low as 0.01%.
               </p>
             </div>
 
@@ -408,6 +408,61 @@ export default function Landing() {
               <p className="text-gray-400">
                 Round-the-clock customer support with dedicated account managers for pro traders.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust & Compliance Section */}
+      <section className="py-20 bg-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 text-white">Trusted by Leading Institutions</h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Regulatory compliance and security certifications that matter to European investors
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+            <div className="bg-slate-600 rounded-xl p-6 border border-slate-500 text-center">
+              <div className="text-3xl font-bold text-green-400 mb-2">MiCA</div>
+              <div className="text-sm text-gray-300">EU Compliant</div>
+            </div>
+            <div className="bg-slate-600 rounded-xl p-6 border border-slate-500 text-center">
+              <div className="text-3xl font-bold text-blue-400 mb-2">FSMA</div>
+              <div className="text-sm text-gray-300">Licensed</div>
+            </div>
+            <div className="bg-slate-600 rounded-xl p-6 border border-slate-500 text-center">
+              <div className="text-3xl font-bold text-purple-400 mb-2">SOC 2</div>
+              <div className="text-sm text-gray-300">Type II</div>
+            </div>
+            <div className="bg-slate-600 rounded-xl p-6 border border-slate-500 text-center">
+              <div className="text-3xl font-bold text-orange-400 mb-2">€100M</div>
+              <div className="text-sm text-gray-300">Insured</div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Best Crypto Platform 2024</h3>
+              <p className="text-gray-400">European FinTech Awards</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">4.8/5 Trustpilot Rating</h3>
+              <p className="text-gray-400">50,000+ verified reviews</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Globe className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Available in 27 EU Countries</h3>
+              <p className="text-gray-400">Full regulatory compliance</p>
             </div>
           </div>
         </div>
@@ -525,9 +580,9 @@ export default function Landing() {
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-slate-900/50 to-transparent"></div>
         </div>
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-4xl font-bold text-white mb-6">Ready to Start Trading?</h2>
+          <h2 className="text-4xl font-bold text-white mb-6">Start Your Investment Journey</h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join millions of traders who trust BITPANDA PRO for their crypto trading needs. Get started in minutes.
+            Join 2.5 million investors across Europe who trust BITPANDA PRO with their cryptocurrency investments. Regulated, secure, and award-winning.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button 
@@ -548,19 +603,19 @@ export default function Landing() {
               <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mr-2">
                 <CheckCircle className="text-green-400 text-sm w-4 h-4" />
               </div>
-              <span className="text-white/80">No minimum deposit</span>
+              <span className="text-white/80">EU regulated & licensed</span>
             </div>
             <div className="flex items-center">
               <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mr-2">
                 <CheckCircle className="text-green-400 text-sm w-4 h-4" />
               </div>
-              <span className="text-white/80">Competitive fees</span>
+              <span className="text-white/80">€100M insurance coverage</span>
             </div>
             <div className="flex items-center">
               <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mr-2">
                 <CheckCircle className="text-green-400 text-sm w-4 h-4" />
               </div>
-              <span className="text-white/80">24/7 customer support</span>
+              <span className="text-white/80">Dedicated relationship manager</span>
             </div>
           </div>
         </div>
