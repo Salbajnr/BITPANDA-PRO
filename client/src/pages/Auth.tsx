@@ -10,7 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { ApiService } from "@/lib/api";
 import { Leaf, Mail, Lock, User, UserPlus, LogIn } from "lucide-react";
 
-export default function Auth() {
+interface AuthProps {
+  isAdmin?: boolean;
+}
+
+export default function Auth({ isAdmin = false }: AuthProps) {
   const [loginData, setLoginData] = useState({
     emailOrUsername: "",
     password: "",
@@ -28,12 +32,15 @@ export default function Auth() {
   const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
-    mutationFn: (data: typeof loginData) => ApiService.post('/api/auth/login', data),
+    mutationFn: (data: typeof loginData) => {
+      const endpoint = isAdmin ? '/api/auth-admin/login' : '/api/auth/login';
+      return ApiService.post(endpoint, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       toast({
         title: "Login Successful",
-        description: "Welcome back!",
+        description: isAdmin ? "Welcome to Admin Panel!" : "Welcome back!",
       });
     },
     onError: (error: any) => {
@@ -79,28 +86,43 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <Leaf className="text-green-600 text-3xl mr-2" />
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">
+              BITPANDA PRO {isAdmin && 'Admin'}
+            </span>
           </div>
           <p className="text-slate-600 dark:text-slate-400">
-            Your gateway to cryptocurrency trading simulation
+            {isAdmin 
+              ? "Admin access to the cryptocurrency trading simulation platform" 
+              : "Your gateway to cryptocurrency trading simulation"
+            }
           </p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
-          </TabsList>
+          {!isAdmin && (
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Register</TabsTrigger>
+            </TabsList>
+          )}
+          {isAdmin && (
+            <TabsList className="grid w-full grid-cols-1">
+              <TabsTrigger value="login">Admin Login</TabsTrigger>
+            </TabsList>
+          )}
           
           <TabsContent value="login">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <LogIn className="mr-2 h-5 w-5" />
-                  Sign In
+                  {isAdmin ? 'Admin Sign In' : 'Sign In'}
                 </CardTitle>
                 <CardDescription>
-                  Enter your credentials to access your account
+                  {isAdmin 
+                    ? 'Enter your admin credentials to access the control panel'
+                    : 'Enter your credentials to access your account'
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -149,7 +171,7 @@ export default function Auth() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="register">
+          {!isAdmin && <TabsContent value="register">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -246,7 +268,7 @@ export default function Auth() {
                 </form>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
         </Tabs>
       </div>
     </div>

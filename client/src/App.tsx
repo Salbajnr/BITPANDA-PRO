@@ -34,21 +34,36 @@ function AppContent() {
       <Route path="/contact" component={Contact} />
       <Route path="/features" component={Features} />
       <Route path="/auth" component={() => user ? <Redirect to="/dashboard" /> : <Auth />} />
+      <Route path="/auth-admin" component={() => user && user.role === 'admin' ? <Redirect to="/admin" /> : <Auth isAdmin={true} />} />
       <Route
         path="/dashboard"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  {user.role === 'admin' ? <AdminDashboard /> : <Dashboard />}
-                </main>
+            user.role === 'admin' ? (
+              <Redirect to="/admin" />
+            ) : (
+              <div className="min-h-screen bg-background">
+                <Navbar />
+                <div className="flex">
+                  <Sidebar />
+                  <main className="flex-1 p-6">
+                    <Dashboard />
+                  </main>
+                </div>
               </div>
-            </div>
+            )
           ) : (
             <Redirect to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/admin"
+        component={() =>
+          user && user.role === 'admin' ? (
+            <AdminDashboard />
+          ) : (
+            <Redirect to="/auth-admin" />
           )
         }
       />

@@ -37,6 +37,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(loadUser);
 
   // Auth routes
+  // Admin auth routes
+  app.post('/api/auth-admin/login', async (req, res) => {
+    try {
+      const { emailOrUsername, password } = loginSchema.parse(req.body);
+      
+      // Find user by email or username
+      const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
+      if (!user || !user.password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Verify password
+      const isValid = await verifyPassword(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      if (!user.isActive) {
+        return res.status(401).json({ message: "Account is disabled" });
+      }
+
+      // Check if user is admin
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Set session
+      (req.session as any).userId = user.id;
+
+      // Get portfolio
+      let portfolio = await storage.getPortfolio(user.id);
+      if (!portfolio) {
+        portfolio = await storage.createPortfolio({
+          userId: user.id,
+          totalValue: '0.00',
+          availableCash: '0.00',
+        });
+      }
+
+      res.json({ 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email, 
+          firstName: user.firstName, 
+          lastName: user.lastName,
+          role: user.role 
+        }, 
+        portfolio 
+      });
+    } catch (error) {
+      console.error("Admin login error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data" });
+      }
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
   app.post('/api/auth/register', async (req, res) => {
     try {
       const userData = registerSchema.parse(req.body);

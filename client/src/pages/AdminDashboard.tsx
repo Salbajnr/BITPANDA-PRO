@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Users, DollarSign, TrendingUp, Shield, Bell, Settings, 
   Search, Plus, ArrowUp, ArrowDown, Globe, Tasks,
-  UserPlus, Exchange, Megaphone, BarChart3, Edit, Trash2,
+  UserPlus, ArrowRightLeft, Megaphone, BarChart3, Edit, Trash2,
   Activity, MessageCircle, PieChart, Clock
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
     { id: 'dashboard', label: 'Dashboard', icon: PieChart },
     { id: 'users', label: 'User Management', icon: Users },
     { id: 'balance', label: 'Balance Simulation', icon: DollarSign },
-    { id: 'transactions', label: 'Transaction Management', icon: Exchange },
+    { id: 'transactions', label: 'Transaction Management', icon: ArrowRightLeft },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'news', label: 'News Feed Management', icon: MessageCircle },
     { id: 'analytics', label: 'Platform Analytics', icon: BarChart3 },
@@ -310,7 +310,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex items-start">
                           <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
-                            <Exchange className="text-green-500 h-5 w-5" />
+                            <ArrowRightLeft className="text-green-500 h-5 w-5" />
                           </div>
                           <div>
                             <div className="font-medium text-slate-900 dark:text-white">Large trade executed</div>
