@@ -1,0 +1,78 @@
+I want to build a crypto simulation platform with two roles: Admin and Normal User.
+
+Core Requirements:
+	•	Only the Admin can simulate balances for any user account.
+	•	Users must not know their balances are simulated — the site should look and behave like a live crypto platform.
+	•	Admin and User authentication routes must be completely separate for security.
+
+⸻
+
+Frontend (Tech Stack Suggestion)
+	•	Framework: React.js (or Vue.js / Next.js)
+	•	UI Library: TailwindCSS or Bootstrap for responsive design
+	•	State Management: Redux or Context API
+	•	Pages & Components:
+	1.	User Pages:
+	•	/auth/user/login (User login)
+	•	/auth/user/register (User signup)
+	•	/dashboard (Market rates, crypto news, simulated trading, balance, history)
+	•	/profile (Profile management)
+	•	/faq & /contact (Help pages)
+	2.	Admin Pages:
+	•	/auth/admin/login (Admin login)
+	•	/admin/dashboard (User list, analytics, manage balances, announcements)
+	•	/admin/users/:id (Edit user details, simulate balance)
+	•	/admin/news (Manage news feeds)
+	•	Features:
+	•	Real-time crypto prices (API integration)
+	•	RSS/News API integration
+	•	Futures trading simulation UI
+	•	Dark/Light mode toggle
+	•	Notifications component
+
+⸻
+
+Backend (Tech Stack Suggestion)
+	•	Language: Node.js (Express.js)
+	•	Database: MongoDB or PostgreSQL
+	•	Authentication: JWT with role-based access control
+	•	Routes & Structure:
+	1.	User Routes (/api/user):
+	•	/register (POST)
+	•	/login (POST)
+	•	/profile (GET/PUT)
+	•	/market-data (GET)
+	•	/news (GET)
+	•	/trades (GET/POST - simulation only)
+	2.	Admin Routes (/api/admin):
+	•	/login (POST)
+	•	/users (GET, PUT, DELETE)
+	•	/simulate-balance (PUT)
+	•	/transactions (GET)
+	•	/announcements (POST/DELETE)
+	•	/news-sources (POST/DELETE)
+	•	Middleware:
+	•	Auth check per role (Admin/User)
+	•	Error handling
+	•	Rate limiting for security
+
+⸻
+
+Extra Features
+	•	Mobile-friendly design
+	•	Contact form sending to admin email
+	•	Basic analytics dashboard (user count, simulated volume, active trades)
+	•	Modular code structure for easy feature addition
+
+⸻
+
+Development Priority Order:
+	1.	Set up backend routes with role-based auth separation
+	2.	Create database models for Users, Balances, Trades, NewsSources, Announcements
+	3.	Build User frontend (market data, news, trading simulation)
+	4.	Build Admin frontend (user list, simulate balance, manage news)
+	5.	Integrate APIs (crypto market rates, news)
+	6.	Add notifications & dark mode
+	7.	Deploy to a secure hosting environment
+
+Goal: Deliver a functioning simulation platform where admins have exclusive hidden balance control and users treat their balances seriously as if it’s live.
