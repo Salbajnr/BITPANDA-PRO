@@ -1,77 +1,125 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Wallet, TrendingUp, PieChart, DollarSign } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp, TrendingDown, DollarSign, PieChart, Target, Activity } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface QuickStatsGridProps {
-  portfolioData?: any;
+  portfolioData?: {
+    portfolio?: {
+      totalValue: string;
+      availableCash: string;
+    };
+    holdings?: Array<{
+      symbol: string;
+      amount: string;
+      currentPrice: string;
+      averagePurchasePrice: string;
+    }>;
+  };
 }
 
 export default function QuickStatsGrid({ portfolioData }: QuickStatsGridProps) {
-  const portfolio = portfolioData?.portfolio;
-  const holdings = portfolioData?.holdings || [];
-  
-  const totalBalance = portfolio ? parseFloat(portfolio.totalValue) : 0;
-  const availableCash = portfolio ? parseFloat(portfolio.availableCash) : 0;
-  const dailyChange = totalBalance * 0.0229; // Mock 2.29% daily change
-  const activePositions = holdings.length;
+  const totalValue = parseFloat(portfolioData?.portfolio?.totalValue || "10000");
+  const availableCash = parseFloat(portfolioData?.portfolio?.availableCash || "10000");
 
-  const stats = [
-    {
-      title: "Total Balance",
-      value: `$${totalBalance.toFixed(2)}`,
-      change: "+2.29% from yesterday",
-      icon: Wallet,
-      bgColor: "bg-green-100 dark:bg-green-900/20",
-      iconColor: "text-green-600"
-    },
-    {
-      title: "Today's P&L",
-      value: `+$${dailyChange.toFixed(2)}`,
-      change: "+2.29%",
-      icon: TrendingUp,
-      bgColor: "bg-green-100 dark:bg-green-900/20",
-      iconColor: "text-green-600"
-    },
-    {
-      title: "Active Positions",
-      value: activePositions.toString(),
-      change: "3 pending orders",
-      icon: PieChart,
-      bgColor: "bg-blue-100 dark:bg-blue-900/20",
-      iconColor: "text-blue-600"
-    },
-    {
-      title: "Available Cash",
-      value: `$${availableCash.toFixed(2)}`,
-      change: "Ready to trade",
-      icon: DollarSign,
-      bgColor: "bg-amber-100 dark:bg-amber-900/20",
-      iconColor: "text-amber-600"
-    }
-  ];
+  const holdingsValue = portfolioData?.holdings?.reduce((total, holding) => {
+    return total + (parseFloat(holding.amount) * parseFloat(holding.currentPrice));
+  }, 0) || 0;
+
+  const totalInvested = portfolioData?.holdings?.reduce((total, holding) => {
+    return total + (parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice));
+  }, 0) || 0;
+
+  const totalPortfolioValue = holdingsValue + availableCash;
+  const unrealizedPnL = holdingsValue - totalInvested;
+  const unrealizedPnLPercent = totalInvested > 0 ? (unrealizedPnL / totalInvested) * 100 : 0;
+
+  // Calculate portfolio allocation
+  const cashAllocation = totalPortfolioValue > 0 ? (availableCash / totalPortfolioValue) * 100 : 100;
+  const investedAllocation = 100 - cashAllocation;
+
+  const dayChange = totalPortfolioValue * (Math.random() * 0.06 - 0.03); // Random 24h change between -3% and +3%
+  const dayChangePercent = totalPortfolioValue > 0 ? (dayChange / totalPortfolioValue) * 100 : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {stats.map((stat, index) => {
-        const Icon = stat.icon;
-        return (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{stat.title}</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-                </div>
-                <div className={`${stat.bgColor} p-3 rounded-lg`}>
-                  <Icon className={`w-5 h-5 ${stat.iconColor}`} />
-                </div>
-              </div>
-              <div className="mt-2">
-                <span className="text-green-600 text-sm font-medium">{stat.change}</span>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+      <Card className="relative overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Portfolio Value</CardTitle>
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">${totalPortfolioValue.toLocaleString()}</div>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs text-muted-foreground">
+              ${availableCash.toLocaleString()} cash
+            </p>
+            <Badge variant="outline" className="text-xs">
+              {cashAllocation.toFixed(1)}%
+            </Badge>
+          </div>
+        </CardContent>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
+      </Card>
+
+      <Card className="relative overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">24h Change</CardTitle>
+          {dayChange >= 0 ? (
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          ) : (
+            <TrendingDown className="h-4 w-4 text-red-600" />
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className={`text-2xl font-bold ${dayChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {dayChange >= 0 ? '+' : ''}${Math.abs(dayChange).toLocaleString()}
+          </div>
+          <p className={`text-xs ${dayChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {dayChange >= 0 ? '+' : ''}{dayChangePercent.toFixed(2)}%
+          </p>
+        </CardContent>
+        <div className={`absolute bottom-0 left-0 right-0 h-1 ${dayChange >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+      </Card>
+
+      <Card className="relative overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Unrealized P&L</CardTitle>
+          <Target className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-2xl font-bold ${unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {unrealizedPnL >= 0 ? '+' : ''}${Math.abs(unrealizedPnL).toLocaleString()}
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <p className={`text-xs ${unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {unrealizedPnL >= 0 ? '+' : ''}{unrealizedPnLPercent.toFixed(2)}%
+            </p>
+            <Badge variant={unrealizedPnL >= 0 ? "default" : "destructive"} className="text-xs">
+              {portfolioData?.holdings?.length || 0} assets
+            </Badge>
+          </div>
+        </CardContent>
+        <div className={`absolute bottom-0 left-0 right-0 h-1 ${unrealizedPnL >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+      </Card>
+
+      <Card className="relative overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Holdings Value</CardTitle>
+          <Activity className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">${holdingsValue.toLocaleString()}</div>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs text-muted-foreground">
+              ${totalInvested.toLocaleString()} invested
+            </p>
+            <Badge variant="outline" className="text-xs">
+              {investedAllocation.toFixed(1)}%
+            </Badge>
+          </div>
+        </CardContent>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+      </Card>
     </div>
   );
 }
