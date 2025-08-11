@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BITPANDA PRO - Next-Generation Crypto Trading Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4B4BC8',
+                        accent: '#22C55E',
+                        'dark-bg': '#181818',
+                        'dark-card': '#252525',
+                        'dark-border': '#333333'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                        'slide-up': 'slideUp 0.8s ease-out',
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white dark:bg-dark-bg text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md border-b border-gray-200 dark:border-dark-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="https://pfst.cf2.poecdn.net/base/image/13dcb9e1a2ca85357701222d16ed9b60a555235a4c05a927fffbc2278ff3f3f3?w=736&h=736" 
+                         alt="BITPANDA PRO Logo" class="w-10 h-10 rounded-full">
+                    <span class="text-xl font-bold text-gray-900 dark:text-white">BITPANDA PRO</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">Features</a>
+                    <a href="#markets" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">Markets</a>
+                    <a href="#news" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">News</a>
+                    <button class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg transition-colors font-medium">
+                        Start Trading
+                    </button>
+                </div>
+                <button class="md:hidden text-gray-600 dark:text-gray-300">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="animate-slide-up">
+                    <h1 class="text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                        Next-Generation
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                            Crypto Trading
+                        </span>
+                    </h1>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                        Experience secure trading, live market insights, and real-time news on the most advanced crypto platform. 
+                        Built for professionals, designed for everyone.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-lg text-lg font-medium transition-all transform hover:scale-105">
+                            Start Trading Now
+                        </button>
+                        <button class="border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg text-lg font-medium transition-all">
+                            View Demo
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-8 mt-8 text-sm text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-shield-alt text-accent"></i>
+                            <span>Bank-Grade Security</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-bolt text-accent"></i>
+                            <span>Lightning Fast</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-users text-accent"></i>
+                            <span>2M+ Users</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="animate-float">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full blur-3xl"></div>
+                        <img src="https://pfst.cf2.poecdn.net/base/image/13dcb9e1a2ca85357701222d16ed9b60a555235a4c05a927fffbc2278ff3f3f3?w=736&h=736" 
+                             alt="BITPANDA PRO" class="relative w-80 h-80 mx-auto rounded-full shadow-2xl">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Market Data -->
+    <section id="markets" class="py-16 bg-gray-50 dark:bg-dark-card">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Live Market Data</h2>
+            <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="bg-white dark:bg-dark-bg p-6 rounded-xl shadow-lg border dark:border-dark-border">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">₿</span>
+                            </div>
+                            <span class="font-semibold">BTC/USD</span>
+                        </div>
+                        <span class="text-sm text-accent">+2.45%</span>
+                    </div>
+                    <div class="text-2xl font-bold mb-2">$43,250.00</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Vol: $2.4B</div>
+                </div>
+                
+                <div class="bg-white dark:bg-dark-bg p-6 rounded-xl shadow-lg border dark:border-dark-border">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">Ξ</span>
+                            </div>
+                            <span class="font-semibold">ETH/USD</span>
+                        </div>
+                        <span class="text-sm text-red-500">-1.23%</span>
+                    </div>
+                    <div class="text-2xl font-bold mb-2">$2,680.50</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Vol: $1.2B</div>
+                </div>
+
+                <div class="bg-white dark:bg-dark-bg p-6 rounded-xl shadow-lg border dark:border-dark-border">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">S</span>
+                            </div>
+                            <span class="font-semibold">SOL/USD</span>
+                        </div>
+                        <span class="text-sm text-accent">+5.67%</span>
+                    </div>
+                    <div class="text-2xl font-bold mb-2">$98.75</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Vol: $580M</div>
+                </div>
+
+                <div class="bg-white dark:bg-dark-bg p-6 rounded-xl shadow-lg border dark:border-dark-border">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">A</span>
+                            </div>
+                            <span class="font-semibold">ADA/USD</span>
+                        </div>
+                        <span class="text-sm text-accent">+3.21%</span>
+                    </div>
+                    <div class="text-2xl font-bold mb-2">$0.485</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Vol: $340M</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Why Choose BITPANDA PRO?</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                    Advanced trading tools, institutional-grade security, and real-time insights for professional traders.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="group p-8 bg-white dark:bg-dark-card rounded-2xl shadow-lg border dark:border-dark-border hover:shadow-xl transition-all hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-r from-primary to-primary-dark rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-shield-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Bank-Grade Security</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Multi-layer security protocols, cold storage, and insurance protection for your digital assets.
+                    </p>
+                </div>
+
+                <div class="group p-8 bg-white dark:bg-dark-card rounded-2xl shadow-lg border dark:border-dark-border hover:shadow-xl transition-all hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-r from-accent to-green-400 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chart-line text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Live Market Insights</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Real-time analytics, advanced charting tools, and AI-powered market predictions.
+                    </p>
+                </div>
+
+                <div class="group p-8 bg-white dark:bg-dark-card rounded-2xl shadow-lg border dark:border-dark-border hover:shadow-xl transition-all hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-newspaper text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Real-Time News</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Curated crypto news, market analysis, and instant notifications for market-moving events.
+                    </p>
+                </div>
+
+                <div class="group p-8 bg-white dark:bg-dark-card rounded-2xl shadow-lg border dark:border-dark-border hover:shadow-xl transition-all hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-rocket text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Lightning Fast</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Ultra-low latency trading engine with sub-millisecond order execution.
+                    </p>
+                </div>
+
+                <div class="group p-8 bg-white dark:bg-dark-card rounded-2xl shadow-lg border dark:border-dark-border hover:shadow-xl transition-all hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-mobile-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Mobile Trading</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Trade anywhere with our advanced mobile app featuring all professional tools.
+                    </p>
+                </div>
+
+                <div class="group p-8 bg-white dark:bg-dark-card rounded-2xl shadow-lg border dark:border-dark-border hover:shadow-xl transition-all hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-r from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-headset text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">24/7 Support</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Round-the-clock customer support with dedicated account managers for pro traders.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- News Section -->
+    <section id="news" class="py-16 bg-gray-50 dark:bg-dark-card">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Latest Crypto News</h2>
+                <p class="text-gray-600 dark:text-gray-300">Stay updated with real-time market news and analysis</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white dark:bg-dark-bg rounded-xl shadow-lg border dark:border-dark-border overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm rounded-full mb-4">Bitcoin</span>
+                        <h3 class="text-xl font-bold mb-3">Bitcoin Reaches New Monthly High</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            BTC surges past $43K as institutional adoption continues to grow amid favorable regulatory developments.
+                        </p>
+                        <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                            <span>2 hours ago</span>
+                            <span>CryptoNews</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-dark-bg rounded-xl shadow-lg border dark:border-dark-border overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <span class="inline-block px-3 py-1 bg-accent/10 text-accent text-sm rounded-full mb-4">DeFi</span>
+                        <h3 class="text-xl font-bold mb-3">DeFi TVL Reaches $50B Milestone</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            Total Value Locked in DeFi protocols hits new record as yield farming opportunities expand.
+                        </p>
+                        <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                            <span>4 hours ago</span>
+                            <span>DeFi Pulse</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-dark-bg rounded-xl shadow-lg border dark:border-dark-border overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <span class="inline-block px-3 py-1 bg-blue-500/10 text-blue-500 text-sm rounded-full mb-4">Regulation</span>
+                        <h3 class="text-xl font-bold mb-3">New Crypto Framework Approved</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            Major jurisdiction announces comprehensive cryptocurrency regulation providing clarity for institutions.
+                        </p>
+                        <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                            <span>6 hours ago</span>
+                            <span>Regulatory Watch</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-gradient-to-r from-primary to-primary-dark">
+        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-white mb-6">Ready to Start Trading?</h2>
+            <p class="text-xl text-white/90 mb-8">
+                Join millions of traders who trust BITPANDA PRO for their crypto trading needs.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-white text-primary hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-medium transition-all transform hover:scale-105">
+                    Create Account
+                </button>
+                <button class="border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-4 rounded-lg text-lg font-medium transition-all">
+                    Learn More
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-6">
+                        <img src="https://pfst.cf2.poecdn.net/base/image/13dcb9e1a2ca85357701222d16ed9b60a555235a4c05a927fffbc2278ff3f3f3?w=736&h=736" 
+                             alt="BITPANDA PRO" class="w-8 h-8 rounded-full">
+                        <span class="text-lg font-bold">BITPANDA PRO</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        The next-generation crypto trading platform for professionals.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Platform</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Trading</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Markets</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Mobile App</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Security</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Status</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 BITPANDA PRO. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Simulate live market data updates
+        setInterval(() => {
+            const priceElements = document.querySelectorAll('[class*="text-2xl font-bold"]');
+            priceElements.forEach(element => {
+                if (element.textContent.includes('$')) {
+                    const currentPrice = parseFloat(element.textContent.replace(/[$,]/g, ''));
+                    const change = (Math.random() - 0.5) * 0.02; // ±1% change
+                    const newPrice = currentPrice * (1 + change);
+                    element.textContent = `$${newPrice.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}`;
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
