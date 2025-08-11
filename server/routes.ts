@@ -1,33 +1,178 @@
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import session from "express-session";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { hashPassword, verifyPassword, isAuthenticated, loadUser, AuthenticatedRequest } from "./auth";
 import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema } from "@shared/schema";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  username: z.string().min(3).max(30),
+  email: z.string().email(),
+  password: z.string().min(6),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+});
+
+const loginSchema = z.object({
+  emailOrUsername: z.string().min(1),
+  password: z.string().min(1),
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'crypto-trading-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true in production with HTTPS
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }));
+
+  // Load user middleware
+  app.use(loadUser);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.post('/api/auth/register', async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user) {
+      const userData = registerSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
+      if (existingUser) {
+        return res.status(400).json({ 
+          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken' 
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+
+      // Create user
+      const user = await storage.createUser({
+        username: userData.username,
+        email: userData.email,
+        password: hashedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: 'user',
+        isActive: true,
+      });
+
+      // Create portfolio
+      const portfolio = await storage.createPortfolio({
+        userId: user.id,
+        totalValue: '10000.00',
+        availableCash: '10000.00',
+      });
+
+      // Set session
+      (req.session as any).userId = user.id;
+
+      res.json({ 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email, 
+          firstName: user.firstName, 
+          lastName: user.lastName,
+          role: user.role 
+        }, 
+        portfolio 
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { emailOrUsername, password } = loginSchema.parse(req.body);
+      
+      // Find user by email or username
+      const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
+      if (!user || !user.password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Verify password
+      const isValid = await verifyPassword(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      if (!user.isActive) {
+        return res.status(401).json({ message: "Account is disabled" });
+      }
+
+      // Set session
+      (req.session as any).userId = user.id;
+
+      // Get portfolio
+      let portfolio = await storage.getPortfolio(user.id);
+      if (!portfolio) {
+        portfolio = await storage.createPortfolio({
+          userId: user.id,
+          totalValue: '10000.00',
+          availableCash: '10000.00',
+        });
+      }
+
+      res.json({ 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email, 
+          firstName: user.firstName, 
+          lastName: user.lastName,
+          role: user.role 
+        }, 
+        portfolio 
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data" });
+      }
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.session?.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
+  app.get('/api/auth/user', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      const fullUser = await storage.getUser(user.id);
+      if (!fullUser) {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Create portfolio if it doesn't exist
-      let portfolio = await storage.getPortfolio(userId);
+      let portfolio = await storage.getPortfolio(user.id);
       if (!portfolio) {
         portfolio = await storage.createPortfolio({
-          userId,
-          totalValue: '10000.00', // Default starting balance
+          userId: user.id,
+          totalValue: '10000.00',
           availableCash: '10000.00',
         });
       }
       
-      res.json({ ...user, portfolio });
+      res.json({ ...fullUser, portfolio });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -35,9 +180,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Portfolio routes
-  app.get('/api/portfolio', isAuthenticated, async (req: any, res) => {
+  app.get('/api/portfolio', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const portfolio = await storage.getPortfolio(userId);
       if (!portfolio) {
         return res.status(404).json({ message: "Portfolio not found" });
@@ -54,9 +199,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Trading routes
-  app.post('/api/trade', isAuthenticated, async (req: any, res) => {
+  app.post('/api/trade', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const portfolio = await storage.getPortfolio(userId);
       if (!portfolio) {
         return res.status(404).json({ message: "Portfolio not found" });
@@ -65,14 +210,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tradeData = insertTransactionSchema.parse(req.body);
       tradeData.portfolioId = portfolio.id;
       
-      // For simulation, we'll just create the transaction without real validation
       const transaction = await storage.createTransaction(tradeData);
       
-      // Update holdings
       if (tradeData.type === 'buy') {
         const existing = await storage.getHolding(portfolio.id, tradeData.symbol);
         if (existing) {
-          // Update existing holding
           const newAmount = parseFloat(existing.amount) + parseFloat(tradeData.amount);
           const newAverage = (parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) + 
                             parseFloat(tradeData.price) * parseFloat(tradeData.amount)) / newAmount;
@@ -86,7 +228,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currentPrice: tradeData.price,
           });
         } else {
-          // Create new holding
           await storage.upsertHolding({
             portfolioId: portfolio.id,
             symbol: tradeData.symbol,
@@ -97,7 +238,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // Update available cash
         const newCash = parseFloat(portfolio.availableCash) - parseFloat(tradeData.total);
         await storage.updatePortfolio(portfolio.id, { availableCash: newCash.toString() });
       }
@@ -122,9 +262,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/users', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -144,16 +284,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/simulate-balance', isAuthenticated, async (req: any, res) => {
+  app.post('/api/admin/simulate-balance', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const adminUser = await storage.getUser(req.user.claims.sub);
+      const adminUser = await storage.getUser(req.user!.id);
       if (!adminUser || adminUser.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { targetUserId, adjustmentType, amount, currency, reason } = req.body;
       
-      // Create balance adjustment record
       const adjustment = await storage.createBalanceAdjustment({
         adminId: adminUser.id,
         targetUserId,
@@ -163,7 +302,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reason,
       });
 
-      // Apply the adjustment to user's portfolio
       const portfolio = await storage.getPortfolio(targetUserId);
       if (portfolio) {
         let newValue: number;
@@ -197,9 +335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/adjustments/:userId?', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/adjustments/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -212,9 +350,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/news', isAuthenticated, async (req: any, res) => {
+  app.post('/api/admin/news', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -228,9 +366,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/admin/news/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/admin/news/:id', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }

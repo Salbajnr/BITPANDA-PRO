@@ -4,7 +4,7 @@ import { Leaf, TrendingUp, Shield, Zap, Users, BarChart3, ArrowRight, Star, Chec
 
 export default function Landing() {
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/auth";
   };
 
   return (
@@ -50,11 +50,9 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={handleLogin} size="lg" className="text-lg px-8 py-4 bg-green-600 hover:bg-green-700 text-white" asChild>
-                <a href="/api/login">
-                  Start Trading Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </a>
+              <Button onClick={handleLogin} size="lg" className="text-lg px-8 py-4 bg-green-600 hover:bg-green-700 text-white">
+                Start Trading Now
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button variant="outline" size="lg" className="text-lg px-8 py-4">
                 Watch Demo
@@ -292,11 +290,9 @@ export default function Landing() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={handleLogin} size="lg" variant="secondary" className="text-lg px-8 py-4" asChild>
-              <a href="/api/login">
-                Get Started Free
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
+            <Button onClick={handleLogin} size="lg" variant="secondary" className="text-lg px-8 py-4">
+              Get Started Free
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
 

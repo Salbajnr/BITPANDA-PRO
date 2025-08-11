@@ -1,7 +1,9 @@
+
 import { useQuery } from "@tanstack/react-query";
 
 export interface User {
   id: string;
+  username: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -20,7 +22,7 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/auth/user"],
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   return { user, isLoading, error };

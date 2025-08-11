@@ -9,36 +9,48 @@ import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
+import { Sidebar } from "@/components/Sidebar";
+import Auth from "@/pages/Auth";
 
-function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+function AppContent() {
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   return (
-    <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          {user?.role === 'admin' && (
-            <Route path="/admin" component={AdminDashboard} />
-          )}
-        </>
-      )}
-      <Route component={NotFound} />
-    </Switch>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
+        <Route path="/auth" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+        <Route
+          path="/dashboard"
+          element={
+            user ? (
+              <div className="min-h-screen bg-background">
+                <Navbar />
+                <div className="flex">
+                  <Sidebar />
+                  <main className="flex-1 p-6">
+                    {user.role === 'admin' ? <AdminDashboard /> : <Dashboard />}
+                  </main>
+                </div>
+              </div>
+            ) : (
+              <Navigate to="/auth" />
+            )
+          }
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
@@ -48,7 +60,7 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <AppContent />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
