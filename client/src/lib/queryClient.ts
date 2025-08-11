@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 
-const defaultQueryFn = async ({ queryKey }: { queryKey: string[] }) => {
-  const url = queryKey[0];
+const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
+  const url = queryKey[0] as string;
 
   const response = await fetch(url, {
     credentials: 'include', // Important for session cookies
@@ -12,8 +12,7 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: string[] }) => {
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Redirect to login on unauthorized
-      window.location.href = '/api/login';
+      // Don't redirect automatically, let the component handle it
       throw new Error('Unauthorized');
     }
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -35,3 +34,24 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+export const apiRequest = async (url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      // Don't redirect automatically for API requests
+      throw new Error('Unauthorized');
+    }
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
