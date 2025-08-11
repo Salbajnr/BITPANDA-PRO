@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Leaf, TrendingUp, Shield, Zap, Users, BarChart3, ArrowRight, Star, CheckCircle } from "lucide-react";
+import { Leaf, TrendingUp, Shield, Zap, Users, BarChart3, ArrowRight, Star, CheckCircle, Award } from "lucide-react";
 
 export default function Landing() {
   const handleLogin = () => {

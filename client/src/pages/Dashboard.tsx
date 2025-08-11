@@ -2,7 +2,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import QuickStatsGrid from "@/components/QuickStatsGrid";
@@ -10,13 +9,40 @@ import TradingInterface from "@/components/TradingInterface";
 import CryptoTable from "@/components/CryptoTable";
 import NewsSection from "@/components/NewsSection";
 
+interface PortfolioData {
+  portfolio: {
+    id: string;
+    totalValue: string;
+    availableCash: string;
+    userId: string;
+  };
+  holdings: Array<{
+    id: string;
+    symbol: string;
+    name: string;
+    amount: string;
+    averagePurchasePrice: string;
+    currentPrice: string;
+  }>;
+  transactions: Array<{
+    id: string;
+    type: string;
+    symbol: string;
+    amount: string;
+    price: string;
+    total: string;
+    createdAt: string;
+  }>;
+}
+
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
 
-  const { data: portfolioData, isLoading: portfolioLoading } = useQuery({
+  const { data: portfolioData, isLoading: portfolioLoading } = useQuery<PortfolioData>({
     queryKey: ["/api/portfolio"],
     retry: false,
+    enabled: !!user, // Only fetch when user is available
   });
 
   useEffect(() => {

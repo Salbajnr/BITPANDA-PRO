@@ -25,27 +25,27 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Portfolio operations
   getPortfolio(userId: string): Promise<Portfolio | undefined>;
   createPortfolio(portfolio: InsertPortfolio): Promise<Portfolio>;
   updatePortfolio(portfolioId: string, updates: Partial<InsertPortfolio>): Promise<Portfolio>;
-  
+
   // Holdings operations
   getHoldings(portfolioId: string): Promise<Holding[]>;
   getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined>;
   upsertHolding(holding: InsertHolding): Promise<Holding>;
   deleteHolding(id: string): Promise<void>;
-  
+
   // Transaction operations
   getTransactions(portfolioId: string, limit?: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  
+
   // Admin operations
   getAllUsers(): Promise<User[]>;
   createBalanceAdjustment(adjustment: InsertBalanceAdjustment): Promise<BalanceAdjustment>;
   getBalanceAdjustments(targetUserId?: string): Promise<BalanceAdjustment[]>;
-  
+
   // News operations
   getNewsArticles(limit?: number): Promise<NewsArticle[]>;
   createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle>;
@@ -106,7 +106,7 @@ export class DatabaseStorage implements IStorage {
 
   async upsertHolding(holdingData: InsertHolding): Promise<Holding> {
     const existing = await this.getHolding(holdingData.portfolioId, holdingData.symbol);
-    
+
     if (existing) {
       const [holding] = await db
         .update(holdings)
@@ -149,12 +149,12 @@ export class DatabaseStorage implements IStorage {
 
   async getBalanceAdjustments(targetUserId?: string): Promise<BalanceAdjustment[]> {
     const query = db.select().from(balanceAdjustments);
-    
+
     if (targetUserId) {
       return await query.where(eq(balanceAdjustments.targetUserId, targetUserId))
         .orderBy(desc(balanceAdjustments.createdAt));
     }
-    
+
     return await query.orderBy(desc(balanceAdjustments.createdAt));
   }
 

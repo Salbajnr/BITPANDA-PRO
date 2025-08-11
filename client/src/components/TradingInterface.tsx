@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { CryptoApiService } from "@/services/cryptoApi";
+import { ApiService } from "@/lib/api";
 
 export default function TradingInterface() {
   const [orderType, setOrderType] = useState("market");
@@ -20,37 +20,21 @@ export default function TradingInterface() {
 
   const { data: cryptoData = [] } = useQuery({
     queryKey: ['crypto-prices'],
-    queryFn: () => CryptoApiService.getTopCryptos(10),
+    queryFn: () => ApiService.get('/api/crypto-prices'), // Changed to use ApiService
     refetchInterval: 30000,
   });
 
   const tradeMutation = useMutation({
-    mutationFn: async ({ type, symbol, amount, price, name }: {
+    mutationFn: async (tradeData: {
       type: 'buy' | 'sell';
       symbol: string;
       amount: string;
       price: string;
-      name: string;
+      total: string;
+      name?: string;
     }) => {
-      const response = await fetch('/api/trade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type,
-          symbol: symbol.toUpperCase(),
-          name,
-          amount,
-          price,
-          total: (parseFloat(amount) * parseFloat(price)).toString(),
-          fees: '0.00',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Trade failed');
-      }
-
-      return response.json();
+      // Assuming ApiService handles the POST request to /api/trade
+      return ApiService.post('/api/trade', tradeData);
     },
     onSuccess: (data, variables) => {
       toast({
@@ -60,11 +44,12 @@ export default function TradingInterface() {
       queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
       setAmount("");
       setPrice("");
+      setSelectedCrypto(""); // Reset selected crypto as well
     },
-    onError: (error) => {
+    onError: (error: any) => { // Changed error type to any for broader compatibility
       toast({
-        title: "Trade Failed", 
-        description: error.message,
+        title: "Trade Failed",
+        description: error.message || "An unknown error occurred",
         variant: "destructive",
       });
     },
@@ -100,6 +85,7 @@ export default function TradingInterface() {
       amount,
       price: tradePrice,
       name: selectedCryptoData?.name || selectedCrypto,
+      total: (parseFloat(amount) * parseFloat(tradePrice)).toString(),
     });
   };
 
@@ -147,10 +133,10 @@ export default function TradingInterface() {
 
               <div>
                 <Label htmlFor="amount">Amount</Label>
-                <Input 
-                  id="amount" 
-                  type="number" 
-                  placeholder="0.00" 
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0.00"
                   step="0.00000001"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -173,10 +159,10 @@ export default function TradingInterface() {
               {orderType === "limit" && (
                 <div>
                   <Label htmlFor="price">Price ($)</Label>
-                  <Input 
-                    id="price" 
-                    type="number" 
-                    placeholder="0.00" 
+                  <Input
+                    id="price"
+                    type="number"
+                    placeholder="0.00"
                     step="0.01"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
@@ -190,7 +176,7 @@ export default function TradingInterface() {
                     Total: ${estimatedTotal.toLocaleString()}
                   </div>
                 )}
-                <Button 
+                <Button
                   className="w-full bg-green-600 hover:bg-green-700"
                   onClick={() => handleTrade('buy')}
                   disabled={tradeMutation.isPending}
@@ -233,10 +219,10 @@ export default function TradingInterface() {
 
               <div>
                 <Label htmlFor="amount-sell">Amount</Label>
-                <Input 
-                  id="amount-sell" 
-                  type="number" 
-                  placeholder="0.00" 
+                <Input
+                  id="amount-sell"
+                  type="number"
+                  placeholder="0.00"
                   step="0.00000001"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -259,10 +245,10 @@ export default function TradingInterface() {
               {orderType === "limit" && (
                 <div>
                   <Label htmlFor="price-sell">Price ($)</Label>
-                  <Input 
-                    id="price-sell" 
-                    type="number" 
-                    placeholder="0.00" 
+                  <Input
+                    id="price-sell"
+                    type="number"
+                    placeholder="0.00"
                     step="0.01"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
@@ -276,7 +262,7 @@ export default function TradingInterface() {
                     Total: ${estimatedTotal.toLocaleString()}
                   </div>
                 )}
-                <Button 
+                <Button
                   className="w-full bg-red-600 hover:bg-red-700"
                   onClick={() => handleTrade('sell')}
                   disabled={tradeMutation.isPending}
