@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BITPANDA PRO - Next-Generation Crypto Trading Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS to handle unique animations and components */
+        :root {
+            --primary-color: 93, 92, 222;
+            --accent-color: 34, 197, 94;
+            --dark-bg-color: 18, 18, 18;
+            --dark-card: 30, 30, 30;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: rgb(var(--dark-bg-color));
+            color: #f0f0f0;
+            overflow-x: hidden;
+        }
+        
+        /* Animations */
+        @keyframes gradient-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        
+        @keyframes slideInFromLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideInFromRight {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        .gradient-background {
+            background: linear-gradient(-45deg, 
+                rgba(var(--primary-color), 0.1), 
+                rgba(59, 130, 246, 0.1), 
+                rgba(var(--accent-color), 0.1));
+            background-size: 400% 400%;
+            animation: gradient-move 15s ease infinite;
+        }
+        
+        .animate-slide-in-left {
+            animation: slideInFromLeft 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+        
+        .animate-slide-in-right {
+            animation: slideInFromRight 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+        
+        .fade-in-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        
+        .fade-in-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .animate-rotate {
+            animation: rotate 20s linear infinite;
+        }
+        
+        .crypto-grid {
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        
+        .wave-animation {
+            animation: wave 60s linear infinite;
+        }
+        
+        .coin-animation {
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .chart-animation {
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(var(--primary-color), 0.4);
+        }
+        
+        .glow-accent {
+            box-shadow: 0 0 20px rgba(var(--accent-color), 0.4);
+        }
+        
+        .crypto-pattern {
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(93, 92, 222, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 20%);
+        }
+        
+        .crypto-chip {
+            background: linear-gradient(45deg, rgba(93, 92, 222, 0.2), rgba(34, 197, 94, 0.2));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .trading-card {
+            perspective: 1000px;
+        }
+        
+        .trading-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .trading-card:hover .trading-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .trading-card-front, .trading-card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .trading-card-back {
+            transform: rotateY(180deg);
+        }
+        
+        .crypto-wave {
+            background: linear-gradient(90deg, transparent, rgba(var(--primary-color), 0.1), transparent);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4B4BC8',
+                        accent: '#22C55E',
+                        'dark-bg': '#121212',
+                        'dark-card': '#1E1E1E',
+                        'dark-border': '#2D2D2D',
+                        'gray-1000': '#0A0A0A'
+                    },
+                    boxShadow: {
+                        '3xl': '0 35px 60px -15px rgba(0, 0, 0, 0.3)',
+                    },
+                    animation: {
+                        'float-2': 'float 4s ease-in-out infinite',
+                        'pulse-slow-2': 'pulse 4s ease-in-out infinite',
+                        'spin-slow': 'spin 10s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(5deg)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-white transition-colors duration-500 font-sans overflow-x-hidden">
+    
+    <!-- Floating Crypto Elements -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div class="absolute top-[10%] left-[5%] w-16 h-16 opacity-20 animate-float" style="animation-delay: 0.5s;">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#F7931A" class="animate-pulse"></circle>
+                <path d="M31.3 27.6l4.5-1.2 1-3.9-4.4 1.3-1.1-4.3h-3.6l1.1 4.3-4.4-1.3-1 3.9 4.5 1.2-2.7 10.5-4.5 1.2 1 3.9 4.4-1.3 1.1 4.3h3.6l-1.1-4.3 4.4 1.3-1-3.9-4.5-1.2 2.7-10.5zm-4.3 11.9l-2.7-10.5 2.7 10.5zm3.7 0l2.7-10.5-2.7 10.5z" fill="#FFF"></path>
+            </svg>
+        </div>
+        <div class="absolute top-[25%] right-[10%] w-12 h-12 opacity-20 animate-float" style="animation-delay: 1.5s;">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#627EEA"></circle>
+                <path d="M32 8v17.5l12 5.5-12 23-12-23 12-5.5V8z" fill="#FFF"></path>
+                <path d="M32 25.5v23l12-17.5-12-5.5z" fill="#C0CBFF"></path>
+            </svg>
+        </div>
+        <div class="absolute top-[60%] left-[15%] w-10 h-10 opacity-20 animate-float" style="animation-delay: 2.5s;">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#00FFA3"></circle>
+                <path d="M32 16l16 16-16 16-16-16 16-16zm0 8.5L23.5 32 32 40.5 40.5 32 32 24.5z" fill="#000"></path>
+            </svg>
+        </div>
+        <div class="absolute top-[40%] right-[20%] w-14 h-14 opacity-20 animate-float" style="animation-delay: 3.5s;">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#3B82F6"></circle>
+                <path d="M32 16l16 16-16 16-16-16 16-16zm0 8.5L23.5 32 32 40.5 40.5 32 32 24.5z" fill="#FFF"></path>
+            </svg>
+        </div>
+    </div>
+    
+    <nav class="fixed w-full top-0 z-50 bg-white/80 dark:bg-dark-bg/90 backdrop-blur-lg border-b border-gray-200 dark:border-dark-border transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center animate-rotate">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M16 8s-1.5 2-4 2-4-2-4-2"></path>
+                            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                            <path d="M10 16h4"></path>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-900 dark:text-white tracking-wide">BITPANDA PRO</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Features</a>
+                    <a href="#markets" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Markets</a>
+                    <a href="#assets" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Assets</a>
+                    <a href="#news" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">News</a>
+                    <a href="#cta" class="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-6 py-3 rounded-full transition-all font-medium shadow-md hover:shadow-lg glow transform hover:scale-105">
+                        Start Trading
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-4 md:hidden">
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-dark-card transition-colors">
+                        <i id="theme-icon" class="fas fa-sun text-xl text-yellow-500 dark-mode-icon"></i>
+                    </button>
+                    <button id="mobile-menu-button" class="text-gray-600 dark:text-gray-300 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-dark-card transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-dark-bg transition-all duration-300 overflow-hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#features" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-primary/10 hover:text-primary">Features</a>
+                <a href="#markets" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-primary/10 hover:text-primary">Markets</a>
+                <a href="#assets" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-primary/10 hover:text-primary">Assets</a>
+                <a href="#news" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-primary/10 hover:text-primary">News</a>
+                <a href="#cta" class="block w-full text-center mt-4 bg-gradient-to-r from-primary to-primary-dark text-white px-3 py-2 rounded-md font-medium hover:from-primary-dark hover:to-primary glow">Start Trading</a>
+            </div>
+        </div>
+    </nav>
+    
+    <section class="relative pt-32 pb-24 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center overflow-hidden">
+        <div class="absolute inset-0 z-0 gradient-background opacity-20 dark:opacity-10"></div>
+        <div class="absolute inset-0 z-0 crypto-grid"></div>
+        <div class="absolute bottom-0 left-0 w-full h-20 z-0 overflow-hidden">
+            <div class="absolute top-0 left-0 w-[200%] h-full crypto-wave wave-animation"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="animate-slide-in-left">
+                    <div class="crypto-chip inline-block px-4 py-2 rounded-full mb-6">
+                        <span class="text-sm font-medium text-white">🚀 TRENDING: BTC +3.2% • ETH +1.8%</span>
+                    </div>
+                    <h1 class="text-5xl lg:text-7xl font-extrabold leading-tight mb-6">
+                        Next-Generation
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                            Crypto Trading
+                        </span>
+                    </h1>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed max-w-lg">
+                        Experience secure trading, live market insights, and real-time news on the most advanced crypto platform. 
+                        Built for professionals, designed for everyone.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-8 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105 shadow-lg glow">
+                            Start Trading Now
+                        </button>
+                        <button class="border-2 border-primary text-primary dark:text-white hover:bg-primary/10 px-8 py-4 rounded-full text-lg font-bold transition-all">
+                            View Demo
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-8 mt-10 text-sm text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center space-x-2 fade-in-on-scroll">
+                            <div class="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                                <i class="fas fa-shield-alt text-accent text-lg"></i>
+                            </div>
+                            <span>Bank-Grade Security</span>
+                        </div>
+                        <div class="flex items-center space-x-2 fade-in-on-scroll" style="transition-delay: 100ms;">
+                            <div class="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                                <i class="fas fa-bolt text-accent text-lg"></i>
+                            </div>
+                            <span>Lightning Fast</span>
+                        </div>
+                        <div class="flex items-center space-x-2 fade-in-on-scroll" style="transition-delay: 200ms;">
+                            <div class="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                                <i class="fas fa-users text-accent text-lg"></i>
+                            </div>
+                            <span>2M+ Users</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="animate-slide-in-right hidden lg:block">
+                    <div class="relative w-full aspect-square max-w-md mx-auto">
+                        <div class="absolute inset-0 bg-gradient-to-tr from-primary/30 to-accent/30 rounded-full blur-3xl opacity-60 animate-pulse"></div>
+                        <div class="relative z-10 w-full h-full flex items-center justify-center">
+                            <div class="trading-card w-full h-full">
+                                <div class="trading-card-inner w-full h-full">
+                                    <div class="trading-card-front bg-dark-card rounded-3xl p-6 shadow-2xl border border-dark-border">
+                                        <div class="w-full h-full flex flex-col">
+                                            <div class="flex justify-between items-center mb-6">
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
+                                                        <span class="text-white font-bold text-xs">₿</span>
+                                                    </div>
+                                                    <span class="font-bold">BTC/USD</span>
+                                                </div>
+                                                <span class="text-accent font-bold">+2.45%</span>
+                                            </div>
+                                            <div class="text-4xl font-bold mb-4">$43,250.00</div>
+                                            <div class="flex-1 relative">
+                                                <div class="absolute inset-0 bg-gray-800 rounded-xl">
+                                                    <!-- Chart SVG -->
+                                                    <svg viewBox="0 0 300 150" class="w-full h-full">
+                                                        <path d="M0,150 L50,120 L100,130 L150,90 L200,110 L250,70 L300,100" 
+                                                              fill="none" stroke="url(#chartGradient)" stroke-width="3" 
+                                                              stroke-linecap="round" stroke-linejoin="round" class="chart-animation"></path>
+                                                        <defs>
+                                                            <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                                <stop offset="0%" stop-color="#5D5CDE" />
+                                                                <stop offset="100%" stop-color="#22C55E" />
+                                                            </linearGradient>
+                                                        </defs>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4 text-sm text-gray-400 flex justify-between">
+                                                <span>24h Vol: $2.4B</span>
+                                                <span>24h Change: +$1,250</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="trading-card-back bg-dark-card rounded-3xl p-6 shadow-2xl border border-dark-border flex flex-col items-center justify-center">
+                                        <div class="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center mb-6">
+                                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                                        </div>
+                                        <h3 class="text-xl font-bold mb-2">Advanced Trading Tools</h3>
+                                        <p class="text-center text-gray-400 mb-6">Access professional charts, indicators, and trading bots</p>
+                                        <button class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-2 rounded-full text-sm font-medium">
+                                            Explore Features
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="markets" class="py-20 bg-dark-card transition-colors duration-500 fade-in-on-scroll">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-6">Live Market Data</h2>
+            <p class="text-xl text-gray-400 text-center mb-12 max-w-2xl mx-auto">Real-time prices and market trends for the top cryptocurrencies</p>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="market-card bg-dark-card rounded-2xl p-6 border border-dark-border shadow-lg hover:shadow-xl transition-all fade-in-on-scroll">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                                <span class="text-white font-bold text-lg">₿</span>
+                            </div>
+                            <span class="font-semibold text-lg">BTC/USD</span>
+                        </div>
+                        <span class="text-sm font-semibold text-accent">+2.45%</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2">$43,250.00</div>
+                    <div class="h-20 mb-4 relative">
+                        <svg viewBox="0 0 200 80" class="w-full h-full">
+                            <path d="M0,80 L40,60 L80,65 L120,40 L160,55 L200,30" 
+                                  fill="none" stroke="#22C55E" stroke-width="2" 
+                                  stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="text-sm text-gray-400">Vol: $2.4B • 24h: +$1,250</div>
+                </div>
+                
+                <div class="market-card bg-dark-card rounded-2xl p-6 border border-dark-border shadow-lg hover:shadow-xl transition-all fade-in-on-scroll" style="transition-delay: 100ms;">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                                <span class="text-white font-bold text-lg">Ξ</span>
+                            </div>
+                            <span class="font-semibold text-lg">ETH/USD</span>
+                        </div>
+                        <span class="text-sm font-semibold text-red-500">-1.23%</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2">$2,680.50</div>
+                    <div class="h-20 mb-4 relative">
+                        <svg viewBox="0 0 200 80" class="w-full h-full">
+                            <path d="M0,50 L40,70 L80,60 L120,40 L160,45 L200,55" 
+                                  fill="none" stroke="#EF4444" stroke-width="2" 
+                                  stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="text-sm text-gray-400">Vol: $1.2B • 24h: -$35.20</div>
+                </div>
+
+                <div class="market-card bg-dark-card rounded-2xl p-6 border border-dark-border shadow-lg hover:shadow-xl transition-all fade-in-on-scroll" style="transition-delay: 200ms;">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center animate-pulse">
+                                <span class="text-white font-bold text-lg">S</span>
+                            </div>
+                            <span class="font-semibold text-lg">SOL/USD</span>
+                        </div>
+                        <span class="text-sm font-semibold text-accent">+5.67%</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2">$98.75</div>
+                    <div class="h-20 mb-4 relative">
+                        <svg viewBox="0 0 200 80" class="w-full h-full">
+                            <path d="M0,70 L40,50 L80,65 L120,30 L160,40 L200,20" 
+                                  fill="none" stroke="#22C55E" stroke-width="2" 
+                                  stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="text-sm text-gray-400">Vol: $580M • 24h: +$5.25</div>
+                </div>
+
+                <div class="market-card bg-dark-card rounded-2xl p-6 border border-dark-border shadow-lg hover:shadow-xl transition-all fade-in-on-scroll" style="transition-delay: 300ms;">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center animate-pulse">
+                                <span class="text-white font-bold text-lg">A</span>
+                            </div>
+                            <span class="font-semibold text-lg">ADA/USD</span>
+                        </div>
+                        <span class="text-sm font-semibold text-accent">+3.21%</span>
+                    </div>
+                    <div class="text-3xl font-bold mb-2">$0.485</div>
+                    <div class="h-20 mb-4 relative">
+                        <svg viewBox="0 0 200 80" class="w-full h-full">
+                            <path d="M0,60 L40,65 L80,50 L120,55 L160,40 L200,45" 
+                                  fill="none" stroke="#22C55E" stroke-width="2" 
+                                  stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="text-sm text-gray-400">Vol: $340M • 24h: +$0.015</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-20 fade-in-on-scroll crypto-pattern">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Why Choose BITPANDA PRO?</h2>
+                <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+                    Advanced trading tools, institutional-grade security, and real-time insights for professional traders.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div class="feature-card bg-dark-card rounded-2xl p-8 border border-dark-border transition-all duration-300 group">
+                    <div class="w-16 h-16 bg-gradient-to-r from-primary to-primary-dark rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M16 8s-1.5 2-4 2-4-2-4-2"></path>
+                            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                            <path d="M10 16h4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Bank-Grade Security</h3>
+                    <p class="text-gray-400">
+                        Multi-layer security protocols, cold storage, and insurance protection for your digital assets.
+                    </p>
+                </div>
+
+                <div class="feature-card bg-dark-card rounded-2xl p-8 border border-dark-border transition-all duration-300 group">
+                    <div class="w-16 h-16 bg-gradient-to-r from-accent to-green-400 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Live Market Insights</h3>
+                    <p class="text-gray-400">
+                        Real-time analytics, advanced charting tools, and AI-powered market predictions.
+                    </p>
+                </div>
+
+                <div class="feature-card bg-dark-card rounded-2xl p-8 border border-dark-border transition-all duration-300 group">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Real-Time News</h3>
+                    <p class="text-gray-400">
+                        Curated crypto news, market analysis, and instant notifications for market-moving events.
+                    </p>
+                </div>
+
+                <div class="feature-card bg-dark-card rounded-2xl p-8 border border-dark-border transition-all duration-300 group">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <polyline points="13 17 18 12 13 7"></polyline>
+                            <polyline points="6 17 11 12 6 7"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Lightning Fast</h3>
+                    <p class="text-gray-400">
+                        Ultra-low latency trading engine with sub-millisecond order execution.
+                    </p>
+                </div>
+
+                <div class="feature-card bg-dark-card rounded-2xl p-8 border border-dark-border transition-all duration-300 group">
+                    <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Mobile Trading</h3>
+                    <p class="text-gray-400">
+                        Trade anywhere with our advanced mobile app featuring all professional tools.
+                    </p>
+                </div>
+
+                <div class="feature-card bg-dark-card rounded-2xl p-8 border border-dark-border transition-all duration-300 group">
+                    <div class="w-16 h-16 bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-white">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">24/7 Support</h3>
+                    <p class="text-gray-400">
+                        Round-the-clock customer support with dedicated account managers for pro traders.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="assets" class="py-20 bg-dark-card transition-colors duration-500 fade-in-on-scroll">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Diverse Crypto Assets</h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    Trade over 100+ cryptocurrencies with competitive fees and deep liquidity
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                <div class="asset-card bg-dark-card rounded-xl p-4 border border-dark-border flex flex-col items-center transition-all hover:shadow-lg">
+                    <div class="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center mb-3">
+                        <svg viewBox="0 0 64 64" class="w-10 h-10">
+                            <circle cx="32" cy="32" r="30" fill="#F7931A"></circle>
+                            <path d="M31.3 27.6l4.5-1.2 1-3.9-4.4 1.3-1.1-4.3h-3.6l1.1 4.3-4.4-1.3-1 3.9 4.5 1.2-2.7 10.5-4.5 1.2 1 3.9 4.4-1.3 1.1 4.3h3.6l-1.1-4.3 4.4 1.3-1-3.9-4.5-1.2 2.7-10.5zm-4.3 11.9l-2.7-10.5 2.7 10.5zm3.7 0l2.7-10.5-2.7 10.5z" fill="#FFF"></path>
+                        </svg>
+                    </div>
+                    <span class="font-semibold">Bitcoin</span>
+                    <span class="text-sm text-accent">+2.45%</span>
+                </div>
+                
+                <div class="asset-card bg-dark-card rounded-xl p-4 border border-dark-border flex flex-col items-center transition-all hover:shadow-lg">
+                    <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-3">
+                        <svg viewBox="0 0 64 64" class="w-10 h-10">
+                            <circle cx="32" cy="32" r="30" fill="#627EEA"></circle>
+                            <path d="M32 8v17.5l12 5.5-12 23-12-23 12-5.5V8z" fill="#FFF"></path>
+                            <path d="M32 25.5v23l12-17.5-12-5.5z" fill="#C0CBFF"></path>
+                        </svg>
+                    </div>
+                    <span class="font-semibold">Ethereum</span>
+                    <span class="text-sm text-red-500">-1.23%</span>
+                </div>
+                
+                <div class="asset-card bg-dark-card rounded-xl p-4 border border-dark-border flex flex-col items-center transition-all hover:shadow-lg">
+                    <div class="w-16 h-16 rounded-full bg-gray-500/20 flex items-center justify-center mb-3">
+                        <svg viewBox="0 0 64 64" class="w-10 h-10">
+                            <circle cx="32" cy="32" r="30" fill="#3B82F6"></circle>
+                            <path d="M32 16l16 16-16 16-16-16 16-16zm0 8.5L23.5 32 32 40.5 40.5 32 32 24.5z" fill="#FFF"></path>
+                        </svg>
+                    </div>
+                    <span class="font-semibold">Cardano</span>
+                    <span class="text-sm text-accent">+3.21%</span>
+                </div>
+                
+                <div class="asset-card bg-dark-card rounded-xl p-4 border border-dark-border flex flex-col items-center transition-all hover:shadow-lg">
+                    <div class="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mb-3">
+                        <svg viewBox="0 0 64 64" class="w-10 h-10">
+                            <circle cx="32" cy="32" r="30" fill="#00FFA3"></circle>
+                            <path d="M32 16l16 16-16 16-16-16 16-16zm0 8.5L23.5 32 32 40.5 40.5 32 32 24.5z" fill="#000"></path>
+                        </svg>
+                    </div>
+                    <span class="font-semibold">Solana</span>
+                    <span class="text-sm text-accent">+5.67%</span>
+                </div>
+                
+                <div class="asset-card bg-dark-card rounded-xl p-4 border border-dark-border flex flex-col items-center transition-all hover:shadow-lg">
+                    <div class="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mb-3">
+                        <svg viewBox="0 0 64 64" class="w-10 h-10">
+                            <circle cx="32" cy="32" r="30" fill="#F0B90B"></circle>
+                            <path d="M32 16l16 16-16 16-16-16 16-16zm0 8.5L23.5 32 32 40.5 40.5 32 32 24.5z" fill="#FFF"></path>
+                        </svg>
+                    </div>
+                    <span class="font-semibold">BNB</span>
+                    <span class="text-sm text-accent">+1.89%</span>
+                </div>
+                
+                <div class="asset-card bg-dark-card rounded-xl p-4 border border-dark-border flex flex-col items-center transition-all hover:shadow-lg">
+                    <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-3">
+                        <svg viewBox="0 0 64 64" class="w-10 h-10">
+                            <circle cx="32" cy="32" r="30" fill="#FF3B3B"></circle>
+                            <path d="M32 16l16 16-16 16-16-16 16-16zm0 8.5L23.5 32 32 40.5 40.5 32 32 24.5z" fill="#FFF"></path>
+                        </svg>
+                    </div>
+                    <span class="font-semibold">Polygon</span>
+                    <span class="text-sm text-red-500">-0.75%</span>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <button class="border-2 border-primary text-primary px-6 py-3 rounded-full font-medium transition-all hover:bg-primary/10">
+                    View All 100+ Assets
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="news" class="py-20 bg-dark-card transition-colors duration-500 fade-in-on-scroll crypto-pattern">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">Latest Crypto News</h2>
+                <p class="text-lg text-gray-400">Stay updated with real-time market news and analysis</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="news-card bg-dark-card rounded-2xl border border-dark-border overflow-hidden transition-all hover:shadow-xl">
+                    <div class="h-48 bg-gradient-to-r from-primary/20 to-accent/20 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark-card to-transparent"></div>
+                        <div class="absolute bottom-4 left-4">
+                            <span class="inline-block px-3 py-1 bg-primary/30 text-white text-sm rounded-full mb-2 font-medium">Bitcoin</span>
+                            <h3 class="text-xl font-bold text-white">Bitcoin Reaches New Monthly High</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-400 mb-4">
+                            BTC surges past $43K as institutional adoption continues to grow amid favorable regulatory developments.
+                        </p>
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <span>2 hours ago</span>
+                            <span class="font-semibold text-primary">CryptoNews</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-card bg-dark-card rounded-2xl border border-dark-border overflow-hidden transition-all hover:shadow-xl" style="transition-delay: 100ms;">
+                    <div class="h-48 bg-gradient-to-r from-green-500/20 to-blue-500/20 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark-card to-transparent"></div>
+                        <div class="absolute bottom-4 left-4">
+                            <span class="inline-block px-3 py-1 bg-accent/30 text-white text-sm rounded-full mb-2 font-medium">DeFi</span>
+                            <h3 class="text-xl font-bold text-white">DeFi TVL Reaches $50B Milestone</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-400 mb-4">
+                            Total Value Locked in DeFi protocols hits new record as yield farming opportunities expand.
+                        </p>
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <span>4 hours ago</span>
+                            <span class="font-semibold text-primary">DeFi Pulse</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-card bg-dark-card rounded-2xl border border-dark-border overflow-hidden transition-all hover:shadow-xl" style="transition-delay: 200ms;">
+                    <div class="h-48 bg-gradient-to-r from-blue-500/20 to-purple-500/20 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark-card to-transparent"></div>
+                        <div class="absolute bottom-4 left-4">
+                            <span class="inline-block px-3 py-1 bg-blue-500/30 text-white text-sm rounded-full mb-2 font-medium">Regulation</span>
+                            <h3 class="text-xl font-bold text-white">New Crypto Framework Approved</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-400 mb-4">
+                            Major jurisdiction announces comprehensive cryptocurrency regulation providing clarity for institutions.
+                        </p>
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <span>6 hours ago</span>
+                            <span class="font-semibold text-primary">Regulatory Watch</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="cta" class="py-20 bg-gradient-to-r from-primary to-primary-dark fade-in-on-scroll relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-full h-full crypto-grid"></div>
+        </div>
+        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
+            <h2 class="text-4xl font-bold text-white mb-6">Ready to Start Trading?</h2>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+                Join millions of traders who trust BITPANDA PRO for their crypto trading needs. Get started in minutes.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-white text-primary hover:bg-gray-100 px-10 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105 shadow-xl">
+                    Create Account
+                </button>
+                <button class="border-2 border-white text-white hover:bg-white/10 hover:text-white px-10 py-4 rounded-full text-lg font-bold transition-all">
+                    Learn More
+                </button>
+            </div>
+            <div class="mt-8 flex flex-wrap justify-center gap-6">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center mr-2">
+                        <i class="fas fa-check text-accent text-sm"></i>
+                    </div>
+                    <span class="text-white/80">No minimum deposit</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center mr-2">
+                        <i class="fas fa-check text-accent text-sm"></i>
+                    </div>
+                    <span class="text-white/80">Competitive fees</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center mr-2">
+                        <i class="fas fa-check text-accent text-sm"></i>
+                    </div>
+                    <span class="text-white/80">24/7 customer support</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-1000 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-12">
+                <div>
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M16 8s-1.5 2-4 2-4-2-4-2"></path>
+                                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                <path d="M10 16h4"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold">BITPANDA PRO</span>
+                    </div>
+                    <p class="text-gray-400 mb-4 max-w-xs">
+                        The next-generation crypto trading platform for professionals.
+                    </p>
+                    <div class="flex space-x-4 mt-6">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-twitter text-lg"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-facebook-f text-lg"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-linkedin-in text-lg"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-youtube text-lg"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Platform</h4>
+                    <ul class="space-y-3 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Trading</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Markets</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Mobile App</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Support</h4>
+                    <ul class="space-y-3 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Security</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Status</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Company</h4>
+                    <ul class="space-y-3 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-16 pt-8 text-center text-gray-500">
+                <p>&copy; 2024 BITPANDA PRO. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Custom JavaScript for enhanced interactivity
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const root = document.documentElement;
+        
+        // Initial theme setup based on system preference
+        const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const currentTheme = localStorage.getItem('theme') || (isSystemDark ? 'dark' : 'light');
+
+        if (currentTheme === 'dark') {
+            root.classList.add('dark');
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+        } else {
+            root.classList.remove('dark');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            root.classList.toggle('dark');
+            if (root.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                mobileMenu.classList.add('hidden'); // Hide mobile menu on click
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate elements on scroll using IntersectionObserver
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-on-scroll').forEach(element => {
+            observer.observe(element);
+        });
+
+        // Simulate live market data updates
+        setInterval(() => {
+            const priceElements = document.querySelectorAll('.market-card .text-3xl.font-bold');
+            priceElements.forEach(element => {
+                const currentPrice = parseFloat(element.textContent.replace(/[$,]/g, '').trim());
+                const change = (Math.random() - 0.5) * 0.03; // ±1.5% change
+                const newPrice = currentPrice * (1 + change);
+                const isPositive = change >= 0;
+                
+                const parentCard = element.closest('.market-card');
+                const changeElement = parentCard.querySelector('[class*="text-sm font-semibold"]');
+
+                if (isPositive) {
+                    changeElement.classList.remove('text-red-500');
+                    changeElement.classList.add('text-accent');
+                    changeElement.textContent = `+${(change * 100).toFixed(2)}%`;
+                } else {
+                    changeElement.classList.remove('text-accent');
+                    changeElement.classList.add('text-red-500');
+                    changeElement.textContent = `${(change * 100).toFixed(2)}%`;
+                }
+
+                element.textContent = `$${newPrice.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
+
+                // Add a temporary animation to highlight the change
+                element.classList.add('transition', 'duration-300', 'ease-in-out', 'transform', 'scale-105');
+                setTimeout(() => {
+                    element.classList.remove('scale-105');
+                }, 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

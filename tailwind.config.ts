@@ -23,6 +23,7 @@ export default {
         },
         primary: {
           DEFAULT: "var(--primary)",
+          dark: "var(--primary-dark)",
           foreground: "var(--primary-foreground)",
         },
         secondary: {
