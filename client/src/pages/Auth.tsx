@@ -51,7 +51,7 @@ export default function Auth() {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       toast({
         title: "Registration Successful",
-        description: "Welcome to Eco Trading Pro!",
+        description: "Welcome to BITPANDA PRO!",
       });
     },
     onError: (error: any) => {
@@ -79,7 +79,7 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <Leaf className="text-green-600 text-3xl mr-2" />
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">Eco Trading Pro</span>
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
           </div>
           <p className="text-slate-600 dark:text-slate-400">
             Your gateway to cryptocurrency trading simulation

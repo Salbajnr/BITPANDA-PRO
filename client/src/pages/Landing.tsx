@@ -323,7 +323,7 @@ export default function Landing() {
                 <span className="text-xl font-bold">BITPANDA PRO</span>
               </div>
               <p className="text-slate-400">
-                The ultimate professional cryptocurrency trading platform for learning and mastering crypto markets.
+                The ultimate cryptocurrency trading simulation platform for learning and mastering crypto markets.
               </p>
             </div>
 
