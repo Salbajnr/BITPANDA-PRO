@@ -66,8 +66,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create portfolio
       const portfolio = await storage.createPortfolio({
         userId: user.id,
-        totalValue: '10000.00',
-        availableCash: '10000.00',
+        totalValue: '0.00',
+        availableCash: '0.00',
       });
 
       // Set session
@@ -121,8 +121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!portfolio) {
         portfolio = await storage.createPortfolio({
           userId: user.id,
-          totalValue: '10000.00',
-          availableCash: '10000.00',
+          totalValue: '0.00',
+          availableCash: '0.00',
         });
       }
 
@@ -167,8 +167,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!portfolio) {
         portfolio = await storage.createPortfolio({
           userId: user.id,
-          totalValue: '10000.00',
-          availableCash: '10000.00',
+          totalValue: '0.00',
+          availableCash: '0.00',
         });
       }
       

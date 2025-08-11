@@ -47,8 +47,8 @@ export const users = pgTable("users", {
 export const portfolios = pgTable("portfolios", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  totalValue: decimal("total_value", { precision: 20, scale: 8 }).default('0').notNull(),
-  availableCash: decimal("available_cash", { precision: 20, scale: 8 }).default('0').notNull(),
+  totalValue: decimal("total_value", { precision: 20, scale: 8 }).default('0.00').notNull(),
+  availableCash: decimal("available_cash", { precision: 20, scale: 8 }).default('0.00').notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

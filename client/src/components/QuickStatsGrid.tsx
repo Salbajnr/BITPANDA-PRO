@@ -18,8 +18,8 @@ interface QuickStatsGridProps {
 }
 
 export default function QuickStatsGrid({ portfolioData }: QuickStatsGridProps) {
-  const totalValue = parseFloat(portfolioData?.portfolio?.totalValue || "10000");
-  const availableCash = parseFloat(portfolioData?.portfolio?.availableCash || "10000");
+  const totalValue = parseFloat(portfolioData?.portfolio?.totalValue || "0");
+  const availableCash = parseFloat(portfolioData?.portfolio?.availableCash || "0");
 
   const holdingsValue = portfolioData?.holdings?.reduce((total, holding) => {
     return total + (parseFloat(holding.amount) * parseFloat(holding.currentPrice));
