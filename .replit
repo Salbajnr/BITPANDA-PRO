@@ -54,7 +54,11 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pkill -f \"node.*server/index.ts\" || true"
+args = "pkill -f \"node.*server/index.ts\" || pkill -f \"tsx.*server/index.ts\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 2"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
