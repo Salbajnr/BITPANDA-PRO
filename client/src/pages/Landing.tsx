@@ -624,7 +624,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-12">
+          <div className="grid md:grid-cols-5 gap-12">
             <div>
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-12 h-12 rounded-full overflow-hidden">
@@ -652,22 +652,34 @@ export default function Landing() {
             </div>
             
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-white">Platform</h4>
+              <h4 className="font-semibold text-lg mb-4 text-white">TOP INSTRUMENTS</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Trading</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Markets</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Portfolio</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Analytics</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Forex</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Indices</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Commodities</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Cryptocurrency</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Shares</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-white">Support</h4>
+              <h4 className="font-semibold text-lg mb-4 text-white">SUPPORTS</h4>
               <ul className="space-y-3 text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API Docs</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">How to Deposit</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">How to Withdraw</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Open Account</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Verify Your Account</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Customer Service</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">LEARN MORE</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Responsible Trading</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Tutorials</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Avoid Scam</a></li>
               </ul>
             </div>
             
@@ -684,7 +696,7 @@ export default function Landing() {
           
           <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 BITPANDA PRO. All rights reserved.
+              BITPANDA PRO Copyright Protected © 2024. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">
               <span className="text-gray-400 text-sm flex items-center">
@@ -693,7 +705,7 @@ export default function Landing() {
               </span>
               <span className="text-gray-400 text-sm flex items-center">
                 <Shield className="w-4 h-4 mr-2" />
-                FDIC Insured
+                EU Regulated
               </span>
             </div>
           </div>
