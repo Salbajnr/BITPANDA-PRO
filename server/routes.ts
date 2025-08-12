@@ -4,8 +4,10 @@ import session from "express-session";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, isAuthenticated, loadUser, AuthenticatedRequest } from "./auth";
 import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema } from "@shared/schema";
-import authRoutes from './auth-routes';
+import authRoutes from './auth-routes.js';
+import depositRoutes from './deposit-routes.js';
 import { z } from "zod";
+import { Router } from "express";
 
 const registerSchema = z.object({
   username: z.string().min(3).max(30),
@@ -442,6 +444,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete news article" });
     }
   });
+
+  // Deposit routes
+  app.use('/api/deposits', depositRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

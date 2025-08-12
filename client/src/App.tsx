@@ -24,7 +24,7 @@ import LiveSupport from "./pages/LiveSupport";
 import NotFound from "@/pages/not-found";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import Auth from "@/pages/Auth";
+import Auth from "./pages/Auth";
 import TradingPro from "./pages/TradingPro";
 import Orders from "./pages/Orders";
 import Security from "./pages/Security";
@@ -34,6 +34,9 @@ import AboutUs from './pages/AboutUs';
 import Careers from './pages/Careers';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Deposit from "./pages/Deposit";
+import DepositHistory from "./pages/DepositHistory";
+import AdminDepositManagement from "./pages/AdminDepositManagement";
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -179,6 +182,9 @@ function AppContent() {
       <Route path="/careers" element={<Careers />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/deposit" component={Deposit} />
+      <Route path="/deposit-history" component={DepositHistory} />
+      <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route component={NotFound} />
     </Switch>
   );

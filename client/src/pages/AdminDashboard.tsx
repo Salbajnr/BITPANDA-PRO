@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -160,7 +159,7 @@ export default function AdminDashboard() {
               <span className="text-xl font-bold text-slate-900 dark:text-white">BITPANDA PRO Admin</span>
             </div>
           </div>
-          
+
           <div className="flex-1 py-6">
             <nav className="space-y-2 px-4">
               {sidebarItems.map((item) => {
@@ -184,7 +183,7 @@ export default function AdminDashboard() {
               })}
             </nav>
           </div>
-          
+
           <div className="p-6 border-t border-slate-200 dark:border-slate-700">
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-600 flex items-center justify-center">
@@ -197,7 +196,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-        
+
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Topbar */}
@@ -214,7 +213,7 @@ export default function AdminDashboard() {
                 <div className="relative">
                   <Settings className="h-6 w-6 text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors" />
                 </div>
-                
+
                 {/* Theme Toggle */}
                 <div className="flex items-center space-x-3">
                   <button
@@ -232,7 +231,7 @@ export default function AdminDashboard() {
                     </div>
                   </button>
                 </div>
-                
+
                 <div className="w-px h-8 bg-slate-200 dark:border-slate-700"></div>
                 <div className="flex items-center">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-blue-600 flex items-center justify-center">
@@ -242,7 +241,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </header>
-          
+
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-slate-900">
             {/* Dashboard Section */}
@@ -250,6 +249,18 @@ export default function AdminDashboard() {
               <div className="space-y-8 animate-in fade-in duration-500">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/admin/deposits'}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-blue-100">Deposit Requests</p>
+                          <p className="text-3xl font-bold">Manage</p>
+                        </div>
+                        <DollarSign className="h-12 w-12 text-blue-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <Card className="transition-all hover:shadow-lg hover:scale-105 duration-200 border-0 shadow-md bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -269,7 +280,7 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="transition-all hover:shadow-lg hover:scale-105 duration-200 border-0 shadow-md bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -289,7 +300,7 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="transition-all hover:shadow-lg hover:scale-105 duration-200 border-0 shadow-md bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -309,7 +320,7 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="transition-all hover:shadow-lg hover:scale-105 duration-200 border-0 shadow-md bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -330,7 +341,7 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card className="border-0 shadow-md bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                     <CardHeader>
@@ -360,7 +371,7 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="border-0 shadow-md bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                     <CardHeader>
                       <div className="flex justify-between items-center">
@@ -401,7 +412,7 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 <Card className="border-0 shadow-md bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
                   <CardHeader>
                     <CardTitle className="text-xl">Quick Actions</CardTitle>
@@ -520,7 +531,7 @@ export default function AdminDashboard() {
                         </tbody>
                       </table>
                     </div>
-                    
+
                     <div className="flex justify-between items-center mt-6">
                       <div className="text-slate-500 dark:text-slate-400">Showing 1-{filteredUsers.length} of {totalUsers} users</div>
                       <div className="flex space-x-2">

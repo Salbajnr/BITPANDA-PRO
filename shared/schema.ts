@@ -39,6 +39,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").default('user').notNull(),
   isActive: boolean("is_active").default(true).notNull(),
+  walletBalance: decimal("wallet_balance", { precision: 20, scale: 8 }).notNull().default('0'),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -67,17 +68,47 @@ export const holdings = pgTable("holdings", {
 });
 
 // Trading transactions
-export const transactions = pgTable("transactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  portfolioId: varchar("portfolio_id").references(() => portfolios.id, { onDelete: 'cascade' }).notNull(),
-  type: varchar("type", { length: 10 }).notNull(), // 'buy' or 'sell'
-  symbol: varchar("symbol", { length: 10 }).notNull(),
-  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
-  price: decimal("price", { precision: 20, scale: 8 }).notNull(),
-  total: decimal("total", { precision: 20, scale: 8 }).notNull(),
-  fees: decimal("fees", { precision: 20, scale: 8 }).default('0').notNull(),
-  status: varchar("status", { length: 20 }).default('completed').notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+export const transactions = pgTable('transactions', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').notNull().references(() => users.id),
+  type: text('type').notNull(), // 'buy', 'sell', 'deposit', 'withdrawal'
+  symbol: text('symbol').notNull(),
+  amount: decimal('amount', { precision: 20, scale: 8 }).notNull(),
+  price: decimal('price', { precision: 20, scale: 8 }).notNull(),
+  total: decimal('total', { precision: 20, scale: 8 }).notNull(),
+  status: text('status').notNull().default('pending'), // 'pending', 'completed', 'failed'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Deposits
+export const deposits = pgTable('deposits', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').notNull().references(() => users.id),
+  paymentMethod: text('payment_method').notNull(), // 'bybit', 'binance', 'crypto.com', 'okx', 'kucoin'
+  cryptocurrency: text('cryptocurrency').notNull(), // 'BTC', 'ETH', 'USDT', etc.
+  depositAmount: decimal('deposit_amount', { precision: 20, scale: 8 }).notNull(),
+  depositAddress: text('deposit_address').notNull(),
+  proofOfPayment: text('proof_of_payment'), // file path or transaction hash
+  proofType: text('proof_type'), // 'file', 'hash'
+  status: text('status').notNull().default('pending'), // 'pending', 'approved', 'rejected'
+  rejectionReason: text('rejection_reason'),
+  approvedBy: text('approved_by').references(() => users.id),
+  approvedAt: timestamp('approved_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Notifications
+export const notifications = pgTable('notifications', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  type: text('type').notNull(), // 'deposit', 'withdrawal', 'trade', 'security', 'general'
+  isRead: boolean('is_read').notNull().default(false),
+  relatedId: text('related_id'), // reference to deposit/transaction id
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // Admin balance adjustments (for simulation)
@@ -242,6 +273,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   targetAdjustments: many(balanceAdjustments, {
     relationName: 'targetAdjustments',
   }),
+  deposits: many(deposits),
+  notifications: many(notifications),
 }));
 
 export const portfoliosRelations = relations(portfolios, ({ one, many }) => ({
@@ -264,6 +297,28 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   portfolio: one(portfolios, {
     fields: [transactions.portfolioId],
     references: [portfolios.id],
+  }),
+  user: one(users, {
+    fields: [transactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const depositsRelations = relations(deposits, ({ one }) => ({
+  user: one(users, {
+    fields: [deposits.userId],
+    references: [users.id],
+  }),
+  approvedBy: one(users, {
+    fields: [deposits.approvedBy],
+    references: [users.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
   }),
 }));
 
@@ -300,6 +355,18 @@ export const insertHoldingSchema = createInsertSchema(holdings).omit({
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDepositSchema = createInsertSchema(deposits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
 });
@@ -366,6 +433,10 @@ export type Holding = typeof holdings.$inferSelect;
 export type InsertHolding = z.infer<typeof insertHoldingSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Deposit = typeof deposits.$inferSelect;
+export type InsertDeposit = z.infer<typeof insertDepositSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type BalanceAdjustment = typeof balanceAdjustments.$inferSelect;
 export type InsertBalanceAdjustment = z.infer<typeof insertBalanceAdjustmentSchema>;
 export type NewsArticle = typeof newsArticles.$inferSelect;

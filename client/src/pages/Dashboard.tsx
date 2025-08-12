@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +19,7 @@ import {
   Globe, Zap, Shield, Award, TrendingDownIcon
 } from "lucide-react";
 import { Link } from "wouter";
+import NotificationCenter from "@/components/NotificationCenter";
 
 interface PortfolioData {
   portfolio: {
@@ -228,7 +228,7 @@ export default function Dashboard() {
       </div>
 
       <Navbar />
-      
+
       <div className="flex h-screen pt-16 relative z-10">
         {/* Enhanced Sidebar */}
         <div className="w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
@@ -243,7 +243,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
+
           {/* User Info */}
           <div className="p-4 border-b border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between">
@@ -263,7 +263,7 @@ export default function Dashboard() {
               <Badge className="bg-green-100 text-green-700 text-xs">Pro</Badge>
             </div>
           </div>
-          
+
           <div className="flex-1 py-4">
             <nav className="space-y-1 px-4">
               {sidebarItems.map((item) => {
@@ -285,7 +285,7 @@ export default function Dashboard() {
               })}
             </nav>
           </div>
-          
+
           {/* Quick Stats in Sidebar */}
           <div className="p-4 border-t border-slate-200 dark:border-slate-700">
             <div className="space-y-3">
@@ -300,7 +300,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        
+
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Enhanced Header with Actions */}
@@ -328,9 +328,7 @@ export default function Dashboard() {
                 <Button variant="outline" size="sm">
                   <RefreshCw className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Bell className="h-4 w-4" />
-                </Button>
+                <NotificationCenter />
               </div>
             </div>
           </div>
@@ -364,7 +362,7 @@ export default function Dashboard() {
                       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-green-500"></div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="relative overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -386,7 +384,7 @@ export default function Dashboard() {
                       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="relative overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -409,7 +407,7 @@ export default function Dashboard() {
                       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="relative overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -479,7 +477,7 @@ export default function Dashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardHeader>
                       <CardTitle>Portfolio Allocation</CardTitle>
@@ -534,10 +532,23 @@ export default function Dashboard() {
                           <span className="text-sm">Trade Now</span>
                         </Button>
                       </Link>
-                      <Button variant="outline" className="h-24 flex flex-col items-center group hover:border-green-500">
-                        <ArrowDown className="h-6 w-6 mb-2 text-green-500 group-hover:scale-110 transition-transform" />
-                        <span className="text-sm">Deposit</span>
-                      </Button>
+                      <div className="flex space-x-4">
+                        <Button 
+                          size="lg" 
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-8 py-3"
+                          onClick={() => window.location.href = '/deposit'}
+                        >
+                          <Plus className="mr-2 h-5 w-5" />
+                          Deposit Funds
+                        </Button>
+                        <Button 
+                          size="lg" 
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-8 py-3"
+                        >
+                          <Plus className="mr-2 h-5 w-5" />
+                          Start Trading
+                        </Button>
+                      </div>
                       <Button variant="outline" className="h-24 flex flex-col items-center group hover:border-yellow-500">
                         <ArrowUp className="h-6 w-6 mb-2 text-yellow-500 group-hover:scale-110 transition-transform" />
                         <span className="text-sm">Withdraw</span>
@@ -580,7 +591,7 @@ export default function Dashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center">
@@ -595,7 +606,7 @@ export default function Dashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center">
