@@ -28,11 +28,13 @@ export default function Sidebar({ portfolioData }: SidebarProps) {
 
   const navigationItems = [
     { href: "/dashboard", label: "Dashboard", icon: LineChart },
+    { href: "/analytics", label: "Portfolio Analytics", icon: BarChart3 },
+    { href: "/transactions", label: "Transaction History", icon: History },
+    { href: "/watchlist", label: "Watchlist", icon: Wallet },
     { href: "#trading", label: "Trading", icon: ArrowLeftRight },
-    { href: "#portfolio", label: "Portfolio", icon: Wallet },
-    { href: "#history", label: "History", icon: History },
     { href: "#news", label: "News", icon: Newspaper },
-    { href: "#profile", label: "Profile", icon: User },
+    { href: "/settings", label: "Settings", icon: User },
+    { href: "/help", label: "Help", icon: Shield },
   ];
 
   const adminItems = [

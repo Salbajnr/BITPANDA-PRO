@@ -11,6 +11,11 @@ import Contact from "@/pages/Contact";
 import Features from "@/pages/Features";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import TransactionHistory from "@/pages/TransactionHistory";
+import UserSettings from "@/pages/UserSettings";
+import PortfolioAnalytics from "@/pages/PortfolioAnalytics";
+import Watchlist from "@/pages/Watchlist";
+import Help from "@/pages/Help";
 import NotFound from "@/pages/not-found";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
@@ -67,6 +72,108 @@ function AppContent() {
           )
         }
       />
+      
+      {/* User Dashboard Routes */}
+      <Route
+        path="/transactions"
+        component={() =>
+          user ? (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <TransactionHistory />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <Redirect to="/auth" />
+          )
+        }
+      />
+      
+      <Route
+        path="/settings"
+        component={() =>
+          user ? (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <UserSettings />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <Redirect to="/auth" />
+          )
+        }
+      />
+      
+      <Route
+        path="/analytics"
+        component={() =>
+          user ? (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <PortfolioAnalytics />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <Redirect to="/auth" />
+          )
+        }
+      />
+      
+      <Route
+        path="/watchlist"
+        component={() =>
+          user ? (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <Watchlist />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <Redirect to="/auth" />
+          )
+        }
+      />
+      
+      <Route
+        path="/help"
+        component={() =>
+          user ? (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <Help />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <main className="flex-1 p-6">
+                <Help />
+              </main>
+            </div>
+          )
+        }
+      />
+      
       <Route component={NotFound} />
     </Switch>
   );
