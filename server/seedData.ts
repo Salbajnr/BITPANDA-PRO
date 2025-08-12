@@ -2,10 +2,28 @@
 import { db } from "./db";
 import { cryptoAssets, users, portfolios } from "../shared/schema";
 import { eq } from "drizzle-orm";
+import { hashPassword } from "./auth";
 
 export async function seedDatabase() {
   try {
     console.log("🌱 Starting database seeding...");
+    
+    // Create default admin user
+    const adminExists = await db.select().from(users).where(eq(users.email, 'admin@bitpandapro.com'));
+    
+    if (adminExists.length === 0) {
+      const hashedPassword = await hashPassword('admin123');
+      await db.insert(users).values({
+        username: 'admin',
+        email: 'admin@bitpandapro.com',
+        password: hashedPassword,
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'admin',
+        isActive: true,
+      });
+      console.log("✅ Default admin user created");
+    }
     
     // Seed initial crypto assets
     const assets = [
