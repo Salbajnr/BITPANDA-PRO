@@ -8,6 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@/assets/logo.jpeg";
+import { getCryptoLogo, BitcoinLogo, EthereumLogo, SolanaLogo, AvalancheLogo, CardanoLogo, PolkadotLogo } from "@/components/CryptoLogos";
 
 interface MarketData {
   symbol: string;
@@ -43,7 +44,7 @@ export default function Landing() {
       change: 2.45, 
       volume: "$2.4B", 
       color: "from-orange-400 to-orange-600", 
-      icon: "₿",
+      icon: "BTC",
       chartData: [42000, 42500, 41800, 43200, 42900, 43800, 43250]
     },
     { 
@@ -53,7 +54,7 @@ export default function Landing() {
       change: -1.23, 
       volume: "$1.2B", 
       color: "from-blue-400 to-blue-600", 
-      icon: "Ξ",
+      icon: "ETH",
       chartData: [2720, 2650, 2780, 2690, 2640, 2700, 2680]
     },
     { 
@@ -63,7 +64,7 @@ export default function Landing() {
       change: 5.67, 
       volume: "$580M", 
       color: "from-purple-400 to-purple-600", 
-      icon: "S",
+      icon: "SOL",
       chartData: [92, 94, 96, 95, 99, 102, 98]
     },
     { 
@@ -73,7 +74,7 @@ export default function Landing() {
       change: 3.21, 
       volume: "$340M", 
       color: "from-indigo-400 to-indigo-600", 
-      icon: "A",
+      icon: "ADA",
       chartData: [0.46, 0.47, 0.45, 0.48, 0.49, 0.47, 0.485]
     },
     { 
@@ -83,7 +84,7 @@ export default function Landing() {
       change: 4.12, 
       volume: "$290M", 
       color: "from-red-400 to-red-600", 
-      icon: "Λ",
+      icon: "AVAX",
       chartData: [32, 33, 35, 34, 36, 35, 34.82]
     },
     { 
@@ -93,18 +94,18 @@ export default function Landing() {
       change: -0.89, 
       volume: "$180M", 
       color: "from-pink-400 to-pink-600", 
-      icon: "●",
+      icon: "DOT",
       chartData: [7.1, 7.3, 7.0, 7.4, 7.2, 7.35, 7.25]
     }
   ]);
 
   const [floatingElements] = useState<FloatingElement[]>([
-    { id: 1, x: 5, y: 10, icon: "₿", color: "from-orange-400 to-orange-600", delay: 0, duration: 6, size: 64 },
-    { id: 2, x: 85, y: 15, icon: "Ξ", color: "from-blue-400 to-blue-600", delay: 1, duration: 7, size: 56 },
-    { id: 3, x: 10, y: 70, icon: "S", color: "from-purple-400 to-purple-600", delay: 2, duration: 8, size: 48 },
-    { id: 4, x: 90, y: 75, icon: "A", color: "from-indigo-400 to-indigo-600", delay: 3, duration: 6.5, size: 52 },
-    { id: 5, x: 15, y: 40, icon: "Λ", color: "from-red-400 to-red-600", delay: 4, duration: 7.5, size: 44 },
-    { id: 6, x: 75, y: 45, icon: "●", color: "from-pink-400 to-pink-600", delay: 5, duration: 9, size: 40 },
+    { id: 1, x: 5, y: 10, icon: "BTC", color: "from-orange-400 to-orange-600", delay: 0, duration: 6, size: 64 },
+    { id: 2, x: 85, y: 15, icon: "ETH", color: "from-blue-400 to-blue-600", delay: 1, duration: 7, size: 56 },
+    { id: 3, x: 10, y: 70, icon: "SOL", color: "from-purple-400 to-purple-600", delay: 2, duration: 8, size: 48 },
+    { id: 4, x: 90, y: 75, icon: "ADA", color: "from-indigo-400 to-indigo-600", delay: 3, duration: 6.5, size: 52 },
+    { id: 5, x: 15, y: 40, icon: "AVAX", color: "from-red-400 to-red-600", delay: 4, duration: 7.5, size: 44 },
+    { id: 6, x: 75, y: 45, icon: "DOT", color: "from-pink-400 to-pink-600", delay: 5, duration: 9, size: 40 },
   ]);
 
   const features = [
@@ -240,8 +241,8 @@ export default function Landing() {
               ease: "easeInOut",
             }}
           >
-            <div className={`w-full h-full bg-gradient-to-r ${element.color} rounded-full flex items-center justify-center shadow-2xl blur-sm`}>
-              <span className="text-white font-bold text-2xl">{element.icon}</span>
+            <div className="w-full h-full rounded-full flex items-center justify-center shadow-2xl">
+              {getCryptoLogo(element.icon, element.size * 0.8, "opacity-60")}
             </div>
           </motion.div>
         ))}
@@ -475,8 +476,8 @@ export default function Landing() {
                       whileHover={{ scale: 1.02 }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 bg-gradient-to-r ${crypto.color} rounded-full flex items-center justify-center text-white font-bold shadow-lg`}>
-                          {crypto.icon}
+                        <div className="w-10 h-10 flex items-center justify-center shadow-lg">
+                          {getCryptoLogo(crypto.icon, 40)}
                         </div>
                         <div>
                           <div className="font-semibold text-white">{crypto.symbol}</div>
