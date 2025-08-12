@@ -1,5 +1,5 @@
 
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
