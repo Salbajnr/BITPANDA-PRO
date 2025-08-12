@@ -16,15 +16,18 @@ import UserSettings from "@/pages/UserSettings";
 import PortfolioAnalytics from "@/pages/PortfolioAnalytics";
 import Watchlist from "@/pages/Watchlist";
 import Help from "@/pages/Help";
-import ForgotPassword from "@/pages/ForgotPassword";
-import ResetPassword from "@/pages/ResetPassword";
-import OtpVerification from "@/pages/OtpVerification";
-import KycVerification from "@/pages/KycVerification";
-import LiveSupport from "@/pages/LiveSupport";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import OtpVerification from "./pages/OtpVerification";
+import KycVerification from "./pages/KycVerification";
+import LiveSupport from "./pages/LiveSupport";
 import NotFound from "@/pages/not-found";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import Auth from "@/pages/Auth";
+import TradingPro from "./pages/TradingPro";
+import Orders from "./pages/Orders";
+import Security from "./pages/Security";
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -80,7 +83,7 @@ function AppContent() {
           )
         }
       />
-      
+
       {/* User Dashboard Routes */}
       <Route
         path="/transactions"
@@ -100,7 +103,7 @@ function AppContent() {
           )
         }
       />
-      
+
       <Route
         path="/settings"
         component={() =>
@@ -119,7 +122,7 @@ function AppContent() {
           )
         }
       />
-      
+
       <Route
         path="/analytics"
         component={() =>
@@ -138,7 +141,7 @@ function AppContent() {
           )
         }
       />
-      
+
       <Route
         path="/watchlist"
         component={() =>
@@ -157,7 +160,7 @@ function AppContent() {
           )
         }
       />
-      
+
       <Route
         path="/help"
         component={() =>
@@ -181,7 +184,7 @@ function AppContent() {
           )
         }
       />
-      
+
       <Route
         path="/kyc"
         component={() =>
@@ -200,7 +203,7 @@ function AppContent() {
           )
         }
       />
-      
+
       <Route
         path="/support"
         component={() =>
@@ -224,7 +227,10 @@ function AppContent() {
           )
         }
       />
-      
+
+      <Route path="/trading-pro" component={TradingPro} />
+      <Route path="/orders" component={Orders} />
+      <Route path="/security" component={Security} />
       <Route component={NotFound} />
     </Switch>
   );

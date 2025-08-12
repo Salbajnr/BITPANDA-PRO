@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -21,7 +20,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
     emailOrUsername: "",
     password: "",
   });
-  
+
   const [registerData, setRegisterData] = useState({
     username: "",
     email: "",
@@ -29,7 +28,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
     firstName: "",
     lastName: "",
   });
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -93,8 +92,8 @@ export default function Auth({ isAdmin = false }: AuthProps) {
             </span>
           </div>
           <p className="text-slate-600 dark:text-slate-400">
-            {isAdmin 
-              ? "Admin access to the cryptocurrency trading simulation platform" 
+            {isAdmin
+              ? "Admin access to the cryptocurrency trading simulation platform"
               : "Your gateway to cryptocurrency trading simulation"
             }
           </p>
@@ -112,7 +111,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
               <TabsTrigger value="login">Admin Login</TabsTrigger>
             </TabsList>
           )}
-          
+
           <TabsContent value="login">
             <Card>
               <CardHeader>
@@ -121,7 +120,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                   {isAdmin ? 'Admin Sign In' : 'Sign In'}
                 </CardTitle>
                 <CardDescription>
-                  {isAdmin 
+                  {isAdmin
                     ? 'Enter your admin credentials to access the control panel'
                     : 'Enter your credentials to access your account'
                   }
@@ -144,7 +143,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="loginPassword">Password</Label>
                     <div className="relative">
@@ -160,16 +159,16 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                       />
                     </div>
                   </div>
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full bg-green-600 hover:bg-green-700"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
-                
+
                 {!isAdmin && (
                   <div className="mt-4 space-y-2">
                     <p className="text-center text-sm text-slate-600 dark:text-slate-400">
@@ -194,7 +193,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           {!isAdmin && <TabsContent value="register">
             <Card>
               <CardHeader>
@@ -232,7 +231,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
                     <div className="relative">
@@ -248,7 +247,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
@@ -264,7 +263,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="registerPassword">Password</Label>
                     <div className="relative">
@@ -281,9 +280,9 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                       />
                     </div>
                   </div>
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full bg-green-600 hover:bg-green-700"
                     disabled={registerMutation.isPending}
                   >
