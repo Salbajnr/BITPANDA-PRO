@@ -1,4 +1,3 @@
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
@@ -41,7 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth-admin/login', async (req, res) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
-      
+
       // Find user by email or username
       const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
       if (!user || !user.password) {
@@ -99,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/register', async (req, res) => {
     try {
       const userData = registerSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
       if (existingUser) {
@@ -155,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
-      
+
       // Find user by email or username
       const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
       if (!user || !user.password) {
@@ -221,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!fullUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       let portfolio = await storage.getPortfolio(user.id);
       if (!portfolio) {
         portfolio = await storage.createPortfolio({
@@ -230,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableCash: '0.00',
         });
       }
-      
+
       res.json({ ...fullUser, portfolio });
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -246,10 +245,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!portfolio) {
         return res.status(404).json({ message: "Portfolio not found" });
       }
-      
+
       const holdings = await storage.getHoldings(portfolio.id);
       const transactions = await storage.getTransactions(portfolio.id, 10);
-      
+
       res.json({ portfolio, holdings, transactions });
     } catch (error) {
       console.error("Error fetching portfolio:", error);
@@ -268,16 +267,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const tradeData = insertTransactionSchema.parse(req.body);
       tradeData.portfolioId = portfolio.id;
-      
+
       const transaction = await storage.createTransaction(tradeData);
-      
+
       if (tradeData.type === 'buy') {
         const existing = await storage.getHolding(portfolio.id, tradeData.symbol);
         if (existing) {
           const newAmount = parseFloat(existing.amount) + parseFloat(tradeData.amount);
           const newAverage = (parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) + 
                             parseFloat(tradeData.price) * parseFloat(tradeData.amount)) / newAmount;
-          
+
           await storage.upsertHolding({
             portfolioId: portfolio.id,
             symbol: tradeData.symbol,
@@ -296,11 +295,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currentPrice: tradeData.price,
           });
         }
-        
+
         const newCash = parseFloat(portfolio.availableCash) - parseFloat(tradeData.total);
         await storage.updatePortfolio(portfolio.id, { availableCash: newCash.toString() });
       }
-      
+
       res.json(transaction);
     } catch (error) {
       console.error("Error executing trade:", error);
@@ -327,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const users = await storage.getAllUsers();
       const usersWithPortfolios = await Promise.all(
         users.map(async (u) => {
@@ -335,7 +334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return { ...u, portfolio };
         })
       );
-      
+
       res.json(usersWithPortfolios);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -351,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { targetUserId, adjustmentType, amount, currency, reason } = req.body;
-      
+
       const adjustment = await storage.createBalanceAdjustment({
         adminId: adminUser.id,
         targetUserId,
@@ -366,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let newValue: number;
         const currentValue = parseFloat(portfolio.totalValue);
         const adjustmentAmount = parseFloat(amount);
-        
+
         switch (adjustmentType) {
           case 'add':
             newValue = currentValue + adjustmentAmount;
@@ -380,13 +379,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           default:
             return res.status(400).json({ message: "Invalid adjustment type" });
         }
-        
+
         await storage.updatePortfolio(portfolio.id, { 
           totalValue: newValue.toString(),
           availableCash: currency === 'USD' ? newValue.toString() : portfolio.availableCash
         });
       }
-      
+
       res.json(adjustment);
     } catch (error) {
       console.error("Error simulating balance:", error);
@@ -400,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const adjustments = await storage.getBalanceAdjustments(req.params.userId);
       res.json(adjustments);
     } catch (error) {
