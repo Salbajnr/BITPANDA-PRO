@@ -665,31 +665,31 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">SUPPORTS</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">How to Deposit</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">How to Withdraw</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Open Account</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Verify Your Account</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Customer Service</a></li>
+                <li><Link to="/help-center" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/tutorials" className="hover:text-white transition-colors">How to Deposit</Link></li>
+                <li><Link to="/tutorials" className="hover:text-white transition-colors">How to Withdraw</Link></li>
+                <li><Link to="/auth" className="hover:text-white transition-colors">Open Account</Link></li>
+                <li><Link to="/kyc" className="hover:text-white transition-colors">Verify Your Account</Link></li>
+                <li><Link to="/support" className="hover:text-white transition-colors">Customer Service</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">LEARN MORE</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Responsible Trading</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Tutorials</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Avoid Scam</a></li>
+                <li><Link to="/tutorials" className="hover:text-white transition-colors">Responsible Trading</Link></li>
+                <li><Link to="/tutorials" className="hover:text-white transition-colors">Tutorials</Link></li>
+                <li><Link to="/help-center" className="hover:text-white transition-colors">Avoid Scam</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">Company</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
+                <li><Link to="/about-us" className="hover:text-white transition-colors">About</Link></li>
+                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">Terms</Link></li>
               </ul>
             </div>
           </div>

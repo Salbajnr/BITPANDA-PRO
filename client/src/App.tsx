@@ -28,6 +28,12 @@ import Auth from "@/pages/Auth";
 import TradingPro from "./pages/TradingPro";
 import Orders from "./pages/Orders";
 import Security from "./pages/Security";
+import HelpCenter from './pages/HelpCenter';
+import Tutorials from './pages/Tutorials';
+import AboutUs from './pages/AboutUs';
+import Careers from './pages/Careers';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -167,6 +173,12 @@ function AppContent() {
       <Route path="/trading-pro" component={TradingPro} />
       <Route path="/orders" component={Orders} />
       <Route path="/security" component={Security} />
+      <Route path="/help-center" element={<HelpCenter />} />
+      <Route path="/tutorials" element={<Tutorials />} />
+      <Route path="/about-us" element={<AboutUs />} />
+      <Route path="/careers" element={<Careers />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route component={NotFound} />
     </Switch>
   );
