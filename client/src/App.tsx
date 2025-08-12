@@ -16,6 +16,11 @@ import UserSettings from "@/pages/UserSettings";
 import PortfolioAnalytics from "@/pages/PortfolioAnalytics";
 import Watchlist from "@/pages/Watchlist";
 import Help from "@/pages/Help";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
+import OtpVerification from "@/pages/OtpVerification";
+import KycVerification from "@/pages/KycVerification";
+import LiveSupport from "@/pages/LiveSupport";
 import NotFound from "@/pages/not-found";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
@@ -40,6 +45,9 @@ function AppContent() {
       <Route path="/features" component={Features} />
       <Route path="/auth" component={() => user ? <Redirect to="/dashboard" /> : <Auth />} />
       <Route path="/auth-admin" component={() => user && user.role === 'admin' ? <Redirect to="/admin" /> : <Auth isAdmin={true} />} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password/:token" component={ResetPassword} />
+      <Route path="/verify-otp/:type/:email" component={OtpVerification} />
       <Route
         path="/dashboard"
         component={() =>
@@ -168,6 +176,49 @@ function AppContent() {
               <Navbar />
               <main className="flex-1 p-6">
                 <Help />
+              </main>
+            </div>
+          )
+        }
+      />
+      
+      <Route
+        path="/kyc"
+        component={() =>
+          user ? (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <KycVerification />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <Redirect to="/auth" />
+          )
+        }
+      />
+      
+      <Route
+        path="/support"
+        component={() =>
+          user ? (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <LiveSupport />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <main className="flex-1 p-6">
+                <LiveSupport />
               </main>
             </div>
           )

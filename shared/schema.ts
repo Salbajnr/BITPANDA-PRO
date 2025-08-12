@@ -105,6 +105,131 @@ export const newsArticles = pgTable("news_articles", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Password reset tokens
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  token: varchar("token").unique().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// OTP verification tokens
+export const otpTokens = pgTable("otp_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull(),
+  token: varchar("token", { length: 6 }).notNull(),
+  type: varchar("type", { length: 20 }).notNull(), // 'registration', 'password_reset', '2fa'
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false).notNull(),
+  attempts: decimal("attempts", { precision: 2, scale: 0 }).default('0').notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// KYC verification status enum
+export const kycStatusEnum = pgEnum('kyc_status', ['pending', 'under_review', 'approved', 'rejected']);
+
+// KYC verification
+export const kycVerifications = pgTable("kyc_verifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
+  dateOfBirth: timestamp("date_of_birth").notNull(),
+  nationality: varchar("nationality").notNull(),
+  address: text("address").notNull(),
+  city: varchar("city").notNull(),
+  postalCode: varchar("postal_code").notNull(),
+  country: varchar("country").notNull(),
+  phoneNumber: varchar("phone_number").notNull(),
+  documentType: varchar("document_type").notNull(), // 'passport', 'driver_license', 'national_id'
+  documentNumber: varchar("document_number").notNull(),
+  documentFrontImageUrl: varchar("document_front_image_url").notNull(),
+  documentBackImageUrl: varchar("document_back_image_url"),
+  selfieImageUrl: varchar("selfie_image_url").notNull(),
+  status: kycStatusEnum("status").default('pending').notNull(),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  rejectionReason: text("rejection_reason"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Support ticket status enum
+export const ticketStatusEnum = pgEnum('ticket_status', ['open', 'in_progress', 'resolved', 'closed']);
+export const ticketPriorityEnum = pgEnum('ticket_priority', ['low', 'medium', 'high', 'urgent']);
+
+// Support tickets
+export const supportTickets = pgTable("support_tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  category: varchar("category").notNull(), // 'technical', 'account', 'trading', 'kyc', 'general'
+  priority: ticketPriorityEnum("priority").default('medium').notNull(),
+  status: ticketStatusEnum("status").default('open').notNull(),
+  assignedTo: varchar("assigned_to").references(() => users.id),
+  attachmentUrls: jsonb("attachment_urls").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Support ticket messages/chat
+export const supportMessages = pgTable("support_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ticketId: varchar("ticket_id").references(() => supportTickets.id, { onDelete: 'cascade' }).notNull(),
+  senderId: varchar("sender_id").references(() => users.id).notNull(),
+  message: text("message").notNull(),
+  isInternal: boolean("is_internal").default(false).notNull(), // true for admin-only notes
+  attachmentUrls: jsonb("attachment_urls").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Live chat sessions
+export const liveChatSessions = pgTable("live_chat_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  agentId: varchar("agent_id").references(() => users.id),
+  status: varchar("status").default('waiting').notNull(), // 'waiting', 'active', 'ended'
+  subject: varchar("subject"),
+  startedAt: timestamp("started_at").defaultNow(),
+  endedAt: timestamp("ended_at"),
+  rating: decimal("rating", { precision: 2, scale: 1 }), // 1.0 to 5.0
+  feedback: text("feedback"),
+});
+
+// Live chat messages
+export const liveChatMessages = pgTable("live_chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => liveChatSessions.id, { onDelete: 'cascade' }).notNull(),
+  senderId: varchar("sender_id").references(() => users.id).notNull(),
+  message: text("message").notNull(),
+  messageType: varchar("message_type").default('text').notNull(), // 'text', 'image', 'file', 'system'
+  attachmentUrl: varchar("attachment_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User preferences and settings
+export const userPreferences = pgTable("user_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  emailNotifications: boolean("email_notifications").default(true).notNull(),
+  tradingAlerts: boolean("trading_alerts").default(true).notNull(),
+  priceAlerts: boolean("price_alerts").default(false).notNull(),
+  newsUpdates: boolean("news_updates").default(true).notNull(),
+  marketingEmails: boolean("marketing_emails").default(false).notNull(),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
+  sessionTimeout: decimal("session_timeout", { precision: 3, scale: 0 }).default('24').notNull(), // hours
+  loginNotifications: boolean("login_notifications").default(true).notNull(),
+  theme: varchar("theme").default('light').notNull(), // 'light', 'dark', 'auto'
+  language: varchar("language").default('en').notNull(),
+  timezone: varchar("timezone").default('UTC').notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   portfolio: one(portfolios, {
@@ -189,6 +314,49 @@ export const insertNewsArticleSchema = createInsertSchema(newsArticles).omit({
   createdAt: true,
 });
 
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertOtpTokenSchema = createInsertSchema(otpTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKycVerificationSchema = createInsertSchema(kycVerifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSupportMessageSchema = createInsertSchema(supportMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLiveChatSessionSchema = createInsertSchema(liveChatSessions).omit({
+  id: true,
+  startedAt: true,
+});
+
+export const insertLiveChatMessageSchema = createInsertSchema(liveChatMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -202,3 +370,19 @@ export type BalanceAdjustment = typeof balanceAdjustments.$inferSelect;
 export type InsertBalanceAdjustment = z.infer<typeof insertBalanceAdjustmentSchema>;
 export type NewsArticle = typeof newsArticles.$inferSelect;
 export type InsertNewsArticle = z.infer<typeof insertNewsArticleSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type OtpToken = typeof otpTokens.$inferSelect;
+export type InsertOtpToken = z.infer<typeof insertOtpTokenSchema>;
+export type KycVerification = typeof kycVerifications.$inferSelect;
+export type InsertKycVerification = z.infer<typeof insertKycVerificationSchema>;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type SupportMessage = typeof supportMessages.$inferSelect;
+export type InsertSupportMessage = z.infer<typeof insertSupportMessageSchema>;
+export type LiveChatSession = typeof liveChatSessions.$inferSelect;
+export type InsertLiveChatSession = z.infer<typeof insertLiveChatSessionSchema>;
+export type LiveChatMessage = typeof liveChatMessages.$inferSelect;
+export type InsertLiveChatMessage = z.infer<typeof insertLiveChatMessageSchema>;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;

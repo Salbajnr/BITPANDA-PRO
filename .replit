@@ -63,3 +63,6 @@ args = "sleep 2"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[agent]
+integrations = ["javascript_sendgrid==1.0.0", "javascript_websocket==1.0.0"]

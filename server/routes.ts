@@ -4,6 +4,7 @@ import session from "express-session";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, isAuthenticated, loadUser, AuthenticatedRequest } from "./auth";
 import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema } from "@shared/schema";
+import authRoutes from './auth-routes';
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -34,6 +35,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Load user middleware
   app.use(loadUser);
+
+  // Authentication routes (forgot password, OTP, etc.)
+  app.use('/api/auth', authRoutes);
 
   // Auth routes
   // Admin auth routes

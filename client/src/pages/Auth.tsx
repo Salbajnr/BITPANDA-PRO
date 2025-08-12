@@ -167,6 +167,28 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                     {loginMutation.isPending ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
+                
+                {!isAdmin && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+                      <Link href="/forgot-password">
+                        <span className="text-primary hover:underline cursor-pointer">
+                          Forgot your password?
+                        </span>
+                      </Link>
+                    </p>
+                    <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+                      Don't have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("register")}
+                        className="text-primary hover:underline"
+                      >
+                        Sign up
+                      </button>
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
