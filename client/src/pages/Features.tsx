@@ -1,56 +1,58 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
 import { 
   TrendingUp, Shield, Zap, BarChart3, Globe, 
   Smartphone, Users, Clock, Award, Target,
-  Activity, Layers, Bell, Lock
+  Activity, Layers, Bell, Lock, Menu, X, ArrowRight
 } from 'lucide-react';
-import logoPath from '@/assets/logo.jpeg';
+import logoImage from '@/assets/logo.jpeg';
 
 export default function Features() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogin = () => {
+    window.location.href = "/auth";
+  };
+
   const features = [
     {
-      icon: TrendingUp,
-      title: "Real-Time Market Data",
-      description: "Live cryptocurrency prices from major exchanges updated every second",
-      color: "text-green-400",
-      bgColor: "from-green-500 to-green-600"
-    },
-    {
-      icon: BarChart3,
-      title: "Advanced Charting",
-      description: "Professional-grade charts with technical indicators and drawing tools",
-      color: "text-blue-400",
-      bgColor: "from-blue-500 to-blue-600"
-    },
-    {
       icon: Shield,
-      title: "Risk-Free Trading",
-      description: "Practice with virtual funds without any financial risk",
-      color: "text-purple-400",
-      bgColor: "from-purple-500 to-purple-600"
+      title: "Bank-Level Security",
+      description: "Multi-layer security with cold storage, 2FA, and insurance coverage up to €100M",
+      bgColor: "from-green-500 to-emerald-600"
+    },
+    {
+      icon: TrendingUp,
+      title: "Real-Time Analytics",
+      description: "Advanced charting tools, technical indicators, and market analysis",
+      bgColor: "from-blue-500 to-cyan-600"
     },
     {
       icon: Zap,
-      title: "Instant Execution",
-      description: "Lightning-fast order execution matching real market conditions",
-      color: "text-yellow-400",
-      bgColor: "from-yellow-500 to-yellow-600"
+      title: "Lightning Fast Execution",
+      description: "Ultra-low latency trading with institutional-grade order matching",
+      bgColor: "from-yellow-500 to-orange-600"
+    },
+    {
+      icon: BarChart3,
+      title: "Portfolio Management",
+      description: "Comprehensive portfolio tracking with performance analytics",
+      bgColor: "from-purple-500 to-pink-600"
     },
     {
       icon: Globe,
       title: "Global Markets",
-      description: "Access to 100+ cryptocurrencies from exchanges worldwide",
-      color: "text-cyan-400",
-      bgColor: "from-cyan-500 to-cyan-600"
+      description: "Access to 100+ cryptocurrencies and traditional assets",
+      bgColor: "from-indigo-500 to-blue-600"
     },
     {
       icon: Smartphone,
-      title: "Mobile Responsive",
-      description: "Trade on any device with our fully responsive design",
-      color: "text-pink-400",
-      bgColor: "from-pink-500 to-pink-600"
+      title: "Mobile Trading",
+      description: "Full-featured mobile app for trading on the go",
+      bgColor: "from-red-500 to-pink-600"
     }
   ];
 
@@ -77,281 +79,403 @@ export default function Features() {
     }
   ];
 
+  const securityFeatures = [
+    "256-bit SSL encryption",
+    "Two-factor authentication",
+    "Cold storage wallets",
+    "Regular security audits",
+    "EU regulatory compliance",
+    "€100M insurance coverage"
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className="min-h-screen bg-slate-900 text-white overflow-x-hidden">
+      {/* Floating Crypto Elements */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[10%] left-[5%] w-16 h-16 opacity-20 animate-bounce" style={{animationDelay: '0.5s'}}>
+          <div className="w-full h-full bg-orange-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-2xl">₿</span>
+          </div>
+        </div>
+        <div className="absolute top-[25%] right-[10%] w-12 h-12 opacity-20 animate-bounce" style={{animationDelay: '1.5s'}}>
+          <div className="w-full h-full bg-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-xl">Ξ</span>
+          </div>
+        </div>
+        <div className="absolute top-[60%] left-[15%] w-10 h-10 opacity-20 animate-bounce" style={{animationDelay: '2.5s'}}>
+          <div className="w-full h-full bg-green-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-lg">S</span>
+          </div>
+        </div>
+      </div>
+
       {/* Navigation */}
-      <nav className="bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
+      <nav className="fixed w-full top-0 z-50 bg-slate-900/90 backdrop-blur-lg border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <img src={logoPath} alt="BITPANDA PRO" className="h-8 w-8 rounded-lg" />
-              <span className="text-xl font-bold text-white">BITPANDA PRO</span>
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 rounded-full overflow-hidden">
+                <img src={logoImage} alt="BITPANDA PRO" className="w-full h-full object-cover" />
+              </div>
+              <span className="text-2xl font-extrabold text-white tracking-wide">BITPANDA PRO</span>
             </div>
-            <div className="hidden md:flex space-x-6">
-              <a href="/" className="text-gray-300 hover:text-white transition-colors">Home</a>
-              <a href="/about" className="text-gray-300 hover:text-white transition-colors">About</a>
-              <a href="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</a>
-              <a href="/features" className="text-white font-medium">Features</a>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="/" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Home</a>
+              <a href="/about" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">About</a>
+              <a href="/features" className="text-primary font-medium underline underline-offset-4 decoration-primary">Features</a>
+              <a href="/contact" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Contact</a>
+              <Button
+                onClick={handleLogin}
+                className="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-6 py-3 rounded-full transition-all font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                Start Trading
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-white hover:bg-slate-800"
+              >
+                {isMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </Button>
             </div>
           </div>
+
+          {/* Mobile Navigation Menu */}
+          {isMenuOpen && (
+            <div className="md:hidden absolute top-20 left-0 w-full bg-slate-900/95 backdrop-blur-lg border-b border-slate-700">
+              <div className="px-4 py-6 space-y-4">
+                <a 
+                  href="/" 
+                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Home
+                </a>
+                <a 
+                  href="/about" 
+                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  About Us
+                </a>
+                <a 
+                  href="/features" 
+                  className="block text-primary font-medium py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Features
+                </a>
+                <a 
+                  href="/contact" 
+                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Contact
+                </a>
+                <Button
+                  onClick={() => {
+                    handleLogin();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full mt-4 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-6 py-3 rounded-full transition-all font-medium"
+                >
+                  Start Trading
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Enterprise-Grade <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-400">Investment Platform</span>
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/10 to-green-500/10 opacity-20"></div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center animate-in slide-in-from-bottom duration-1000">
+            <div className="inline-block px-4 py-2 rounded-full mb-6 bg-gradient-to-r from-primary/20 to-green-500/20 border border-primary/30">
+              <span className="text-sm font-medium text-white">🚀 PROFESSIONAL TRADING TOOLS</span>
+            </div>
+            <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight mb-6">
+              Platform
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-500">
+                {" "}Features
+              </span>
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Institutional infrastructure and regulatory compliance trusted by Europe's leading financial institutions and 2.5 million investors.
+            <p className="text-xl text-gray-300 mb-8 leading-relaxed max-w-3xl mx-auto">
+              Discover the advanced tools and features that make BITPANDA PRO the preferred choice for professional 
+              cryptocurrency traders across Europe.
             </p>
           </div>
         </div>
       </section>
 
       {/* Main Features Grid */}
-      <section className="py-16">
+      <section className="py-20 bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">Core Features</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Everything you need for professional cryptocurrency trading
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all transform hover:-translate-y-2">
-                <CardContent className="p-8 text-center">
-                  <div className={`w-16 h-16 bg-gradient-to-r ${feature.bgColor} rounded-full flex items-center justify-center mx-auto mb-6`}>
-                    <feature.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
-                  <p className="text-gray-300">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <Card key={index} className="bg-slate-700 rounded-2xl border border-slate-600 transition-all duration-300 group hover:shadow-xl hover:-translate-y-2">
+                  <CardContent className="p-8 text-center">
+                    <div className={`w-16 h-16 bg-gradient-to-r ${feature.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform group-hover:scale-110`}>
+                      <IconComponent className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
+                    <p className="text-gray-300">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Trading Tools Section */}
-      <section className="py-20 bg-white/5 backdrop-blur-sm">
+      <section className="py-20 bg-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-white mb-4">
               Professional Trading Tools
             </h2>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Everything you need to analyze markets and execute successful trades
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {tradingFeatures.map((feature, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all">
-                <CardContent className="p-6 text-center">
-                  <feature.icon className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-3">{feature.title}</h3>
-                  <p className="text-gray-300 text-sm">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Tiers */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Choose Your Plan
-            </h2>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-              Start with our free plan or upgrade for advanced features
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Retail Plan */}
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-white mb-2">Retail Investor</h3>
-                  <p className="text-4xl font-bold text-green-400 mb-2">€0</p>
-                  <p className="text-gray-300">For individual investors</p>
+            {tradingFeatures.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <div key={index} className="text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform group-hover:scale-110">
+                    <IconComponent className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-3">{feature.title}</h3>
+                  <p className="text-gray-400 text-sm">{feature.description}</p>
                 </div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    €10,000 demo portfolio
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    50+ crypto assets
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Mobile & web platform
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Customer support
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600">
-                  Start Investing
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Premium Plan */}
-            <Card className="bg-gradient-to-b from-white/15 to-white/10 backdrop-blur-sm border-green-400/50 hover:border-green-400 transition-all transform scale-105">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <Badge className="bg-green-500 text-white mb-4">Most Popular</Badge>
-                  <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
-                  <p className="text-4xl font-bold text-green-400 mb-2">€39</p>
-                  <p className="text-gray-300">per month</p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    €250,000 demo portfolio
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Bloomberg Terminal access
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    200+ crypto & traditional assets
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Dedicated relationship manager
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Advanced risk analytics
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600">
-                  Start Premium Trial
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Institutional Plan */}
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-white mb-2">Institutional</h3>
-                  <p className="text-4xl font-bold text-blue-400 mb-2">Custom</p>
-                  <p className="text-gray-300">tailored pricing</p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    Multi-million portfolio simulation
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    Prime brokerage access
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    White-label solutions
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    Dedicated infrastructure
-                  </li>
-                  <li className="flex items-center text-gray-300">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                    Regulatory consultation
-                  </li>
-                </ul>
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-                  Contact Institutional Sales
-                </Button>
-              </CardContent>
-            </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Security Section */}
-      <section className="py-20 bg-white/5 backdrop-blur-sm">
+      <section className="py-20 bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Bank-Level Security
-            </h2>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-              Your data and privacy are protected with enterprise-grade security measures
-            </p>
-          </div>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="animate-in slide-in-from-left duration-1000">
+              <div className="inline-block px-4 py-2 rounded-full mb-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
+                <span className="text-sm font-medium text-green-400">🔒 ENTERPRISE SECURITY</span>
+              </div>
+              <h2 className="text-4xl font-bold text-white mb-6">Bank-Grade Security</h2>
+              <p className="text-xl text-gray-300 mb-8">
+                Your security is our top priority. We employ the same security measures used by leading financial institutions 
+                to protect your assets and personal information.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {securityFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <Shield className="text-green-500 w-3 h-3" />
+                    </div>
+                    <span className="text-gray-300">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock className="h-8 w-8 text-white" />
+            <div className="animate-in slide-in-from-right duration-1000">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-tr from-green-500/30 to-emerald-500/30 rounded-3xl blur-3xl opacity-60"></div>
+                <div className="relative bg-slate-700 rounded-3xl p-8 border border-slate-600 shadow-2xl">
+                  <div className="text-center mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Lock className="w-10 h-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">€100M Insurance</h3>
+                    <p className="text-gray-400">Your funds are protected by comprehensive insurance coverage</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-slate-600 rounded-xl p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-white font-semibold">Cold Storage</span>
+                        <Badge className="bg-green-500/20 text-green-400">98%</Badge>
+                      </div>
+                      <div className="text-sm text-gray-400">Offline storage for maximum security</div>
+                    </div>
+                    
+                    <div className="bg-slate-600 rounded-xl p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-white font-semibold">Multi-Sig Wallets</span>
+                        <Badge className="bg-blue-500/20 text-blue-400">Active</Badge>
+                      </div>
+                      <div className="text-sm text-gray-400">Multiple signature authorization required</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">SSL Encryption</h3>
-              <p className="text-gray-300 text-sm">256-bit SSL encryption for all data transmission</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">GDPR Compliant</h3>
-              <p className="text-gray-300 text-sm">Full compliance with data protection regulations</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Privacy First</h3>
-              <p className="text-gray-300 text-sm">We never share your personal information</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">SOC 2 Certified</h3>
-              <p className="text-gray-300 text-sm">Industry-standard security certifications</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-green-600 to-blue-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Master Crypto Trading?
-          </h2>
+      {/* Performance Section */}
+      <section className="py-20 bg-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">Performance & Reliability</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Built for high-frequency trading with institutional-grade infrastructure
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
+              <div className="text-white font-semibold mb-1">Uptime</div>
+              <div className="text-sm text-gray-400">Guaranteed availability</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-4xl font-bold text-green-500 mb-2">&lt;10ms</div>
+              <div className="text-white font-semibold mb-1">Latency</div>
+              <div className="text-sm text-gray-400">Lightning-fast execution</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-4xl font-bold text-blue-500 mb-2">10M+</div>
+              <div className="text-white font-semibold mb-1">Orders/Day</div>
+              <div className="text-sm text-gray-400">Processing capacity</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-4xl font-bold text-yellow-500 mb-2">24/7</div>
+              <div className="text-white font-semibold mb-1">Support</div>
+              <div className="text-sm text-gray-400">Always available</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Section */}
+      <section className="py-20 bg-gradient-to-r from-primary to-primary-dark relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-slate-900/50 to-transparent"></div>
+        </div>
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-4xl font-bold text-white mb-6">Experience Professional Trading</h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of successful traders who started their journey with our platform.
+            Join the thousands of professional traders who rely on BITPANDA PRO for their cryptocurrency investments.
           </p>
-          <Button size="lg" variant="secondary" className="text-lg px-8 py-4 bg-white text-green-600 hover:bg-gray-100 transform hover:scale-105 transition-all">
-            Start Trading Today
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={handleLogin}
+              className="bg-white text-primary hover:bg-gray-100 px-10 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105 shadow-xl"
+            >
+              Start Trading
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-2 border-white text-white hover:bg-white/10 hover:text-white px-10 py-4 rounded-full text-lg font-bold transition-all"
+            >
+              Try Demo
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-black/40 backdrop-blur-sm border-t border-white/10 py-12">
+      <footer className="bg-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-4 mb-4">
-              <img src={logoPath} alt="BITPANDA PRO" className="h-8 w-8 rounded-lg" />
-              <span className="text-xl font-bold text-white">BITPANDA PRO</span>
+          <div className="grid md:grid-cols-5 gap-12">
+            <div>
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 rounded-full overflow-hidden">
+                  <img src={logoImage} alt="BITPANDA PRO" className="w-full h-full object-cover" />
+                </div>
+                <span className="text-xl font-bold">BITPANDA PRO</span>
+              </div>
+              <p className="text-gray-400 mb-4 max-w-xs">
+                The next-generation crypto trading platform for professionals.
+              </p>
             </div>
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">TOP INSTRUMENTS</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Forex</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Indices</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Commodities</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Cryptocurrency</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Shares</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">SUPPORTS</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">How to Deposit</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">How to Withdraw</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Open Account</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Verify Your Account</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Customer Service</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">LEARN MORE</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Responsible Trading</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Tutorials</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Avoid Scam</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Company</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 BITPANDA PRO. All rights reserved.
+              BITPANDA PRO Copyright Protected © 2024. All rights reserved.
             </p>
+            <div className="flex items-center space-x-6 mt-4 md:mt-0">
+              <span className="text-gray-400 text-sm flex items-center">
+                <Shield className="w-4 h-4 mr-2" />
+                EU Regulated
+              </span>
+            </div>
           </div>
         </div>
       </footer>

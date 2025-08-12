@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, DollarSign, TrendingUp, Shield, Bell, Settings, 
-  Search, Plus, ArrowUp, ArrowDown, Globe, Tasks,
+  Search, Plus, ArrowUp, ArrowDown, Globe, CheckSquare,
   UserPlus, ArrowRightLeft, Megaphone, BarChart3, Edit, Trash2,
   Activity, MessageCircle, PieChart, Clock, ChevronLeft, ChevronRight,
   MoreHorizontal, Sun, Moon
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
                           <div className="text-3xl font-bold text-slate-900 dark:text-white">{pendingActions}</div>
                         </div>
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 flex items-center justify-center">
-                          <Tasks className="text-yellow-500 text-xl" />
+                          <CheckSquare className="text-yellow-500 text-xl" />
                         </div>
                       </div>
                       <div className="mt-4">
