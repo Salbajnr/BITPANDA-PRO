@@ -176,12 +176,12 @@ function AppContent() {
       <Route path="/trading-pro" component={TradingPro} />
       <Route path="/orders" component={Orders} />
       <Route path="/security" component={Security} />
-      <Route path="/help-center" element={<HelpCenter />} />
-      <Route path="/tutorials" element={<Tutorials />} />
-      <Route path="/about-us" element={<AboutUs />} />
-      <Route path="/careers" element={<Careers />} />
-      <Route path="/privacy" element={<Privacy />} />
-      <Route path="/terms" element={<Terms />} />
+      <Route path="/help-center" component={HelpCenter} />
+      <Route path="/tutorials" component={Tutorials} />
+      <Route path="/about-us" component={AboutUs} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/deposit-history" component={DepositHistory} />
       <Route path="/admin/deposits" component={AdminDepositManagement} />
