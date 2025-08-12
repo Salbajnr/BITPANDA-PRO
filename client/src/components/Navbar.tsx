@@ -106,7 +106,7 @@ export default function Navbar() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               ))}
-              
+
               {user?.role === 'admin' && (
                 <NavigationMenuItem>
                   <Link href="/admin">

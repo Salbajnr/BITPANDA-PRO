@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { 
   TrendingUp, Shield, Zap, Users, BarChart3, ChartLine, Clock, 
@@ -11,6 +10,9 @@ import asset1 from "@/assets/IMG_5549.jpeg";
 import asset2 from "@/assets/IMG_5550.jpeg";
 import asset3 from "@/assets/IMG_5551.jpeg";
 import asset4 from "@/assets/IMG_5552.jpeg";
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartContainer } from '@/components/ui/chart';
+
 
 interface MarketData {
   symbol: string;
@@ -162,10 +164,10 @@ export default function Landing() {
           const priceChange = (Math.random() - 0.5) * 0.015; // More realistic price movements
           const newPrice = item.price * (1 + priceChange);
           const changePercent = ((newPrice - item.price) / item.price) * 100;
-          
+
           // Update chart data
           const newChartData = [...item.chartData.slice(1), newPrice];
-          
+
           return {
             ...item,
             price: newPrice,
@@ -195,17 +197,17 @@ export default function Landing() {
   // Generate SVG path for chart
   const generateChartPath = (data: number[], width: number = 200, height: number = 80) => {
     if (data.length < 2) return "";
-    
+
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min || 1;
-    
+
     const points = data.map((value, index) => {
       const x = (index / (data.length - 1)) * width;
       const y = height - ((value - min) / range) * height;
       return `${x},${y}`;
     });
-    
+
     return `M ${points.join(" L ")}`;
   };
 
@@ -245,7 +247,7 @@ export default function Landing() {
               </div>
               <span className="text-2xl font-extrabold text-white tracking-wide">BITPANDA PRO</span>
             </div>
-            
+
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               <a href="/" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">Home</a>
@@ -332,7 +334,7 @@ export default function Landing() {
       {/* Hero Section */}
       <section className="relative pt-32 pb-24 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/10 to-green-500/10 opacity-20"></div>
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-1000">
@@ -458,56 +460,18 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-6 text-white">Live Market Data</h2>
           <p className="text-xl text-gray-400 text-center mb-12 max-w-2xl mx-auto">Real-time prices and market trends for the top cryptocurrencies</p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {marketData.map((crypto, index) => (
-              <div key={index} className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-6 border border-slate-600 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-2">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 ${crypto.color} rounded-full flex items-center justify-center shadow-lg`}>
-                      <span className="text-white font-bold text-xl">{crypto.icon}</span>
-                    </div>
-                    <div>
-                      <span className="font-semibold text-lg text-white">{crypto.symbol}</span>
-                      <div className="text-sm text-gray-400">{crypto.name}</div>
-                    </div>
-                  </div>
-                  <span className={`text-sm font-bold px-2 py-1 rounded-full ${crypto.change >= 0 ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
-                    {crypto.change >= 0 ? '+' : ''}{crypto.change.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="text-2xl font-bold mb-4 text-white">
-                  ${crypto.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className="h-16 mb-4 relative bg-slate-900/30 rounded-lg p-1">
-                  <svg viewBox="0 0 200 60" className="w-full h-full">
-                    <defs>
-                      <linearGradient id={`gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor={crypto.change >= 0 ? "#22C55E" : "#EF4444"} />
-                        <stop offset="100%" stopColor={crypto.change >= 0 ? "#16A34A" : "#DC2626"} />
-                      </linearGradient>
-                    </defs>
-                    <path 
-                      d={generateChartPath(crypto.chartData, 180, 40)}
-                      fill="none" 
-                      stroke={`url(#gradient-${index})`} 
-                      strokeWidth="2.5" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      className="drop-shadow-sm"
-                    />
-                  </svg>
-                </div>
-                <div className="flex justify-between text-sm text-gray-400">
-                  <span>Vol: {crypto.volume}</span>
-                  <span className="flex items-center">
-                    <Activity className="w-3 h-3 mr-1" />
-                    Live
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+
+          <ChartContainer config={{ 'landing3dChart': { color: '#33FFBD' } }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={marketData.map(d => ({time: d.symbol, value: d.price}))}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke="var(--color-landing3dChart)" />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>  
         </div>
       </section>
 
@@ -521,25 +485,25 @@ export default function Landing() {
               Trusted by professionals across Europe's financial industry
             </p>
           </div>
-          
+
           <div className="relative max-w-4xl mx-auto">
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 border border-slate-700 shadow-2xl">
               <div className="flex items-center justify-center mb-6">
                 <Quote className="w-12 h-12 text-primary/30" />
               </div>
-              
+
               <div className="text-center mb-8">
                 <p className="text-xl text-gray-300 leading-relaxed mb-6 italic">
                   "{testimonials[currentTestimonial].content}"
                 </p>
-                
+
                 <div className="flex justify-center mb-4">
                   {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                   ))}
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-center space-x-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-green-500 flex items-center justify-center ring-2 ring-primary/30">
                   <span className="text-white text-xl font-bold">
@@ -559,7 +523,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            
+
             {/* Testimonial Navigation Dots */}
             <div className="flex justify-center space-x-3 mt-8">
               {testimonials.map((_, index) => (
@@ -661,7 +625,7 @@ export default function Landing() {
               Regulatory compliance and security certifications that matter to European investors
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
             <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-6 border border-slate-500 text-center shadow-lg">
               <div className="text-3xl font-bold text-green-400 mb-2">MiCA</div>
@@ -716,7 +680,7 @@ export default function Landing() {
               Trade over 100+ cryptocurrencies with competitive fees and deep liquidity
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-4 border border-slate-600 flex flex-col items-center transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center mb-3 shadow-lg">
@@ -725,7 +689,7 @@ export default function Landing() {
               <span className="font-semibold text-white">Bitcoin</span>
               <span className="text-sm text-green-500">+2.45%</span>
             </div>
-            
+
             <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-4 border border-slate-600 flex flex-col items-center transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-3 shadow-lg">
                 <span className="text-2xl">Ξ</span>
@@ -733,7 +697,7 @@ export default function Landing() {
               <span className="font-semibold text-white">Ethereum</span>
               <span className="text-sm text-red-500">-1.23%</span>
             </div>
-            
+
             <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-4 border border-slate-600 flex flex-col items-center transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="w-16 h-16 rounded-full bg-gray-500/20 flex items-center justify-center mb-3 shadow-lg">
                 <span className="text-2xl text-blue-400">₳</span>
@@ -741,7 +705,7 @@ export default function Landing() {
               <span className="font-semibold text-white">Cardano</span>
               <span className="text-sm text-green-500">+3.21%</span>
             </div>
-            
+
             <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-4 border border-slate-600 flex flex-col items-center transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mb-3 shadow-lg">
                 <span className="text-2xl text-green-400">◎</span>
@@ -749,7 +713,7 @@ export default function Landing() {
               <span className="font-semibold text-white">Solana</span>
               <span className="text-sm text-green-500">+5.67%</span>
             </div>
-            
+
             <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-4 border border-slate-600 flex flex-col items-center transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mb-3 shadow-lg">
                 <span className="text-xl text-yellow-400 font-bold">BNB</span>
@@ -757,7 +721,7 @@ export default function Landing() {
               <span className="font-semibold text-white">BNB</span>
               <span className="text-sm text-green-500">+1.89%</span>
             </div>
-            
+
             <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-4 border border-slate-600 flex flex-col items-center transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mb-3 shadow-lg">
                 <span className="text-lg text-purple-400 font-bold">MATIC</span>
@@ -766,7 +730,7 @@ export default function Landing() {
               <span className="text-sm text-red-500">-0.75%</span>
             </div>
           </div>
-          
+
           <div className="text-center mt-12">
             <Button 
               variant="outline" 
@@ -785,7 +749,7 @@ export default function Landing() {
             <h2 className="text-4xl font-bold mb-4 text-white">Latest Crypto News</h2>
             <p className="text-lg text-gray-400">Stay updated with real-time market news and analysis</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {newsItems.map((news, index) => (
               <div key={news.id} className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-600 overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
@@ -889,7 +853,7 @@ export default function Landing() {
                 </a>
               </div>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">TOP INSTRUMENTS</h4>
               <ul className="space-y-3 text-gray-400">
@@ -900,7 +864,7 @@ export default function Landing() {
                 <li><a href="#" className="hover:text-white transition-all duration-150">Shares</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">SUPPORTS</h4>
               <ul className="space-y-3 text-gray-400">
@@ -912,7 +876,7 @@ export default function Landing() {
                 <li><a href="/support" className="hover:text-white transition-all duration-150" rel="prefetch">Customer Service</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">LEARN MORE</h4>
               <ul className="space-y-3 text-gray-400">
@@ -921,7 +885,7 @@ export default function Landing() {
                 <li><a href="/help-center" className="hover:text-white transition-all duration-150" rel="prefetch">Avoid Scam</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">Company</h4>
               <ul className="space-y-3 text-gray-400">
@@ -932,7 +896,7 @@ export default function Landing() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
               BITPANDA PRO Copyright Protected © 2024. All rights reserved.

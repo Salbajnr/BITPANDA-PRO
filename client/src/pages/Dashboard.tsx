@@ -20,6 +20,10 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import NotificationCenter from "@/components/NotificationCenter";
+import {
+  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer
+} from "recharts";
+import { ChartContainer } from "@/components/ui/chart";
 
 interface PortfolioData {
   portfolio: {
@@ -463,18 +467,17 @@ export default function Dashboard() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-64 flex items-end space-x-2">
-                        {chartData.map((data, index) => (
-                          <div key={index} className="flex flex-col items-center flex-1 group">
-                            <div 
-                              className="w-full bg-gradient-to-t from-primary to-green-500 rounded-t-md transition-all duration-1000 group-hover:opacity-80 cursor-pointer"
-                              style={{ height: `${(data.value / maxValue) * 200}px` }}
-                              title={`${data.time}: $${data.value.toFixed(2)}`}
-                            ></div>
-                            <div className="text-slate-500 dark:text-slate-400 text-xs mt-2">{data.time}</div>
-                          </div>
-                        ))}
-                      </div>
+                      <ChartContainer config={{ 'my3dChart': { color: '#FF5733' } }}>
+                        <ResponsiveContainer width="100%" height={400}>
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="time" />
+                            <YAxis />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="value" stroke="var(--color-my3dChart)" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
                     </CardContent>
                   </Card>
 
