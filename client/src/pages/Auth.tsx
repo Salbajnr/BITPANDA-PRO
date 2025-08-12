@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ interface AuthProps {
 }
 
 export default function Auth({ isAdmin = false }: AuthProps) {
+  const [activeTab, setActiveTab] = useState("login");
   const [loginData, setLoginData] = useState({
     emailOrUsername: "",
     password: "",
