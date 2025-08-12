@@ -113,25 +113,25 @@ export default function Landing() {
       icon: <Shield className="w-8 h-8" />,
       title: "Bank-Grade Security",
       description: "Multi-signature wallets, cold storage, and advanced encryption protocols protect your assets 24/7",
-      color: "from-green-400 to-emerald-600"
+      color: "from-[#00D4AA] to-[#00B39F]"
     },
     {
       icon: <Zap className="w-8 h-8" />,
       title: "Lightning-Fast Execution",
       description: "Execute trades in milliseconds with our high-performance matching engine and global liquidity pools",
-      color: "from-yellow-400 to-orange-600"
+      color: "from-[#FFB82F] to-[#F7931A]"
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: "Professional Analytics",
       description: "Advanced charting tools, technical indicators, and AI-powered market insights for informed decisions",
-      color: "from-blue-400 to-cyan-600"
+      color: "from-[#3B82F6] to-[#1D4ED8]"
     },
     {
       icon: <Users className="w-8 h-8" />,
       title: "Global Community",
       description: "Join millions of traders worldwide with 24/7 multilingual support and educational resources",
-      color: "from-purple-400 to-pink-600"
+      color: "from-[#8B5CF6] to-[#7C3AED]"
     }
   ];
 
@@ -201,7 +201,7 @@ export default function Landing() {
       <svg width={width} height={height} className="inline-block">
         <path
           d={`M ${points.join(" L ")}`}
-          stroke={isPositive ? "#10b981" : "#ef4444"}
+          stroke={isPositive ? "#00D4AA" : "#F84638"}
           strokeWidth="2"
           fill="none"
           className="drop-shadow-sm"
@@ -211,10 +211,17 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white overflow-x-hidden relative">
-      {/* Animated Background Grid */}
-      <div className="fixed inset-0 opacity-20 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse" />
+    <div className="min-h-screen bg-[#0B0E11] text-white overflow-x-hidden relative">
+      {/* Bybit-inspired Background Pattern */}
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,182,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,182,0,0.1)_1px,transparent_1px)] bg-[size:40px_40px]" />
+      </div>
+      
+      {/* Gradient Overlays */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-500/5 via-transparent to-blue-500/5" />
+        <div className="absolute top-1/4 right-0 w-1/2 h-1/2 bg-gradient-radial from-yellow-400/10 to-transparent blur-3xl" />
+        <div className="absolute bottom-1/4 left-0 w-1/2 h-1/2 bg-gradient-radial from-blue-400/10 to-transparent blur-3xl" />
       </div>
 
       {/* Floating Crypto Elements */}
@@ -248,9 +255,9 @@ export default function Landing() {
         ))}
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Bybit Style */}
       <motion.nav 
-        className="relative z-50 bg-black/20 backdrop-blur-xl border-b border-white/10"
+        className="relative z-50 bg-[#161A1E]/95 backdrop-blur-xl border-b border-[#2B2F36]"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.8 }}
@@ -264,10 +271,10 @@ export default function Landing() {
             >
               <img src={logoImage} alt="BITPANDA PRO" className="h-10 w-10 rounded-lg shadow-lg" />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
                   BITPANDA PRO
                 </h1>
-                <p className="text-xs text-gray-400">Professional Trading Platform</p>
+                <p className="text-xs text-[#8B949E]">Professional Trading Platform</p>
               </div>
             </motion.div>
 
@@ -277,14 +284,14 @@ export default function Landing() {
                 <motion.a
                   key={item}
                   href="#"
-                  className="text-gray-300 hover:text-white transition-colors relative group"
+                  className="text-[#8B949E] hover:text-white transition-colors relative group font-medium"
                   whileHover={{ y: -2 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
                   {item}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:w-full transition-all duration-300" />
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#FFB82F] to-[#F7931A] group-hover:w-full transition-all duration-300" />
                 </motion.a>
               ))}
             </div>
@@ -296,7 +303,7 @@ export default function Landing() {
               >
                 <Button 
                   variant="ghost" 
-                  className="text-white border-white/20 hover:bg-white/10"
+                  className="text-white border-[#2B2F36] hover:bg-[#2B2F36]/50 font-medium"
                   onClick={() => window.location.href = "/auth"}
                 >
                   Sign In
@@ -307,7 +314,7 @@ export default function Landing() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Button 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
+                  className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold shadow-lg"
                   onClick={() => window.location.href = "/auth"}
                 >
                   Get Started
@@ -330,27 +337,27 @@ export default function Landing() {
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
-              className="md:hidden bg-black/90 backdrop-blur-xl border-t border-white/10"
+              className="md:hidden bg-[#161A1E]/95 backdrop-blur-xl border-t border-[#2B2F36]"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
             >
               <div className="px-4 py-6 space-y-4">
                 {["Markets", "Trading", "Features", "Security", "Academy"].map((item) => (
-                  <a key={item} href="#" className="block text-gray-300 hover:text-white transition-colors">
+                  <a key={item} href="#" className="block text-[#8B949E] hover:text-white transition-colors font-medium">
                     {item}
                   </a>
                 ))}
                 <div className="pt-4 space-y-3">
                   <Button 
                     variant="ghost" 
-                    className="w-full text-white border-white/20"
+                    className="w-full text-white border-[#2B2F36] font-medium"
                     onClick={() => window.location.href = "/auth"}
                   >
                     Sign In
                   </Button>
                   <Button 
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                    className="w-full bg-gradient-to-r from-[#FFB82F] to-[#F7931A] text-black font-semibold"
                     onClick={() => window.location.href = "/auth"}
                   >
                     Get Started
@@ -372,22 +379,22 @@ export default function Landing() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
               >
-                <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full border border-blue-500/30 mb-6">
-                  <Star className="w-4 h-4 text-yellow-400 mr-2" />
-                  <span className="text-sm text-blue-300">Trusted by 2M+ Traders Worldwide</span>
+                <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-[#FFB82F]/10 to-[#F7931A]/10 rounded-full border border-[#FFB82F]/30 mb-6">
+                  <Star className="w-4 h-4 text-[#FFB82F] mr-2" />
+                  <span className="text-sm text-[#FFB82F]">Trusted by 2M+ Traders Worldwide</span>
                 </div>
                 
                 <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                  <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
                     Trade Crypto
                   </span>
                   <br />
-                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-[#FFB82F] via-[#F7931A] to-[#FFB82F] bg-clip-text text-transparent">
                     Like a Pro
                   </span>
                 </h1>
                 
-                <p className="text-xl text-gray-300 leading-relaxed max-w-lg">
+                <p className="text-xl text-[#8B949E] leading-relaxed max-w-lg">
                   Experience the next generation of cryptocurrency trading with institutional-grade tools, 
                   lightning-fast execution, and unparalleled security.
                 </p>
@@ -405,7 +412,7 @@ export default function Landing() {
                 >
                   <Button 
                     size="lg" 
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-2xl px-8 py-6 text-lg rounded-xl"
+                    className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold shadow-2xl px-8 py-6 text-lg rounded-xl"
                     onClick={() => window.location.href = "/auth"}
                   >
                     Start Trading Now
@@ -420,7 +427,7 @@ export default function Landing() {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg rounded-xl"
+                    className="border-[#2B2F36] text-white hover:bg-[#2B2F36]/50 px-8 py-6 text-lg rounded-xl font-medium"
                   >
                     <PlayCircle className="mr-2 w-5 h-5" />
                     Watch Demo
@@ -436,15 +443,15 @@ export default function Landing() {
               >
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">$50B+</div>
-                  <div className="text-sm text-gray-400">Daily Volume</div>
+                  <div className="text-sm text-[#8B949E]">Daily Volume</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">350+</div>
-                  <div className="text-sm text-gray-400">Crypto Assets</div>
+                  <div className="text-sm text-[#8B949E]">Crypto Assets</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">180+</div>
-                  <div className="text-sm text-gray-400">Countries</div>
+                  <div className="text-sm text-[#8B949E]">Countries</div>
                 </div>
               </motion.div>
             </div>
@@ -456,20 +463,20 @@ export default function Landing() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl">
+              <div className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36] shadow-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-white">Live Markets</h3>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-sm text-green-400">Live</span>
+                    <div className="w-2 h-2 bg-[#00D4AA] rounded-full animate-pulse" />
+                    <span className="text-sm text-[#00D4AA] font-medium">Live</span>
                   </div>
                 </div>
 
-                <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
                   {marketData.map((crypto, index) => (
                     <motion.div
                       key={crypto.symbol}
-                      className="flex items-center justify-between p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group"
+                      className="flex items-center justify-between p-4 bg-[#1E2329]/60 rounded-xl hover:bg-[#2B2F36]/60 transition-colors cursor-pointer group border border-[#2B2F36]/30"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
@@ -481,7 +488,7 @@ export default function Landing() {
                         </div>
                         <div>
                           <div className="font-semibold text-white">{crypto.symbol}</div>
-                          <div className="text-sm text-gray-400">{crypto.name}</div>
+                          <div className="text-sm text-[#8B949E]">{crypto.name}</div>
                         </div>
                       </div>
 
@@ -496,7 +503,7 @@ export default function Landing() {
                             maximumFractionDigits: crypto.price < 1 ? 4 : 2
                           })}
                         </div>
-                        <div className={`text-sm font-medium ${crypto.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <div className={`text-sm font-medium ${crypto.change >= 0 ? 'text-[#00D4AA]' : 'text-[#F84638]'}`}>
                           {crypto.change >= 0 ? '+' : ''}{crypto.change.toFixed(2)}%
                         </div>
                       </div>
@@ -505,13 +512,13 @@ export default function Landing() {
                 </div>
 
                 <motion.div
-                  className="mt-6 pt-4 border-t border-white/10"
+                  className="mt-6 pt-4 border-t border-[#2B2F36]"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
                 >
                   <Button 
-                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-xl"
+                    className="w-full bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold rounded-xl"
                     onClick={() => window.location.href = "/auth"}
                   >
                     View All Markets
@@ -525,7 +532,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="relative z-10 py-32 bg-black/20">
+      <section className="relative z-10 py-32 bg-[#1E2329]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="text-center mb-20"
@@ -535,11 +542,11 @@ export default function Landing() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl lg:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
                 Why Choose BITPANDA PRO?
               </span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
               Experience the difference with our cutting-edge platform designed for both beginners and professional traders.
             </p>
           </motion.div>
@@ -555,12 +562,12 @@ export default function Landing() {
                 viewport={{ once: true }}
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 h-full group-hover:shadow-2xl">
+                <div className="bg-[#161A1E]/80 backdrop-blur-xl rounded-2xl p-8 border border-[#2B2F36] hover:border-[#FFB82F]/30 transition-all duration-300 h-full group-hover:shadow-2xl">
                   <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     {feature.icon}
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-4">{feature.title}</h3>
-                  <p className="text-gray-300 leading-relaxed">{feature.description}</p>
+                  <p className="text-[#8B949E] leading-relaxed">{feature.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -571,7 +578,7 @@ export default function Landing() {
       {/* Stats Section */}
       <section className="relative z-10 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-3xl p-12 border border-blue-500/30">
+          <div className="bg-gradient-to-r from-[#FFB82F]/10 to-[#F7931A]/10 rounded-3xl p-12 border border-[#FFB82F]/30">
             <div className="grid md:grid-cols-4 gap-8">
               {stats.map((stat, index) => (
                 <motion.div
@@ -584,12 +591,12 @@ export default function Landing() {
                   whileHover={{ scale: 1.1 }}
                 >
                   <div className="flex justify-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#FFB82F] to-[#F7931A] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       {stat.icon}
                     </div>
                   </div>
                   <div className="text-3xl lg:text-4xl font-bold text-white mb-2">{stat.value}</div>
-                  <div className="text-gray-300">{stat.label}</div>
+                  <div className="text-[#8B949E]">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -607,15 +614,15 @@ export default function Landing() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl lg:text-6xl font-bold mb-8">
-              <span className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
                 Ready to Start Your
               </span>
               <br />
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
                 Trading Journey?
               </span>
             </h2>
-            <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+            <p className="text-xl text-[#8B949E] mb-12 max-w-2xl mx-auto">
               Join millions of traders who trust BITPANDA PRO for their cryptocurrency trading needs. 
               Start with as little as $10 and unlock the future of finance.
             </p>
@@ -627,7 +634,7 @@ export default function Landing() {
               >
                 <Button 
                   size="lg" 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-2xl px-12 py-6 text-lg rounded-xl"
+                  className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold shadow-2xl px-12 py-6 text-lg rounded-xl"
                   onClick={() => window.location.href = "/auth"}
                 >
                   Create Free Account
@@ -642,7 +649,7 @@ export default function Landing() {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="border-white/30 text-white hover:bg-white/10 px-12 py-6 text-lg rounded-xl"
+                  className="border-[#2B2F36] text-white hover:bg-[#2B2F36]/50 px-12 py-6 text-lg rounded-xl font-medium"
                 >
                   <Briefcase className="mr-2 w-5 h-5" />
                   Professional Account
@@ -650,17 +657,17 @@ export default function Landing() {
               </motion.div>
             </div>
 
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-gray-400">
+            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-[#8B949E]">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
+                <CheckCircle className="w-4 h-4 text-[#00D4AA]" />
                 <span>No Hidden Fees</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
+                <CheckCircle className="w-4 h-4 text-[#00D4AA]" />
                 <span>Instant Verification</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
+                <CheckCircle className="w-4 h-4 text-[#00D4AA]" />
                 <span>24/7 Support</span>
               </div>
             </div>
@@ -669,17 +676,17 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 bg-black/40 backdrop-blur-xl border-t border-white/10">
+      <footer className="relative z-10 bg-[#161A1E]/90 backdrop-blur-xl border-t border-[#2B2F36]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
               <img src={logoImage} alt="BITPANDA PRO" className="h-8 w-8 rounded-lg" />
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
                 BITPANDA PRO
               </span>
             </div>
             
-            <div className="flex items-center space-x-6 text-sm text-gray-400">
+            <div className="flex items-center space-x-6 text-sm text-[#8B949E]">
               <a href="/terms" className="hover:text-white transition-colors">Terms</a>
               <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
               <a href="/about-us" className="hover:text-white transition-colors">About</a>
@@ -687,7 +694,7 @@ export default function Landing() {
             </div>
           </div>
           
-          <div className="mt-8 pt-8 border-t border-white/10 text-center text-sm text-gray-400">
+          <div className="mt-8 pt-8 border-t border-[#2B2F36] text-center text-sm text-[#8B949E]">
             <p>© 2025 BITPANDA PRO. All rights reserved. Cryptocurrency trading involves risk.</p>
           </div>
         </div>

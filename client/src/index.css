@@ -2,6 +2,185 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bybit-inspired Color Scheme */
+:root {
+  /* Bybit Official Colors */
+  --bybit-yellow: #FFB82F;
+  --bybit-orange: #F7931A;
+  --bybit-dark-bg: #0B0E11;
+  --bybit-card-bg: #161A1E;
+  --bybit-border: #2B2F36;
+  --bybit-text-primary: #FFFFFF;
+  --bybit-text-secondary: #8B949E;
+  --bybit-green: #00D4AA;
+  --bybit-red: #F84638;
+  --bybit-surface: #1E2329;
+  
+  /* Background gradients */
+  --gradient-primary: linear-gradient(135deg, var(--bybit-yellow) 0%, var(--bybit-orange) 100%);
+  --gradient-secondary: linear-gradient(135deg, var(--bybit-green) 0%, #00B39F 100%);
+  --gradient-danger: linear-gradient(135deg, var(--bybit-red) 0%, #E53E3E 100%);
+}
+
+/* Custom utility classes for Bybit styling */
+@layer utilities {
+  .bg-bybit-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .bg-bybit-secondary {
+    background: var(--gradient-secondary);
+  }
+  
+  .bg-bybit-danger {
+    background: var(--gradient-danger);
+  }
+  
+  .text-bybit-yellow {
+    color: var(--bybit-yellow);
+  }
+  
+  .text-bybit-orange {
+    color: var(--bybit-orange);
+  }
+  
+  .text-bybit-green {
+    color: var(--bybit-green);
+  }
+  
+  .text-bybit-red {
+    color: var(--bybit-red);
+  }
+  
+  .border-bybit-yellow {
+    border-color: var(--bybit-yellow);
+  }
+  
+  .border-bybit-border {
+    border-color: var(--bybit-border);
+  }
+  
+  /* Gradient animations */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+  
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  /* Glow effects */
+  .glow-yellow {
+    box-shadow: 0 0 20px rgba(255, 184, 47, 0.3);
+  }
+  
+  .glow-green {
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+  }
+  
+  .glow-red {
+    box-shadow: 0 0 20px rgba(248, 70, 56, 0.3);
+  }
+  
+  /* Glassmorphism effects */
+  .glass-card {
+    background: rgba(22, 26, 30, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 184, 47, 0.1);
+  }
+  
+  .glass-nav {
+    background: rgba(22, 26, 30, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--bybit-border);
+  }
+  
+  /* Custom scrollbar for market data */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--bybit-surface);
+    border-radius: 2px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--bybit-yellow);
+    border-radius: 2px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--bybit-orange);
+  }
+  
+  /* Loading shimmer effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 184, 47, 0.1),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  /* Price ticker animation */
+  .price-ticker {
+    animation: priceUpdate 0.3s ease-in-out;
+  }
+  
+  @keyframes priceUpdate {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  /* Floating elements */
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  /* Radial gradient utility */
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+}
+
 /* Performance optimizations */
 * {
   will-change: auto;
