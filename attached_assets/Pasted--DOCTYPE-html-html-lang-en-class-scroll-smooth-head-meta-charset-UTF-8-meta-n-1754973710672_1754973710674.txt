@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTrade - User Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: 93, 92, 222;
+            --accent-color: 34, 197, 94;
+            --dark-bg-color: 18, 18, 18;
+            --dark-card: 30, 30, 30;
+            --light-bg-color: 245, 245, 245;
+            --light-card: 255, 255, 255;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: rgb(var(--light-bg-color));
+            color: #333;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        
+        body.dark {
+            background-color: rgb(var(--dark-bg-color));
+            color: #f0f0f0;
+        }
+        
+        /* Animations */
+        @keyframes gradient-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .gradient-background {
+            background: linear-gradient(-45deg, 
+                rgba(var(--primary-color), 0.1), 
+                rgba(59, 130, 246, 0.1), 
+                rgba(var(--accent-color), 0.1));
+            background-size: 400% 400%;
+            animation: gradient-move 15s ease infinite;
+        }
+        
+        .crypto-grid {
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(93,92,222,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        
+        .dark .crypto-grid {
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+        }
+        
+        .glow {
+            box-shadow: 0 0 15px rgba(var(--primary-color), 0.2);
+        }
+        
+        .dark .glow {
+            box-shadow: 0 0 20px rgba(var(--primary-color), 0.4);
+        }
+        
+        .crypto-pattern {
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(93, 92, 222, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 20%);
+        }
+        
+        .dark .crypto-pattern {
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(93, 92, 222, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 20%);
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+        }
+        
+        .dark .sidebar {
+            background: rgb(var(--dark-card));
+            border-right: 1px solid rgb(var(--dark-border));
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .table-row:hover {
+            background: rgba(93, 92, 222, 0.03);
+        }
+        
+        .dark .table-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .dark .stat-card {
+            background: rgb(var(--dark-card));
+            border: 1px solid rgb(var(--dark-border));
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+        
+        .chart-bar {
+            background: linear-gradient(to top, #5D5CDE, #22C55E);
+            transition: height 0.8s ease-in-out;
+        }
+        
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            background: #e5e7eb;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .dark .theme-toggle {
+            background: #374151;
+        }
+        
+        .toggle-handle {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .dark .toggle-handle {
+            transform: translateX(30px);
+            background: #1f2937;
+        }
+        
+        .theme-icon {
+            position: absolute;
+            top: 7px;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        
+        .sun-icon {
+            left: 8px;
+            color: #f59e0b;
+        }
+        
+        .dark .sun-icon {
+            color: #6b7280;
+        }
+        
+        .moon-icon {
+            right: 8px;
+            color: #6b7280;
+        }
+        
+        .dark .moon-icon {
+            color: #d1d5db;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #333;
+        }
+        
+        .dark .card {
+            background: rgb(var(--dark-card));
+            border: 1px solid rgb(var(--dark-border));
+            color: #f0f0f0;
+        }
+        
+        .text-secondary {
+            color: #6b7280;
+        }
+        
+        .dark .text-secondary {
+            color: #d1d5db;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #5D5CDE, #4B4BC8);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        
+        .dark .btn-secondary {
+            background: #374151;
+            color: #d1d5db;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4B4BC8',
+                        accent: '#22C55E',
+                        'dark-bg': '#121212',
+                        'dark-card': '#1E1E1E',
+                        'dark-border': '#2D2D2D',
+                        'light-bg': '#f5f5f5',
+                        'light-card': '#ffffff',
+                        'light-border': '#e5e7eb'
+                    },
+                    boxShadow: {
+                        '3xl': '0 35px 60px -15px rgba(0, 0, 0, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="overflow-hidden">
+    <!-- Floating Crypto Elements -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div class="absolute top-[10%] left-[5%] w-16 h-16 opacity-10 animate-float" style="animation-delay: 0.5s;">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#F7931A"></circle>
+                <path d="M31.3 27.6l4.5-1.2 1-3.9-4.4 1.3-1.1-4.3h-3.6l1.1 4.3-4.4-1.3-1 3.9 4.5 1.2-2.7 10.5-4.5 1.2 1 3.9 4.4-1.3 1.1 4.3h3.6l-1.1-4.3 4.4 1.3-1-3.9-4.5-1.2 2.7-10.5zm-4.3 11.9l-2.7-10.5 2.7 10.5zm3.7 0l2.7-10.5-2.7 10.5z" fill="#FFF"></path>
+            </svg>
+        </div>
+        <div class="absolute top-[25%] right-[10%] w-12 h-12 opacity-10" style="animation-delay: 1.5s;">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#627EEA"></circle>
+                <path d="M32 8v17.5l12 5.5-12 23-12-23 12-5.5V8z" fill="#FFF"></path>
+                <path d="M32 25.5v23l12-17.5-12-5.5z" fill="#C0CBFF"></path>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 flex flex-col z-10">
+            <div class="p-6 border-b border-gray-200 dark:border-dark-border">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-primary-dark flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M16 8s-1.5 2-4 2-4-2-4-2"></path>
+                            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                            <path d="M10 16h4"></path>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold text-gray-900 dark:text-white">CryptoTrade</span>
+                </div>
+            </div>
+            
+            <div class="flex-1 py-6">
+                <nav class="space-y-1 px-4">
+                    <a href="#" data-section="portfolio" class="portfolio-nav flex items-center px-4 py-3 rounded-lg bg-primary/10 text-primary dark:text-primary-dark font-medium transition-all">
+                        <i class="fas fa-wallet mr-3 text-primary dark:text-primary-dark"></i>
+                        Portfolio
+                    </a>
+                    <a href="#" data-section="transactions" class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-bg transition-all">
+                        <i class="fas fa-exchange-alt mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Transactions
+                    </a>
+                    <a href="#" data-section="market" class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-bg transition-all">
+                        <i class="fas fa-chart-line mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Market
+                    </a>
+                    <a href="#" data-section="account" class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-bg transition-all">
+                        <i class="fas fa-user mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Account Settings
+                    </a>
+                </nav>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 dark:border-dark-border">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-primary-dark flex items-center justify-center">
+                        <span class="text-white font-bold">U</span>
+                    </div>
+                    <div class="ml-3">
+                        <div class="font-medium text-gray-900 dark:text-white">User Name</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">user@cryptotrade.com</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Topbar -->
+            <header class="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
+                <div class="flex items-center justify-between px-8 py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white" id="page-title">Portfolio</h1>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <div class="relative">
+                            <i class="fas fa-bell text-gray-500 dark:text-gray-400 text-xl"></i>
+                            <span class="absolute top-0 right-0 w-3 h-3 bg-accent rounded-full"></span>
+                        </div>
+                        
+                        <!-- Theme Toggle -->
+                        <div class="flex items-center space-x-3">
+                            <div id="theme-toggle" class="theme-toggle">
+                                <div class="toggle-handle"></div>
+                                <i class="fas fa-sun theme-icon sun-icon"></i>
+                                <i class="fas fa-moon theme-icon moon-icon"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="w-px h-8 bg-gray-200 dark:bg-dark-border"></div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary-dark flex items-center justify-center">
+                                <span class="text-white text-sm font-bold">U</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-8 crypto-grid">
+                <!-- Portfolio Section -->
+                <section id="portfolio" class="content-section active">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="stat-card rounded-xl p-6 transition-all shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-secondary mb-2">Total Balance</div>
+                                    <div class="text-3xl font-bold text-gray-900 dark:text-white">$24,250.50</div>
+                                </div>
+                                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <i class="fas fa-wallet text-primary text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-accent">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    <span>5.2% increase</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card rounded-xl p-6 transition-all shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-secondary mb-2">Portfolio Value</div>
+                                    <div class="text-3xl font-bold text-gray-900 dark:text-white">$18,420.75</div>
+                                </div>
+                                <div class="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                    <i class="fas fa-coins text-green-500 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-accent">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    <span>3.8% increase</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card rounded-xl p-6 transition-all shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-secondary mb-2">24h Change</div>
+                                    <div class="text-3xl font-bold text-gray-900 dark:text-white">+$1,250.30</div>
+                                </div>
+                                <div class="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-blue-500 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-accent">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    <span>2.1% increase</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="card rounded-xl p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Portfolio Performance</h2>
+                                <div class="text-sm text-secondary">Last 7 days</div>
+                            </div>
+                            <div class="chart-container flex items-end space-x-2">
+                                <!-- Chart bars will be generated by JS -->
+                            </div>
+                        </div>
+                        
+                        <div class="card rounded-xl p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Asset Allocation</h2>
+                                <a href="#" class="text-sm text-primary">View details</a>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                                            <i class="fas fa-coins text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-900 dark:text-white">Bitcoin (BTC)</div>
+                                            <div class="text-sm text-secondary">45% of portfolio</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-gray-900 dark:text-white">$10,912.34</div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                                            <i class="fas fa-coins text-green-500"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-900 dark:text-white">Ethereum (ETH)</div>
+                                            <div class="text-sm text-secondary">30% of portfolio</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-gray-900 dark:text-white">$7,275.56</div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mr-3">
+                                            <i class="fas fa-coins text-yellow-500"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-900 dark:text-white">Tether (USDT)</div>
+                                            <div class="text-sm text-secondary">25% of portfolio</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-gray-900 dark:text-white">$6,062.63</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Quick Actions</h2>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <button class="btn-secondary rounded-lg p-4 flex flex-col items-center transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                                    <i class="fas fa-exchange-alt text-primary"></i>
+                                </div>
+                                <span class="text-gray-900 dark:text-white">Trade</span>
+                            </button>
+                            <button class="btn-secondary rounded-lg p-4 flex flex-col items-center transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center mb-2">
+                                    <i class="fas fa-arrow-down text-green-500"></i>
+                                </div>
+                                <span class="text-gray-900 dark:text-white">Deposit</span>
+                            </button>
+                            <button class="btn-secondary rounded-lg p-4 flex flex-col items-center transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-2">
+                                    <i class="fas fa-arrow-up text-yellow-500"></i>
+                                </div>
+                                <span class="text-gray-900 dark:text-white">Withdraw</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Transactions Section -->
+                <section id="transactions" class="content-section">
+                    <div class="card rounded-xl p-6 mb-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Recent Transactions</h2>
+                            <div class="flex space-x-3">
+                                <div class="relative">
+                                    <input type="text" placeholder="Search transactions..." class="bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-secondary border-b border-gray-200 dark:border-dark-border">
+                                        <th class="pb-3 font-medium">Date</th>
+                                        <th class="pb-3 font-medium">Type</th>
+                                        <th class="pb-3 font-medium">Asset</th>
+                                        <th class="pb-3 font-medium">Amount</th>
+                                        <th class="pb-3 font-medium">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="table-row border-b border-gray-200 dark:border-dark-border">
+                                        <td class="py-4 text-gray-900 dark:text-white">Jan 15, 2023</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">Trade</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">BTC/USD</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$5,000.00</td>
+                                        <td class="py-4">
+                                            <span class="px-2 py-1 bg-green-500/20 text-green-500 rounded-full text-xs">Completed</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-row border-b border-gray-200 dark:border-dark-border">
+                                        <td class="py-4 text-gray-900 dark:text-white">Jan 14, 2023</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">Deposit</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">ETH</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$2,500.00</td>
+                                        <td class="py-4">
+                                            <span class="px-2 py-1 bg-green-500/20 text-green-500 rounded-full text-xs">Completed</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-row border-b border-gray-200 dark:border-dark-border">
+                                        <td class="py-4 text-gray-900 dark:text-white">Jan 13, 2023</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">Withdrawal</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">USDT</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$1,000.00</td>
+                                        <td class="py-4">
+                                            <span class="px-2 py-1 bg-yellow-500/20 text-yellow-500 rounded-full text-xs">Pending</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-row">
+                                        <td class="py-4 text-gray-900 dark:text-white">Jan 12, 2023</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">Trade</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">ETH/USD</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$3,200.00</td>
+                                        <td class="py-4">
+                                            <span class="px-2 py-1 bg-green-500/20 text-green-500 rounded-full text-xs">Completed</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <div class="text-secondary">Showing 1-4 of 50 transactions</div>
+                            <div class="flex space-x-2">
+                                <button class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-dark-bg flex items-center justify-center border border-gray-200 dark:border-dark-border">
+                                    <i class="fas fa-chevron-left text-gray-500 dark:text-gray-400"></i>
+                                </button>
+                                <button class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center">1</button>
+                                <button class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-dark-bg flex items-center justify-center border border-gray-200 dark:border-dark-border text-gray-900 dark:text-white">2</button>
+                                <button class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-dark-bg flex items-center justify-center border border-gray-200 dark:border-dark-border text-gray-900 dark:text-white">3</button>
+                                <button class="w-8 h-8 rounded-lg bg-gray-100 dark:dark-bg flex items-center justify-center border border-gray-200 dark:border-dark-border">
+                                    <i class="fas fa-ellipsis-h text-gray-500 dark:text-gray-400"></i>
+                                </button>
+                                <button class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-dark-bg flex items-center justify-center border border-gray-200 dark:border-dark-border">
+                                    <i class="fas fa-chevron-right text-gray-500 dark:text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Market Section -->
+                <section id="market" class="content-section">
+                    <div class="card rounded-xl p-6 mb-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Market Overview</h2>
+                            <div class="relative">
+                                <input type="text" placeholder="Search assets..." class="bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-500"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-secondary border-b border-gray-200 dark:border-dark-border">
+                                        <th class="pb-3 font-medium">Asset</th>
+                                        <th class="pb-3 font-medium">Price</th>
+                                        <th class="pb-3 font-medium">24h Change</th>
+                                        <th class="pb-3 font-medium">Market Cap</th>
+                                        <th class="pb-3 text-right font-medium">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="table-row border-b border-gray-200 dark:border-dark-border">
+                                        <td class="py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                                                    <i class="fas fa-coins text-primary"></i>
+                                                </div>
+                                                <span class="text-gray-900 dark:text-white">Bitcoin (BTC)</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$45,230.10</td>
+                                        <td class="py-4 text-green-500">+2.3%</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$850.2B</td>
+                                        <td class="py-4 text-right">
+                                            <button class="btn-primary text-white px-4 py-2 rounded-lg">Trade</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-row border-b border-gray-200 dark:border-dark-border">
+                                        <td class="py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                                                    <i class="fas fa-coins text-green-500"></i>
+                                                </div>
+                                                <span class="text-gray-900 dark:text-white">Ethereum (ETH)</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$3,120.45</td>
+                                        <td class="py-4 text-red-500">-1.5%</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$370.1B</td>
+                                        <td class="py-4 text-right">
+                                            <button class="btn-primary text-white px-4 py-2 rounded-lg">Trade</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-row">
+                                        <td class="py-4">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mr-3">
+                                                    <i class="fas fa-coins text-yellow-500"></i>
+                                                </div>
+                                                <span class="text-gray-900 dark:text-white">Tether (USDT)</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$1.00</td>
+                                        <td class="py-4 text-gray-500">0.0%</td>
+                                        <td class="py-4 text-gray-900 dark:text-white">$83.2B</td>
+                                        <td class="py-4 text-right">
+                                            <button class="btn-primary text-white px-4 py-2 rounded-lg">Trade</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Account Settings Section -->
+                <section id="account" class="content-section">
+                    <div class="card rounded-xl p-6 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Account Settings</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Profile Information</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-secondary text-sm mb-2">Full Name</label>
+                                        <input type="text" value="User Name" class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-secondary text-sm mb-2">Email</label>
+                                        <input type="email" value="user@cryptotrade.com" class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white">
+                                    </div>
+                                    <button class="btn-primary text-white px-4 py-2 rounded-lg">Save Changes</button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Security</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-secondary text-sm mb-2">Current Password</label>
+                                        <input type="password" class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-secondary text-sm mb-2">New Password</label>
+                                        <input type="password" class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white">
+                                    </div>
+                                    <button class="btn-primary text-white px-4 py-2 rounded-lg">Update Password</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        
+        // Check for saved theme preference
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            body.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            
+            // Save the current theme to localStorage
+            const theme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+        });
+        
+        // Navigation functionality
+        document.querySelectorAll('[data-section]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Update active nav item
+                document.querySelectorAll('[data-section]').forEach(el => {
+                    el.classList.remove('bg-primary/10', 'text-primary', 'dark:text-primary-dark', 'font-medium');
+                });
+                this.classList.add('bg-primary/10', 'text-primary', 'dark:text-primary-dark', 'font-medium');
+                
+                // Update active section
+                const sectionId = this.getAttribute('data-section');
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Update page title
+                document.getElementById('page-title').textContent = this.textContent.trim();
+            });
+        });
+        
+        // Generate chart bars
+        function generateChart() {
+            const chartContainer = document.querySelector('.chart-container');
+            chartContainer.innerHTML = '';
+            
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const values = [18000, 19000, 18500, 19500, 20000, 19700, 20250];
+            const maxValue = Math.max(...values);
+            
+            days.forEach((day, index) => {
+                const height = (values[index] / maxValue) * 220;
+                const bar = document.createElement('div');
+                bar.className = 'flex flex-col items-center flex-1';
+                bar.innerHTML = `
+                    <div class="chart-bar w-full rounded-t-md" style="height: ${height}px"></div>
+                    <div class="text-secondary text-sm mt-2">${day}</div>
+                `;
+                chartContainer.appendChild(bar);
+            });
+        }
+        
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            generateChart();
+            
+            // Simulate loading time
+            setTimeout(() => {
+                document.querySelectorAll('.chart-bar').forEach(bar => {
+                    bar.style.opacity = 1;
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>
