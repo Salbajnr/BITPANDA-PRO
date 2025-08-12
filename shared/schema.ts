@@ -275,6 +275,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   deposits: many(deposits),
   notifications: many(notifications),
+  transactions: many(transactions),
 }));
 
 export const portfoliosRelations = relations(portfolios, ({ one, many }) => ({
@@ -283,7 +284,6 @@ export const portfoliosRelations = relations(portfolios, ({ one, many }) => ({
     references: [users.id],
   }),
   holdings: many(holdings),
-  transactions: many(transactions),
 }));
 
 export const holdingsRelations = relations(holdings, ({ one }) => ({
@@ -294,10 +294,6 @@ export const holdingsRelations = relations(holdings, ({ one }) => ({
 }));
 
 export const transactionsRelations = relations(transactions, ({ one }) => ({
-  portfolio: one(portfolios, {
-    fields: [transactions.portfolioId],
-    references: [portfolios.id],
-  }),
   user: one(users, {
     fields: [transactions.userId],
     references: [users.id],
