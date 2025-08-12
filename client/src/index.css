@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Performance optimizations */
+* {
+  will-change: auto;
+}
+
+/* Faster navigation transitions */
+a {
+  transition: all 0.15s ease-in-out;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimize images and animations */
+img {
+  content-visibility: auto;
+}
+
+/* Reduce paint complexity */
+.animate-bounce {
+  will-change: transform;
+}
+
+/* Optimize backdrop filters */
+.backdrop-blur-xl {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

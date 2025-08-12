@@ -123,7 +123,7 @@ export default function Landing() {
       company: "Swiss Capital Management",
       content: "BITPANDA PRO has revolutionized our institutional trading operations. The liquidity depth and execution speed are unmatched in the European market.",
       rating: 5,
-      avatar: asset1
+      avatar: "MW"
     },
     {
       id: 2,
@@ -132,7 +132,7 @@ export default function Landing() {
       company: "Barcelona Investment Fund",
       content: "The regulatory compliance and security measures give us complete confidence. Our clients trust us because we trust BITPANDA PRO.",
       rating: 5,
-      avatar: asset2
+      avatar: "ER"
     },
     {
       id: 3,
@@ -141,7 +141,7 @@ export default function Landing() {
       company: "Independent Investor",
       content: "From a retail investor perspective, the professional tools and analytics rival those of major investment banks. Incredible platform.",
       rating: 5,
-      avatar: asset3
+      avatar: "TM"
     },
     {
       id: 4,
@@ -150,7 +150,7 @@ export default function Landing() {
       company: "Paris Digital Assets",
       content: "The customer support and dedicated account management service is exceptional. They truly understand institutional needs.",
       rating: 5,
-      avatar: asset4
+      avatar: "SL"
     }
   ];
 
@@ -236,7 +236,7 @@ export default function Landing() {
       </div>
 
       {/* Navigation */}
-      <nav className="fixed w-full top-0 z-50 bg-slate-900/95 backdrop-blur-lg border-b border-slate-700">
+      <nav className="fixed w-full top-0 z-50 bg-slate-900/98 backdrop-blur-xl border-b border-slate-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-3">
@@ -248,10 +248,10 @@ export default function Landing() {
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="/" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Home</a>
-              <a href="/about" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">About</a>
-              <a href="/features" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Features</a>
-              <a href="/contact" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Contact</a>
+              <a href="/" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">Home</a>
+              <a href="/about" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">About</a>
+              <a href="/features" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">Features</a>
+              <a href="/contact" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">Contact</a>
               <Button
                 onClick={handleLogin}
                 className="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-6 py-3 rounded-full transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -279,33 +279,37 @@ export default function Landing() {
 
           {/* Mobile Navigation Menu */}
           {isMenuOpen && (
-            <div className="md:hidden absolute top-20 left-0 w-full bg-slate-900/98 backdrop-blur-lg border-b border-slate-700">
+            <div className="md:hidden absolute top-20 left-0 w-full bg-slate-900 backdrop-blur-xl border-b border-slate-700 shadow-xl">
               <div className="px-4 py-6 space-y-4">
                 <a 
                   href="/" 
-                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  className="block text-gray-300 hover:text-white transition-all duration-150 py-2 text-lg"
                   onClick={() => setIsMenuOpen(false)}
+                  rel="prefetch"
                 >
                   Home
                 </a>
                 <a 
                   href="/about" 
-                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  className="block text-gray-300 hover:text-white transition-all duration-150 py-2 text-lg"
                   onClick={() => setIsMenuOpen(false)}
+                  rel="prefetch"
                 >
                   About Us
                 </a>
                 <a 
                   href="/features" 
-                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  className="block text-gray-300 hover:text-white transition-all duration-150 py-2 text-lg"
                   onClick={() => setIsMenuOpen(false)}
+                  rel="prefetch"
                 >
                   Features
                 </a>
                 <a 
                   href="/contact" 
-                  className="block text-gray-300 hover:text-white transition-colors py-2 text-lg"
+                  className="block text-gray-300 hover:text-white transition-all duration-150 py-2 text-lg"
                   onClick={() => setIsMenuOpen(false)}
+                  rel="prefetch"
                 >
                   Contact
                 </a>
@@ -537,12 +541,10 @@ export default function Landing() {
               </div>
               
               <div className="flex items-center justify-center space-x-4">
-                <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-primary/30">
-                  <img 
-                    src={testimonials[currentTestimonial].avatar} 
-                    alt={testimonials[currentTestimonial].name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-green-500 flex items-center justify-center ring-2 ring-primary/30">
+                  <span className="text-white text-xl font-bold">
+                    {testimonials[currentTestimonial].avatar}
+                  </span>
                 </div>
                 <div className="text-center">
                   <div className="font-bold text-white text-lg">
@@ -891,42 +893,42 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">TOP INSTRUMENTS</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Forex</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Indices</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Commodities</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cryptocurrency</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Shares</a></li>
+                <li><a href="#" className="hover:text-white transition-all duration-150">Forex</a></li>
+                <li><a href="#" className="hover:text-white transition-all duration-150">Indices</a></li>
+                <li><a href="#" className="hover:text-white transition-all duration-150">Commodities</a></li>
+                <li><a href="#" className="hover:text-white transition-all duration-150">Cryptocurrency</a></li>
+                <li><a href="#" className="hover:text-white transition-all duration-150">Shares</a></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">SUPPORTS</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="/help-center" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="/tutorials" className="hover:text-white transition-colors">How to Deposit</a></li>
-                <li><a href="/tutorials" className="hover:text-white transition-colors">How to Withdraw</a></li>
-                <li><a href="/auth" className="hover:text-white transition-colors">Open Account</a></li>
-                <li><a href="/kyc" className="hover:text-white transition-colors">Verify Your Account</a></li>
-                <li><a href="/support" className="hover:text-white transition-colors">Customer Service</a></li>
+                <li><a href="/help-center" className="hover:text-white transition-all duration-150" rel="prefetch">Help Center</a></li>
+                <li><a href="/tutorials" className="hover:text-white transition-all duration-150" rel="prefetch">How to Deposit</a></li>
+                <li><a href="/tutorials" className="hover:text-white transition-all duration-150" rel="prefetch">How to Withdraw</a></li>
+                <li><a href="/auth" className="hover:text-white transition-all duration-150" rel="prefetch">Open Account</a></li>
+                <li><a href="/kyc" className="hover:text-white transition-all duration-150" rel="prefetch">Verify Your Account</a></li>
+                <li><a href="/support" className="hover:text-white transition-all duration-150" rel="prefetch">Customer Service</a></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">LEARN MORE</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="/tutorials" className="hover:text-white transition-colors">Responsible Trading</a></li>
-                <li><a href="/tutorials" className="hover:text-white transition-colors">Tutorials</a></li>
-                <li><a href="/help-center" className="hover:text-white transition-colors">Avoid Scam</a></li>
+                <li><a href="/tutorials" className="hover:text-white transition-all duration-150" rel="prefetch">Responsible Trading</a></li>
+                <li><a href="/tutorials" className="hover:text-white transition-all duration-150" rel="prefetch">Tutorials</a></li>
+                <li><a href="/help-center" className="hover:text-white transition-all duration-150" rel="prefetch">Avoid Scam</a></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold text-lg mb-4 text-white">Company</h4>
               <ul className="space-y-3 text-gray-400">
-                <li><a href="/about-us" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="/careers" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="/privacy" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="/terms" className="hover:text-white transition-colors">Terms</a></li>
+                <li><a href="/about-us" className="hover:text-white transition-all duration-150" rel="prefetch">About</a></li>
+                <li><a href="/careers" className="hover:text-white transition-all duration-150" rel="prefetch">Careers</a></li>
+                <li><a href="/privacy" className="hover:text-white transition-all duration-150" rel="prefetch">Privacy</a></li>
+                <li><a href="/terms" className="hover:text-white transition-all duration-150" rel="prefetch">Terms</a></li>
               </ul>
             </div>
           </div>

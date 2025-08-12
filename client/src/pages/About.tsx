@@ -94,7 +94,7 @@ export default function About() {
       </div>
 
       {/* Navigation */}
-      <nav className="fixed w-full top-0 z-50 bg-slate-900/90 backdrop-blur-lg border-b border-slate-700">
+      <nav className="fixed w-full top-0 z-50 bg-slate-900/98 backdrop-blur-xl border-b border-slate-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-3">
@@ -106,10 +106,10 @@ export default function About() {
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="/" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Home</a>
+              <a href="/" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">Home</a>
               <a href="/about" className="text-primary font-medium underline underline-offset-4 decoration-primary">About</a>
-              <a href="/features" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Features</a>
-              <a href="/contact" className="text-gray-300 hover:text-primary transition-colors hover:underline underline-offset-4 decoration-primary">Contact</a>
+              <a href="/features" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">Features</a>
+              <a href="/contact" className="text-gray-300 hover:text-primary transition-all duration-150 hover:underline underline-offset-4 decoration-primary" rel="prefetch">Contact</a>
               <Button
                 onClick={handleLogin}
                 className="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-6 py-3 rounded-full transition-all font-medium shadow-md hover:shadow-lg transform hover:scale-105"
@@ -137,7 +137,7 @@ export default function About() {
 
           {/* Mobile Navigation Menu */}
           {isMenuOpen && (
-            <div className="md:hidden absolute top-20 left-0 w-full bg-slate-900/95 backdrop-blur-lg border-b border-slate-700">
+            <div className="md:hidden absolute top-20 left-0 w-full bg-slate-900 backdrop-blur-xl border-b border-slate-700 shadow-xl">
               <div className="px-4 py-6 space-y-4">
                 <a 
                   href="/" 
