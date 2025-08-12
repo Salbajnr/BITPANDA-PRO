@@ -474,7 +474,7 @@ export default function Dashboard() {
                             <XAxis dataKey="time" />
                             <YAxis />
                             <Tooltip />
-                            <Line type="monotone" dataKey="value" stroke="var(--color-my3dChart)" />
+                            <Line type="monotone" dataKey="value" stroke="var(--color-my3dChart)" strokeDasharray="5 5" strokeWidth={3} />
                           </LineChart>
                         </ResponsiveContainer>
                       </ChartContainer>

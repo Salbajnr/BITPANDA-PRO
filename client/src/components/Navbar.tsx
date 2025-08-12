@@ -139,7 +139,7 @@ export default function Navbar() {
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="text-slate-600 dark:text-slate-300"
+              className="text-slate-600 dark:text-slate-300 transition-transform transform hover:scale-110"
             >
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
