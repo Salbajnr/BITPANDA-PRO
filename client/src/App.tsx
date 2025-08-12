@@ -58,15 +58,7 @@ function AppContent() {
             user.role === 'admin' ? (
               <Redirect to="/admin" />
             ) : (
-              <div className="min-h-screen bg-background">
-                <Navbar />
-                <div className="flex">
-                  <Sidebar />
-                  <main className="flex-1 p-6">
-                    <Dashboard />
-                  </main>
-                </div>
-              </div>
+              <Dashboard />
             )
           ) : (
             <Redirect to="/auth" />
@@ -89,15 +81,7 @@ function AppContent() {
         path="/transactions"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <TransactionHistory />
-                </main>
-              </div>
-            </div>
+            <TransactionHistory />
           ) : (
             <Redirect to="/auth" />
           )
@@ -108,15 +92,7 @@ function AppContent() {
         path="/settings"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <UserSettings />
-                </main>
-              </div>
-            </div>
+            <UserSettings />
           ) : (
             <Redirect to="/auth" />
           )
@@ -127,15 +103,7 @@ function AppContent() {
         path="/analytics"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <PortfolioAnalytics />
-                </main>
-              </div>
-            </div>
+            <PortfolioAnalytics />
           ) : (
             <Redirect to="/auth" />
           )
@@ -146,15 +114,7 @@ function AppContent() {
         path="/watchlist"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <Watchlist />
-                </main>
-              </div>
-            </div>
+            <Watchlist />
           ) : (
             <Redirect to="/auth" />
           )
@@ -165,15 +125,7 @@ function AppContent() {
         path="/help"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <Help />
-                </main>
-              </div>
-            </div>
+            <Help />
           ) : (
             <div className="min-h-screen bg-background">
               <Navbar />
@@ -189,15 +141,7 @@ function AppContent() {
         path="/kyc"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <KycVerification />
-                </main>
-              </div>
-            </div>
+            <KycVerification />
           ) : (
             <Redirect to="/auth" />
           )
@@ -208,15 +152,7 @@ function AppContent() {
         path="/support"
         component={() =>
           user ? (
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <LiveSupport />
-                </main>
-              </div>
-            </div>
+            <LiveSupport />
           ) : (
             <div className="min-h-screen bg-background">
               <Navbar />

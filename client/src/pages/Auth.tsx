@@ -86,7 +86,9 @@ export default function Auth({ isAdmin = false }: AuthProps) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Leaf className="text-green-600 text-3xl mr-2" />
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-green-600 flex items-center justify-center mr-3">
+              <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-8 h-8 rounded-full" />
+            </div>
             <span className="text-2xl font-bold text-slate-900 dark:text-white">
               BITPANDA PRO {isAdmin && 'Admin'}
             </span>
