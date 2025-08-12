@@ -100,7 +100,7 @@ export default function Auth({ isAdmin = false }: AuthProps) {
           </p>
         </div>
 
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {!isAdmin && (
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
