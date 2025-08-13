@@ -531,6 +531,175 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Market Insights Section */}
+      <section className="relative z-10 py-20 bg-[#1E2329]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Market Overview */}
+            <motion.div
+              className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                <BarChart3 className="w-5 h-5 text-[#FFB82F] mr-2" />
+                Market Overview
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#8B949E]">Total Market Cap</span>
+                  <span className="text-white font-semibold">$2.1T</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#8B949E]">24h Volume</span>
+                  <span className="text-white font-semibold">$89.2B</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#8B949E]">BTC Dominance</span>
+                  <span className="text-white font-semibold">52.3%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#8B949E]">Fear & Greed Index</span>
+                  <span className="text-[#00D4AA] font-semibold">Greed (78)</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Top Gainers */}
+            <motion.div
+              className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                <TrendingUp className="w-5 h-5 text-[#00D4AA] mr-2" />
+                Top Gainers (24h)
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { symbol: "SOL", change: "+15.2%" },
+                  { symbol: "AVAX", change: "+12.8%" },
+                  { symbol: "ADA", change: "+9.4%" },
+                  { symbol: "DOT", change: "+7.1%" }
+                ].map((coin, index) => (
+                  <div key={coin.symbol} className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      {getCryptoLogo(coin.symbol, 24)}
+                      <span className="text-white font-medium">{coin.symbol}</span>
+                    </div>
+                    <span className="text-[#00D4AA] font-semibold">{coin.change}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Trading Volume */}
+            <motion.div
+              className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                <Activity className="w-5 h-5 text-[#F7931A] mr-2" />
+                Volume Leaders
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { symbol: "BTC", volume: "$2.4B" },
+                  { symbol: "ETH", volume: "$1.2B" },
+                  { symbol: "SOL", volume: "$580M" },
+                  { symbol: "ADA", volume: "$340M" }
+                ].map((coin, index) => (
+                  <div key={coin.symbol} className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      {getCryptoLogo(coin.symbol, 24)}
+                      <span className="text-white font-medium">{coin.symbol}</span>
+                    </div>
+                    <span className="text-[#8B949E] font-semibold">{coin.volume}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trading Tools Section */}
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                Professional Trading Tools
+              </span>
+            </h2>
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
+              Access advanced trading features designed for both beginners and professional traders
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: <ChartLine className="w-8 h-8" />,
+                title: "Advanced Charts",
+                description: "TradingView integration with 100+ indicators",
+                feature: "Real-time data"
+              },
+              {
+                icon: <Zap className="w-8 h-8" />,
+                title: "Lightning Orders",
+                description: "Execute trades in under 10ms globally",
+                feature: "0.02% fees"
+              },
+              {
+                icon: <Globe className="w-8 h-8" />,
+                title: "Global Liquidity",
+                description: "Access to major exchanges worldwide",
+                feature: "Deep orderbooks"
+              },
+              {
+                icon: <Bell className="w-8 h-8" />,
+                title: "Smart Alerts",
+                description: "AI-powered price and volume notifications",
+                feature: "Custom triggers"
+              }
+            ].map((tool, index) => (
+              <motion.div
+                key={index}
+                className="bg-[#161A1E]/80 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36] hover:border-[#FFB82F]/30 transition-all duration-300 group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="w-12 h-12 bg-gradient-to-r from-[#FFB82F] to-[#F7931A] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  {tool.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">{tool.title}</h3>
+                <p className="text-[#8B949E] text-sm mb-3">{tool.description}</p>
+                <div className="inline-flex items-center px-3 py-1 bg-[#FFB82F]/10 rounded-full border border-[#FFB82F]/20">
+                  <span className="text-[#FFB82F] text-xs font-medium">{tool.feature}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="relative z-10 py-32 bg-[#1E2329]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -575,6 +744,232 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Crypto Education Section */}
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                Learn & Earn Crypto
+              </span>
+            </h2>
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
+              Master cryptocurrency trading with our comprehensive educational resources
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Beginner's Guide",
+                description: "Start your crypto journey with fundamentals",
+                topics: ["What is Bitcoin?", "How to buy crypto", "Wallet security", "Basic trading"],
+                icon: <Users className="w-6 h-6" />,
+                level: "Beginner",
+                color: "from-[#00D4AA] to-[#00B39F]"
+              },
+              {
+                title: "Trading Strategies",
+                description: "Advanced techniques for profitable trading",
+                topics: ["Technical analysis", "Risk management", "DeFi strategies", "Futures trading"],
+                icon: <BarChart3 className="w-6 h-6" />,
+                level: "Intermediate",
+                color: "from-[#FFB82F] to-[#F7931A]"
+              },
+              {
+                title: "Market Analysis",
+                description: "Professional insights and market research",
+                topics: ["Market trends", "Tokenomics", "Project analysis", "Portfolio theory"],
+                icon: <Award className="w-6 h-6" />,
+                level: "Advanced",
+                color: "from-[#8B5CF6] to-[#7C3AED]"
+              }
+            ].map((course, index) => (
+              <motion.div
+                key={index}
+                className="bg-[#161A1E]/80 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36] hover:border-[#FFB82F]/30 transition-all duration-300 group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`w-12 h-12 bg-gradient-to-r ${course.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    {course.icon}
+                  </div>
+                  <div className="inline-flex items-center px-3 py-1 bg-[#2B2F36]/60 rounded-full">
+                    <span className="text-[#8B949E] text-xs font-medium">{course.level}</span>
+                  </div>
+                </div>
+                
+                <h3 className="text-xl font-semibold text-white mb-3">{course.title}</h3>
+                <p className="text-[#8B949E] mb-4">{course.description}</p>
+                
+                <div className="space-y-2 mb-6">
+                  {course.topics.map((topic, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#00D4AA]" />
+                      <span className="text-sm text-[#8B949E]">{topic}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <Button className="w-full bg-gradient-to-r from-[#2B2F36] to-[#161A1E] hover:from-[#FFB82F]/20 hover:to-[#F7931A]/20 text-white border border-[#2B2F36] font-medium">
+                  Start Learning
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security Features */}
+      <section className="relative z-10 py-20 bg-[#1E2329]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+                <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+                  Bank-Grade
+                </span>
+                <br />
+                <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                  Security
+                </span>
+              </h2>
+              <p className="text-xl text-[#8B949E] mb-8">
+                Your funds are protected by military-grade encryption and multi-layer security protocols used by leading financial institutions worldwide.
+              </p>
+              
+              <div className="space-y-4">
+                {[
+                  { icon: <Shield className="w-5 h-5" />, text: "256-bit SSL Encryption" },
+                  { icon: <Lock className="w-5 h-5" />, text: "Multi-Signature Wallets" },
+                  { icon: <Globe className="w-5 h-5" />, text: "Cold Storage (95% of funds)" },
+                  { icon: <Bell className="w-5 h-5" />, text: "Real-time Fraud Detection" }
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[#00D4AA] to-[#00B39F] rounded-xl flex items-center justify-center">
+                      {feature.icon}
+                    </div>
+                    <span className="text-white font-medium">{feature.text}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+            
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <div className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-8 border border-[#2B2F36]">
+                <h3 className="text-2xl font-semibold text-white mb-6">Security Metrics</h3>
+                <div className="grid grid-cols-2 gap-6">
+                  {[
+                    { label: "Uptime", value: "99.99%", color: "text-[#00D4AA]" },
+                    { label: "Zero Hacks", value: "5+ Years", color: "text-[#00D4AA]" },
+                    { label: "Insurance", value: "$100M", color: "text-[#FFB82F]" },
+                    { label: "Compliance", value: "SOC 2", color: "text-[#FFB82F]" }
+                  ].map((metric, index) => (
+                    <div key={index} className="text-center">
+                      <div className={`text-2xl font-bold ${metric.color} mb-1`}>{metric.value}</div>
+                      <div className="text-[#8B949E] text-sm">{metric.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* News & Updates */}
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                Latest Crypto News
+              </span>
+            </h2>
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
+              Stay updated with the latest developments in the cryptocurrency world
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Bitcoin Reaches New All-Time High",
+                excerpt: "BTC breaks through $45,000 resistance level amid institutional adoption",
+                time: "2 hours ago",
+                category: "Market",
+                image: "📈"
+              },
+              {
+                title: "Ethereum 2.0 Staking Rewards Increase",
+                excerpt: "Latest network upgrade brings improved yield opportunities for validators",
+                time: "5 hours ago",
+                category: "Technology",
+                image: "🔧"
+              },
+              {
+                title: "DeFi TVL Surpasses $200B Milestone",
+                excerpt: "Total value locked in decentralized finance protocols reaches new record",
+                time: "1 day ago",
+                category: "DeFi",
+                image: "💎"
+              }
+            ].map((article, index) => (
+              <motion.div
+                key={index}
+                className="bg-[#161A1E]/80 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36] hover:border-[#FFB82F]/30 transition-all duration-300 cursor-pointer group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="inline-flex items-center px-3 py-1 bg-[#FFB82F]/10 rounded-full border border-[#FFB82F]/20">
+                    <span className="text-[#FFB82F] text-xs font-medium">{article.category}</span>
+                  </div>
+                  <span className="text-[#8B949E] text-sm">{article.time}</span>
+                </div>
+                
+                <div className="text-4xl mb-4">{article.image}</div>
+                <h3 className="text-lg font-semibold text-white mb-3 group-hover:text-[#FFB82F] transition-colors">
+                  {article.title}
+                </h3>
+                <p className="text-[#8B949E] text-sm leading-relaxed">{article.excerpt}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Stats Section */}
       <section className="relative z-10 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -604,11 +999,101 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Mobile App Section */}
+      <section className="relative z-10 py-20 bg-[#1E2329]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+                <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+                  Trade On The Go
+                </span>
+                <br />
+                <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                  Mobile First
+                </span>
+              </h2>
+              <p className="text-xl text-[#8B949E] mb-8">
+                Download our award-winning mobile app and trade cryptocurrencies anywhere, anytime with the same professional tools available on desktop.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                {[
+                  { icon: <Smartphone className="w-5 h-5" />, text: "iOS & Android", desc: "Native apps" },
+                  { icon: <Bell className="w-5 h-5" />, text: "Push Notifications", desc: "Real-time alerts" },
+                  { icon: <Globe className="w-5 h-5" />, text: "Offline Mode", desc: "View portfolios" },
+                  { icon: <Lock className="w-5 h-5" />, text: "Biometric Login", desc: "Face/Touch ID" }
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[#FFB82F] to-[#F7931A] rounded-xl flex items-center justify-center flex-shrink-0">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <div className="text-white font-medium">{feature.text}</div>
+                      <div className="text-[#8B949E] text-sm">{feature.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex gap-4">
+                <Button className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold">
+                  <Smartphone className="mr-2 w-4 h-4" />
+                  Download App
+                </Button>
+                <Button variant="outline" className="border-[#2B2F36] text-white hover:bg-[#2B2F36]/50 font-medium">
+                  View QR Code
+                </Button>
+              </div>
+            </motion.div>
+            
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <div className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-8 border border-[#2B2F36]">
+                <h3 className="text-2xl font-semibold text-white mb-6 text-center">App Features</h3>
+                <div className="space-y-4">
+                  {[
+                    { feature: "Advanced charting", status: "✓" },
+                    { feature: "One-tap trading", status: "✓" },
+                    { feature: "Portfolio tracking", status: "✓" },
+                    { feature: "Price alerts", status: "✓" },
+                    { feature: "News & analysis", status: "✓" },
+                    { feature: "DeFi integration", status: "Soon" }
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-[#1E2329]/60 rounded-xl">
+                      <span className="text-white">{item.feature}</span>
+                      <span className={`text-sm font-medium ${item.status === 'Soon' ? 'text-[#FFB82F]' : 'text-[#00D4AA]'}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-6 pt-6 border-t border-[#2B2F36] text-center">
+                  <div className="text-3xl font-bold text-white mb-1">4.8★</div>
+                  <div className="text-[#8B949E] text-sm">App Store Rating (50k+ reviews)</div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="relative z-10 py-32">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
