@@ -211,7 +211,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0E11] text-white overflow-x-hidden relative">
+    <div className="min-h-screen bg-white text-black overflow-x-hidden relative">
       {/* Bybit-inspired Background Pattern */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,182,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,182,0,0.1)_1px,transparent_1px)] bg-[size:40px_40px]" />

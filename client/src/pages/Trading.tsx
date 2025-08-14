@@ -14,7 +14,7 @@ export default function Trading() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0B0E11] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white text-black flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">Trading Access Required</h1>
           <p className="text-gray-300 mb-8">Please log in to access the trading platform</p>
@@ -39,15 +39,15 @@ export default function Trading() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0E11] text-white">
+    <div className="min-h-screen bg-white text-black">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-2 gradient-bitpanda-text">
               Professional Trading
             </h1>
-            <p className="text-xl text-gray-300">
+            <p className="text-xl text-gray-600">
               Real-time cryptocurrency trading with live market data
             </p>
           </div>

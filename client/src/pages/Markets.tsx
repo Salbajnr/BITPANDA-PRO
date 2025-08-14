@@ -44,15 +44,15 @@ export default function Markets() {
   const marketCapChange = marketData?.market_cap_change_percentage_24h_usd || 1.8;
 
   return (
-    <div className="min-h-screen bg-[#0B0E11] text-white">
+    <div className="min-h-screen bg-white text-black">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-2 gradient-bitpanda-text">
               Cryptocurrency Markets
             </h1>
-            <p className="text-xl text-gray-300">
+            <p className="text-xl text-gray-600">
               Live market data and comprehensive crypto analysis
             </p>
           </div>

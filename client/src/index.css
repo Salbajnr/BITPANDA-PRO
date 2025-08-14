@@ -2,385 +2,180 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bybit-inspired Color Scheme */
-:root {
-  /* Bybit Official Colors */
-  --bybit-yellow: #FFB82F;
-  --bybit-orange: #F7931A;
-  --bybit-dark-bg: #0B0E11;
-  --bybit-card-bg: #161A1E;
-  --bybit-border: #2B2F36;
-  --bybit-text-primary: #FFFFFF;
-  --bybit-text-secondary: #8B949E;
-  --bybit-green: #00D4AA;
-  --bybit-red: #F84638;
-  --bybit-surface: #1E2329;
-  
-  /* Background gradients */
-  --gradient-primary: linear-gradient(135deg, var(--bybit-yellow) 0%, var(--bybit-orange) 100%);
-  --gradient-secondary: linear-gradient(135deg, var(--bybit-green) 0%, #00B39F 100%);
-  --gradient-danger: linear-gradient(135deg, var(--bybit-red) 0%, #E53E3E 100%);
-}
-
-/* Custom utility classes for Bybit styling */
-@layer utilities {
-  .bg-bybit-primary {
-    background: var(--gradient-primary);
-  }
-  
-  .bg-bybit-secondary {
-    background: var(--gradient-secondary);
-  }
-  
-  .bg-bybit-danger {
-    background: var(--gradient-danger);
-  }
-  
-  .text-bybit-yellow {
-    color: var(--bybit-yellow);
-  }
-  
-  .text-bybit-orange {
-    color: var(--bybit-orange);
-  }
-  
-  .text-bybit-green {
-    color: var(--bybit-green);
-  }
-  
-  .text-bybit-red {
-    color: var(--bybit-red);
-  }
-  
-  .border-bybit-yellow {
-    border-color: var(--bybit-yellow);
-  }
-  
-  .border-bybit-border {
-    border-color: var(--bybit-border);
-  }
-  
-  /* Gradient animations */
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient 3s ease infinite;
-  }
-  
-  @keyframes gradient {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-  
-  /* Glow effects */
-  .glow-yellow {
-    box-shadow: 0 0 20px rgba(255, 184, 47, 0.3);
-  }
-  
-  .glow-green {
-    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
-  }
-  
-  .glow-red {
-    box-shadow: 0 0 20px rgba(248, 70, 56, 0.3);
-  }
-  
-  /* Glassmorphism effects */
-  .glass-card {
-    background: rgba(22, 26, 30, 0.8);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 184, 47, 0.1);
-  }
-  
-  .glass-nav {
-    background: rgba(22, 26, 30, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--bybit-border);
-  }
-  
-  /* Custom scrollbar for market data */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: var(--bybit-surface);
-    border-radius: 2px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--bybit-yellow);
-    border-radius: 2px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: var(--bybit-orange);
-  }
-  
-  /* Loading shimmer effect */
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 184, 47, 0.1),
-      transparent
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-  
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-  
-  /* Price ticker animation */
-  .price-ticker {
-    animation: priceUpdate 0.3s ease-in-out;
-  }
-  
-  @keyframes priceUpdate {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  
-  /* Floating elements */
-  .float-animation {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-  
-  /* Radial gradient utility */
-  .bg-gradient-radial {
-    background: radial-gradient(circle, var(--tw-gradient-stops));
-  }
-}
-
-/* Performance optimizations */
-* {
-  will-change: auto;
-}
-
-/* Faster navigation transitions */
-a {
-  transition: all 0.15s ease-in-out;
-}
-
-/* Smooth scrolling for better UX */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Optimize images and animations */
-img {
-  content-visibility: auto;
-}
-
-/* Reduce paint complexity */
-.animate-bounce {
-  will-change: transform;
-}
-
-/* Optimize backdrop filters */
-.backdrop-blur-xl {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Bitpanda-inspired color scheme with white background and green accents */
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 0 0% 0%; /* Pure black text */
+    --card: 142 69% 47%; /* Bitpanda green for cards */
+    --card-foreground: 0 0% 100%; /* White text on green cards */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 262 83% 58%;
-    --primary-dark: 262 80% 45%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 142 69% 47%; /* Bitpanda green primary */
+    --primary-foreground: 0 0% 100%; /* White text on green */
+    --secondary: 210 11% 93%; /* Light gray for secondary elements */
+    --secondary-foreground: 0 0% 0%;
+    --muted: 210 11% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 142 69% 47%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
     --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --chart-1: 12 76% 61%;
+    --input: 0 0% 100%;
+    --ring: 142 69% 47%;
+    --radius: 0.75rem;
+    --chart-1: 142 69% 47%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    
+    /* Custom Bitpanda colors */
+    --bitpanda-green: 142 69% 47%;
+    --bitpanda-green-light: 142 50% 60%;
+    --bitpanda-green-dark: 142 69% 35%;
+    --bitpanda-gray-light: 210 11% 98%;
+    --bitpanda-gray: 210 11% 85%;
+    --bitpanda-text: 0 0% 0%;
+    --bitpanda-success: 142 69% 47%;
+    --bitpanda-warning: 43 96% 56%;
+    --bitpanda-danger: 0 84% 60%;
+    --bitpanda-card-bg: 0 0% 100%;
+    --bitpanda-section-bg: 210 11% 98%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 262 83% 58%;
-    --primary-dark: 262 80% 45%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    /* Force light theme everywhere */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 142 69% 47%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 142 69% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 11% 93%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 210 11% 96%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --accent: 142 69% 47%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 0 0% 100%;
+    --ring: 142 69% 47%;
   }
+}
 
-  * {
-    @apply border-border;
+/* Bitpanda-specific utility classes */
+@layer utilities {
+  .bg-bitpanda-green {
+    background-color: hsl(var(--bitpanda-green)) !important;
   }
   
-  body {
-    @apply bg-background text-foreground;
+  .bg-bitpanda-green-light {
+    background-color: hsl(var(--bitpanda-green-light)) !important;
+  }
+  
+  .bg-bitpanda-green-dark {
+    background-color: hsl(var(--bitpanda-green-dark)) !important;
+  }
+  
+  .text-bitpanda-green {
+    color: hsl(var(--bitpanda-green)) !important;
+  }
+  
+  .text-bitpanda-text {
+    color: hsl(var(--bitpanda-text)) !important;
+  }
+  
+  .border-bitpanda-green {
+    border-color: hsl(var(--bitpanda-green)) !important;
+  }
+  
+  .bg-bitpanda-card {
+    background-color: hsl(var(--bitpanda-card-bg)) !important;
+  }
+  
+  .bg-bitpanda-section {
+    background-color: hsl(var(--bitpanda-section-bg)) !important;
+  }
+
+  /* Override dark backgrounds */
+  .bg-gray-900 {
+    background-color: hsl(var(--bitpanda-green)) !important;
+    color: white !important;
+  }
+  
+  .bg-gray-800 {
+    background-color: hsl(var(--bitpanda-section-bg)) !important;
+    color: black !important;
+  }
+  
+  .bg-\[#0B0E11\] {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .bg-\[#161A1E\] {
+    background-color: hsl(var(--bitpanda-green)) !important;
+    color: white !important;
+  }
+  
+  .text-white {
+    color: white !important;
+  }
+  
+  .text-gray-300 {
+    color: hsl(215.4 16.3% 46.9%) !important;
+  }
+  
+  .text-gray-400 {
+    color: hsl(215.4 16.3% 46.9%) !important;
   }
 }
 
-/* Custom animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+/* Global styles for Bitpanda theme */
+body {
+  background-color: white !important;
+  color: black !important;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* Ensure all main containers follow the theme */
+#root {
+  background-color: white !important;
+  color: black !important;
 }
 
-.animate-in {
-  animation: slideIn 0.6s ease-out;
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--bitpanda-section-bg));
 }
 
-.slide-in-from-left {
-  animation: slideInLeft 0.8s ease-out;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--bitpanda-green));
+  border-radius: 4px;
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--bitpanda-green-dark));
 }
 
-.slide-in-from-right {
-  animation: slideInRight 0.8s ease-out;
+/* Bitpanda gradients */
+.gradient-bitpanda-green {
+  background: linear-gradient(135deg, hsl(var(--bitpanda-green-light)), hsl(var(--bitpanda-green-dark)));
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.fade-in-on-scroll {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.fade-in-on-scroll.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Crypto pattern background */
-.crypto-pattern {
-  position: relative;
-  overflow: hidden;
-}
-
-.crypto-pattern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.1) 1px, transparent 1px),
-    radial-gradient(circle at 80% 70%, rgba(34, 197, 94, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-  background-clip: text;
+.gradient-bitpanda-text {
+  background: linear-gradient(135deg, hsl(var(--bitpanda-green)), hsl(var(--bitpanda-green-dark)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-/* Hover effects */
-.hover-glow:hover {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-}
-
-/* Mobile responsive improvements */
-@media (max-width: 640px) {
-  .text-5xl { font-size: 2.5rem; }
-  .text-7xl { font-size: 3.5rem; }
+  background-clip: text;
 }
