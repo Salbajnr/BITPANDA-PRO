@@ -1,0 +1,124 @@
+<!-- end list -->
+import { Users, BarChart3, Award, PlayCircle, Book, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+export function AcademyPage() {
+  const courses = [
+    {
+      level: "Beginner",
+      title: "Crypto Fundamentals 101",
+      description: "Understand the basics of blockchain, Bitcoin, and how to make your first trade.",
+      topics: ["What is Crypto?", "First Buy", "Wallets", "Security Basics"],
+      icon: <Users className="w-8 h-8" />,
+      color: "from-[#00D4AA] to-[#00B39F]"
+    },
+    {
+      level: "Intermediate",
+      title: "Mastering Technical Analysis",
+      description: "Learn to read charts, use indicators, and identify trends to make informed decisions.",
+      topics: ["Chart Patterns", "Indicators", "Risk Management", "Trading Psychology"],
+      icon: <BarChart3 className="w-8 h-8" />,
+      color: "from-[#FFB82F] to-[#F7931A]"
+    },
+    {
+      level: "Advanced",
+      title: "Advanced Trading Strategies",
+      description: "Dive deep into advanced concepts like derivatives, arbitrage, and automated trading.",
+      topics: ["Futures", "Options", "DeFi", "Bots"],
+      icon: <Award className="w-8 h-8" />,
+      color: "from-[#8B5CF6] to-[#7C3AED]"
+    },
+  ];
+
+  const videos = [
+    { title: "How to Use TradingView", duration: "12 min", color: "text-[#FFB82F]" },
+    { title: "What is a Crypto Wallet?", duration: "8 min", color: "text-[#00D4AA]" },
+    { title: "Understanding Candlestick Charts", duration: "15 min", color: "text-[#F84638]" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#0B0E11] text-white p-8">
+      <div className="max-w-7xl mx-auto space-y-12">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <h1 className="text-4xl lg:text-6xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+              BITPANDA PRO Academy
+            </span>
+          </h1>
+          <p className="text-lg text-[#8B949E] max-w-3xl mx-auto">
+            Your hub for mastering cryptocurrency. From beginner guides to advanced trading strategies, our resources are designed to help you succeed.
+          </p>
+        </motion.div>
+
+        {/* Courses Section */}
+        <div className="grid md:grid-cols-3 gap-8">
+          {courses.map((course, index) => (
+            <motion.div
+              key={index}
+              className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36] hover:border-[#FFB82F]/30 transition-all duration-300 group"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-12 h-12 bg-gradient-to-r ${course.color} rounded-xl flex items-center justify-center`}>
+                  {course.icon}
+                </div>
+                <div className="inline-flex items-center px-3 py-1 bg-[#2B2F36]/60 rounded-full">
+                  <span className="text-[#8B949E] text-xs font-medium">{course.level}</span>
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{course.title}</h3>
+              <p className="text-[#8B949E] mb-4">{course.description}</p>
+              <ul className="space-y-2 mb-6 text-sm text-[#8B949E]">
+                {course.topics.map((topic, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <Book className="w-4 h-4 text-[#FFB82F]" />
+                    <span>{topic}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button className="w-full bg-[#2B2F36] hover:bg-[#FFB82F]/20 text-white font-medium border border-[#2B2F36]">
+                Start Learning <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Video Tutorials Section */}
+        <motion.div
+          className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <h2 className="text-2xl font-bold mb-6">Video Tutorials</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {videos.map((video, index) => (
+              <motion.div
+                key={index}
+                className="bg-[#1E2329] rounded-xl p-4 flex items-center justify-between hover:bg-[#2B2F36] transition-colors cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="flex items-center gap-4">
+                  <PlayCircle className={`w-8 h-8 ${video.color}`} />
+                  <div>
+                    <h4 className="font-semibold">{video.title}</h4>
+                    <p className="text-[#8B949E] text-sm">{video.duration}</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-5 h-5 text-[#8B949E] group-hover:text-white transition-colors" />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
