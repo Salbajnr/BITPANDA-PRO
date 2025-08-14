@@ -8,7 +8,7 @@ services:
     startCommand: npm start
     envVars:
       - key: NODE_ENV
-        value: production
+        value: development
       - key: PORT
         value: 5000
       - key: DATABASE_URL
@@ -35,3 +35,4 @@ staticSites:
       - type: rewrite
         source: /*
         destination: /index.html
+
