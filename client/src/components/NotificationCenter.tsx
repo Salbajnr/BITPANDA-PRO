@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Bell, X, Check, AlertTriangle, Info, TrendingUp, Settings, Filter, Search } from 'lucide-react';
+import { Bell, X, TrendingUp, TrendingDown, AlertTriangle, Info, CheckCircle, DollarSign, Shield, Globe, Settings, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Notification {
@@ -25,12 +24,31 @@ interface Notification {
   metadata?: Record<string, any>;
 }
 
+interface NotificationSettings {
+  priceAlerts: boolean;
+  portfolioUpdates: boolean;
+  securityAlerts: boolean;
+  newsUpdates: boolean;
+  tradingAlerts: boolean;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+}
+
 export default function NotificationCenter() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread' | 'trade' | 'alerts'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState<NotificationSettings>({
+    priceAlerts: true,
+    portfolioUpdates: true,
+    securityAlerts: true,
+    newsUpdates: false,
+    tradingAlerts: true,
+    emailNotifications: true,
+    pushNotifications: false
+  });
 
   // Mock notifications - in real app this would come from API
   useEffect(() => {
@@ -107,7 +125,7 @@ export default function NotificationCenter() {
     if (filter === 'alerts' && !['price_alert', 'security'].includes(notification.type)) return false;
 
     // Filter by search term
-    if (searchTerm && !notification.title.toLowerCase().includes(searchTerm.toLowerCase()) && 
+    if (searchTerm && !notification.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !notification.message.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
@@ -135,29 +153,29 @@ export default function NotificationCenter() {
     setNotifications(prev => prev.filter(notification => notification.id !== id));
   };
 
-  const getIcon = (type: string) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'trade': return <TrendingUp className="h-4 w-4" />;
-      case 'price_alert': return <AlertTriangle className="h-4 w-4" />;
-      case 'news': return <Info className="h-4 w-4" />;
-      case 'deposit': return <TrendingUp className="h-4 w-4" />;
-      case 'security': return <AlertTriangle className="h-4 w-4" />;
-      case 'system': return <Settings className="h-4 w-4" />;
-      default: return <Bell className="h-4 w-4" />;
+      case 'trade': return <TrendingUp className="h-4 w-4 text-green-500" />;
+      case 'price_alert': return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'news': return <Globe className="h-4 w-4 text-blue-500" />;
+      case 'deposit': return <DollarSign className="h-4 w-4 text-green-500" />;
+      case 'security': return <Shield className="h-4 w-4 text-red-500" />;
+      case 'system': return <Settings className="h-4 w-4 text-gray-500" />;
+      default: return <Bell className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityBadgeVariant = (priority: string) => {
     switch (priority) {
-      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
-      case 'high': return 'text-red-500 bg-red-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'low': return 'text-blue-500 bg-blue-50';
-      default: return 'text-gray-500 bg-gray-50';
+      case 'critical': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'default';
+      case 'low': return 'secondary';
+      default: return 'secondary';
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
+  const formatTimeAgo = (timestamp: Date) => {
     const now = new Date();
     const diff = now.getTime() - timestamp.getTime();
     const minutes = Math.floor(diff / 60000);
@@ -251,7 +269,7 @@ export default function NotificationCenter() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3 flex-1">
                         <div className={`mt-1 p-1 rounded-full ${getPriorityColor(notification.priority)}`}>
-                          {getIcon(notification.type)}
+                          {getNotificationIcon(notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -272,7 +290,7 @@ export default function NotificationCenter() {
                           </p>
                           <div className="flex items-center justify-between mt-2">
                             <p className="text-xs text-slate-400">
-                              {formatTimestamp(notification.timestamp)}
+                              {formatTimeAgo(notification.timestamp)}
                             </p>
                             <Badge variant="outline" className="text-xs">
                               {notification.type.replace('_', ' ')}
