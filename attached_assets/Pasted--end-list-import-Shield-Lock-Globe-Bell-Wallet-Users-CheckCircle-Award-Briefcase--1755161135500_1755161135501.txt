@@ -1,0 +1,140 @@
+<!-- end list -->
+import { Shield, Lock, Globe, Bell, Wallet, Users, CheckCircle, Award, Briefcase } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+export function SecurityPage() {
+  return (
+    <div className="min-h-screen bg-[#0B0E11] text-white p-8">
+      <div className="max-w-7xl mx-auto space-y-16">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <h1 className="text-4xl lg:text-6xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+              Your Safety Is Our
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+              Top Priority
+            </span>
+          </h1>
+          <p className="text-lg text-[#8B949E] max-w-3xl mx-auto">
+            We use industry-leading security measures to protect your funds and data, ensuring a safe and reliable trading experience.
+          </p>
+        </motion.div>
+
+        {/* Security Features Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[
+            {
+              icon: <Shield className="w-8 h-8" />,
+              title: "Bank-Grade Encryption",
+              description: "All sensitive data is protected by 256-bit SSL encryption, the same standard used by global financial institutions.",
+              color: "from-[#FFB82F] to-[#F7931A]"
+            },
+            {
+              icon: <Lock className="w-8 h-8" />,
+              title: "Cold Storage",
+              description: "Over 95% of user funds are stored in offline, multi-signature cold wallets, fully isolated from online systems.",
+              color: "from-[#00D4AA] to-[#00B39F]"
+            },
+            {
+              icon: <Wallet className="w-8 h-8" />,
+              title: "Multi-Signature Wallets",
+              description: "Transactions require multiple private keys to be authorized, preventing unauthorized access and single points of failure.",
+              color: "from-[#8B5CF6] to-[#7C3AED]"
+            },
+            {
+              icon: <Bell className="w-8 h-8" />,
+              title: "Real-time Monitoring",
+              description: "Our systems constantly monitor for suspicious activity, with automated alerts and AI-driven fraud detection.",
+              color: "from-[#3B82F6] to-[#1D4ED8]"
+            },
+            {
+              icon: <Users className="w-8 h-8" />,
+              title: "2-Factor Authentication",
+              description: "Protect your account with an extra layer of security using Google Authenticator, SMS, or email verification.",
+              color: "from-[#FF5C5C] to-[#D81D1D]"
+            },
+            {
+              icon: <Briefcase className="w-8 h-8" />,
+              title: "Professional Audits",
+              description: "Our security systems are regularly audited by leading third-party security firms to ensure compliance and robustness.",
+              color: "from-[#9CA3AF] to-[#6B7280]"
+            }
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36] hover:border-[#FFB82F]/30 transition-all duration-300 group"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-6`}>
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+              <p className="text-[#8B949E]">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Trust & Compliance Section */}
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <motion.div
+            className="bg-[#161A1E] rounded-2xl p-8 border border-[#2B2F36]"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <h3 className="text-2xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                Compliance & Assurance
+              </span>
+            </h3>
+            <p className="text-[#8B949E] mb-6">
+              We are committed to operating in full compliance with global financial regulations to provide a trusted trading environment.
+            </p>
+            <ul className="space-y-4">
+              <li className="flex items-center gap-4">
+                <CheckCircle className="w-6 h-6 text-[#00D4AA]" />
+                <span className="font-medium text-white">SOC 2 Certified</span>
+                <span className="text-[#8B949E]">Industry-leading security controls.</span>
+              </li>
+              <li className="flex items-center gap-4">
+                <Award className="w-6 h-6 text-[#FFB82F]" />
+                <span className="font-medium text-white">Segregated Accounts</span>
+                <span className="text-[#8B949E]">Client funds are kept separate from company operational funds.</span>
+              </li>
+              <li className="flex items-center gap-4">
+                <Briefcase className="w-6 h-6 text-[#3B82F6]" />
+                <span className="font-medium text-white">Robust AML/KYC</span>
+                <span className="text-[#8B949E]">Strong anti-money laundering and Know Your Customer policies.</span>
+              </li>
+            </ul>
+          </motion.div>
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            <div className="bg-[#1E2329] p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center h-full">
+              <Shield className="w-24 h-24 text-[#FFB82F] mb-6" />
+              <h4 className="text-2xl font-bold text-white mb-2">Secure Your Account Now</h4>
+              <p className="text-[#8B949E] text-center mb-6">Take the first step towards a safer trading experience.</p>
+              <Button className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] text-black font-semibold">
+                Set Up 2FA
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
