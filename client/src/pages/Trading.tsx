@@ -1,26 +1,154 @@
 
-import React from 'react';
-import { Target } from "lucide-react";
+import React, { useState } from 'react';
+import { RealTimeCryptoTable } from '../components/RealTimeCryptoTable';
+import { TradingInterface } from '../components/TradingInterface';
+import { CryptoPrice } from '../services/cryptoApi';
+import { useAuth } from '../hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Activity, DollarSign, BarChart3 } from 'lucide-react';
 
 export default function Trading() {
-    return (
-        <div className="min-h-screen bg-[#0B0E11] text-white">
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Trading
-                </h1>
-                <p className="text-xl text-gray-300 mb-8">
-                    Explore our advanced trading tools designed for professionals.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <Target className="w-12 h-12 text-green-500 mb-4" />
-                        <h2 className="text-2xl font-semibold mb-2">Advanced Trading Tools</h2>
-                        <p className="text-gray-400">Access our suite of professional trading tools.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+  const [selectedCrypto, setSelectedCrypto] = useState<CryptoPrice | null>(null);
+  const { user, isAuthenticated } = useAuth();
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0B0E11] text-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">Trading Access Required</h1>
+          <p className="text-gray-300 mb-8">Please log in to access the trading platform</p>
+          <Button
+            onClick={() => window.location.href = '/auth'}
+            className="bg-blue-600 hover:bg-blue-700"
+            data-testid="button-login"
+          >
+            Login to Trade
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleTradeClick = (crypto: CryptoPrice) => {
+    setSelectedCrypto(crypto);
+  };
+
+  const handleCloseTrading = () => {
+    setSelectedCrypto(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0B0E11] text-white">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Professional Trading
+            </h1>
+            <p className="text-xl text-gray-300">
+              Real-time cryptocurrency trading with live market data
+            </p>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Badge variant="default" className="bg-green-600 px-4 py-2">
+              <Activity className="h-4 w-4 mr-2" />
+              Market Open
+            </Badge>
+            {user && (
+              <div className="text-right">
+                <p className="text-sm text-gray-400">Trading Balance</p>
+                <p className="text-xl font-bold text-green-400">
+                  ${Number(user.walletBalance || 0).toLocaleString()}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Trading Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">24h Volume</p>
+                <p className="text-2xl font-bold text-white">$1.2T</p>
+                <p className="text-green-400 text-sm">+5.2%</p>
+              </div>
+              <BarChart3 className="h-8 w-8 text-blue-400" />
+            </div>
+          </div>
+          
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Market Cap</p>
+                <p className="text-2xl font-bold text-white">$2.8T</p>
+                <p className="text-green-400 text-sm">+2.1%</p>
+              </div>
+              <DollarSign className="h-8 w-8 text-green-400" />
+            </div>
+          </div>
+          
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">BTC Dominance</p>
+                <p className="text-2xl font-bold text-white">54.2%</p>
+                <p className="text-red-400 text-sm">-0.8%</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-orange-400" />
+            </div>
+          </div>
+          
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Active Trades</p>
+                <p className="text-2xl font-bold text-white">12</p>
+                <p className="text-blue-400 text-sm">Live</p>
+              </div>
+              <Activity className="h-8 w-8 text-purple-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Trading Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Crypto Table */}
+          <div className="lg:col-span-2">
+            <RealTimeCryptoTable 
+              onTradeClick={handleTradeClick}
+              limit={50}
+              showWatchlist={true}
+            />
+          </div>
+          
+          {/* Trading Panel */}
+          <div className="lg:col-span-1">
+            {selectedCrypto ? (
+              <TradingInterface 
+                crypto={selectedCrypto}
+                onClose={handleCloseTrading}
+              />
+            ) : (
+              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800 h-full flex items-center justify-center">
+                <div className="text-center">
+                  <Activity className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-400 mb-2">
+                    Select a Cryptocurrency
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    Click "Trade" on any cryptocurrency to start trading
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

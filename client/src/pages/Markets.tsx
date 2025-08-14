@@ -1,180 +1,257 @@
+import React, { useState, useEffect } from 'react';
+import { RealTimeCryptoTable } from '../components/RealTimeCryptoTable';
+import { useQuery } from '@tanstack/react-query';
+import { CryptoApiService } from '../services/cryptoApi';
+import { TrendingUp, TrendingDown, DollarSign, BarChart3, Activity, Globe } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { getCryptoLogo } from "@/components/CryptoLogos";
-import { DollarSign, TrendingUp, TrendingDown, Clock, BarChart3 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+export default function Markets() {
+  const [selectedTimeframe, setSelectedTimeframe] = useState('24h');
 
-interface MarketItem {
-  symbol: string;
-  name: string;
-  price: number;
-  change: number;
-  volume: number;
-  marketCap: number;
-  icon: string;
-}
+  const { data: marketData } = useQuery({
+    queryKey: ['market-data'],
+    queryFn: () => CryptoApiService.getMarketData(),
+    refetchInterval: 60000, // Refetch every minute
+  });
 
-const initialMarketData: MarketItem[] = [
-  { symbol: "BTC", name: "Bitcoin", price: 43250, change: 2.45, volume: 2400000000, marketCap: 850000000000, icon: "BTC" },
-  { symbol: "ETH", name: "Ethereum", price: 2680.5, change: -1.23, volume: 1200000000, marketCap: 320000000000, icon: "ETH" },
-  { symbol: "SOL", name: "Solana", price: 98.75, change: 5.67, volume: 580000000, marketCap: 45000000000, icon: "SOL" },
-  { symbol: "ADA", name: "Cardano", price: 0.485, change: 3.21, volume: 340000000, marketCap: 15000000000, icon: "ADA" },
-  { symbol: "AVAX", name: "Avalanche", price: 34.82, change: 4.12, volume: 290000000, marketCap: 12000000000, icon: "AVAX" },
-  { symbol: "DOT", name: "Polkadot", price: 7.25, change: -0.89, volume: 180000000, marketCap: 8000000000, icon: "DOT" },
-];
+  const { data: topCryptos = [] } = useQuery({
+    queryKey: ['top-cryptos-market', 100],
+    queryFn: () => CryptoApiService.getTopCryptos(100),
+    refetchInterval: 30000,
+  });
 
-export default function MarketsPage() {
-  const [marketData, setMarketData] = useState(initialMarketData);
-  const [sortKey, setSortKey] = useState<keyof MarketItem | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-
-  const handleSort = (key: keyof MarketItem) => {
-    const direction = sortKey === key && sortDirection === 'desc' ? 'asc' : 'desc';
-    const sortedData = [...marketData].sort((a, b) => {
-      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
-      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-    setMarketData(sortedData);
-    setSortKey(key);
-    setSortDirection(direction);
+  const formatLargeNumber = (num: number) => {
+    if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
+    if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+    if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+    return `$${num.toLocaleString()}`;
   };
 
-  const formatVolume = (volume: number) => {
-    if (volume >= 1000000000) {
-      return `$${(volume / 1000000000).toFixed(1)}B`;
-    }
-    if (volume >= 1000000) {
-      return `$${(volume / 1000000).toFixed(1)}M`;
-    }
-    return `$${volume.toFixed(2)}`;
-  };
+  const gainers = topCryptos
+    .filter(crypto => crypto.price_change_percentage_24h > 0)
+    .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+    .slice(0, 10);
 
-  const formatMarketCap = (marketCap: number) => {
-    if (marketCap >= 1000000000000) {
-      return `$${(marketCap / 1000000000000).toFixed(1)}T`;
-    }
-    if (marketCap >= 1000000000) {
-      return `$${(marketCap / 1000000000).toFixed(1)}B`;
-    }
-    return `$${marketCap.toLocaleString()}`;
-  };
+  const losers = topCryptos
+    .filter(crypto => crypto.price_change_percentage_24h < 0)
+    .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
+    .slice(0, 10);
+
+  const totalMarketCap = marketData?.total_market_cap?.usd || 2800000000000;
+  const totalVolume = marketData?.total_volume?.usd || 95000000000;
+  const marketCapChange = marketData?.market_cap_change_percentage_24h_usd || 1.8;
 
   return (
-    <div className="min-h-screen bg-[#0B0E11] text-white p-8">
-      <div className="max-w-7xl mx-auto space-y-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
-        >
-          <h1 className="text-4xl lg:text-6xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
-              Live Crypto Markets
-            </span>
-          </h1>
-          <p className="text-lg text-[#8B949E] max-w-2xl mx-auto">
-            Explore real-time prices, market capitalization, and key data for a wide range of cryptocurrencies.
-          </p>
-        </motion.div>
-
-        {/* Key Metrics */}
-        <div className="grid md:grid-cols-4 gap-6">
-          {[
-            { label: "Total Market Cap", value: "$2.1T", icon: <BarChart3 className="w-6 h-6 text-[#FFB82F]" /> },
-            { label: "24h Volume", value: "$89.2B", icon: <Clock className="w-6 h-6 text-white" /> },
-            { label: "Top Gainer", value: "Solana (+5.67%)", icon: <TrendingUp className="w-6 h-6 text-[#00D4AA]" /> },
-            { label: "Top Loser", value: "Ethereum (-1.23%)", icon: <TrendingDown className="w-6 h-6 text-[#F84638]" /> },
-          ].map((item, index) => (
-            <motion.div
-              key={index}
-              className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36] flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <div className="w-12 h-12 bg-[#2B2F36] rounded-xl flex items-center justify-center">
-                {item.icon}
-              </div>
-              <div>
-                <p className="text-[#8B949E] text-sm">{item.label}</p>
-                <h3 className="text-xl font-bold mt-1">{item.value}</h3>
-              </div>
-            </motion.div>
-          ))}
+    <div className="min-h-screen bg-[#0B0E11] text-white">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+              Cryptocurrency Markets
+            </h1>
+            <p className="text-xl text-gray-300">
+              Live market data and comprehensive crypto analysis
+            </p>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Badge variant="default" className="bg-green-600 px-4 py-2">
+              <Activity className="h-4 w-4 mr-2" />
+              Live Data
+            </Badge>
+            <Badge variant="secondary" className="px-4 py-2">
+              <Globe className="h-4 w-4 mr-2" />
+              Global Markets
+            </Badge>
+          </div>
         </div>
 
-        {/* Market Table */}
-        <motion.div
-          className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36]"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left table-auto">
-              <thead>
-                <tr className="border-b border-[#2B2F36] text-[#8B949E]">
-                  <th className="py-4 px-4 font-semibold cursor-pointer" onClick={() => handleSort('name')}>
-                    Asset
-                  </th>
-                  <th className="py-4 px-4 font-semibold cursor-pointer" onClick={() => handleSort('price')}>
-                    Price
-                  </th>
-                  <th className="py-4 px-4 font-semibold cursor-pointer" onClick={() => handleSort('change')}>
-                    24h Change
-                  </th>
-                  <th className="py-4 px-4 font-semibold cursor-pointer" onClick={() => handleSort('volume')}>
-                    24h Volume
-                  </th>
-                  <th className="py-4 px-4 font-semibold cursor-pointer" onClick={() => handleSort('marketCap')}>
-                    Market Cap
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {marketData.map((crypto, index) => (
-                  <motion.tr
-                    key={index}
-                    className="border-b border-[#2B2F36] hover:bg-[#2B2F36] transition-colors"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
-                    <td className="py-4 px-4 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                        {getCryptoLogo(crypto.icon, 32)}
-                      </div>
+        {/* Market Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Total Market Cap</p>
+                <p className="text-2xl font-bold text-white">
+                  {formatLargeNumber(totalMarketCap)}
+                </p>
+                <div className={`flex items-center text-sm ${
+                  marketCapChange >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {marketCapChange >= 0 ? (
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 mr-1" />
+                  )}
+                  {marketCapChange >= 0 ? '+' : ''}{marketCapChange.toFixed(2)}%
+                </div>
+              </div>
+              <DollarSign className="h-8 w-8 text-green-400" />
+            </div>
+          </div>
+          
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">24h Trading Volume</p>
+                <p className="text-2xl font-bold text-white">
+                  {formatLargeNumber(totalVolume)}
+                </p>
+                <p className="text-blue-400 text-sm">+12.5%</p>
+              </div>
+              <BarChart3 className="h-8 w-8 text-blue-400" />
+            </div>
+          </div>
+          
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Bitcoin Dominance</p>
+                <p className="text-2xl font-bold text-white">54.2%</p>
+                <p className="text-orange-400 text-sm">BTC</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-orange-400" />
+            </div>
+          </div>
+          
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Active Cryptocurrencies</p>
+                <p className="text-2xl font-bold text-white">13,450</p>
+                <p className="text-purple-400 text-sm">+2.1% weekly</p>
+              </div>
+              <Activity className="h-8 w-8 text-purple-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Market Categories */}
+        <Tabs defaultValue="all" className="mb-8">
+          <TabsList className="grid w-full grid-cols-4 bg-gray-900 max-w-md">
+            <TabsTrigger value="all" data-testid="tab-all-markets">All Markets</TabsTrigger>
+            <TabsTrigger value="gainers" data-testid="tab-gainers">Top Gainers</TabsTrigger>
+            <TabsTrigger value="losers" data-testid="tab-losers">Top Losers</TabsTrigger>
+            <TabsTrigger value="volume" data-testid="tab-volume">High Volume</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="mt-6">
+            <RealTimeCryptoTable 
+              limit={100}
+              showWatchlist={true}
+            />
+          </TabsContent>
+
+          <TabsContent value="gainers" className="mt-6">
+            <div className="bg-gray-900 rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-gray-800">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <TrendingUp className="h-5 w-5 text-green-400 mr-2" />
+                  Top Gainers (24h)
+                </h3>
+              </div>
+              <div className="divide-y divide-gray-800">
+                {gainers.map((crypto, index) => (
+                  <div key={crypto.id} className="flex items-center justify-between p-4 hover:bg-gray-800/50"
+                       data-testid={`gainer-${crypto.symbol}`}>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-gray-400 font-medium w-6">#{index + 1}</span>
+                      <img src={crypto.image} alt={crypto.name} className="h-6 w-6" />
                       <div>
-                        <div className="font-semibold">{crypto.name}</div>
-                        <div className="text-sm text-[#8B949E]">{crypto.symbol}</div>
+                        <p className="text-white font-medium">{crypto.name}</p>
+                        <p className="text-gray-400 text-sm uppercase">{crypto.symbol}</p>
                       </div>
-                    </td>
-                    <td className="py-4 px-4 font-semibold">
-                      ${crypto.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
-                    <td className={`py-4 px-4 font-semibold ${crypto.change >= 0 ? 'text-[#00D4AA]' : 'text-[#F84638]'}`}>
-                      {crypto.change >= 0 ? '+' : ''}{crypto.change.toFixed(2)}%
-                    </td>
-                    <td className="py-4 px-4 text-[#8B949E]">{formatVolume(crypto.volume)}</td>
-                    <td className="py-4 px-4 text-[#8B949E]">{formatMarketCap(crypto.marketCap)}</td>
-                  </motion.tr>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-medium">
+                        ${crypto.current_price.toLocaleString()}
+                      </p>
+                      <p className="text-green-400 text-sm font-medium">
+                        +{crypto.price_change_percentage_24h.toFixed(2)}%
+                      </p>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-6 text-center">
-            <Button
-              className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] text-black font-semibold rounded-full px-8 py-3"
-            >
-              Start Trading Now
-            </Button>
-          </div>
-        </motion.div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="losers" className="mt-6">
+            <div className="bg-gray-900 rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-gray-800">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <TrendingDown className="h-5 w-5 text-red-400 mr-2" />
+                  Top Losers (24h)
+                </h3>
+              </div>
+              <div className="divide-y divide-gray-800">
+                {losers.map((crypto, index) => (
+                  <div key={crypto.id} className="flex items-center justify-between p-4 hover:bg-gray-800/50"
+                       data-testid={`loser-${crypto.symbol}`}>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-gray-400 font-medium w-6">#{index + 1}</span>
+                      <img src={crypto.image} alt={crypto.name} className="h-6 w-6" />
+                      <div>
+                        <p className="text-white font-medium">{crypto.name}</p>
+                        <p className="text-gray-400 text-sm uppercase">{crypto.symbol}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-medium">
+                        ${crypto.current_price.toLocaleString()}
+                      </p>
+                      <p className="text-red-400 text-sm font-medium">
+                        {crypto.price_change_percentage_24h.toFixed(2)}%
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="volume" className="mt-6">
+            <div className="bg-gray-900 rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-gray-800">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <BarChart3 className="h-5 w-5 text-blue-400 mr-2" />
+                  Highest 24h Volume
+                </h3>
+              </div>
+              <div className="divide-y divide-gray-800">
+                {topCryptos
+                  .sort((a, b) => b.total_volume - a.total_volume)
+                  .slice(0, 10)
+                  .map((crypto, index) => (
+                    <div key={crypto.id} className="flex items-center justify-between p-4 hover:bg-gray-800/50"
+                         data-testid={`volume-${crypto.symbol}`}>
+                      <div className="flex items-center space-x-3">
+                        <span className="text-gray-400 font-medium w-6">#{index + 1}</span>
+                        <img src={crypto.image} alt={crypto.name} className="h-6 w-6" />
+                        <div>
+                          <p className="text-white font-medium">{crypto.name}</p>
+                          <p className="text-gray-400 text-sm uppercase">{crypto.symbol}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-medium">
+                          ${crypto.current_price.toLocaleString()}
+                        </p>
+                        <p className="text-blue-400 text-sm font-medium">
+                          Vol: {formatLargeNumber(crypto.total_volume)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 }
-

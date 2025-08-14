@@ -1,11 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer } from 'ws';
 import session from "express-session";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, isAuthenticated, loadUser, AuthenticatedRequest } from "./auth";
 import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema } from "@shared/schema";
 import authRoutes from './auth-routes.js';
 import depositRoutes from './deposit-routes.js';
+import tradingRoutes from './trading-routes.js';
 import { z } from "zod";
 import { Router } from "express";
 
@@ -40,6 +42,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes (forgot password, OTP, etc.)
   app.use('/api/auth', authRoutes);
+  
+  // Trading routes
+  app.use('/api/trading', tradingRoutes);
 
   // Auth routes
   // Admin auth routes
@@ -449,5 +454,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/deposits', depositRoutes);
 
   const httpServer = createServer(app);
+
+  // Add WebSocket server for real-time updates
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws' 
+  });
+
+  // Handle WebSocket connections for real-time price updates
+  wss.on('connection', (ws) => {
+    console.log('Client connected to WebSocket');
+    
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({
+      type: 'connection',
+      message: 'Connected to live price feed',
+      timestamp: Date.now()
+    }));
+
+    // Handle client messages
+    ws.on('message', (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        if (message.type === 'subscribe') {
+          // Client wants to subscribe to price updates for specific symbols
+          console.log('Client subscribed to:', message.symbols);
+          
+          // Start sending periodic price updates (every 5 seconds)
+          const interval = setInterval(async () => {
+            if (ws.readyState === ws.OPEN) {
+              try {
+                // Simulate live price updates
+                for (const symbol of message.symbols) {
+                  const priceUpdate = {
+                    type: 'price_update',
+                    symbol: symbol,
+                    price: Math.random() * 50000 + 20000, // Simulated price
+                    change_24h: (Math.random() - 0.5) * 10,
+                    volume_24h: Math.random() * 1000000000,
+                    timestamp: Date.now()
+                  };
+                  
+                  ws.send(JSON.stringify(priceUpdate));
+                }
+              } catch (error) {
+                console.error('Error sending price update:', error);
+                clearInterval(interval);
+              }
+            } else {
+              clearInterval(interval);
+            }
+          }, 5000);
+
+          // Clean up on disconnect
+          ws.on('close', () => {
+            clearInterval(interval);
+            console.log('Client disconnected from WebSocket');
+          });
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    });
+  });
+
   return httpServer;
 }

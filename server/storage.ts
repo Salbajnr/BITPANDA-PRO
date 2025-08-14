@@ -141,8 +141,39 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async createHolding(holdingData: InsertHolding): Promise<Holding> {
+    const [holding] = await db.insert(holdings).values(holdingData).returning();
+    return holding;
+  }
+
+  async updateHolding(holdingId: string, updates: Partial<InsertHolding>): Promise<void> {
+    await db
+      .update(holdings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(holdings.id, holdingId));
+  }
+
   async deleteHolding(id: string): Promise<void> {
     await db.delete(holdings).where(eq(holdings.id, id));
+  }
+
+  async updatePortfolioBalance(userId: string, amount: number): Promise<void> {
+    // Get the portfolio first
+    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId));
+    if (!portfolio) {
+      throw new Error('Portfolio not found');
+    }
+
+    const currentBalance = parseFloat(portfolio.availableCash);
+    const newBalance = currentBalance + amount;
+
+    await db
+      .update(portfolios)
+      .set({ 
+        availableCash: newBalance.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(portfolios.id, portfolio.id));
   }
 
   async getTransactions(userId: string, limit = 50): Promise<Transaction[]> {
