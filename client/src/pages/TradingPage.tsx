@@ -1,0 +1,171 @@
+
+import { getCryptoLogo } from "@/components/CryptoLogos";
+import { DollarSign, BarChart2, List, ClipboardList, TrendingUp, ChevronDown } from "lucide-react";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+export function TradingPage() {
+  const [selectedPair, setSelectedPair] = useState({ symbol: "BTC/USD", name: "Bitcoin" });
+  const [orderType, setOrderType] = useState<"market" | "limit">("market");
+  const [buyAmount, setBuyAmount] = useState(0);
+  const [sellAmount, setSellAmount] = useState(0);
+
+  const mockOrderBook = {
+    bids: [
+      { price: 43250.00, amount: 0.5, total: 21625.00 },
+      { price: 43249.50, amount: 1.2, total: 51900.00 },
+      { price: 43248.80, amount: 0.8, total: 34600.00 },
+    ],
+    asks: [
+      { price: 43251.20, amount: 0.6, total: 25950.60 },
+      { price: 43252.00, amount: 1.0, total: 43252.00 },
+      { price: 43253.50, amount: 0.7, total: 30277.45 },
+    ]
+  };
+
+  const mockRecentTrades = [
+    { time: "10:30:15", price: 43250.80, amount: 0.15, type: "buy" },
+    { time: "10:30:10", price: 43250.20, amount: 0.30, type: "sell" },
+    { time: "10:30:05", price: 43249.90, amount: 0.25, type: "buy" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#0B0E11] text-white p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 flex items-center justify-center">
+              {getCryptoLogo("BTC", 40)}
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">{selectedPair.symbol}</h1>
+              <p className="text-[#8B949E] text-sm">{selectedPair.name}</p>
+            </div>
+            <div className="text-sm px-3 py-1 rounded-full bg-[#2B2F36] text-white">43,250.50 USD</div>
+          </div>
+          <Button variant="ghost" className="text-white border border-[#2B2F36] hover:bg-[#2B2F36]">
+            Select Pair <ChevronDown className="ml-2 w-4 h-4" />
+          </Button>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Main Chart Section */}
+          <motion.div
+            className="lg:col-span-2 bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36] h-[600px]"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <h2 className="text-xl font-semibold mb-4">TradingView Chart</h2>
+            <div className="w-full h-full bg-[#1E2329] rounded-xl flex items-center justify-center text-[#8B949E]">
+              [Mock TradingView Chart Component Here]
+            </div>
+          </motion.div>
+
+          {/* Right Panel: Order Form, Order Book, Trades */}
+          <div className="space-y-6">
+            {/* Order Placement */}
+            <motion.div
+              className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36]"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <h2 className="text-xl font-semibold mb-4">Place Order</h2>
+              <div className="flex gap-2 mb-4">
+                <Button
+                  className={`flex-1 ${orderType === 'market' ? 'bg-[#FFB82F] text-black' : 'bg-[#2B2F36] text-white'}`}
+                  onClick={() => setOrderType('market')}
+                >
+                  Market
+                </Button>
+                <Button
+                  className={`flex-1 ${orderType === 'limit' ? 'bg-[#FFB82F] text-black' : 'bg-[#2B2F36] text-white'}`}
+                  onClick={() => setOrderType('limit')}
+                >
+                  Limit
+                </Button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[#8B949E] text-sm">Amount (BTC)</label>
+                  <input
+                    type="number"
+                    value={buyAmount}
+                    onChange={(e) => setBuyAmount(parseFloat(e.target.value))}
+                    className="w-full bg-[#1E2329] p-3 rounded-lg border border-[#2B2F36] mt-2 text-white"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <Button className="flex-1 bg-[#00D4AA] text-white font-semibold hover:bg-[#00B39F]">Buy</Button>
+                  <Button className="flex-1 bg-[#F84638] text-white font-semibold hover:bg-[#D93D30]">Sell</Button>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Order Book */}
+            <motion.div
+              className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36]"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <h2 className="text-xl font-semibold mb-4">Order Book</h2>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="text-[#F84638] mb-2 font-semibold">Asks</div>
+                  {mockOrderBook.asks.map((ask, index) => (
+                    <div key={index} className="flex justify-between">
+                      <span className="text-[#F84638]">{ask.price.toFixed(2)}</span>
+                      <span className="text-white">{ask.amount}</span>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <div className="text-[#00D4AA] mb-2 font-semibold">Bids</div>
+                  {mockOrderBook.bids.map((bid, index) => (
+                    <div key={index} className="flex justify-between">
+                      <span className="text-[#00D4AA]">{bid.price.toFixed(2)}</span>
+                      <span className="text-white">{bid.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Account Summary */}
+            <motion.div
+              className="bg-[#161A1E] rounded-2xl p-6 border border-[#2B2F36]"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <h2 className="text-xl font-semibold mb-4">My Account</h2>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[#8B949E]">Total Balance</span>
+                  <span className="text-white font-semibold">$5,245.89</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#8B949E]">Open Orders</span>
+                  <span className="text-white">2</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#8B949E]">Total P&L</span>
+                  <span className="text-[#00D4AA]">+12.5%</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
