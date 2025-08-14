@@ -5,6 +5,7 @@ import {
   transactions,
   balanceAdjustments,
   newsArticles,
+  deposits, // Added deposits schema import
   type User,
   type UpsertUser,
   type Portfolio,
@@ -39,6 +40,7 @@ export interface IStorage {
   getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined>;
   upsertHolding(holding: InsertHolding): Promise<Holding>;
   deleteHolding(id: string): Promise<void>;
+  deleteHolding(portfolioId: string, symbol: string): Promise<void>; // Added for specific holding deletion
 
   // Transaction operations
   getTransactions(userId: string, limit?: number): Promise<Transaction[]>;
@@ -53,21 +55,30 @@ export interface IStorage {
   getNewsArticles(limit?: number): Promise<NewsArticle[]>;
   createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle>;
   deleteNewsArticle(id: string): Promise<void>;
+
+  // Deposit operations
+  createDeposit(deposit: any): Promise<any>;
+  getUserDeposits(userId: string): Promise<any[]>;
+  getAllDeposits(): Promise<any[]>;
+  updateDepositStatus(id: string, status: string, rejectionReason?: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // Assuming db is initialized and accessible here, or passed in constructor
+  private db = db; // Make db accessible within the class
+
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await this.db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    const [user] = await this.db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
   async getUserByEmailOrUsername(email: string, username: string): Promise<User | undefined> {
-    const [user] = await db
+    const [user] = await this.db
       .select()
       .from(users)
       .where(or(eq(users.email, email), eq(users.username, username)));
@@ -75,12 +86,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(userData).returning();
+    const [user] = await this.db.insert(users).values(userData).returning();
     return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
+    const [user] = await this.db
       .insert(users)
       .values(userData)
       .onConflictDoUpdate({
@@ -95,17 +106,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPortfolio(userId: string): Promise<Portfolio | undefined> {
-    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId));
+    const [portfolio] = await this.db.select().from(portfolios).where(eq(portfolios.userId, userId));
     return portfolio;
   }
 
   async createPortfolio(portfolioData: InsertPortfolio): Promise<Portfolio> {
-    const [portfolio] = await db.insert(portfolios).values(portfolioData).returning();
+    const [portfolio] = await this.db.insert(portfolios).values(portfolioData).returning();
     return portfolio;
   }
 
   async updatePortfolio(portfolioId: string, updates: Partial<InsertPortfolio>): Promise<Portfolio> {
-    const [portfolio] = await db
+    const [portfolio] = await this.db
       .update(portfolios)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(portfolios.id, portfolioId))
@@ -114,11 +125,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHoldings(portfolioId: string): Promise<Holding[]> {
-    return await db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
+    return await this.db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
   }
 
   async getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined> {
-    const [holding] = await db
+    const [holding] = await this.db
       .select()
       .from(holdings)
       .where(and(eq(holdings.portfolioId, portfolioId), eq(holdings.symbol, symbol)));
@@ -129,37 +140,43 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getHolding(holdingData.portfolioId, holdingData.symbol);
 
     if (existing) {
-      const [holding] = await db
+      const [holding] = await this.db
         .update(holdings)
         .set({ ...holdingData, updatedAt: new Date() })
         .where(eq(holdings.id, existing.id))
         .returning();
       return holding;
     } else {
-      const [holding] = await db.insert(holdings).values(holdingData).returning();
+      const [holding] = await this.db.insert(holdings).values(holdingData).returning();
       return holding;
     }
   }
 
   async createHolding(holdingData: InsertHolding): Promise<Holding> {
-    const [holding] = await db.insert(holdings).values(holdingData).returning();
+    const [holding] = await this.db.insert(holdings).values(holdingData).returning();
     return holding;
   }
 
   async updateHolding(holdingId: string, updates: Partial<InsertHolding>): Promise<void> {
-    await db
+    await this.db
       .update(holdings)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(holdings.id, holdingId));
   }
 
   async deleteHolding(id: string): Promise<void> {
-    await db.delete(holdings).where(eq(holdings.id, id));
+    await this.db.delete(holdings).where(eq(holdings.id, id));
+  }
+
+  async deleteHolding(portfolioId: string, symbol: string): Promise<void> {
+    await this.db.delete(holdings).where(and(
+      eq(holdings.portfolioId, portfolioId),
+      eq(holdings.symbol, symbol)
+    ));
   }
 
   async updatePortfolioBalance(userId: string, amount: number): Promise<void> {
-    // Get the portfolio first
-    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId));
+    const [portfolio] = await this.db.select().from(portfolios).where(eq(portfolios.userId, userId));
     if (!portfolio) {
       throw new Error('Portfolio not found');
     }
@@ -167,7 +184,7 @@ export class DatabaseStorage implements IStorage {
     const currentBalance = parseFloat(portfolio.availableCash);
     const newBalance = currentBalance + amount;
 
-    await db
+    await this.db
       .update(portfolios)
       .set({ 
         availableCash: newBalance.toString(),
@@ -177,7 +194,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTransactions(userId: string, limit = 50): Promise<Transaction[]> {
-    return await db
+    return await this.db
       .select()
       .from(transactions)
       .where(eq(transactions.userId, userId))
@@ -186,21 +203,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTransaction(transactionData: InsertTransaction): Promise<Transaction> {
-    const [transaction] = await db.insert(transactions).values(transactionData).returning();
+    const [transaction] = await this.db.insert(transactions).values(transactionData).returning();
     return transaction;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.isActive, true));
+    return await this.db.select().from(users).where(eq(users.isActive, true));
   }
 
   async createBalanceAdjustment(adjustmentData: InsertBalanceAdjustment): Promise<BalanceAdjustment> {
-    const [adjustment] = await db.insert(balanceAdjustments).values(adjustmentData).returning();
+    const [adjustment] = await this.db.insert(balanceAdjustments).values(adjustmentData).returning();
     return adjustment;
   }
 
   async getBalanceAdjustments(targetUserId?: string): Promise<BalanceAdjustment[]> {
-    const query = db.select().from(balanceAdjustments);
+    const query = this.db.select().from(balanceAdjustments);
 
     if (targetUserId) {
       return await query.where(eq(balanceAdjustments.targetUserId, targetUserId))
@@ -211,7 +228,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNewsArticles(limit = 10): Promise<NewsArticle[]> {
-    return await db
+    return await this.db
       .select()
       .from(newsArticles)
       .orderBy(desc(newsArticles.publishedAt))
@@ -219,12 +236,51 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNewsArticle(articleData: InsertNewsArticle): Promise<NewsArticle> {
-    const [article] = await db.insert(newsArticles).values(articleData).returning();
+    const [article] = await this.db.insert(newsArticles).values(articleData).returning();
     return article;
   }
 
   async deleteNewsArticle(id: string): Promise<void> {
-    await db.delete(newsArticles).where(eq(newsArticles.id, id));
+    await this.db.delete(newsArticles).where(eq(newsArticles.id, id));
+  }
+
+  // Deposit methods
+  async createDeposit(deposit: any) {
+    const [result] = await this.db.insert(deposits).values(deposit).returning();
+    return result;
+  }
+
+  async getUserDeposits(userId: string) {
+    return await this.db.select().from(deposits).where(eq(deposits.userId, userId)).orderBy(desc(deposits.createdAt));
+  }
+
+  async getAllDeposits() {
+    return await this.db.select({
+      deposit: deposits,
+      user: {
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      }
+    })
+    .from(deposits)
+    .leftJoin(users, eq(deposits.userId, users.id))
+    .orderBy(desc(deposits.createdAt));
+  }
+
+  async updateDepositStatus(id: string, status: string, rejectionReason?: string) {
+    const [result] = await this.db
+      .update(deposits)
+      .set({ 
+        status, 
+        rejectionReason,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(deposits.id, id))
+      .returning();
+    return result;
   }
 }
 

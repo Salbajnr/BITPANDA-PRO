@@ -5,9 +5,9 @@ import session from "express-session";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, isAuthenticated, loadUser, AuthenticatedRequest } from "./auth";
 import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema } from "@shared/schema";
-import authRoutes from './auth-routes.js';
-import depositRoutes from './deposit-routes.js';
-import tradingRoutes from './trading-routes.js';
+import authRoutes from './auth-routes';
+import depositRoutes from './deposit-routes';
+import tradingRoutes from './trading-routes';
 import { z } from "zod";
 import { Router } from "express";
 

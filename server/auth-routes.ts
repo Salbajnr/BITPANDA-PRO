@@ -26,7 +26,7 @@ router.post('/forgot-password', async (req, res) => {
 
     // Check if user exists
     const user = await storage.getUserByEmail(email);
-    
+
     if (!user) {
       // Don't reveal if email doesn't exist for security
       return res.json({ success: true, message: 'If the email exists, a reset link has been sent.' });
@@ -41,7 +41,7 @@ router.post('/forgot-password', async (req, res) => {
 
     // Send email (mock implementation)
     const resetLink = `${process.env.BASE_URL || 'http://localhost:5000'}/reset-password/${token}`;
-    
+
     try {
       await sendEmail({
         to: email,
@@ -132,7 +132,7 @@ router.post('/verify-otp', async (req, res) => {
 
     // For demonstration, accept specific test OTP or any 6-digit code
     const validOtps = ['123456', '111111', '000000'];
-    
+
     if (validOtps.includes(token)) {
       res.json({ success: true, message: 'OTP verified successfully' });
     } else {

@@ -13,6 +13,7 @@ import {
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { nanoid } from 'nanoid';
 
 // Session storage table (mandatory for Replit Auth)
 export const sessions = pgTable(
@@ -83,20 +84,20 @@ export const transactions = pgTable('transactions', {
 
 // Deposits
 export const deposits = pgTable('deposits', {
-  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
-  userId: text('user_id').notNull().references(() => users.id),
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  userId: text('user_id').references(() => users.id).notNull(),
+  amount: text('amount').notNull(),
+  currency: text('currency').notNull(),
   paymentMethod: text('payment_method').notNull(), // 'bybit', 'binance', 'crypto.com', 'okx', 'kucoin'
-  cryptocurrency: text('cryptocurrency').notNull(), // 'BTC', 'ETH', 'USDT', etc.
-  depositAmount: decimal('deposit_amount', { precision: 20, scale: 8 }).notNull(),
-  depositAddress: text('deposit_address').notNull(),
-  proofOfPayment: text('proof_of_payment'), // file path or transaction hash
-  proofType: text('proof_type'), // 'file', 'hash'
+  network: text('network'),
+  screenshot: text('screenshot'),
   status: text('status').notNull().default('pending'), // 'pending', 'approved', 'rejected'
+  transactionId: text('transaction_id').notNull(),
   rejectionReason: text('rejection_reason'),
   approvedBy: text('approved_by').references(() => users.id),
   approvedAt: timestamp('approved_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 // Notifications
