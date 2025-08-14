@@ -1,179 +1,328 @@
-
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Bell, Check, X } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/hooks/use-toast";
+import { Bell, X, Check, AlertTriangle, Info, TrendingUp, Settings, Filter, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Notification {
   id: string;
+  type: 'trade' | 'price_alert' | 'news' | 'system' | 'deposit' | 'security';
   title: string;
   message: string;
-  type: string;
-  isRead: boolean;
-  relatedId?: string;
-  createdAt: string;
+  timestamp: Date;
+  read: boolean;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  actionUrl?: string;
+  metadata?: Record<string, any>;
 }
 
 export default function NotificationCenter() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'unread' | 'trade' | 'alerts'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Mock notifications - in real app this would come from API
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
-    }
-  }, [user]);
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch('/api/deposits/notifications', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
+    const mockNotifications: Notification[] = [
+      {
+        id: '1',
+        type: 'trade',
+        title: 'Trade Executed Successfully',
+        message: 'Your BUY order for 0.01 BTC has been executed at $43,250.50',
+        timestamp: new Date(Date.now() - 2 * 60000),
+        read: false,
+        priority: 'high',
+        metadata: { symbol: 'BTC', amount: '0.01', price: 43250.50 }
+      },
+      {
+        id: '2',
+        type: 'price_alert',
+        title: 'Price Alert Triggered',
+        message: 'Bitcoin has reached your target price of $43,000. Current price: $43,250',
+        timestamp: new Date(Date.now() - 5 * 60000),
+        read: false,
+        priority: 'medium',
+        metadata: { symbol: 'BTC', targetPrice: 43000, currentPrice: 43250 }
+      },
+      {
+        id: '3',
+        type: 'deposit',
+        title: 'Deposit Confirmed',
+        message: 'Your deposit of $1,000 USD has been processed and added to your account',
+        timestamp: new Date(Date.now() - 15 * 60000),
+        read: false,
+        priority: 'high',
+        metadata: { amount: 1000, currency: 'USD' }
+      },
+      {
+        id: '4',
+        type: 'security',
+        title: 'New Login Detected',
+        message: 'A new login was detected from Chrome on Windows. If this wasn\'t you, please secure your account',
+        timestamp: new Date(Date.now() - 30 * 60000),
+        read: true,
+        priority: 'critical',
+        metadata: { device: 'Chrome on Windows', location: 'New York, US' }
+      },
+      {
+        id: '5',
+        type: 'news',
+        title: 'Market Update',
+        message: 'Bitcoin reaches new monthly high amid institutional buying pressure',
+        timestamp: new Date(Date.now() - 60 * 60000),
+        read: true,
+        priority: 'low',
+        metadata: { category: 'market_news' }
+      },
+      {
+        id: '6',
+        type: 'system',
+        title: 'Scheduled Maintenance',
+        message: 'Trading will be temporarily unavailable on Jan 20th from 2:00-4:00 AM UTC for system maintenance',
+        timestamp: new Date(Date.now() - 2 * 60 * 60000),
+        read: false,
+        priority: 'medium',
+        metadata: { maintenanceStart: '2024-01-20T02:00:00Z', maintenanceEnd: '2024-01-20T04:00:00Z' }
       }
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+    ];
+
+    setNotifications(mockNotifications);
+  }, []);
+
+  const filteredNotifications = notifications.filter(notification => {
+    // Filter by type
+    if (filter === 'unread' && notification.read) return false;
+    if (filter === 'trade' && notification.type !== 'trade') return false;
+    if (filter === 'alerts' && !['price_alert', 'security'].includes(notification.type)) return false;
+
+    // Filter by search term
+    if (searchTerm && !notification.title.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !notification.message.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
     }
+
+    return true;
+  });
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAsRead = (id: string) => {
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
   };
 
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const response = await fetch(`/api/deposits/notifications/${notificationId}/read`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      
-      if (response.ok) {
-        setNotifications(prev => 
-          prev.map(notif => 
-            notif.id === notificationId 
-              ? { ...notif, isRead: true }
-              : notif
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
+  const markAllAsRead = () => {
+    setNotifications(prev =>
+      prev.map(notification => ({ ...notification, read: true }))
+    );
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
 
-  const getTypeColor = (type: string) => {
+  const getIcon = (type: string) => {
     switch (type) {
-      case 'deposit': return 'bg-blue-500/10 text-blue-400';
-      case 'security': return 'bg-red-500/10 text-red-400';
-      case 'trade': return 'bg-green-500/10 text-green-400';
-      default: return 'bg-gray-500/10 text-gray-400';
+      case 'trade': return <TrendingUp className="h-4 w-4" />;
+      case 'price_alert': return <AlertTriangle className="h-4 w-4" />;
+      case 'news': return <Info className="h-4 w-4" />;
+      case 'deposit': return <TrendingUp className="h-4 w-4" />;
+      case 'security': return <AlertTriangle className="h-4 w-4" />;
+      case 'system': return <Settings className="h-4 w-4" />;
+      default: return <Bell className="h-4 w-4" />;
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
+      case 'high': return 'text-red-500 bg-red-50';
+      case 'medium': return 'text-yellow-600 bg-yellow-50';
+      case 'low': return 'text-blue-500 bg-blue-50';
+      default: return 'text-gray-500 bg-gray-50';
+    }
+  };
+
+  const formatTimestamp = (timestamp: Date) => {
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return date.toLocaleDateString();
+    const diff = now.getTime() - timestamp.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   };
 
   return (
-    <div className="relative">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowNotifications(!showNotifications)}
-        className="relative"
-      >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs bg-red-500">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </Badge>
-        )}
-      </Button>
-
-      {showNotifications && (
-        <Card className="absolute right-0 top-12 w-80 max-h-96 overflow-hidden bg-slate-800 border-slate-700 z-50">
-          <div className="p-4 border-b border-slate-700">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="relative">
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 text-xs bg-red-500 border-0">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-96 p-0">
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="border-b pb-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-white">Notifications</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowNotifications(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-400">
-                No notifications yet
+              <CardTitle className="text-lg">Notifications</CardTitle>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+                    <Check className="h-4 w-4 mr-1" />
+                    Mark all read
+                  </Button>
+                )}
+                <Badge variant="outline" className="text-xs">
+                  {unreadCount} new
+                </Badge>
               </div>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-4 border-b border-slate-700 hover:bg-slate-700/50 cursor-pointer ${
-                    !notification.isRead ? 'bg-blue-500/5' : ''
-                  }`}
-                  onClick={() => !notification.isRead && markAsRead(notification.id)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <p className="text-sm font-medium text-white truncate">
-                          {notification.title}
-                        </p>
-                        {!notification.isRead && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-                        )}
+            </div>
+
+            {/* Search and Filter */}
+            <div className="space-y-2 mt-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search notifications..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-8 text-sm"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Select value={filter} onValueChange={(value) => setFilter(value as any)}>
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <SelectValue placeholder="Filter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="unread">Unread</SelectItem>
+                    <SelectItem value="trade">Trades</SelectItem>
+                    <SelectItem value="alerts">Alerts</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0">
+            <div className="max-h-96 overflow-y-auto">
+              {filteredNotifications.length === 0 ? (
+                <div className="p-6 text-center text-slate-500">
+                  <Bell className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+                  <p className="text-sm">No notifications found</p>
+                  {searchTerm && (
+                    <p className="text-xs text-slate-400 mt-1">
+                      Try adjusting your search or filter
+                    </p>
+                  )}
+                </div>
+              ) : (
+                filteredNotifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${
+                      !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                    } ${notification.priority === 'critical' ? 'border-l-4 border-l-red-500' : ''}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <div className={`mt-1 p-1 rounded-full ${getPriorityColor(notification.priority)}`}>
+                          {getIcon(notification.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-medium text-slate-900">
+                              {notification.title}
+                            </p>
+                            {notification.priority === 'critical' && (
+                              <Badge variant="destructive" className="text-xs px-1 py-0">
+                                Critical
+                              </Badge>
+                            )}
+                            {!notification.read && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {notification.message}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-xs text-slate-400">
+                              {formatTimestamp(notification.timestamp)}
+                            </p>
+                            <Badge variant="outline" className="text-xs">
+                              {notification.type.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-300 mb-2">
-                        {notification.message}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <Badge className={getTypeColor(notification.type)} variant="secondary">
-                          {notification.type}
-                        </Badge>
-                        <span className="text-xs text-gray-400">
-                          {formatDate(notification.createdAt)}
-                        </span>
+
+                      <div className="flex items-center space-x-1 ml-2">
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(notification.id);
+                            }}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeNotification(notification.id);
+                          }}
+                          className="h-7 w-7 p-0"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-          
-          {notifications.length > 0 && (
-            <div className="p-3 border-t border-slate-700">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={() => window.location.href = '/deposit-history'}
-              >
-                View All History
-              </Button>
+                ))
+              )}
             </div>
-          )}
+
+            {filteredNotifications.length > 0 && (
+              <div className="p-3 border-t bg-slate-50">
+                <Button variant="ghost" size="sm" className="w-full text-xs">
+                  View All Notifications
+                </Button>
+              </div>
+            )}
+          </CardContent>
         </Card>
-      )}
-    </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

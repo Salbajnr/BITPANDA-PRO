@@ -1,359 +1,580 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  TrendingUpIcon, TrendingDownIcon, PieChartIcon, BarChart3Icon,
-  DollarSignIcon, CalendarIcon, TargetIcon, ActivityIcon
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import {
+  TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart,
+  ArrowUp, ArrowDown, Target, AlertTriangle, Star, Calendar,
+  Shield, Activity, Award, RefreshCw, Download, Eye, TrendingUpIcon
 } from "lucide-react";
-import { LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar,
-         XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart as RechartsPieChart, Cell, AreaChart, Area, BarChart, Bar,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend
+} from "recharts";
+import { useState } from "react";
 
-interface PortfolioStats {
-  totalValue: number;
-  totalGainLoss: number;
-  totalGainLossPercentage: number;
-  totalInvested: number;
-  availableCash: number;
-  dayChange: number;
-  dayChangePercentage: number;
+interface PortfolioData {
+  portfolio: {
+    id: string;
+    totalValue: string;
+    availableCash: string;
+    userId: string;
+  };
+  holdings: Array<{
+    id: string;
+    symbol: string;
+    name: string;
+    amount: string;
+    averagePurchasePrice: string;
+    currentPrice: string;
+  }>;
+  transactions: Array<{
+    id: string;
+    type: string;
+    symbol: string;
+    amount: string;
+    price: string;
+    total: string;
+    createdAt: string;
+  }>;
 }
 
-interface HoldingAnalysis {
-  symbol: string;
-  name: string;
-  amount: number;
-  currentValue: number;
-  gainLoss: number;
-  gainLossPercentage: number;
-  allocation: number;
-  averagePurchasePrice: number;
-  currentPrice: number;
+interface RiskMetrics {
+  sharpeRatio: number;
+  volatility: number;
+  maxDrawdown: number;
+  beta: number;
+  alpha: number;
+  riskScore: number;
 }
-
-interface PerformanceData {
-  date: string;
-  totalValue: number;
-  invested: number;
-  gainLoss: number;
-}
-
-const mockPerformanceData: PerformanceData[] = [
-  { date: '2024-01', totalValue: 10000, invested: 10000, gainLoss: 0 },
-  { date: '2024-02', totalValue: 10500, invested: 10200, gainLoss: 300 },
-  { date: '2024-03', totalValue: 9800, invested: 10200, gainLoss: -400 },
-  { date: '2024-04', totalValue: 11200, invested: 10500, gainLoss: 700 },
-  { date: '2024-05', totalValue: 12100, invested: 11000, gainLoss: 1100 },
-  { date: '2024-06', totalValue: 11800, invested: 11000, gainLoss: 800 },
-  { date: '2024-07', totalValue: 13500, invested: 12000, gainLoss: 1500 },
-  { date: '2024-08', totalValue: 14200, invested: 12500, gainLoss: 1700 },
-];
-
-const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316'];
 
 export default function PortfolioAnalytics() {
   const { user } = useAuth();
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+  const [timeFrame, setTimeFrame] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const { data: portfolioData, isLoading } = useQuery({
+  const { data: portfolioData, isLoading } = useQuery<PortfolioData>({
     queryKey: ["/api/portfolio"],
     retry: false,
     enabled: !!user,
   });
 
-  const portfolioStats: PortfolioStats = {
-    totalValue: 14200,
-    totalGainLoss: 1700,
-    totalGainLossPercentage: 13.6,
-    totalInvested: 12500,
-    availableCash: 2300,
-    dayChange: 245,
-    dayChangePercentage: 1.75,
-  };
-
-  const holdingsAnalysis: HoldingAnalysis[] = [
-    {
-      symbol: 'BTC',
-      name: 'Bitcoin',
-      amount: 0.3245,
-      currentValue: 8500,
-      gainLoss: 1200,
-      gainLossPercentage: 16.5,
-      allocation: 59.9,
-      averagePurchasePrice: 22000,
-      currentPrice: 26200,
-    },
-    {
-      symbol: 'ETH',
-      name: 'Ethereum',
-      amount: 5.67,
-      currentValue: 3200,
-      gainLoss: 350,
-      gainLossPercentage: 12.3,
-      allocation: 22.5,
-      averagePurchasePrice: 503,
-      currentPrice: 565,
-    },
-    {
-      symbol: 'ADA',
-      name: 'Cardano',
-      amount: 8500,
-      currentValue: 2500,
-      gainLoss: 150,
-      gainLossPercentage: 6.4,
-      allocation: 17.6,
-      averagePurchasePrice: 0.276,
-      currentPrice: 0.294,
-    },
-  ];
-
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2].map(i => (
-            <div key={i} className="h-96 bg-slate-200 dark:bg-slate-700 rounded"></div>
-          ))}
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Loading portfolio analytics...</p>
         </div>
       </div>
     );
   }
 
-  const pieChartData = holdingsAnalysis.map((holding, index) => ({
+  const totalValue = parseFloat(portfolioData?.portfolio?.totalValue || '0');
+  const availableCash = parseFloat(portfolioData?.portfolio?.availableCash || '0');
+  const investedValue = totalValue - availableCash;
+
+  // Calculate portfolio metrics
+  const holdingsAnalysis = portfolioData?.holdings?.map(holding => {
+    const amount = parseFloat(holding.amount);
+    const currentPrice = parseFloat(holding.currentPrice);
+    const avgPrice = parseFloat(holding.averagePurchasePrice);
+    const currentValue = amount * currentPrice;
+    const investedAmount = amount * avgPrice;
+    const pnl = currentValue - investedAmount;
+    const pnlPercentage = (pnl / investedAmount) * 100;
+
+    return {
+      ...holding,
+      amount,
+      currentPrice,
+      averagePurchasePrice: avgPrice,
+      currentValue,
+      investedAmount,
+      pnl,
+      pnlPercentage,
+      allocation: investedValue > 0 ? (currentValue / investedValue) * 100 : 0,
+    };
+  }) || [];
+
+  // Mock enhanced performance data with more metrics
+  const performanceData = Array.from({ length: 30 }, (_, i) => {
+    const baseValue = totalValue * (0.95 + Math.random() * 0.1);
+    return {
+      date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      value: baseValue,
+      change: (Math.random() - 0.5) * 1000,
+      benchmark: baseValue * (0.98 + Math.random() * 0.04), // Mock market benchmark
+      volume: Math.random() * 50000 + 10000,
+    };
+  });
+
+  // Mock risk metrics
+  const riskMetrics: RiskMetrics = {
+    sharpeRatio: 1.85,
+    volatility: 18.5,
+    maxDrawdown: -8.2,
+    beta: 1.12,
+    alpha: 4.3,
+    riskScore: 7.5, // Out of 10
+  };
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658'];
+
+  const pieData = holdingsAnalysis.map((holding, index) => ({
     name: holding.symbol,
-    value: holding.allocation,
-    fill: COLORS[index % COLORS.length],
+    value: holding.currentValue,
+    color: COLORS[index % COLORS.length],
+    percentage: holding.allocation,
   }));
 
+  // Risk analysis radar chart data
+  const riskRadarData = [
+    { metric: 'Volatility', score: 100 - riskMetrics.volatility, fullMark: 100 },
+    { metric: 'Liquidity', score: 85, fullMark: 100 },
+    { metric: 'Diversification', score: Math.min(holdingsAnalysis.length * 20, 100), fullMark: 100 },
+    { metric: 'Performance', score: Math.max(0, Math.min(100, (riskMetrics.sharpeRatio / 3) * 100)), fullMark: 100 },
+    { metric: 'Stability', score: Math.max(0, 100 + riskMetrics.maxDrawdown), fullMark: 100 },
+  ];
+
+  const totalPnL = holdingsAnalysis.reduce((sum, holding) => sum + holding.pnl, 0);
+  const totalPnLPercentage = investedValue > 0 ? (totalPnL / investedValue) * 100 : 0;
+
+  // Top performers and losers
+  const topPerformers = [...holdingsAnalysis].sort((a, b) => b.pnlPercentage - a.pnlPercentage).slice(0, 3);
+  const topLosers = [...holdingsAnalysis].sort((a, b) => a.pnlPercentage - b.pnlPercentage).slice(0, 3);
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Portfolio Analytics
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Detailed analysis of your investment performance
-          </p>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          {['7d', '30d', '90d', '1y', 'all'].map((range) => (
-            <Button
-              key={range}
-              variant={timeRange === range ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setTimeRange(range as typeof timeRange)}
-              data-testid={`button-timerange-${range}`}
-            >
-              {range.toUpperCase()}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-            <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${portfolioStats.totalValue.toLocaleString()}</div>
-            <div className={`text-xs flex items-center ${
-              portfolioStats.dayChange >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {portfolioStats.dayChange >= 0 ? (
-                <TrendingUpIcon className="h-3 w-3 mr-1" />
-              ) : (
-                <TrendingDownIcon className="h-3 w-3 mr-1" />
-              )}
-              {portfolioStats.dayChangePercentage > 0 ? '+' : ''}{portfolioStats.dayChangePercentage}% today
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Gain/Loss</CardTitle>
-            <TargetIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${
-              portfolioStats.totalGainLoss >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {portfolioStats.totalGainLoss >= 0 ? '+' : ''}${portfolioStats.totalGainLoss.toLocaleString()}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {portfolioStats.totalGainLossPercentage >= 0 ? '+' : ''}{portfolioStats.totalGainLossPercentage}% overall
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Invested</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${portfolioStats.totalInvested.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">
-              Capital deployed
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Cash</CardTitle>
-            <ActivityIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${portfolioStats.availableCash.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">
-              Ready to invest
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Performance Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3Icon className="h-5 w-5" />
-              Portfolio Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={mockPerformanceData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: number, name: string) => [
-                    `$${value.toLocaleString()}`, 
-                    name === 'totalValue' ? 'Total Value' : 
-                    name === 'invested' ? 'Invested' : 'Gain/Loss'
-                  ]}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="totalValue" 
-                  stackId="1"
-                  stroke="#10b981" 
-                  fill="#10b981" 
-                  fillOpacity={0.6}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="gainLoss" 
-                  stackId="2"
-                  stroke="#06b6d4" 
-                  fill="#06b6d4" 
-                  fillOpacity={0.6}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Asset Allocation */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChartIcon className="h-5 w-5" />
-              Asset Allocation
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name} ${value}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Enhanced Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Portfolio Analytics</h1>
+            <p className="text-slate-600 dark:text-slate-400">
+              Comprehensive analysis of your investment performance and risk metrics
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              {(['7d', '30d', '90d', '1y'] as const).map((period) => (
+                <Button
+                  key={period}
+                  variant={timeFrame === period ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTimeFrame(period)}
                 >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+                  {period}
+                </Button>
+              ))}
+            </div>
+            <Button variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
 
-      {/* Holdings Analysis */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Holdings Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {holdingsAnalysis.map((holding) => (
-              <div
-                key={holding.symbol}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                data-testid={`holding-${holding.symbol}`}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="font-bold text-sm text-primary">{holding.symbol}</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {holding.name}
-                    </div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
-                      {holding.amount} {holding.symbol} @ ${holding.averagePurchasePrice.toLocaleString()}
-                    </div>
+        {/* Enhanced Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <Card className="relative overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">Total Portfolio Value</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    ${totalValue.toLocaleString()}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                    <span className="text-green-500 text-sm">+12.5% (24h)</span>
                   </div>
                 </div>
-                
-                <div className="text-right space-y-1">
-                  <div className="font-semibold text-slate-900 dark:text-white">
-                    ${holding.currentValue.toLocaleString()}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge 
-                      variant={holding.gainLoss >= 0 ? 'default' : 'destructive'}
-                      className="text-xs"
-                    >
-                      {holding.gainLoss >= 0 ? '+' : ''}${holding.gainLoss}
-                    </Badge>
-                    <span className={`text-xs ${
-                      holding.gainLossPercentage >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {holding.gainLossPercentage >= 0 ? '+' : ''}{holding.gainLossPercentage}%
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-400">
-                    {holding.allocation}% of portfolio
-                  </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-blue-500" />
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">Total P&L</p>
+                  <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {totalPnL >= 0 ? '+' : ''}${totalPnL.toLocaleString()}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    {totalPnL >= 0 ? (
+                      <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
+                    ) : (
+                      <ArrowDown className="h-4 w-4 text-red-500 mr-1" />
+                    )}
+                    <span className={`text-sm ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {totalPnLPercentage >= 0 ? '+' : ''}{totalPnLPercentage.toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  totalPnL >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'
+                }`}>
+                  {totalPnL >= 0 ? (
+                    <TrendingUp className="h-6 w-6 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-6 w-6 text-red-500" />
+                  )}
+                </div>
+              </div>
+              <div className={`absolute bottom-0 left-0 right-0 h-1 ${
+                totalPnL >= 0 ? 'bg-green-500' : 'bg-red-500'
+              }`}></div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">Sharpe Ratio</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {riskMetrics.sharpeRatio.toFixed(2)}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <Award className="h-4 w-4 text-yellow-500 mr-1" />
+                    <span className="text-yellow-500 text-sm">Excellent</span>
+                  </div>
+                </div>
+                <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                  <Target className="h-6 w-6 text-yellow-500" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-500"></div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">Risk Score</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {riskMetrics.riskScore.toFixed(1)}/10
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <Shield className="h-4 w-4 text-orange-500 mr-1" />
+                    <span className="text-orange-500 text-sm">Moderate</span>
+                  </div>
+                </div>
+                <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-orange-500" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500"></div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">Diversification</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {holdingsAnalysis.length}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <PieChart className="h-4 w-4 text-purple-500 mr-1" />
+                    <span className="text-purple-500 text-sm">Assets</span>
+                  </div>
+                </div>
+                <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
+                  <BarChart3 className="h-6 w-6 text-purple-500" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500"></div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Enhanced Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="risk">Risk Analysis</TabsTrigger>
+            <TabsTrigger value="holdings">Holdings</TabsTrigger>
+            <TabsTrigger value="insights">Insights</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Portfolio Performance Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Portfolio vs Benchmark
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <AreaChart data={performanceData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value, name) => [
+                          `$${Number(value).toLocaleString()}`,
+                          name === 'value' ? 'Portfolio' : 'Benchmark'
+                        ]}
+                      />
+                      <Legend />
+                      <Area type="monotone" dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} name="Portfolio" />
+                      <Area type="monotone" dataKey="benchmark" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.1} name="Benchmark" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Asset Allocation */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChart className="h-5 w-5" />
+                    Asset Allocation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {pieData.length > 0 ? (
+                    <div className="space-y-4">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <RechartsPieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Value']} />
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                      <div className="grid grid-cols-2 gap-2">
+                        {pieData.map((entry, index) => (
+                          <div key={entry.name} className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: entry.color }}
+                            ></div>
+                            <span className="text-sm">{entry.name}</span>
+                            <span className="text-sm text-slate-500 ml-auto">
+                              {entry.percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-slate-500">
+                      <div className="text-center">
+                        <PieChart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                        <p>No holdings to display</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Performers and Losers */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-600">
+                    <TrendingUp className="h-5 w-5" />
+                    Top Performers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {topPerformers.map((holding, index) => (
+                      <div key={holding.symbol} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                            <span className="text-green-600 font-bold text-sm">{index + 1}</span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{holding.symbol}</p>
+                            <p className="text-sm text-slate-500">{holding.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+                            +{holding.pnlPercentage.toFixed(2)}%
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-600">
+                    <TrendingDown className="h-5 w-5" />
+                    Underperformers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {topLosers.map((holding, index) => (
+                      <div key={holding.symbol} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                            <span className="text-red-600 font-bold text-sm">{index + 1}</span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{holding.symbol}</p>
+                            <p className="text-sm text-slate-500">{holding.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="destructive">
+                            {holding.pnlPercentage.toFixed(2)}%
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="risk" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Risk Metrics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Risk Metrics</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Sharpe Ratio</p>
+                      <p className="text-2xl font-bold text-green-600">{riskMetrics.sharpeRatio}</p>
+                      <p className="text-xs text-slate-500">Excellent performance</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Max Drawdown</p>
+                      <p className="text-2xl font-bold text-red-600">{riskMetrics.maxDrawdown}%</p>
+                      <p className="text-xs text-slate-500">Low risk</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Volatility</p>
+                      <p className="text-2xl font-bold text-yellow-600">{riskMetrics.volatility}%</p>
+                      <p className="text-xs text-slate-500">Moderate</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Beta</p>
+                      <p className="text-2xl font-bold text-blue-600">{riskMetrics.beta}</p>
+                      <p className="text-xs text-slate-500">Market correlation</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Risk Radar Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Risk Profile</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RadarChart data={riskRadarData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="metric" />
+                      <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                      <Radar name="Risk Score" dataKey="score" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="holdings" className="space-y-6">
+            {/* Holdings Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Holdings Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {holdingsAnalysis.map((holding) => (
+                    <div
+                      key={holding.symbol}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      data-testid={`holding-${holding.symbol}`}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="font-bold text-sm text-primary">{holding.symbol}</span>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-white">
+                            {holding.name}
+                          </div>
+                          <div className="text-sm text-slate-500 dark:text-slate-400">
+                            {holding.amount} {holding.symbol} @ ${holding.averagePurchasePrice.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right space-y-1">
+                        <div className="font-semibold text-slate-900 dark:text-white">
+                          ${holding.currentValue.toLocaleString()}
+                        </div>
+                        <div className="flex items-center justify-end space-x-2">
+                          <Badge
+                            variant={holding.pnl >= 0 ? 'default' : 'destructive'}
+                            className={holding.pnl >= 0 ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
+                          >
+                            {holding.pnl >= 0 ? '+' : ''}${holding.pnl.toFixed(2)}
+                          </Badge>
+                          <Badge variant="outline">
+                            {holding.pnlPercentage >= 0 ? '+' : ''}{holding.pnlPercentage.toFixed(2)}%
+                          </Badge>
+                        </div>
+                        <div className="w-24">
+                          <Progress value={holding.allocation} className="h-2" />
+                          <span className="text-xs text-slate-500">{holding.allocation.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

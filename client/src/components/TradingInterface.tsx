@@ -43,12 +43,12 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
         body: JSON.stringify(tradeData),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Trade execution failed');
       }
-      
+
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -162,7 +162,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Order Type Selector */}
         <div className="space-y-2">
@@ -316,160 +316,6 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
               )}
               {tradeMutation.isPending ? 'Processing...' : `Sell ${crypto.symbol.toUpperCase()}`}
             </Button>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  );
-}
-                    <Badge variant={selectedCryptoData.price_change_percentage_24h >= 0 ? "default" : "destructive"} className="ml-2">
-                      {selectedCryptoData.price_change_percentage_24h >= 0 ? '+' : ''}
-                      {selectedCryptoData.price_change_percentage_24h.toFixed(2)}%
-                    </Badge>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="0.00"
-                  step="0.00000001"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="order-type">Order Type</Label>
-                <Select value={orderType} onValueChange={setOrderType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="market">Market</SelectItem>
-                    <SelectItem value="limit">Limit</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {orderType === "limit" && (
-                <div>
-                  <Label htmlFor="price">Price ($)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    placeholder="0.00"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                </div>
-              )}
-
-              <div className="flex flex-col justify-end">
-                {estimatedTotal > 0 && (
-                  <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                    Total: ${estimatedTotal.toLocaleString()}
-                  </div>
-                )}
-                <Button
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  onClick={() => handleTrade('buy')}
-                  disabled={tradeMutation.isPending}
-                >
-                  {tradeMutation.isPending ? 'Processing...' : 'Buy'}
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="sell" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div>
-                <Label htmlFor="crypto-select-sell">Cryptocurrency</Label>
-                <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select crypto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cryptoData.map((crypto) => (
-                      <SelectItem key={crypto.id} value={crypto.id}>
-                        <div className="flex items-center">
-                          <img src={crypto.image} alt={crypto.name} className="w-4 h-4 mr-2" />
-                          {crypto.name} ({crypto.symbol.toUpperCase()})
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedCryptoData && (
-                  <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                    ${selectedCryptoData.current_price.toLocaleString()}
-                    <Badge variant={selectedCryptoData.price_change_percentage_24h >= 0 ? "default" : "destructive"} className="ml-2">
-                      {selectedCryptoData.price_change_percentage_24h >= 0 ? '+' : ''}
-                      {selectedCryptoData.price_change_percentage_24h.toFixed(2)}%
-                    </Badge>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="amount-sell">Amount</Label>
-                <Input
-                  id="amount-sell"
-                  type="number"
-                  placeholder="0.00"
-                  step="0.00000001"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="order-type-sell">Order Type</Label>
-                <Select value={orderType} onValueChange={setOrderType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="market">Market</SelectItem>
-                    <SelectItem value="limit">Limit</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {orderType === "limit" && (
-                <div>
-                  <Label htmlFor="price-sell">Price ($)</Label>
-                  <Input
-                    id="price-sell"
-                    type="number"
-                    placeholder="0.00"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                </div>
-              )}
-
-              <div className="flex flex-col justify-end">
-                {estimatedTotal > 0 && (
-                  <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                    Total: ${estimatedTotal.toLocaleString()}
-                  </div>
-                )}
-                <Button
-                  className="w-full bg-red-600 hover:bg-red-700"
-                  onClick={() => handleTrade('sell')}
-                  disabled={tradeMutation.isPending}
-                >
-                  {tradeMutation.isPending ? 'Processing...' : 'Sell'}
-                </Button>
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </CardContent>
