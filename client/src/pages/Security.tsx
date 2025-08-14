@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,21 +13,21 @@ import { useToast } from '@/hooks/use-toast';
 export default function Security() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       toast({
         title: "Error",
@@ -53,7 +52,7 @@ export default function Security() {
         title: "Success",
         description: "Password changed successfully",
       });
-      
+
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -126,7 +125,7 @@ export default function Security() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Security Settings */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Change Password */}
             <Card>
               <CardHeader>
@@ -231,7 +230,7 @@ export default function Security() {
                     onCheckedChange={handleTwoFactorToggle}
                   />
                 </div>
-                
+
                 {twoFactorEnabled && (
                   <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
                     <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
@@ -284,7 +283,7 @@ export default function Security() {
 
           {/* Security Overview Sidebar */}
           <div className="space-y-6">
-            
+
             {/* Security Status */}
             <Card>
               <CardHeader>

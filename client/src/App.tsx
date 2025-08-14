@@ -37,6 +37,7 @@ import Terms from './pages/Terms';
 import Deposit from "./pages/Deposit";
 import DepositHistory from "./pages/DepositHistory";
 import AdminDepositManagement from "./pages/AdminDepositManagement";
+import Academy from "@/pages/Academy";
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -185,6 +186,7 @@ function AppContent() {
       <Route path="/deposit" component={Deposit} />
       <Route path="/deposit-history" component={DepositHistory} />
       <Route path="/admin/deposits" component={AdminDepositManagement} />
+      <Route path="/academy" component={Academy} />
       <Route component={NotFound} />
     </Switch>
   );
