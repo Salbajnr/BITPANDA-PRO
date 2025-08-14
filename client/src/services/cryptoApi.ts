@@ -16,6 +16,7 @@ export interface CryptoPrice {
   last_updated: string;
   ath: number;
   ath_change_percentage: number;
+  circulating_supply?: number; // Added for consistency with getTopCryptos mapping
 }
 
 export interface CryptoTicker {
@@ -34,55 +35,87 @@ export interface MarketData {
 }
 
 export class CryptoApiService {
+  private static readonly BASE_URL = 'https://api.coingecko.com/api/v3';
   private static cache = new Map<string, { data: any; timestamp: number }>();
-  private static CACHE_DURATION = 30000; // 30 seconds
+  private static readonly CACHE_DURATION = 30000; // 30 seconds cache
 
-  static async getTopCryptos(limit = 50): Promise<CryptoPrice[]> {
-    const cacheKey = `top-cryptos-${limit}`;
-    const cached = this.cache.get(cacheKey);
-    
+  private static getCachedData(key: string) {
+    const cached = this.cache.get(key);
     if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
       return cached.data;
+    }
+    return null;
+  }
+
+  private static setCachedData(key: string, data: any) {
+    this.cache.set(key, { data, timestamp: Date.now() });
+  }
+
+  static async getTopCryptos(limit: number = 100): Promise<CryptoPrice[]> {
+    const cacheKey = `top-cryptos-${limit}`;
+    const cached = this.getCachedData(cacheKey);
+
+    if (cached) {
+      return cached;
     }
 
     try {
       const response = await fetch(
-        `${COINGECKO_API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=1h,24h,7d`
+        `${this.BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`
       );
-      
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`API request failed: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      this.cache.set(cacheKey, { data, timestamp: Date.now() });
-      return data;
+      const cryptos = data.map((coin: any) => ({
+        id: coin.id,
+        symbol: coin.symbol,
+        name: coin.name,
+        image: coin.image,
+        current_price: coin.current_price,
+        market_cap: coin.market_cap,
+        market_cap_rank: coin.market_cap_rank,
+        price_change_percentage_24h: coin.price_change_percentage_24h,
+        total_volume: coin.total_volume,
+        high_24h: coin.high_24h,
+        low_24h: coin.low_24h,
+        circulating_supply: coin.circulating_supply,
+        ath: coin.ath, // Added from original interface
+        ath_change_percentage: coin.ath_change_percentage, // Added from original interface
+        last_updated: new Date().toISOString(), // Added from original interface
+      }));
+
+      this.setCachedData(cacheKey, cryptos);
+      return cryptos;
     } catch (error) {
-      console.error('Failed to fetch crypto prices:', error);
+      console.error('Error fetching top cryptos:', error);
+      // Return fallback data if API fails
       return this.getFallbackCryptoData();
     }
   }
 
   static async getCryptoPrice(coinId: string): Promise<number> {
     const cacheKey = `price-${coinId}`;
-    const cached = this.cache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      return cached.data;
+    const cached = this.getCachedData(cacheKey);
+
+    if (cached) {
+      return cached;
     }
 
     try {
       const response = await fetch(
         `${COINGECKO_API_BASE}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`
       );
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       const price = data[coinId]?.usd || 0;
-      this.cache.set(cacheKey, { data: price, timestamp: Date.now() });
+      this.setCachedData(cacheKey, price);
       return price;
     } catch (error) {
       console.error(`Failed to fetch price for ${coinId}:`, error);
@@ -90,24 +123,76 @@ export class CryptoApiService {
     }
   }
 
-  static async getMarketData(): Promise<MarketData | null> {
-    const cacheKey = 'global-market-data';
-    const cached = this.cache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      return cached.data;
+  static async getMultiplePrices(symbols: string[]): Promise<Record<string, any>> {
+    const cacheKey = `multi-prices-${symbols.join(',')}`;
+    const cached = this.getCachedData(cacheKey);
+
+    if (cached) {
+      return cached;
     }
 
     try {
-      const response = await fetch(`${COINGECKO_API_BASE}/global`);
-      
+      const response = await fetch(
+        `${this.BASE_URL}/simple/price?ids=${symbols.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch prices');
+      }
+
+      const data = await response.json();
+      this.setCachedData(cacheKey, data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching multiple prices:', error);
+      return {};
+    }
+  }
+
+  static async getCryptoDetails(coinId: string): Promise<any> {
+    const cacheKey = `details-${coinId}`;
+    const cached = this.getCachedData(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const response = await fetch(
+        `${this.BASE_URL}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch crypto details');
+      }
+
+      const data = await response.json();
+      this.setCachedData(cacheKey, data);
+      return data;
+    } catch (error) {
+      console.error(`Error fetching details for ${coinId}:`, error);
+      return null;
+    }
+  }
+
+  static async getMarketData(): Promise<MarketData | null> {
+    const cacheKey = 'global-market-data';
+    const cached = this.getCachedData(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const response = await fetch(`${this.BASE_URL}/global`);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
       const data = result.data;
-      this.cache.set(cacheKey, { data, timestamp: Date.now() });
+      this.setCachedData(cacheKey, data);
       return data;
     } catch (error) {
       console.error('Failed to fetch market data:', error);
@@ -115,42 +200,16 @@ export class CryptoApiService {
     }
   }
 
-  static async getCryptoDetails(coinId: string) {
-    const cacheKey = `details-${coinId}`;
-    const cached = this.cache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < 300000) { // 5 minutes cache
-      return cached.data;
-    }
-
-    try {
-      const response = await fetch(
-        `${COINGECKO_API_BASE}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      this.cache.set(cacheKey, { data, timestamp: Date.now() });
-      return data;
-    } catch (error) {
-      console.error(`Failed to fetch details for ${coinId}:`, error);
-      return null;
-    }
-  }
-
   static async searchCryptos(query: string): Promise<any[]> {
     if (!query || query.length < 2) return [];
-    
+
     try {
-      const response = await fetch(`${COINGECKO_API_BASE}/search?query=${encodeURIComponent(query)}`);
-      
+      const response = await fetch(`${this.BASE_URL}/search?query=${encodeURIComponent(query)}`);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       return data.coins || [];
     } catch (error) {
@@ -216,7 +275,7 @@ export class CryptoApiService {
   // WebSocket connection for real-time price updates
   static createPriceSocket(symbols: string[], onUpdate: (data: CryptoTicker) => void): WebSocket | null {
     if (typeof window === 'undefined') return null;
-    
+
     try {
       // Note: This would require a WebSocket endpoint for live prices
       // For now, we'll simulate with periodic API calls

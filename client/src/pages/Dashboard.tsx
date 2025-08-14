@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiService } from "@/lib/api";
 import Navbar from "@/components/Navbar";
-import { 
-  Wallet, TrendingUp, TrendingDown, ArrowUp, ArrowDown, 
+import {
+  Wallet, TrendingUp, TrendingDown, ArrowUp, ArrowDown,
   BarChart3, PieChart, Search, Bell, ExternalLink,
   RefreshCw, DollarSign, Activity, Coins, Target,
   Clock, Calendar, Eye, Star, Plus, Minus,
@@ -24,6 +24,12 @@ import {
   LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
+import CryptoTable from "@/components/CryptoTable";
+import QuickStatsGrid from "@/components/QuickStatsGrid";
+import NewsSection from "@/components/NewsSection";
+import { LiveMarketStats } from "@/components/LiveMarketStats";
+import { useRealTimePrice } from "@/hooks/useRealTimePrice";
+
 
 interface PortfolioData {
   portfolio: {
@@ -127,6 +133,11 @@ export default function Dashboard() {
     },
   });
 
+  // Get symbols from holdings for real-time prices
+  const holdingSymbols = portfolioData?.holdings?.map(h => h.symbol) || [];
+  const { prices: realTimePrices, getPrice, isConnected } = useRealTimePrice(holdingSymbols);
+
+
   useEffect(() => {
     if (!authLoading && !user) {
       toast({
@@ -152,9 +163,9 @@ export default function Dashboard() {
     );
   }
 
-  const totalPortfolioValue = portfolioData?.portfolio?.totalValue ? 
+  const totalPortfolioValue = portfolioData?.portfolio?.totalValue ?
     parseFloat(portfolioData.portfolio.totalValue) : 0;
-  const availableCash = portfolioData?.portfolio?.availableCash ? 
+  const availableCash = portfolioData?.portfolio?.availableCash ?
     parseFloat(portfolioData.portfolio.availableCash) : 0;
   const investedValue = totalPortfolioValue - availableCash;
 
@@ -342,6 +353,18 @@ export default function Dashboard() {
             {/* Portfolio Overview Section */}
             {activeSection === "portfolio" && (
               <div className="space-y-6">
+                {/* Live Market Stats */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-900">Live Market Overview</h2>
+                    <Badge variant="default" className="bg-green-600">
+                      <Activity className="h-4 w-4 mr-2" />
+                      Real-time
+                    </Badge>
+                  </div>
+                  <LiveMarketStats />
+                </div>
+
                 {/* Enhanced Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <Card className="relative overflow-hidden">
@@ -490,8 +513,8 @@ export default function Dashboard() {
                         {portfolioAllocation.slice(0, 5).map((asset) => (
                           <div key={asset.symbol} className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div 
-                                className="w-4 h-4 rounded-full mr-3" 
+                              <div
+                                className="w-4 h-4 rounded-full mr-3"
                                 style={{ backgroundColor: asset.color }}
                               ></div>
                               <div>
@@ -536,16 +559,16 @@ export default function Dashboard() {
                         </Button>
                       </Link>
                       <div className="flex space-x-4">
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="lg"
                           className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-8 py-3"
                           onClick={() => window.location.href = '/deposit'}
                         >
                           <Plus className="mr-2 h-5 w-5" />
                           Deposit Funds
                         </Button>
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="lg"
                           className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-8 py-3"
                         >
                           <Plus className="mr-2 h-5 w-5" />
@@ -807,8 +830,8 @@ export default function Dashboard() {
                                 </td>
                                 <td className="py-4">
                                   <div className="flex items-center">
-                                    <img 
-                                      src={crypto.image} 
+                                    <img
+                                      src={crypto.image}
                                       alt={crypto.name}
                                       className="w-8 h-8 rounded-full mr-3"
                                       onError={(e) => {
@@ -825,7 +848,7 @@ export default function Dashboard() {
                                   ${crypto.current_price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                 </td>
                                 <td className="py-4">
-                                  <Badge 
+                                  <Badge
                                     variant={crypto.price_change_percentage_24h >= 0 ? "default" : "destructive"}
                                     className={crypto.price_change_percentage_24h >= 0 ? "bg-green-100 text-green-700 hover:bg-green-100" : ""}
                                   >
@@ -955,22 +978,22 @@ export default function Dashboard() {
                     <CardContent className="space-y-4">
                       <div>
                         <label className="block text-slate-500 dark:text-slate-400 text-sm mb-2">Full Name</label>
-                        <Input 
-                          value={`${user?.firstName || ''} ${user?.lastName || ''}`} 
+                        <Input
+                          value={`${user?.firstName || ''} ${user?.lastName || ''}`}
                           disabled
                         />
                       </div>
                       <div>
                         <label className="block text-slate-500 dark:text-slate-400 text-sm mb-2">Email</label>
-                        <Input 
-                          value={user?.email || ''} 
+                        <Input
+                          value={user?.email || ''}
                           disabled
                         />
                       </div>
                       <div>
                         <label className="block text-slate-500 dark:text-slate-400 text-sm mb-2">Username</label>
-                        <Input 
-                          value={user?.username || ''} 
+                        <Input
+                          value={user?.username || ''}
                           disabled
                         />
                       </div>

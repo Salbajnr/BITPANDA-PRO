@@ -16,6 +16,8 @@ export function useRealTimePrice(symbols: string[]) {
   const [error, setError] = useState<string | null>(null);
 
   const connectWebSocket = useCallback(() => {
+    if (symbols.length === 0) return;
+    
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -48,17 +50,26 @@ export function useRealTimePrice(symbols: string[]) {
                 timestamp: data.timestamp
               }
             }));
+          } else if (data.type === 'connection') {
+            console.log('WebSocket connection confirmed:', data.message);
           }
         } catch (err) {
           console.error('Error parsing WebSocket message:', err);
         }
       };
 
-      websocket.onclose = () => {
-        console.log('WebSocket connection closed');
+      websocket.onclose = (event) => {
+        console.log('WebSocket connection closed:', event.code, event.reason);
         setIsConnected(false);
-        // Attempt to reconnect after 3 seconds
-        setTimeout(connectWebSocket, 3000);
+        
+        // Only attempt to reconnect if it wasn't a manual close
+        if (event.code !== 1000) {
+          setTimeout(() => {
+            if (symbols.length > 0) {
+              connectWebSocket();
+            }
+          }, 3000);
+        }
       };
 
       websocket.onerror = (error) => {
@@ -74,27 +85,52 @@ export function useRealTimePrice(symbols: string[]) {
     }
   }, [symbols]);
 
-  // Fallback to mock data when WebSocket is not available
+  // Fallback to API data when WebSocket is not available
   useEffect(() => {
     if (!isConnected && symbols.length > 0) {
-      const interval = setInterval(() => {
-        const mockPrices: Record<string, PriceData> = {};
-        symbols.forEach(symbol => {
-          mockPrices[symbol.toLowerCase()] = {
-            symbol: symbol.toLowerCase(),
-            price: Math.random() * 50000 + 20000,
-            change_24h: (Math.random() - 0.5) * 10,
-            volume_24h: Math.random() * 1000000000,
-            timestamp: Date.now()
-          };
-        });
-        setPrices(mockPrices);
-      }, 5000);
+      const fetchFallbackData = async () => {
+        try {
+          const pricesData = await CryptoApiService.getMultiplePrices(symbols);
+          const fallbackPrices: Record<string, PriceData> = {};
+          
+          symbols.forEach(symbol => {
+            const priceData = pricesData[symbol];
+            if (priceData) {
+              fallbackPrices[symbol.toLowerCase()] = {
+                symbol: symbol.toLowerCase(),
+                price: priceData.usd,
+                change_24h: priceData.usd_24h_change || 0,
+                volume_24h: priceData.usd_24h_vol || 0,
+                timestamp: Date.now()
+              };
+            } else {
+              // Use realistic mock data as last resort
+              const basePrice = symbol === 'bitcoin' ? 45000 : 
+                              symbol === 'ethereum' ? 2500 : 
+                              Math.random() * 1000 + 100;
+              
+              fallbackPrices[symbol.toLowerCase()] = {
+                symbol: symbol.toLowerCase(),
+                price: basePrice * (0.98 + Math.random() * 0.04),
+                change_24h: (Math.random() - 0.5) * 10,
+                volume_24h: Math.random() * 1000000000,
+                timestamp: Date.now()
+              };
+            }
+          });
+          
+          setPrices(fallbackPrices);
+        } catch (error) {
+          console.error('Error fetching fallback data:', error);
+        }
+      };
 
+      // Initial fetch
+      fetchFallbackData();
+      
+      // Periodic updates every 30 seconds when WebSocket is not connected
+      const interval = setInterval(fetchFallbackData, 30000);
       return () => clearInterval(interval);
-    } else if (isConnected) {
-      // Clear mock data interval if WebSocket connects
-      setPrices({});
     }
   }, [isConnected, symbols]);
 
@@ -105,7 +141,9 @@ export function useRealTimePrice(symbols: string[]) {
 
     return () => {
       if (ws) {
-        ws.close();
+        ws.send(JSON.stringify({ type: 'unsubscribe' }));
+        ws.close(1000, 'Component unmounting');
+        setWs(null);
       }
     };
   }, [symbols, connectWebSocket]);

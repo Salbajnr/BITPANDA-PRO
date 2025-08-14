@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { CryptoPrice } from "../services/cryptoApi";
+import { CryptoPrice, CryptoApiService } from "../services/cryptoApi";
 import { useRealTimePrice } from "../hooks/useRealTimePrice";
 import { TrendingUp, TrendingDown, X, Activity, DollarSign } from "lucide-react";
 

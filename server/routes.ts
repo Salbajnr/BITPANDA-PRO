@@ -461,19 +461,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     path: '/ws' 
   });
 
+  // Store client subscriptions and intervals
+  const clientSubscriptions = new Map();
+
   // Handle WebSocket connections for real-time price updates
   wss.on('connection', (ws) => {
     console.log('Client connected to WebSocket');
+    const clientId = Date.now().toString();
     
     // Send initial connection confirmation
     ws.send(JSON.stringify({
       type: 'connection',
       message: 'Connected to live price feed',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      clientId
     }));
 
+    // Function to fetch real crypto prices from CoinGecko
+    const fetchRealPrices = async (symbols) => {
+      try {
+        const response = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch prices');
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching real prices:', error);
+        return null;
+      }
+    };
+
     // Handle client messages
-    ws.on('message', (data) => {
+    ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
         
@@ -481,40 +505,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Client wants to subscribe to price updates for specific symbols
           console.log('Client subscribed to:', message.symbols);
           
-          // Start sending periodic price updates (every 5 seconds)
+          // Clear existing subscription if any
+          if (clientSubscriptions.has(clientId)) {
+            clearInterval(clientSubscriptions.get(clientId).interval);
+          }
+          
+          // Send initial real-time prices
+          const realPrices = await fetchRealPrices(message.symbols);
+          if (realPrices && ws.readyState === ws.OPEN) {
+            for (const symbol of message.symbols) {
+              const priceData = realPrices[symbol];
+              if (priceData) {
+                ws.send(JSON.stringify({
+                  type: 'price_update',
+                  symbol: symbol,
+                  price: priceData.usd,
+                  change_24h: priceData.usd_24h_change || 0,
+                  volume_24h: priceData.usd_24h_vol || 0,
+                  timestamp: Date.now()
+                }));
+              }
+            }
+          }
+          
+          // Start sending periodic price updates (every 10 seconds for real API)
           const interval = setInterval(async () => {
             if (ws.readyState === ws.OPEN) {
               try {
-                // Simulate live price updates
-                for (const symbol of message.symbols) {
-                  const priceUpdate = {
-                    type: 'price_update',
-                    symbol: symbol,
-                    price: Math.random() * 50000 + 20000, // Simulated price
-                    change_24h: (Math.random() - 0.5) * 10,
-                    volume_24h: Math.random() * 1000000000,
-                    timestamp: Date.now()
-                  };
-                  
-                  ws.send(JSON.stringify(priceUpdate));
+                const realPrices = await fetchRealPrices(message.symbols);
+                
+                if (realPrices) {
+                  // Send real prices from API
+                  for (const symbol of message.symbols) {
+                    const priceData = realPrices[symbol];
+                    if (priceData) {
+                      ws.send(JSON.stringify({
+                        type: 'price_update',
+                        symbol: symbol,
+                        price: priceData.usd,
+                        change_24h: priceData.usd_24h_change || 0,
+                        volume_24h: priceData.usd_24h_vol || 0,
+                        timestamp: Date.now()
+                      }));
+                    }
+                  }
+                } else {
+                  // Fallback to simulated data if API fails
+                  for (const symbol of message.symbols) {
+                    const basePrice = symbol === 'bitcoin' ? 45000 : 
+                                    symbol === 'ethereum' ? 2500 : 
+                                    Math.random() * 1000 + 100;
+                    
+                    const priceUpdate = {
+                      type: 'price_update',
+                      symbol: symbol,
+                      price: basePrice * (0.98 + Math.random() * 0.04),
+                      change_24h: (Math.random() - 0.5) * 10,
+                      volume_24h: Math.random() * 1000000000,
+                      timestamp: Date.now()
+                    };
+                    
+                    ws.send(JSON.stringify(priceUpdate));
+                  }
                 }
               } catch (error) {
                 console.error('Error sending price update:', error);
                 clearInterval(interval);
+                clientSubscriptions.delete(clientId);
               }
             } else {
               clearInterval(interval);
+              clientSubscriptions.delete(clientId);
             }
-          }, 5000);
+          }, 10000); // 10 seconds for real API calls
 
-          // Clean up on disconnect
-          ws.on('close', () => {
-            clearInterval(interval);
-            console.log('Client disconnected from WebSocket');
-          });
+          // Store subscription
+          clientSubscriptions.set(clientId, { interval, symbols: message.symbols });
+        }
+        
+        if (message.type === 'unsubscribe') {
+          if (clientSubscriptions.has(clientId)) {
+            clearInterval(clientSubscriptions.get(clientId).interval);
+            clientSubscriptions.delete(clientId);
+            console.log('Client unsubscribed:', clientId);
+          }
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
+      }
+    });
+
+    // Clean up on disconnect
+    ws.on('close', () => {
+      if (clientSubscriptions.has(clientId)) {
+        clearInterval(clientSubscriptions.get(clientId).interval);
+        clientSubscriptions.delete(clientId);
+      }
+      console.log('Client disconnected from WebSocket:', clientId);
+    });
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      if (clientSubscriptions.has(clientId)) {
+        clearInterval(clientSubscriptions.get(clientId).interval);
+        clientSubscriptions.delete(clientId);
       }
     });
   });
