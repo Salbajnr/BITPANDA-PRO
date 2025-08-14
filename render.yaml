@@ -1,7 +1,7 @@
 
 services:
   - type: web
-    name: crypto-trading-platform
+    name: bitpanda-pro
     env: node
     plan: starter
     buildCommand: npm install && npm run build
@@ -13,7 +13,7 @@ services:
         value: 5000
       - key: DATABASE_URL
         fromDatabase:
-          name: crypto-platform-db
+          name: bitpanda-pro-db
           property: connectionString
       - key: SESSION_SECRET
         generateValue: true
@@ -22,13 +22,13 @@ services:
     autoDeploy: false
 
 databases:
-  - name: crypto-platform-db
-    databaseName: crypto_platform
-    user: crypto_user
+  - name: bitpanda-pro-db
+    databaseName: bitpanda_pro_platform
+    user: bitpanda
     plan: starter
 
 staticSites:
-  - name: crypto-platform-frontend
+  - name: bitpanda-pro
     buildCommand: npm run build
     publishPath: ./dist/public
     routes:
