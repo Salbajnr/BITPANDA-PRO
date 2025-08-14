@@ -41,7 +41,7 @@ export interface IStorage {
   deleteHolding(id: string): Promise<void>;
 
   // Transaction operations
-  getTransactions(portfolioId: string, limit?: number): Promise<Transaction[]>;
+  getTransactions(userId: string, limit?: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
 
   // Admin operations
@@ -145,11 +145,11 @@ export class DatabaseStorage implements IStorage {
     await db.delete(holdings).where(eq(holdings.id, id));
   }
 
-  async getTransactions(portfolioId: string, limit = 50): Promise<Transaction[]> {
+  async getTransactions(userId: string, limit = 50): Promise<Transaction[]> {
     return await db
       .select()
       .from(transactions)
-      .where(eq(transactions.portfolioId, portfolioId))
+      .where(eq(transactions.userId, userId))
       .orderBy(desc(transactions.createdAt))
       .limit(limit);
   }
