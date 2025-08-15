@@ -3,9 +3,9 @@ import {
   TrendingUp, Shield, Zap, Users, BarChart3, ChartLine, Clock, 
   Activity, DollarSign, Headphones, Star, Award, CheckCircle,
   Smartphone, Globe, Lock, Bell, Menu, X, ArrowRight, Quote,
-  PlayCircle, Briefcase, CreditCard, Wallet
+  PlayCircle, Briefcase, CreditCard, Wallet, Target, Layers
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@/assets/logo.jpeg";
 import { getCryptoLogo, BitcoinLogo, EthereumLogo, SolanaLogo, AvalancheLogo, CardanoLogo, PolkadotLogo } from "@/components/CryptoLogos";
@@ -36,6 +36,13 @@ export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [roiData, setRoiData] = useState({
+    initial: 1000,
+    monthly: 200,
+    apy: 8,
+    projectedValue: 0
+  });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [marketData, setMarketData] = useState<MarketData[]>([
     { 
       symbol: "BTC/USD", 
@@ -113,25 +120,43 @@ export default function Landing() {
       icon: <Shield className="w-8 h-8" />,
       title: "Bank-Grade Security",
       description: "Multi-signature wallets, cold storage, and advanced encryption protocols protect your assets 24/7",
-      color: "from-[#00D4AA] to-[#00B39F]"
+      color: "from-[#00D4AA] to-[#00B39F]",
+      emoji: "🔐"
     },
     {
       icon: <Zap className="w-8 h-8" />,
       title: "Lightning-Fast Execution",
       description: "Execute trades in milliseconds with our high-performance matching engine and global liquidity pools",
-      color: "from-[#FFB82F] to-[#F7931A]"
+      color: "from-[#FFB82F] to-[#F7931A]",
+      emoji: "⚡"
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: "Professional Analytics",
       description: "Advanced charting tools, technical indicators, and AI-powered market insights for informed decisions",
-      color: "from-[#3B82F6] to-[#1D4ED8]"
+      color: "from-[#3B82F6] to-[#1D4ED8]",
+      emoji: "📊"
     },
     {
       icon: <Users className="w-8 h-8" />,
       title: "Global Community",
       description: "Join millions of traders worldwide with 24/7 multilingual support and educational resources",
-      color: "from-[#8B5CF6] to-[#7C3AED]"
+      color: "from-[#8B5CF6] to-[#7C3AED]",
+      emoji: "🧠"
+    },
+    {
+      icon: <ChartLine className="w-8 h-8" />,
+      title: "Real-Time Charts",
+      description: "GPU-smooth rendering with candles, depth charts, and multiple timeframes for professional analysis",
+      color: "from-[#F59E0B] to-[#D97706]",
+      emoji: "📈"
+    },
+    {
+      icon: <Target className="w-8 h-8" />,
+      title: "Strategy Backtesting",
+      description: "Paper-trade and run backtests to refine your trading strategies with historical data",
+      color: "from-[#EF4444] to-[#DC2626]",
+      emoji: "🎯"
     }
   ];
 
@@ -183,6 +208,24 @@ export default function Landing() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // ROI Calculator
+  const calculateROI = () => {
+    const { initial, monthly, apy } = roiData;
+    const monthlyRate = apy / 100 / 12;
+    const months = 24;
+    let balance = initial;
+    
+    for (let i = 1; i <= months; i++) {
+      balance = balance * (1 + monthlyRate) + monthly;
+    }
+    
+    setRoiData(prev => ({ ...prev, projectedValue: balance }));
+  };
+
+  useEffect(() => {
+    calculateROI();
+  }, [roiData.initial, roiData.monthly, roiData.apy]);
 
   const generateMiniChart = (data: number[], isPositive: boolean) => {
     const min = Math.min(...data);
@@ -531,6 +574,39 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Modern Ticker Section */}
+      <section className="py-3 border-y border-[#2B2F36] bg-[#161A1E]/60 backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FFB82F]/5 via-transparent to-[#F7931A]/5" />
+        <div className="max-w-7xl mx-auto overflow-hidden px-4">
+          <div className="flex gap-8 animate-[marquee_30s_linear_infinite] whitespace-nowrap text-sm font-medium">
+            {[
+              { symbol: "BTC", price: "$68,355", change: "+1.2%", positive: true },
+              { symbol: "ETH", price: "$3,210", change: "-0.4%", positive: false },
+              { symbol: "SOL", price: "$182.4", change: "+2.1%", positive: true },
+              { symbol: "XRP", price: "$0.62", change: "+0.7%", positive: true },
+              { symbol: "BNB", price: "$598.3", change: "+0.9%", positive: true },
+              { symbol: "ADA", price: "$0.52", change: "-0.3%", positive: false },
+              { symbol: "AVAX", price: "$34.82", change: "+4.1%", positive: true },
+              { symbol: "DOT", price: "$7.25", change: "-0.8%", positive: false }
+            ].map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <span className="text-[#8B949E]">{item.symbol}</span>
+                <span className="text-white font-semibold">{item.price}</span>
+                <span className={item.positive ? "text-[#00D4AA]" : "text-[#F84638]"}>
+                  {item.change}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <style jsx>{`
+          @keyframes marquee { 
+            0% { transform: translateX(0) } 
+            100% { transform: translateX(-50%) } 
+          }
+        `}</style>
+      </section>
+
       {/* Market Insights Section */}
       <section className="relative z-10 py-20 bg-[#1E2329]/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -700,8 +776,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative z-10 py-32 bg-[#1E2329]/30">
+      {/* Enhanced Features Section */}
+      <section className="relative z-10 py-32 bg-gradient-to-b from-[#0A0F1A] to-[#161A1E]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="text-center mb-20"
@@ -712,15 +788,15 @@ export default function Landing() {
           >
             <h2 className="text-4xl lg:text-6xl font-bold mb-6">
               <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
-                Why Choose BITPANDA PRO?
+                Everything for Pro-Level Trading
               </span>
             </h2>
             <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
-              Experience the difference with our cutting-edge platform designed for both beginners and professional traders.
+              Lightning charts, instant execution, portfolio insights, and enterprise-grade security.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -729,17 +805,127 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.02 }}
               >
-                <div className="bg-[#161A1E]/80 backdrop-blur-xl rounded-2xl p-8 border border-[#2B2F36] hover:border-[#FFB82F]/30 transition-all duration-300 h-full group-hover:shadow-2xl">
-                  <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    {feature.icon}
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-[#FFB82F]/30 transition-all duration-300 h-full group-hover:shadow-2xl hover:shadow-[#FFB82F]/10">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FFB82F] to-[#F7931A] text-white grid place-items-center shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300 text-2xl">
+                    {feature.emoji}
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-4">{feature.title}</h3>
                   <p className="text-[#8B949E] leading-relaxed">{feature.description}</p>
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive ROI Investment Section */}
+      <section className="relative z-10 py-20 bg-gradient-to-b from-white/5 to-[#161A1E]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+                <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+                  Grow with smart,
+                </span>
+                <br />
+                <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                  automated investing
+                </span>
+              </h2>
+              <p className="text-xl text-[#8B949E] mb-8">
+                Create recurring plans, diversify by strategy, and track potential outcomes with our ROI simulator.
+              </p>
+
+              <div className="grid sm:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label className="text-xs text-[#8B949E] mb-2 block">Initial Amount ($)</label>
+                  <input
+                    type="number"
+                    value={roiData.initial}
+                    onChange={(e) => setRoiData(prev => ({ ...prev, initial: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-lg border border-[#2B2F36] bg-[#161A1E]/80 text-white focus:border-[#FFB82F] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#8B949E] mb-2 block">Monthly ($)</label>
+                  <input
+                    type="number"
+                    value={roiData.monthly}
+                    onChange={(e) => setRoiData(prev => ({ ...prev, monthly: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-lg border border-[#2B2F36] bg-[#161A1E]/80 text-white focus:border-[#FFB82F] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#8B949E] mb-2 block">Expected APY (%)</label>
+                  <input
+                    type="number"
+                    value={roiData.apy}
+                    onChange={(e) => setRoiData(prev => ({ ...prev, apy: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-lg border border-[#2B2F36] bg-[#161A1E]/80 text-white focus:border-[#FFB82F] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={calculateROI}
+                className="bg-gradient-to-r from-[#00D4AA] to-[#00B39F] hover:from-[#00B39F] hover:to-[#00D4AA] text-white font-semibold mb-4"
+              >
+                Calculate Projection
+              </Button>
+
+              <p className="text-sm text-[#8B949E]">*For illustration only. Not financial advice.</p>
+            </motion.div>
+
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <div className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36] shadow-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-white">Projected Portfolio Value</h3>
+                  <div className="text-2xl font-bold text-[#00D4AA]">
+                    ${roiData.projectedValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+                
+                <div className="bg-[#0B1324]/60 rounded-xl p-4 mb-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-sm text-[#8B949E]">Total Invested</div>
+                      <div className="text-lg font-semibold text-white">
+                        ${(roiData.initial + (roiData.monthly * 24)).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-[#8B949E]">Potential Gains</div>
+                      <div className="text-lg font-semibold text-[#00D4AA]">
+                        ${(roiData.projectedValue - roiData.initial - (roiData.monthly * 24)).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold"
+                    onClick={() => window.location.href = "/auth"}
+                  >
+                    Start Investing
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -895,6 +1081,127 @@ export default function Landing() {
                 </div>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Modern Pricing Section */}
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
+                Simple, transparent pricing
+              </span>
+            </h2>
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
+              Start free, scale when you're ready.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Starter",
+                description: "Paper trading & portfolio basics",
+                price: "$0",
+                features: [
+                  "Real-time charts (delayed data)",
+                  "10 assets",
+                  "Community support",
+                  "Basic portfolio tracking"
+                ],
+                buttonText: "Get Started",
+                buttonAction: "/auth",
+                popular: false
+              },
+              {
+                name: "Pro",
+                description: "Live data & advanced analytics",
+                price: "$19",
+                period: "/mo",
+                features: [
+                  "Full real-time market data",
+                  "100+ assets & futures",
+                  "Portfolio analytics",
+                  "Priority support",
+                  "Advanced charting tools"
+                ],
+                buttonText: "Upgrade",
+                buttonAction: "/auth",
+                popular: true
+              },
+              {
+                name: "Enterprise",
+                description: "Teams & custom controls",
+                price: "Custom",
+                features: [
+                  "SLA & dedicated infrastructure",
+                  "Admin audit & SSO",
+                  "Custom integrations",
+                  "White-label options"
+                ],
+                buttonText: "Talk to Sales",
+                buttonAction: "/contact",
+                popular: false
+              }
+            ].map((plan, index) => (
+              <motion.div
+                key={index}
+                className={`relative rounded-2xl p-6 transition-all duration-300 group hover:scale-105 ${
+                  plan.popular 
+                    ? "border-2 border-[#FFB82F] bg-gradient-to-b from-[#FFB82F]/10 to-[#F7931A]/5 shadow-2xl shadow-[#FFB82F]/20" 
+                    : "border border-[#2B2F36] bg-[#161A1E]/80 backdrop-blur-xl"
+                }`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] text-black px-4 py-1 rounded-full text-sm font-semibold">
+                      Most Popular
+                    </div>
+                  </div>
+                )}
+                
+                <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
+                <p className="text-sm text-[#8B949E] mb-6">{plan.description}</p>
+                
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-white">{plan.price}</span>
+                  {plan.period && <span className="text-lg text-[#8B949E]">{plan.period}</span>}
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#00D4AA] flex-shrink-0 mt-0.5" />
+                      <span className="text-[#8B949E] text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  className={`w-full font-semibold ${
+                    plan.popular 
+                      ? "bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black" 
+                      : "border border-[#FFB82F] text-[#FFB82F] hover:bg-[#FFB82F]/10"
+                  }`}
+                  variant={plan.popular ? "default" : "outline"}
+                  onClick={() => window.location.href = plan.buttonAction}
+                >
+                  {plan.buttonText}
+                </Button>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
