@@ -597,6 +597,149 @@ input:focus, textarea:focus, select:focus {
   font-weight: 500 !important;
 }
 
+/* Enhanced text hierarchy and emphasis */
+.text-title-primary {
+  color: hsl(var(--bitpanda-text)) !important;
+  font-weight: 700 !important;
+  font-size: 2.5rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.text-title-green {
+  color: hsl(var(--colors-green_primary)) !important;
+  font-weight: 700 !important;
+  font-size: 2.5rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.text-subtitle {
+  color: hsl(var(--bitpanda-gray-600)) !important;
+  font-weight: 500 !important;
+  font-size: 1.25rem !important;
+  line-height: 1.4 !important;
+}
+
+.text-subtitle-green {
+  color: hsl(var(--colors-green_primary)) !important;
+  font-weight: 600 !important;
+  font-size: 1.25rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Interactive text states with green emphasis */
+.text-interactive {
+  color: hsl(var(--bitpanda-text)) !important;
+  font-weight: 500 !important;
+  transition: color 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.text-interactive:hover {
+  color: hsl(var(--colors-green_primary)) !important;
+}
+
+.text-interactive-green {
+  color: hsl(var(--colors-green_primary)) !important;
+  font-weight: 500 !important;
+  transition: color 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.text-interactive-green:hover {
+  color: hsl(var(--bitpanda-green-hover)) !important;
+}
+
+/* Button text styles */
+.text-button-primary {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+}
+
+.text-button-secondary {
+  color: hsl(var(--bitpanda-text)) !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+}
+
+/* Card and section text styles */
+.text-card-title {
+  color: hsl(var(--bitpanda-text)) !important;
+  font-weight: 600 !important;
+  font-size: 1.125rem !important;
+  line-height: 1.5 !important;
+}
+
+.text-card-description {
+  color: hsl(var(--bitpanda-gray-600)) !important;
+  font-weight: 400 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+}
+
+.text-section-header {
+  color: hsl(var(--bitpanda-text)) !important;
+  font-weight: 700 !important;
+  font-size: 1.75rem !important;
+  line-height: 1.3 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.text-section-header-green {
+  color: hsl(var(--colors-green_primary)) !important;
+  font-weight: 700 !important;
+  font-size: 1.75rem !important;
+  line-height: 1.3 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Meta and supporting text */
+.text-meta {
+  color: hsl(var(--bitpanda-text-secondary)) !important;
+  font-weight: 400 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.4 !important;
+}
+
+.text-timestamp {
+  color: hsl(var(--bitpanda-gray-600)) !important;
+  font-weight: 400 !important;
+  font-size: 0.8rem !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Special emphasis text */
+.text-highlight {
+  background: linear-gradient(120deg, transparent 0%, rgba(142, 195, 114, 0.15) 50%, transparent 100%) !important;
+  color: hsl(var(--colors-green_primary)) !important;
+  font-weight: 600 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+.text-feature {
+  color: hsl(var(--colors-green_primary)) !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  border-bottom: 2px solid transparent !important;
+  transition: border-color 0.2s ease !important;
+}
+
+.text-feature:hover {
+  border-bottom-color: hsl(var(--colors-green_primary)) !important;
+}
+
+/* Gradient text effects */
+.text-gradient-green {
+  background: linear-gradient(135deg, hsl(var(--colors-green_primary)), hsl(var(--bitpanda-green-light))) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 700 !important;
+}
+
 /* Badge styles */
 .badge-green {
   background: hsl(var(--bitpanda-green)) !important;
@@ -610,6 +753,16 @@ input:focus, textarea:focus, select:focus {
 .badge-gray {
   background: hsl(var(--bitpanda-gray-100)) !important;
   color: hsl(var(--bitpanda-text)) !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+}
+
+.badge-green-outline {
+  background: transparent !important;
+  color: hsl(var(--colors-green_primary)) !important;
+  border: 1px solid hsl(var(--colors-green_primary)) !important;
   font-weight: 600 !important;
   padding: 4px 8px !important;
   border-radius: 6px !important;
