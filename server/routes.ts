@@ -8,6 +8,7 @@ import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArtic
 import authRoutes from './auth-routes';
 import depositRoutes from './deposit-routes';
 import tradingRoutes from './trading-routes';
+import adminRoutes from './admin-routes';
 import { z } from "zod";
 import { Router } from "express";
 
@@ -452,6 +453,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Deposit routes
   app.use('/api/deposits', depositRoutes);
+  
+  // Admin routes
+  app.use('/api/admin', adminRoutes);
 
   const httpServer = createServer(app);
 
