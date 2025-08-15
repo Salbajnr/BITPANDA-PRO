@@ -312,11 +312,11 @@ export default function Deposit() {
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-2 text-yellow-400">
+                  <div className="flex items-center space-x-2 text-green-400">
                     <span className="text-sm">⚠️</span>
                     <span className="text-sm">Only send {selectedCurrency} to this address</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-yellow-400">
+                  <div className="flex items-center space-x-2 text-green-400">
                     <span className="text-sm">⚠️</span>
                     <span className="text-sm">Minimum deposit amount may apply</span>
                   </div>

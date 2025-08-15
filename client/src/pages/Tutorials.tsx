@@ -92,7 +92,7 @@ const Tutorials = () => {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'Beginner': return 'bg-green-100 text-green-800';
-      case 'Intermediate': return 'bg-yellow-100 text-yellow-800';
+      case 'Intermediate': return 'bg-green-100 text-green-800';
       case 'Advanced': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -132,7 +132,7 @@ const Tutorials = () => {
                   2.5 hours
                 </span>
                 <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500" />
+                  <Star className="h-4 w-4 text-green-500" />
                   4.9 (1,234 reviews)
                 </span>
               </div>
@@ -181,7 +181,7 @@ const Tutorials = () => {
                     {tutorial.difficulty}
                   </Badge>
                   <span className="flex items-center gap-1 text-sm">
-                    <Star className="h-3 w-3 text-yellow-500" />
+                    <Star className="h-3 w-3 text-green-500" />
                     {tutorial.rating}
                   </span>
                 </div>

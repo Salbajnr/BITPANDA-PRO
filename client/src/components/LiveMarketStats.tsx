@@ -198,12 +198,12 @@ export function LiveMarketStats() {
       </Card>
 
       {/* Fear & Greed Index */}
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card className="border-green-200 bg-green-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">Fear & Greed</p>
-                <p className="text-2xl font-bold text-yellow-700">
+                <p className="text-2xl font-bold text-green-700">
                   {stats?.fearGreedIndex || '--'}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
@@ -216,7 +216,7 @@ export function LiveMarketStats() {
                   }
                 </p>
               </div>
-              <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">📊</span>
               </div>
             </div>

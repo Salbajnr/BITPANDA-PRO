@@ -34,7 +34,7 @@ export default function Features() {
       icon: Zap,
       title: "Lightning Fast Execution",
       description: "Ultra-low latency trading with institutional-grade order matching",
-      bgColor: "from-yellow-500 to-orange-600"
+      bgColor: "from-green-500 to-emerald-600"
     },
     {
       icon: BarChart3,
@@ -372,7 +372,7 @@ export default function Features() {
             </div>
             
             <div className="text-center">
-              <div className="text-4xl font-bold text-yellow-500 mb-2">24/7</div>
+              <div className="text-4xl font-bold text-green-500 mb-2">24/7</div>
               <div className="text-white font-semibold mb-1">Support</div>
               <div className="text-sm text-gray-400">Always available</div>
             </div>

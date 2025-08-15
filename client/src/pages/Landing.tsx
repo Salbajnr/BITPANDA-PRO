@@ -262,8 +262,8 @@ export default function Landing() {
       
       {/* Gradient Overlays */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-500/5 via-transparent to-blue-500/5" />
-        <div className="absolute top-1/4 right-0 w-1/2 h-1/2 bg-gradient-radial from-yellow-400/10 to-transparent blur-3xl" />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-500/5 via-transparent to-blue-500/5" />
+        <div className="absolute top-1/4 right-0 w-1/2 h-1/2 bg-gradient-radial from-green-400/10 to-transparent blur-3xl" />
         <div className="absolute bottom-1/4 left-0 w-1/2 h-1/2 bg-gradient-radial from-blue-400/10 to-transparent blur-3xl" />
       </div>
 

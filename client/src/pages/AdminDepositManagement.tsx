@@ -153,7 +153,7 @@ export default function AdminDepositManagement() {
     switch (status) {
       case 'approved': return 'bg-green-500/10 text-green-400 border-green-500/20';
       case 'rejected': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+      default: return 'bg-green-500/10 text-green-400 border-green-500/20';
     }
   };
 
@@ -197,7 +197,7 @@ export default function AdminDepositManagement() {
           <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-6">
               <div className="text-center">
-                <h3 className="text-2xl font-bold text-yellow-400">{pendingDeposits.length}</h3>
+                <h3 className="text-2xl font-bold text-green-400">{pendingDeposits.length}</h3>
                 <p className="text-gray-400">Pending Review</p>
               </div>
             </CardContent>
@@ -235,10 +235,10 @@ export default function AdminDepositManagement() {
         {/* Pending Deposits */}
         {pendingDeposits.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-yellow-400">Pending Review ({pendingDeposits.length})</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-green-400">Pending Review ({pendingDeposits.length})</h2>
             <div className="space-y-4">
               {pendingDeposits.map((item) => (
-                <Card key={item.deposit.id} className="bg-slate-800 border-yellow-500/20">
+                <Card key={item.deposit.id} className="bg-slate-800 border-green-500/20">
                   <CardContent className="p-6">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="space-y-3">

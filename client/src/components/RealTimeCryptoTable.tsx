@@ -238,11 +238,11 @@ export function RealTimeCryptoTable({
                         <td className="px-2 py-4">
                           <button
                             onClick={() => toggleWatchlist(crypto.id)}
-                            className="text-gray-400 hover:text-yellow-400 transition-colors"
+                            className="text-gray-400 hover:text-green-400 transition-colors"
                             data-testid={`button-watchlist-${crypto.symbol}`}
                           >
                             {watchlist.includes(crypto.id) ? (
-                              <Star className="h-4 w-4 fill-current text-yellow-400" />
+                              <Star className="h-4 w-4 fill-current text-green-400" />
                             ) : (
                               <StarOff className="h-4 w-4" />
                             )}

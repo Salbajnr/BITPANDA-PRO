@@ -19,7 +19,7 @@ const AboutUs = () => {
       description: "We implement the highest security standards to protect your assets and personal information."
     },
     {
-      icon: <Zap className="h-8 w-8 text-yellow-500" />,
+      icon: <Zap className="h-8 w-8 text-green-500" />,
       title: "Innovation",
       description: "Constantly evolving our platform with cutting-edge technology and features."
     },

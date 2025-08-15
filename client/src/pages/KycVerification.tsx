@@ -125,7 +125,7 @@ export default function KycVerification() {
         case 'rejected':
           return <XCircleIcon className="h-8 w-8 text-red-500" />;
         case 'under_review':
-          return <ClockIcon className="h-8 w-8 text-yellow-500" />;
+          return <ClockIcon className="h-8 w-8 text-green-500" />;
         default:
           return <AlertTriangleIcon className="h-8 w-8 text-orange-500" />;
       }
