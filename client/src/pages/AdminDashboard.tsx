@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { 
   Users, DollarSign, TrendingUp, Shield, Bell, Settings, 
   Search, Plus, ArrowUp, ArrowDown, CheckSquare, Trash2,
@@ -655,7 +656,15 @@ export default function AdminDashboard() {
                                             Suspend {user.firstName} {user.lastName}?
                                           </DialogDescription>
                                         </DialogHeader>
-                                        <Textarea placeholder="Reason for suspension..." />
+                                        <div className="space-y-4">
+                                          <div>
+                                            <Label htmlFor="suspension-reason">Reason for suspension</Label>
+                                            <Textarea 
+                                              id="suspension-reason"
+                                              placeholder="Reason for suspension..." 
+                                            />
+                                          </div>
+                                        </div>
                                         <DialogFooter>
                                           <Button 
                                             variant="destructive"
@@ -776,7 +785,15 @@ export default function AdminDashboard() {
                                         This will create a reverse transaction for {tx.symbol}
                                       </DialogDescription>
                                     </DialogHeader>
-                                    <Textarea placeholder="Reason for reversal..." />
+                                    <div className="space-y-4">
+                                      <div>
+                                        <Label htmlFor="reversal-reason">Reason for reversal</Label>
+                                        <Textarea 
+                                          id="reversal-reason"
+                                          placeholder="Reason for reversal..." 
+                                        />
+                                      </div>
+                                    </div>
                                     <DialogFooter>
                                       <Button 
                                         variant="destructive"

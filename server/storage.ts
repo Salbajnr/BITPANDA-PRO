@@ -42,7 +42,7 @@ export interface IStorage {
   getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined>;
   upsertHolding(holding: InsertHolding): Promise<Holding>;
   deleteHolding(id: string): Promise<void>;
-  deleteHolding(portfolioId: string, symbol: string): Promise<void>; // Added for specific holding deletion
+  deleteHolding(portfolioId: string, symbol: string): Promise<void>;
 
   // Transaction operations
   getTransactions(userId: string, limit?: number): Promise<Transaction[]>;
@@ -186,15 +186,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(holdings.id, holdingId));
   }
 
-  async deleteHolding(id: string): Promise<void> {
-    await this.db.delete(holdings).where(eq(holdings.id, id));
-  }
-
-  async deleteHolding(portfolioId: string, symbol: string): Promise<void> {
-    await this.db.delete(holdings).where(and(
-      eq(holdings.portfolioId, portfolioId),
-      eq(holdings.symbol, symbol)
-    ));
+  async deleteHolding(id: string): Promise<void>;
+  async deleteHolding(portfolioId: string, symbol: string): Promise<void>;
+  async deleteHolding(idOrPortfolioId: string, symbol?: string): Promise<void> {
+    if (symbol) {
+      // Delete by portfolioId and symbol
+      await this.db.delete(holdings).where(and(
+        eq(holdings.portfolioId, idOrPortfolioId),
+        eq(holdings.symbol, symbol)
+      ));
+    } else {
+      // Delete by id
+      await this.db.delete(holdings).where(eq(holdings.id, idOrPortfolioId));
+    }
   }
 
   async updatePortfolioBalance(userId: string, amount: number): Promise<void> {

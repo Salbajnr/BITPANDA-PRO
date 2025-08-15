@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function Markets() {
+function Markets() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('24h');
 
   const { data: marketData } = useQuery({
@@ -255,3 +255,5 @@ export default function Markets() {
     </div>
   );
 }
+
+export default Markets;
