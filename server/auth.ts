@@ -3,6 +3,13 @@ import bcrypt from 'bcrypt';
 import { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
 
+// Extend session data to include userId
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+  }
+}
+
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;

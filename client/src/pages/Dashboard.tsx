@@ -216,46 +216,6 @@ export default function Dashboard() {
   const dailyChange = portfolioMetrics.dailyChange;
   const weeklyChange = portfolioMetrics.weeklyChange;
   const monthlyChange = portfolioMetrics.monthlyChange;
-    if (!portfolioData?.holdings || portfolioData.holdings.length === 0) {
-      return {
-        dailyChange: 0,
-        dailyChangePercent: 0,
-        weeklyChange: 0,
-        monthlyChange: 0,
-        totalGainLoss: 0,
-        totalGainLossPercent: 0
-      };
-    }
-
-    let totalCurrentValue = 0;
-    let totalInvestedValue = 0;
-    
-    portfolioData.holdings.forEach(holding => {
-      const currentValue = parseFloat(holding.amount) * parseFloat(holding.currentPrice);
-      const investedValue = parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice);
-      
-      totalCurrentValue += currentValue;
-      totalInvestedValue += investedValue;
-    });
-
-    const totalGainLoss = totalCurrentValue - totalInvestedValue;
-    const totalGainLossPercent = totalInvestedValue > 0 ? (totalGainLoss / totalInvestedValue) * 100 : 0;
-    
-    // Simulate daily/weekly/monthly changes based on current performance
-    const dailyChange = totalCurrentValue * (Math.random() * 0.06 - 0.03); // -3% to +3%
-    const dailyChangePercent = totalCurrentValue > 0 ? (dailyChange / totalCurrentValue) * 100 : 0;
-    const weeklyChange = totalCurrentValue * (Math.random() * 0.15 - 0.05); // -5% to +10%
-    const monthlyChange = totalCurrentValue * (Math.random() * 0.25 - 0.05); // -5% to +20%
-
-    return {
-      dailyChange,
-      dailyChangePercent,
-      weeklyChange,
-      monthlyChange,
-      totalGainLoss,
-      totalGainLossPercent
-    };
-  };
 
   // Generate mock chart data based on timeframe
   const getChartData = (timeframe: string) => {

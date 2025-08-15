@@ -88,19 +88,29 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // Assuming db is initialized and accessible here, or passed in constructor
   private db = db; // Make db accessible within the class
+  
+  private ensureDb() {
+    if (!this.db) {
+      throw new Error('Database not initialized. Please set DATABASE_URL and restart the application.');
+    }
+    return this.db;
+  }
 
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await this.db.select().from(users).where(eq(users.id, id));
+    const db = this.ensureDb();
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await this.db.select().from(users).where(eq(users.email, email));
+    const db = this.ensureDb();
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
   async getUserByEmailOrUsername(email: string, username: string): Promise<User | undefined> {
-    const [user] = await this.db
+    const db = this.ensureDb();
+    const [user] = await db
       .select()
       .from(users)
       .where(or(eq(users.email, email), eq(users.username, username)));
@@ -108,12 +118,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
-    const [user] = await this.db.insert(users).values(userData).returning();
+    const db = this.ensureDb();
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await this.db
+    const db = this.ensureDb();
+    const [user] = await db
       .insert(users)
       .values(userData)
       .onConflictDoUpdate({
@@ -128,17 +140,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPortfolio(userId: string): Promise<Portfolio | undefined> {
-    const [portfolio] = await this.db.select().from(portfolios).where(eq(portfolios.userId, userId));
+    const db = this.ensureDb();
+    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId));
     return portfolio;
   }
 
   async createPortfolio(portfolioData: InsertPortfolio): Promise<Portfolio> {
-    const [portfolio] = await this.db.insert(portfolios).values(portfolioData).returning();
+    const db = this.ensureDb();
+    const [portfolio] = await db.insert(portfolios).values(portfolioData).returning();
     return portfolio;
   }
 
   async updatePortfolio(portfolioId: string, updates: Partial<InsertPortfolio>): Promise<Portfolio> {
-    const [portfolio] = await this.db
+    const db = this.ensureDb();
+    const [portfolio] = await db
       .update(portfolios)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(portfolios.id, portfolioId))
@@ -147,7 +162,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHoldings(portfolioId: string): Promise<Holding[]> {
-    return await this.db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
+    const db = this.ensureDb();
+    return await db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
   }
 
   async getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined> {

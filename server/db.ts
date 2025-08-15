@@ -8,8 +8,12 @@ neonConfig.webSocketConstructor = ws;
 if (!process.env.DATABASE_URL) {
   console.error("⚠️  DATABASE_URL is not set. Please create a PostgreSQL database in Replit.");
   console.error("📋 Instructions: See SETUP_DATABASE.md for step-by-step setup guide.");
-  process.exit(1);
+  console.error("🔧 The app will continue but database operations will fail until DATABASE_URL is set.");
+  // Don't exit in development, let the app start so user can set up database
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const pool = process.env.DATABASE_URL 
+  ? new Pool({ connectionString: process.env.DATABASE_URL })
+  : null;
+
+export const db = pool ? drizzle({ client: pool, schema }) : null;
