@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   TrendingUp, Shield, Zap, Users, BarChart3, ChartLine, Clock, 
   Activity, DollarSign, Headphones, Star, Award, CheckCircle,
   Smartphone, Globe, Lock, Bell, Menu, X, ArrowRight, Quote,
-  PlayCircle, Briefcase, CreditCard, Wallet, Target, Layers
+  PlayCircle, Briefcase, CreditCard, Wallet, Target, Layers,
+  Building2, UserCheck, CreditCard as CardIcon, TrendingDown,
+  Coins, PieChart, Banknote, Gem
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -160,11 +164,104 @@ export default function Landing() {
     }
   ];
 
+  const trustFeatures = [
+    {
+      icon: <Building2 className="w-8 h-8" />,
+      title: "Regulación",
+      description: "Regulado por la UE con licencias completas",
+      bgColor: "from-green-500 to-emerald-600"
+    },
+    {
+      icon: <Shield className="w-8 h-8" />,
+      title: "Seguridad",
+      description: "Protección de grado bancario y seguros",
+      bgColor: "from-blue-500 to-cyan-600"
+    },
+    {
+      icon: <Award className="w-8 h-8" />,
+      title: "Confianza",
+      description: "Más de 4 millones de usuarios confían en nosotros",
+      bgColor: "from-purple-500 to-pink-600"
+    }
+  ];
+
+  const assetFeatures = [
+    {
+      icon: <Coins className="w-12 h-12" />,
+      title: "Criptomonedas",
+      description: "Bitcoin, Ethereum y 350+ criptomonedas",
+      bgColor: "from-orange-500 to-amber-600",
+      assets: ["BTC", "ETH", "ADA", "DOT"]
+    },
+    {
+      icon: <TrendingUp className="w-12 h-12" />,
+      title: "Acciones",
+      description: "Acciones fraccionadas de las mejores empresas",
+      bgColor: "from-blue-500 to-indigo-600",
+      assets: ["AAPL", "TSLA", "GOOGL", "AMZN"]
+    },
+    {
+      icon: <PieChart className="w-12 h-12" />,
+      title: "ETFs",
+      description: "Fondos cotizados diversificados",
+      bgColor: "from-green-500 to-teal-600",
+      assets: ["SPY", "QQQ", "VTI", "ARKK"]
+    },
+    {
+      icon: <Banknote className="w-12 h-12" />,
+      title: "Materias primas",
+      description: "Oro, plata y productos básicos",
+      bgColor: "from-yellow-500 to-orange-600",
+      assets: ["GOLD", "SILVER", "OIL", "GAS"]
+    },
+    {
+      icon: <Gem className="w-12 h-12" />,
+      title: "Inversión respaldada por metales",
+      description: "Inversiones físicas en metales preciosos",
+      bgColor: "from-gray-500 to-slate-600",
+      assets: ["AU", "AG", "PT", "PD"]
+    },
+    {
+      icon: <BarChart3 className="w-12 h-12" />,
+      title: "Índices cripto",
+      description: "Índices diversificados de criptomonedas",
+      bgColor: "from-purple-500 to-violet-600",
+      assets: ["BCI", "DCI", "MCI", "SCI"]
+    }
+  ];
+
+  const howItWorksSteps = [
+    {
+      number: "01",
+      title: "Registro",
+      description: "Crea tu cuenta en minutos con verificación rápida",
+      icon: <UserCheck className="w-8 h-8" />
+    },
+    {
+      number: "02",
+      title: "Verificación",
+      description: "Verifica tu identidad de forma segura y sencilla",
+      icon: <Shield className="w-8 h-8" />
+    },
+    {
+      number: "03",
+      title: "Depósito",
+      description: "Añade fondos con tarjeta, transferencia o cripto",
+      icon: <CardIcon className="w-8 h-8" />
+    },
+    {
+      number: "04",
+      title: "Trading",
+      description: "Comienza a invertir en cientos de activos",
+      icon: <TrendingUp className="w-8 h-8" />
+    }
+  ];
+
   const stats = [
-    { value: "$50B+", label: "Daily Trading Volume", icon: <Activity className="w-6 h-6" /> },
-    { value: "2M+", label: "Active Traders", icon: <Users className="w-6 h-6" /> },
-    { value: "350+", label: "Crypto Assets", icon: <Wallet className="w-6 h-6" /> },
-    { value: "180+", label: "Countries Served", icon: <Globe className="w-6 h-6" /> }
+    { value: "$50B+", label: "Volumen diario de trading", icon: <Activity className="w-6 h-6" /> },
+    { value: "4M+", label: "Usuarios activos", icon: <Users className="w-6 h-6" /> },
+    { value: "350+", label: "Activos cripto", icon: <Wallet className="w-6 h-6" /> },
+    { value: "180+", label: "Países atendidos", icon: <Globe className="w-6 h-6" /> }
   ];
 
   // Simulate live market updates
@@ -322,19 +419,19 @@ export default function Landing() {
             </motion.div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {["Markets", "Trading", "Features", "Security", "Academy"].map((item, index) => (
+            <div className="hidden md:flex items-center space-x-6">
+              {["Invierte", "Precios", "Web3", "Productos", "Aprende", "Empresas", "Conócenos", "Ayuda"].map((item, index) => (
                 <motion.a
                   key={item}
-                  href="#"
-                  className="text-[#8B949E] hover:text-white transition-colors relative group font-medium"
+                  href={`#${item.toLowerCase()}`}
+                  className="text-[#8B949E] hover:text-white transition-colors relative group font-medium text-sm"
                   whileHover={{ y: -2 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
                   {item}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#FFB82F] to-[#F7931A] group-hover:w-full transition-all duration-300" />
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1db584] to-[#00B39F] group-hover:w-full transition-all duration-300" />
                 </motion.a>
               ))}
             </div>
@@ -349,7 +446,7 @@ export default function Landing() {
                   className="text-white border-[#2B2F36] hover:bg-[#2B2F36]/50 font-medium"
                   onClick={() => window.location.href = "/auth"}
                 >
-                  Sign In
+                  Iniciar sesión
                 </Button>
               </motion.div>
               <motion.div
@@ -357,10 +454,10 @@ export default function Landing() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Button 
-                  className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold shadow-lg"
+                  className="bg-gradient-to-r from-[#1db584] to-[#00B39F] hover:from-[#00B39F] hover:to-[#1db584] text-white font-semibold shadow-lg"
                   onClick={() => window.location.href = "/auth"}
                 >
-                  Get Started
+                  Empieza ahora
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </motion.div>
@@ -422,24 +519,24 @@ export default function Landing() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
               >
-                <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-[#FFB82F]/10 to-[#F7931A]/10 rounded-full border border-[#FFB82F]/30 mb-6">
-                  <Star className="w-4 h-4 text-[#FFB82F] mr-2" />
-                  <span className="text-sm text-[#FFB82F]">Trusted by 2M+ Traders Worldwide</span>
+                <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-[#1db584]/10 to-[#00B39F]/10 rounded-full border border-[#1db584]/30 mb-6">
+                  <Star className="w-4 h-4 text-[#1db584] mr-2" />
+                  <span className="text-sm text-[#1db584]">Con la confianza de más de 4 millones de usuarios</span>
                 </div>
                 
-                <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
+                <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
                   <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
-                    Trade Crypto
+                    Fast-track your
                   </span>
                   <br />
-                  <span className="bg-gradient-to-r from-[#FFB82F] via-[#F7931A] to-[#FFB82F] bg-clip-text text-transparent">
-                    Like a Pro
+                  <span className="bg-gradient-to-r from-[#1db584] via-[#00B39F] to-[#1db584] bg-clip-text text-transparent">
+                    financial freedom
                   </span>
                 </h1>
                 
                 <p className="text-xl text-[#8B949E] leading-relaxed max-w-lg">
-                  Experience the next generation of cryptocurrency trading with institutional-grade tools, 
-                  lightning-fast execution, and unparalleled security.
+                  La plataforma de inversión más confiable de Europa. Invierte en criptomonedas, acciones, ETFs, 
+                  materias primas y más con total seguridad y transparencia.
                 </p>
               </motion.div>
 
@@ -455,11 +552,11 @@ export default function Landing() {
                 >
                   <Button 
                     size="lg" 
-                    className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold shadow-2xl px-8 py-6 text-lg rounded-xl"
+                    className="bg-gradient-to-r from-[#1db584] to-[#00B39F] hover:from-[#00B39F] hover:to-[#1db584] text-white font-semibold shadow-2xl px-8 py-6 text-lg rounded-xl"
                     onClick={() => window.location.href = "/auth"}
                   >
-                    Start Trading Now
-                    <TrendingUp className="ml-2 w-5 h-5" />
+                    Empieza
+                    <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </motion.div>
                 
@@ -473,7 +570,7 @@ export default function Landing() {
                     className="border-[#2B2F36] text-white hover:bg-[#2B2F36]/50 px-8 py-6 text-lg rounded-xl font-medium"
                   >
                     <PlayCircle className="mr-2 w-5 h-5" />
-                    Watch Demo
+                    Ver Demo
                   </Button>
                 </motion.div>
               </motion.div>
@@ -605,6 +702,143 @@ export default function Landing() {
             100% { transform: translateX(-50%) } 
           }
         `}</style>
+      </section>
+
+      {/* Trust & Assurance Blocks */}
+      <section className="relative z-10 py-16 bg-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="grid md:grid-cols-3 gap-8"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            {trustFeatures.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <motion.div
+                  key={feature.title}
+                  className="text-center p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r ${feature.bgColor} flex items-center justify-center shadow-lg`}>
+                    {IconComponent}
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                  <p className="text-[#8B949E] text-sm leading-relaxed">{feature.description}</p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Feature Cards - Asset Types */}
+      <section className="relative z-10 py-20 bg-[#0B0E11]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+              Invierte en todo lo que te interesa
+            </h2>
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
+              Accede a una amplia gama de activos financieros desde una sola plataforma
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {assetFeatures.map((asset, index) => {
+              const IconComponent = asset.icon;
+              return (
+                <motion.div
+                  key={asset.title}
+                  className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-8 border border-[#2B2F36] hover:border-[#1db584]/50 transition-all duration-300 group"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                >
+                  <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-r ${asset.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="text-white" />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-white mb-3">{asset.title}</h3>
+                  <p className="text-[#8B949E] mb-6 leading-relaxed">{asset.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {asset.assets.map((assetName, idx) => (
+                      <Badge
+                        key={assetName}
+                        variant="secondary"
+                        className="bg-[#2B2F36] text-[#8B949E] hover:bg-[#1db584] hover:text-white transition-colors"
+                      >
+                        {assetName}
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="relative z-10 py-20 bg-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+              Cómo funciona
+            </h2>
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
+              Comienza a invertir en cuatro pasos sencillos
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {howItWorksSteps.map((step, index) => {
+              const IconComponent = step.icon;
+              return (
+                <motion.div
+                  key={step.number}
+                  className="text-center group"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="relative mb-8">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-[#1db584] to-[#00B39F] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                      {IconComponent}
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-[#FFB82F] rounded-full flex items-center justify-center text-black font-bold text-sm">
+                      {step.number}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                  <p className="text-[#8B949E] leading-relaxed">{step.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       {/* Market Insights Section */}
@@ -1467,27 +1701,209 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 bg-[#161A1E]/90 backdrop-blur-xl border-t border-[#2B2F36]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <img src={logoImage} alt="BITPANDA PRO" className="h-8 w-8 rounded-lg" />
-              <span className="text-xl font-bold bg-gradient-to-r from-[#FFB82F] to-[#F7931A] bg-clip-text text-transparent">
-                BITPANDA PRO
-              </span>
+      {/* Real-time Asset Listings - Todos los activos */}
+      <section className="relative z-10 py-20 bg-[#0B0E11]/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+              Todos los activos
+            </h2>
+            <p className="text-xl text-[#8B949E] max-w-3xl mx-auto">
+              Precios en tiempo real de las principales criptomonedas y activos financieros
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl border border-[#2B2F36] overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {marketData.map((crypto, index) => (
+                  <motion.div
+                    key={crypto.symbol}
+                    className="bg-[#0B0E11]/50 rounded-xl p-4 hover:bg-[#2B2F36]/30 transition-colors cursor-pointer group"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6, delay: index * 0.05 }}
+                    viewport={{ once: true }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        {getCryptoLogo(crypto.icon, 32)}
+                        <div>
+                          <div className="text-white font-semibold">{crypto.symbol}</div>
+                          <div className="text-sm text-[#8B949E]">{crypto.name}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-white font-bold text-lg">
+                          ${crypto.price.toFixed(crypto.price < 1 ? 4 : 2)}
+                        </div>
+                        <div className={`text-sm font-medium ${
+                          crypto.change >= 0 ? 'text-[#1db584]' : 'text-red-500'
+                        }`}>
+                          {crypto.change >= 0 ? '+' : ''}{crypto.change.toFixed(2)}%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-[#8B949E]">
+                      <span>Vol: {crypto.volume}</span>
+                      <div className="w-20 h-8">
+                        {generateMiniChart(crypto.chartData, crypto.change >= 0)}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <div className="mt-6 text-center">
+                <Button
+                  variant="outline"
+                  className="border-[#1db584] text-[#1db584] hover:bg-[#1db584] hover:text-white"
+                  onClick={() => window.location.href = '/markets'}
+                >
+                  Ver todos los mercados
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </div>
             </div>
-            
-            <div className="flex items-center space-x-6 text-sm text-[#8B949E]">
-              <a href="/terms" className="hover:text-white transition-colors">Terms</a>
-              <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
-              <a href="/about-us" className="hover:text-white transition-colors">About</a>
-              <a href="/help-center" className="hover:text-white transition-colors">Support</a>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="relative z-10 bg-[#161A1E] border-t border-[#2B2F36]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+            {/* Brand Section */}
+            <div className="lg:col-span-1">
+              <div className="flex items-center space-x-3 mb-6">
+                <img src={logoImage} alt="BITPANDA PRO" className="h-12 w-12 rounded-lg" />
+                <div>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-[#1db584] to-[#00B39F] bg-clip-text text-transparent">
+                    BITPANDA PRO
+                  </span>
+                  <p className="text-xs text-[#8B949E]">Plataforma profesional de trading</p>
+                </div>
+              </div>
+              <p className="text-[#8B949E] mb-6 max-w-xs">
+                La plataforma de inversión más confiable de Europa para criptomonedas, acciones y más.
+              </p>
+              
+              {/* Social Media */}
+              <div className="flex items-center space-x-4">
+                <a href="#" className="w-8 h-8 bg-[#2B2F36] rounded-full flex items-center justify-center hover:bg-[#1db584] transition-colors">
+                  <span className="text-white text-sm">f</span>
+                </a>
+                <a href="#" className="w-8 h-8 bg-[#2B2F36] rounded-full flex items-center justify-center hover:bg-[#1db584] transition-colors">
+                  <span className="text-white text-sm">t</span>
+                </a>
+                <a href="#" className="w-8 h-8 bg-[#2B2F36] rounded-full flex items-center justify-center hover:bg-[#1db584] transition-colors">
+                  <span className="text-white text-sm">in</span>
+                </a>
+                <a href="#" className="w-8 h-8 bg-[#2B2F36] rounded-full flex items-center justify-center hover:bg-[#1db584] transition-colors">
+                  <span className="text-white text-sm">yt</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Products */}
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Productos</h4>
+              <ul className="space-y-3 text-[#8B949E]">
+                <li><a href="#" className="hover:text-white transition-colors">Criptomonedas</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Acciones</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">ETFs</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Materias primas</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Índices cripto</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Metales preciosos</a></li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Soporte</h4>
+              <ul className="space-y-3 text-[#8B949E]">
+                <li><a href="#" className="hover:text-white transition-colors">Centro de ayuda</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Cómo depositar</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Cómo retirar</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Verificar cuenta</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Atención al cliente</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Chat en vivo</a></li>
+              </ul>
+            </div>
+
+            {/* Learn */}
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Aprende</h4>
+              <ul className="space-y-3 text-[#8B949E]">
+                <li><a href="#" className="hover:text-white transition-colors">Trading responsable</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Tutoriales</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Academia de trading</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Análisis de mercado</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Evitar estafas</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Empresa</h4>
+              <ul className="space-y-3 text-[#8B949E]">
+                <li><a href="#" className="hover:text-white transition-colors">Acerca de nosotros</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Carreras</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Prensa</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Inversionistas</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Sustentabilidad</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Comunidad</a></li>
+              </ul>
             </div>
           </div>
           
-          <div className="mt-8 pt-8 border-t border-[#2B2F36] text-center text-sm text-[#8B949E]">
-            <p>© 2025 BITPANDA PRO. All rights reserved. Cryptocurrency trading involves risk.</p>
+          {/* Bottom Footer */}
+          <div className="border-t border-[#2B2F36] mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex flex-wrap items-center gap-6 text-sm text-[#8B949E]">
+                <a href="/terms" className="hover:text-white transition-colors">Términos y condiciones</a>
+                <a href="/privacy" className="hover:text-white transition-colors">Política de privacidad</a>
+                <a href="/cookies" className="hover:text-white transition-colors">Política de cookies</a>
+                <a href="/legal" className="hover:text-white transition-colors">Aviso legal</a>
+                <a href="/security" className="hover:text-white transition-colors">Seguridad</a>
+              </div>
+              
+              <div className="flex items-center space-x-6 text-sm">
+                <span className="text-[#8B949E] flex items-center">
+                  <Shield className="w-4 h-4 mr-2 text-[#1db584]" />
+                  Regulado por la UE
+                </span>
+                <span className="text-[#8B949E]">
+                  Licencia BaFin
+                </span>
+              </div>
+            </div>
+            
+            <div className="mt-6 text-center text-sm text-[#8B949E]">
+              <p>
+                © 2025 BITPANDA PRO. Todos los derechos reservados. 
+                Las inversiones conllevan riesgos de pérdidas financieras.
+              </p>
+              <p className="mt-2">
+                BITPANDA PRO es una marca registrada. 
+                Autorizada y regulada por la Autoridad Federal de Supervisión Financiera Alemana (BaFin).
+              </p>
+            </div>
           </div>
         </div>
       </footer>
