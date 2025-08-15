@@ -11,8 +11,8 @@
     --card-foreground: 220 13% 18%; /* Dark text on white cards */
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 18%;
-    --primary: 142 76% 36%; /* Bitpanda's exact green #1db584 */
-    --primary-dark: 142 76% 28%; /* Darker green for hovers */
+    --primary: 142 76% 45%; /* Vibrant green primary */
+    --primary-dark: 142 76% 35%; /* Darker green for hovers */
     --primary-foreground: 0 0% 100%; /* White text on green */
     --secondary: 220 14% 96%; /* Very light gray */
     --secondary-foreground: 220 13% 18%;
@@ -32,11 +32,12 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     
-    /* Custom Bitpanda colors matching their exact palette */
-    --bitpanda-green: 142 76% 36%; /* #1db584 */
-    --bitpanda-green-light: 142 76% 45%; /* Lighter variant */
-    --bitpanda-green-dark: 142 76% 28%; /* Darker variant */
-    --bitpanda-green-hover: 142 76% 32%; /* Hover state */
+    /* Custom vibrant green color scheme */
+    --colors-green_primary: 142 76% 45%; /* Vibrant green primary */
+    --bitpanda-green: 142 76% 45%; /* Updated to match primary */
+    --bitpanda-green-light: 142 76% 55%; /* Lighter variant */
+    --bitpanda-green-dark: 142 76% 35%; /* Darker variant */
+    --bitpanda-green-hover: 151 62% 61%; /* #2CEC9A hover state */
     --bitpanda-gray-50: 220 14% 98%; /* Almost white */
     --bitpanda-gray-100: 220 14% 96%; /* Very light gray */
     --bitpanda-gray-200: 220 13% 91%; /* Light gray */
@@ -81,6 +82,10 @@
 /* Bitpanda-specific utility classes */
 @layer utilities {
   /* Primary Green Colors */
+  .bg-green-primary {
+    background-color: hsl(var(--colors-green_primary)) !important;
+  }
+  
   .bg-bitpanda-green {
     background-color: hsl(var(--bitpanda-green)) !important;
   }
@@ -97,7 +102,16 @@
     background-color: hsl(var(--bitpanda-green-hover)) !important;
   }
   
+  /* Light tertiary fill for card distinction */
+  .bg-green-tertiary {
+    background-color: hsl(142 76% 95%) !important;
+  }
+  
   /* Text Colors */
+  .text-green-primary {
+    color: hsl(var(--colors-green_primary)) !important;
+  }
+  
   .text-bitpanda-green {
     color: hsl(var(--bitpanda-green)) !important;
   }
@@ -108,6 +122,16 @@
   
   .text-bitpanda-secondary {
     color: hsl(var(--bitpanda-text-secondary)) !important;
+  }
+  
+  /* Interactive link states */
+  .link-green {
+    color: hsl(var(--colors-green_primary)) !important;
+    transition: color 0.2s ease !important;
+  }
+  
+  .link-green:hover {
+    color: hsl(var(--bitpanda-green-hover)) !important;
   }
   
   /* Border Colors */
@@ -137,6 +161,20 @@
   }
 
   /* Button Styles */
+  .btn-green-primary {
+    background-color: hsl(var(--colors-green_primary)) !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .btn-green-primary:hover {
+    background-color: hsl(var(--bitpanda-green-dark)) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(45, 236, 154, 0.3) !important;
+  }
+  
   .btn-bitpanda-primary {
     background-color: hsl(var(--bitpanda-green)) !important;
     color: white !important;
@@ -146,9 +184,9 @@
   }
   
   .btn-bitpanda-primary:hover {
-    background-color: hsl(var(--bitpanda-green-hover)) !important;
+    background-color: hsl(var(--bitpanda-green-dark)) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(29, 181, 132, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(45, 236, 154, 0.3) !important;
   }
   
   .btn-bitpanda-secondary {
@@ -270,9 +308,41 @@ body {
   background: hsl(var(--bitpanda-green-dark));
 }
 
+/* Accent lines and highlights */
+.accent-line-green {
+  border-left: 4px solid hsl(var(--colors-green_primary)) !important;
+}
+
+.accent-border-green {
+  border: 2px solid hsl(var(--colors-green_primary)) !important;
+}
+
+.highlight-green {
+  background-color: hsl(142 76% 92%) !important;
+  color: hsl(var(--colors-green_primary)) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-weight: 600 !important;
+}
+
+/* Enhanced card accents */
+.card-accent-green {
+  border-top: 3px solid hsl(var(--colors-green_primary)) !important;
+}
+
+.card-accent-green::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, hsl(var(--colors-green_primary)), hsl(var(--bitpanda-green-light)));
+}
+
 /* Bitpanda gradients */
 .gradient-bitpanda-green {
-  background: linear-gradient(135deg, hsl(var(--bitpanda-green)), hsl(var(--bitpanda-green-dark)));
+  background: linear-gradient(135deg, hsl(var(--colors-green_primary)), hsl(var(--bitpanda-green-dark)));
 }
 
 .gradient-bitpanda-text {
