@@ -15,6 +15,8 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        trust: "trust-badge",
+        fintech: "bg-gradient-to-r from-green-primary to-bitpanda-green-dark text-white font-semibold px-3 py-1 text-xs tracking-wide shadow-lg",
       },
     },
     defaultVariants: {
