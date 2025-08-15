@@ -120,54 +120,9 @@ export default function Dashboard() {
   ]);
 
   // Trading mutation
-  const tradeMutation = useMutation({
-    mutationFn: async (data: { symbol: string; type: 'buy' | 'sell'; amount: number }) => {
-      return new Promise(resolve => setTimeout(resolve, 1000));
-    },
-    onSuccess: () => {
-      toast({
-        title: "Trade Executed",
-        description: "Your trade has been successfully executed.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
-    },
-  });
-
   // Get symbols from holdings for real-time prices
   const holdingSymbols = portfolioData?.holdings?.map(h => h.symbol) || [];
   const { prices: realTimePrices, getPrice, isConnected } = useRealTimePrice(holdingSymbols);
-
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [user, authLoading, toast]);
-
-  if (authLoading || portfolioLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading BITPANDA PRO dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const totalPortfolioValue = portfolioData?.portfolio?.totalValue ?
-    parseFloat(portfolioData.portfolio.totalValue) : 0;
-  const availableCash = portfolioData?.portfolio?.availableCash ?
-    parseFloat(portfolioData.portfolio.availableCash) : 0;
-  const investedValue = totalPortfolioValue - availableCash;
 
   // Calculate real performance metrics with holdings data
   const calculatePortfolioMetrics = () => {
@@ -212,7 +167,95 @@ export default function Dashboard() {
     };
   };
 
+  const tradeMutation = useMutation({
+    mutationFn: async (data: { symbol: string; type: 'buy' | 'sell'; amount: number }) => {
+      return new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    onSuccess: () => {
+      toast({
+        title: "Trade Executed",
+        description: "Your trade has been successfully executed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
+    },
+  });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [user, authLoading, toast]);
+
+  if (authLoading || portfolioLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading BITPANDA PRO dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalPortfolioValue = portfolioData?.portfolio?.totalValue ?
+    parseFloat(portfolioData.portfolio.totalValue) : 0;
+  const availableCash = portfolioData?.portfolio?.availableCash ?
+    parseFloat(portfolioData.portfolio.availableCash) : 0;
+  const investedValue = totalPortfolioValue - availableCash;
+  
+  // Calculate portfolio metrics
   const portfolioMetrics = calculatePortfolioMetrics();
+  const dailyChange = portfolioMetrics.dailyChange;
+  const weeklyChange = portfolioMetrics.weeklyChange;
+  const monthlyChange = portfolioMetrics.monthlyChange;
+    if (!portfolioData?.holdings || portfolioData.holdings.length === 0) {
+      return {
+        dailyChange: 0,
+        dailyChangePercent: 0,
+        weeklyChange: 0,
+        monthlyChange: 0,
+        totalGainLoss: 0,
+        totalGainLossPercent: 0
+      };
+    }
+
+    let totalCurrentValue = 0;
+    let totalInvestedValue = 0;
+    
+    portfolioData.holdings.forEach(holding => {
+      const currentValue = parseFloat(holding.amount) * parseFloat(holding.currentPrice);
+      const investedValue = parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice);
+      
+      totalCurrentValue += currentValue;
+      totalInvestedValue += investedValue;
+    });
+
+    const totalGainLoss = totalCurrentValue - totalInvestedValue;
+    const totalGainLossPercent = totalInvestedValue > 0 ? (totalGainLoss / totalInvestedValue) * 100 : 0;
+    
+    // Simulate daily/weekly/monthly changes based on current performance
+    const dailyChange = totalCurrentValue * (Math.random() * 0.06 - 0.03); // -3% to +3%
+    const dailyChangePercent = totalCurrentValue > 0 ? (dailyChange / totalCurrentValue) * 100 : 0;
+    const weeklyChange = totalCurrentValue * (Math.random() * 0.15 - 0.05); // -5% to +10%
+    const monthlyChange = totalCurrentValue * (Math.random() * 0.25 - 0.05); // -5% to +20%
+
+    return {
+      dailyChange,
+      dailyChangePercent,
+      weeklyChange,
+      monthlyChange,
+      totalGainLoss,
+      totalGainLossPercent
+    };
+  };
 
   // Generate mock chart data based on timeframe
   const getChartData = (timeframe: string) => {

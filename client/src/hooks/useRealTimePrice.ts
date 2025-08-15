@@ -49,7 +49,7 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
     setPriceAlerts(prev => {
       const updatedAlerts = prev.map(alert => {
         if (alert.symbol === newPrice.symbol && !alert.triggered) {
-          const shouldTrigger = 
+          const shouldTrigger =
             (alert.condition === 'above' && newPrice.price >= alert.targetPrice) ||
             (alert.condition === 'below' && newPrice.price <= alert.targetPrice);
 
@@ -168,7 +168,7 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
       setConnectionError('Failed to connect - using fallback data');
       setIsConnected(false);
     }
-  }, [symbols, connect, checkPriceAlerts]); // Include dependencies
+  }, [symbols, checkPriceAlerts]); // Removed 'connect' from dependency array as it causes infinite loop
 
   // Fallback to API data when WebSocket is not available or fails
   useEffect(() => {
@@ -194,8 +194,8 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
               };
             } else {
               // Use realistic mock data as last resort if API fails for a symbol
-              const basePrice = symbol === 'bitcoin' ? 45000 : 
-                              symbol === 'ethereum' ? 2500 : 
+              const basePrice = symbol === 'bitcoin' ? 45000 :
+                              symbol === 'ethereum' ? 2500 :
                               Math.random() * 1000 + 100;
 
               fallbackPrices[symbol.toLowerCase()] = {
@@ -246,9 +246,9 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
             console.error("Error sending unsubscribe message on cleanup:", e);
           }
         }
-        // Close the WebSocket connection
+        // Clear the WebSocket connection
         wsRef.current.close(1000, 'Component unmounting');
-        setWs(null); // Clear the ref
+        wsRef.current = null; // Clear the ref
       }
       // Clear any pending reconnect timeouts
       if (reconnectTimeoutRef.current) {

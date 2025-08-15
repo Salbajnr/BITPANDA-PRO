@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, TrendingDown, DollarSign, Percent, Calculator, Activity, AlertTriangle, Target, Shield } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Percent, Calculator, Activity, AlertTriangle, Target, Shield, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CryptoPrice, CryptoApiService } from "../services/cryptoApi";
 import { useRealTimePrice } from "../hooks/useRealTimePrice";
@@ -32,9 +33,9 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { getPrice, getChange, isConnected } = useRealTimePrice([crypto.id]);
+  const { getPrice, getPriceChange, isConnected } = useRealTimePrice([crypto.id]);
   const currentPrice = getPrice(crypto.id) || crypto.current_price;
-  const priceChange = getChange(crypto.id) || crypto.price_change_percentage_24h;
+  const priceChange = getPriceChange(crypto.id) || crypto.price_change_percentage_24h;
 
   const tradeMutation = useMutation({
     mutationFn: async (tradeData: {

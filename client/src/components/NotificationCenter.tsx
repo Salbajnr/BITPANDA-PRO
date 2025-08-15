@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, X, TrendingUp, TrendingDown, AlertTriangle, Info, CheckCircle, DollarSign, Shield, Globe, Settings, Search } from 'lucide-react';
+import { Bell, X, TrendingUp, TrendingDown, AlertTriangle, Info, CheckCircle, DollarSign, Shield, Globe, Settings, Search, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -172,6 +172,16 @@ export default function NotificationCenter() {
       case 'medium': return 'default';
       case 'low': return 'secondary';
       default: return 'secondary';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'bg-red-100 dark:bg-red-900/20';
+      case 'high': return 'bg-orange-100 dark:bg-orange-900/20';
+      case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/20';
+      case 'low': return 'bg-gray-100 dark:bg-gray-900/20';
+      default: return 'bg-gray-100 dark:bg-gray-900/20';
     }
   };
 
