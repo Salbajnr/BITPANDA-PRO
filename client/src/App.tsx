@@ -13,7 +13,8 @@ import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import TransactionHistory from "@/pages/TransactionHistory";
 import UserSettings from "@/pages/UserSettings";
-import PortfolioAnalytics from "@/pages/PortfolioAnalytics";
+import PortfolioAnalytics from './pages/PortfolioAnalytics';
+import PortfolioTracker from './pages/PortfolioTracker';
 import Watchlist from "@/pages/Watchlist";
 import Help from "@/pages/Help";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -120,16 +121,8 @@ function AppContent() {
         }
       />
 
-      <Route
-        path="/watchlist"
-        component={() =>
-          user ? (
-            <Watchlist />
-          ) : (
-            <Redirect to="/auth" />
-          )
-        }
-      />
+      <Route path="/portfolio-tracker" component={PortfolioTracker} />
+      <Route path="/watchlist" component={Watchlist} />
 
       <Route
         path="/help"

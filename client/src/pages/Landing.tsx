@@ -7,7 +7,7 @@ import {
   Smartphone, Globe, Lock, Bell, Menu, X, ArrowRight, Quote,
   PlayCircle, Briefcase, CreditCard, Wallet, Target, Layers,
   Building2, UserCheck, CreditCard as CardIcon, TrendingDown,
-  Coins, PieChart, Banknote, Gem
+  Coins, Coins as ChartPie, Banknote, Gem, ChartColumn
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -187,46 +187,46 @@ export default function Landing() {
 
   const assetFeatures = [
     {
-      icon: <Coins className="w-12 h-12" />,
+      icon: Coins,
       title: "Criptomonedas",
       description: "Bitcoin, Ethereum y 350+ criptomonedas",
       bgColor: "from-orange-500 to-amber-600",
       assets: ["BTC", "ETH", "ADA", "DOT"]
     },
     {
-      icon: <TrendingUp className="w-12 h-12" />,
+      icon: TrendingUp,
       title: "Acciones",
       description: "Acciones fraccionadas de las mejores empresas",
       bgColor: "from-blue-500 to-indigo-600",
       assets: ["AAPL", "TSLA", "GOOGL", "AMZN"]
     },
     {
-      icon: <PieChart className="w-12 h-12" />,
+      icon: ChartPie,
       title: "ETFs",
       description: "Fondos cotizados diversificados",
       bgColor: "from-green-500 to-teal-600",
       assets: ["SPY", "QQQ", "VTI", "ARKK"]
     },
     {
-      icon: <Banknote className="w-12 h-12" />,
+      icon: Banknote,
       title: "Materias primas",
       description: "Oro, plata y productos básicos",
       bgColor: "from-yellow-500 to-orange-600",
       assets: ["GOLD", "SILVER", "OIL", "GAS"]
     },
     {
-      icon: <Gem className="w-12 h-12" />,
+      icon: Gem,
       title: "Inversión respaldada por metales",
       description: "Inversiones físicas en metales preciosos",
       bgColor: "from-gray-500 to-slate-600",
       assets: ["AU", "AG", "PT", "PD"]
     },
     {
-      icon: <BarChart3 className="w-12 h-12" />,
+      icon: ChartColumn,
       title: "Índices cripto",
       description: "Índices diversificados de criptomonedas",
       bgColor: "from-purple-500 to-violet-600",
-      assets: ["BCI", "DCI", "MCI", "SCI"]
+      assets: ["BCI", "DCI"]
     }
   ];
 
@@ -312,11 +312,11 @@ export default function Landing() {
     const monthlyRate = apy / 100 / 12;
     const months = 24;
     let balance = initial;
-    
+
     for (let i = 1; i <= months; i++) {
       balance = balance * (1 + monthlyRate) + monthly;
     }
-    
+
     setRoiData(prev => ({ ...prev, projectedValue: balance }));
   };
 
@@ -356,7 +356,7 @@ export default function Landing() {
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,182,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,182,0,0.1)_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
-      
+
       {/* Gradient Overlays */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-500/5 via-transparent to-blue-500/5" />
@@ -523,7 +523,7 @@ export default function Landing() {
                   <Star className="w-4 h-4 text-[#1db584] mr-2" />
                   <span className="text-sm text-[#1db584]">Con la confianza de más de 4 millones de usuarios</span>
                 </div>
-                
+
                 <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
                   <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
                     Fast-track your
@@ -533,7 +533,7 @@ export default function Landing() {
                     financial freedom
                   </span>
                 </h1>
-                
+
                 <p className="text-xl text-[#8B949E] leading-relaxed max-w-lg">
                   La plataforma de inversión más confiable de Europa. Invierte en criptomonedas, acciones, ETFs, 
                   materias primas y más con total seguridad y transparencia.
@@ -559,7 +559,7 @@ export default function Landing() {
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </motion.div>
-                
+
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -770,12 +770,12 @@ export default function Landing() {
                   whileHover={{ scale: 1.02, y: -5 }}
                 >
                   <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-r ${asset.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="text-white" />
+                    <IconComponent className="text-white w-12 h-12" />
                   </div>
-                  
+
                   <h3 className="text-2xl font-bold text-white mb-3">{asset.title}</h3>
                   <p className="text-[#8B949E] mb-6 leading-relaxed">{asset.description}</p>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {asset.assets.map((assetName, idx) => (
                       <Badge
@@ -1125,13 +1125,11 @@ export default function Landing() {
               viewport={{ once: true }}
             >
               <div className="bg-[#161A1E]/90 backdrop-blur-xl rounded-2xl p-6 border border-[#2B2F36] shadow-2xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white">Projected Portfolio Value</h3>
-                  <div className="text-2xl font-bold text-[#00D4AA]">
-                    ${roiData.projectedValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                  </div>
+                <h3 className="text-xl font-semibold text-white mb-4">Projected Portfolio Value</h3>
+                <div className="text-2xl font-bold text-[#00D4AA] mb-4 text-center">
+                  ${roiData.projectedValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </div>
-                
+
                 <div className="bg-[#0B1324]/60 rounded-xl p-4 mb-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
@@ -1228,10 +1226,10 @@ export default function Landing() {
                     <span className="text-[#8B949E] text-xs font-medium">{course.level}</span>
                   </div>
                 </div>
-                
+
                 <h3 className="text-xl font-semibold text-white mb-3">{course.title}</h3>
                 <p className="text-[#8B949E] mb-4">{course.description}</p>
-                
+
                 <div className="space-y-2 mb-6">
                   {course.topics.map((topic, i) => (
                     <div key={i} className="flex items-center gap-2">
@@ -1240,7 +1238,7 @@ export default function Landing() {
                     </div>
                   ))}
                 </div>
-                
+
                 <Button className="w-full bg-gradient-to-r from-[#2B2F36] to-[#161A1E] hover:from-[#FFB82F]/20 hover:to-[#F7931A]/20 text-white border border-[#2B2F36] font-medium">
                   Start Learning
                   <ArrowRight className="ml-2 w-4 h-4" />
@@ -1273,7 +1271,7 @@ export default function Landing() {
               <p className="text-xl text-[#8B949E] mb-8">
                 Your funds are protected by military-grade encryption and multi-layer security protocols used by leading financial institutions worldwide.
               </p>
-              
+
               <div className="space-y-4">
                 {[
                   { icon: <Shield className="w-5 h-5" />, text: "256-bit SSL Encryption" },
@@ -1290,7 +1288,7 @@ export default function Landing() {
                 ))}
               </div>
             </motion.div>
-            
+
             <motion.div
               className="relative"
               initial={{ opacity: 0, x: 20 }}
@@ -1405,15 +1403,15 @@ export default function Landing() {
                     </div>
                   </div>
                 )}
-                
+
                 <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
                 <p className="text-sm text-[#8B949E] mb-6">{plan.description}</p>
-                
+
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-white">{plan.price}</span>
                   {plan.period && <span className="text-lg text-[#8B949E]">{plan.period}</span>}
                 </div>
-                
+
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start gap-3">
@@ -1422,7 +1420,7 @@ export default function Landing() {
                     </li>
                   ))}
                 </ul>
-                
+
                 <Button 
                   className={`w-full font-semibold ${
                     plan.popular 
@@ -1499,7 +1497,7 @@ export default function Landing() {
                   </div>
                   <span className="text-[#8B949E] text-sm">{article.time}</span>
                 </div>
-                
+
                 <div className="text-4xl mb-4">{article.image}</div>
                 <h3 className="text-lg font-semibold text-white mb-3 group-hover:text-[#FFB82F] transition-colors">
                   {article.title}
@@ -1562,7 +1560,7 @@ export default function Landing() {
               <p className="text-xl text-[#8B949E] mb-8">
                 Download our award-winning mobile app and trade cryptocurrencies anywhere, anytime with the same professional tools available on desktop.
               </p>
-              
+
               <div className="grid grid-cols-2 gap-6 mb-8">
                 {[
                   { icon: <Smartphone className="w-5 h-5" />, text: "iOS & Android", desc: "Native apps" },
@@ -1581,7 +1579,7 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="flex gap-4">
                 <Button className="bg-gradient-to-r from-[#FFB82F] to-[#F7931A] hover:from-[#F7931A] hover:to-[#FFB82F] text-black font-semibold">
                   <Smartphone className="mr-2 w-4 h-4" />
@@ -1592,7 +1590,7 @@ export default function Landing() {
                 </Button>
               </div>
             </motion.div>
-            
+
             <motion.div
               className="relative"
               initial={{ opacity: 0, x: 20 }}
@@ -1619,7 +1617,7 @@ export default function Landing() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="mt-6 pt-6 border-t border-[#2B2F36] text-center">
                   <div className="text-3xl font-bold text-white mb-1">4.8★</div>
                   <div className="text-[#8B949E] text-sm">App Store Rating (50k+ reviews)</div>
@@ -1652,7 +1650,7 @@ export default function Landing() {
               Join millions of traders who trust BITPANDA PRO for their cryptocurrency trading needs. 
               Start with as little as $10 and unlock the future of finance.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -1667,7 +1665,7 @@ export default function Landing() {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </motion.div>
-              
+
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -1757,7 +1755,7 @@ export default function Landing() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm text-[#8B949E]">
                       <span>Vol: {crypto.volume}</span>
                       <div className="w-20 h-8">
@@ -1767,7 +1765,7 @@ export default function Landing() {
                   </motion.div>
                 ))}
               </div>
-              
+
               <div className="mt-6 text-center">
                 <Button
                   variant="outline"
@@ -1801,7 +1799,7 @@ export default function Landing() {
               <p className="text-[#8B949E] mb-6 max-w-xs">
                 La plataforma de inversión más confiable de Europa para criptomonedas, acciones y más.
               </p>
-              
+
               {/* Social Media */}
               <div className="flex items-center space-x-4">
                 <a href="#" className="w-8 h-8 bg-[#2B2F36] rounded-full flex items-center justify-center hover:bg-[#1db584] transition-colors">
@@ -1871,7 +1869,7 @@ export default function Landing() {
               </ul>
             </div>
           </div>
-          
+
           {/* Bottom Footer */}
           <div className="border-t border-[#2B2F36] mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -1882,7 +1880,7 @@ export default function Landing() {
                 <a href="/legal" className="hover:text-white transition-colors">Aviso legal</a>
                 <a href="/security" className="hover:text-white transition-colors">Seguridad</a>
               </div>
-              
+
               <div className="flex items-center space-x-6 text-sm">
                 <span className="text-[#8B949E] flex items-center">
                   <Shield className="w-4 h-4 mr-2 text-[#1db584]" />
@@ -1893,7 +1891,7 @@ export default function Landing() {
                 </span>
               </div>
             </div>
-            
+
             <div className="mt-6 text-center text-sm text-[#8B949E]">
               <p>
                 © 2025 BITPANDA PRO. Todos los derechos reservados. 
