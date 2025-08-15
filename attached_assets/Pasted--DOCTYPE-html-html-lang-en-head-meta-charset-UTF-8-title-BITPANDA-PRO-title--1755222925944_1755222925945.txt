@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>BITPANDA PRO</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BITPANDA PRO — Crypto Trading & Investment Platform</title>
+  <meta name="description" content="ECO TRADING PRO is a modern crypto trading and investment platform with real-time data, pro charts, and an intuitive admin panel." />
+  <meta property="og:title" content="ECO TRADING PRO" />
+  <meta property="og:description" content="Trade smarter. Invest confidently. Built for speed, security, and insight." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='44' fill='%230A84FF'/%3E%3Cpath d='M24 52c10-8 18-18 24-32 6 14 14 24 24 32-10 8-18 18-24 32-6-14-14-24-24-32z' fill='%23A7F3D0'/%3E%3C/svg%3E" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff9ff',
+              100: '#dff2ff',
+              200: '#b9e4ff',
+              300: '#85d0ff',
+              400: '#4bb6ff',
+              500: '#0a84ff', /* primary blue */
+              600: '#0769db',
+              700: '#0953aa',
+              800: '#0b427f',
+              900: '#0b375f'
+            },
+            emerald: {
+              500: '#10B981'
+            }
+          },
+          boxShadow: {
+            glow: '0 8px 40px rgba(10,132,255,.25)'
+          },
+          animation: {
+            'float-slow': 'float 8s ease-in-out infinite',
+            'fade-in': 'fadeIn .8s ease',
+            'spin-slow': 'spin 10s linear infinite',
+            'pulse-soft': 'pulse 3s ease-in-out infinite',
+            'blob': 'blob 16s infinite'
+          },
+          keyframes: {
+            float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-14px)' } },
+            fadeIn: { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(20px, -30px) scale(1.05)' },
+              '66%': { transform: 'translate(-10px, 20px) scale(0.98)' },
+              '100%': { transform: 'translate(0px, 0px) scale(1)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    .glass {
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.4));
+      border: 1px solid rgba(255,255,255,.5);
+    }
+    .dark .glass {
+      background: linear-gradient(180deg, rgba(11,55,95,.35), rgba(11,55,95,.15));
+      border-color: rgba(255,255,255,.08);
+    }
+    .grid-overlay {
+      background-image:
+        linear-gradient(rgba(11,55,95,.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(11,55,95,.12) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .hero-gradient {
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(10,132,255,.25), transparent 60%),
+                  radial-gradient(800px 400px at 10% 0%, rgba(16,185,129,.15), transparent 60%);
+    }
+  </style>
+</head>
+
+<body class="bg-white text-gray-900 dark:bg-[#0A0F1A] dark:text-gray-100 antialiased selection:bg-brand-500 selection:text-white">
+  <!-- NAV -->
+  <nav class="fixed top-0 inset-x-0 z-50">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mt-4 mb-3 glass rounded-2xl shadow-glow">
+        <div class="flex h-16 items-center justify-between px-4">
+          <a href="#" class="flex items-center gap-3 group">
+            <!-- Brand SVG -->
+            <svg class="w-9 h-9" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+              <circle cx="32" cy="32" r="28" fill="#0A84FF" opacity=".14"/>
+              <path d="M16 34c8-6 14-14 16-24 2 10 8 18 16 24-8 6-14 14-16 24-2-10-8-18-16-24z" fill="#10B981"/>
+              <path d="M24 24h16M20 32h24M24 40h16" stroke="#0A84FF" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            <span class="text-lg sm:text-xl font-extrabold tracking-tight">
+              <span class="text-brand-500">ECO</span> TRADING <span class="text-emerald-500">PRO</span>
+            </span>
+          </a>
+
+          <div class="hidden md:flex items-center gap-8">
+            <a href="#features" class="hover:text-brand-500 transition">Features</a>
+            <a href="#invest" class="hover:text-brand-500 transition">Invest</a>
+            <a href="#pricing" class="hover:text-brand-500 transition">Pricing</a>
+            <a href="#faq" class="hover:text-brand-500 transition">FAQ</a>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <a href="/auth/login" class="px-4 py-2 rounded-lg border border-brand-500 text-brand-600 hover:bg-brand-500 hover:text-white transition font-medium">User Login</a>
+            <a href="/admin/login" class="px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition font-semibold">Admin Access</a>
+            <button id="themeBtn" class="ml-1 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5" aria-label="Toggle theme">🌙</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="pt-36 pb-20 hero-gradient relative overflow-hidden">
+    <!-- animated blobs -->
+    <div class="pointer-events-none absolute -top-20 -right-24 w-[38rem] h-[38rem] rounded-full bg-brand-500/20 blur-3xl animate-blob"></div>
+    <div class="pointer-events-none absolute top-40 -left-20 w-[28rem] h-[28rem] rounded-full bg-emerald-500/20 blur-3xl animate-blob" style="animation-delay:6s"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="grid lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-6">
+          <p class="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase px-3 py-1 rounded-full glass">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Live Markets • 24/7
+          </p>
+          <h1 class="mt-5 text-4xl sm:text-5xl font-extrabold leading-tight">
+            Trade smarter. <span class="text-brand-500">Invest</span> confidently.
+          </h1>
+          <p class="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-xl">
+            Pro‑grade charts, real‑time data, and a seamless investing experience—all in one eco‑modern platform.
+          </p>
+
+          <div class="mt-7 flex flex-col sm:flex-row gap-3">
+            <a href="/auth/register" class="px-6 py-3 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition shadow-glow font-semibold">Get Started Free</a>
+            <a href="#features" class="px-6 py-3 rounded-xl border border-brand-500 text-brand-600 hover:bg-brand-50 dark:hover:bg-white/5 transition font-semibold">See Features</a>
+          </div>
+
+          <!-- KPIs -->
+          <dl class="mt-10 grid grid-cols-3 gap-5">
+            <div class="glass rounded-xl p-4 text-center">
+              <dt class="text-xs uppercase tracking-wider text-gray-500">Active Users</dt>
+              <dd class="mt-2 text-2xl font-extrabold" data-counter="31250">0</dd>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <dt class="text-xs uppercase tracking-wider text-gray-500">Crypto Pairs</dt>
+              <dd class="mt-2 text-2xl font-extrabold" data-counter="120">0</dd>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <dt class="text-xs uppercase tracking-wider text-gray-500">Uptime</dt>
+              <dd class="mt-2 text-2xl font-extrabold">99.99%</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- hero visual -->
+        <div class="lg:col-span-6">
+          <div class="relative">
+            <!-- orbiting coin -->
+            <div class="absolute -top-6 right-6 w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-emerald-500 animate-float-slow shadow-glow"></div>
+
+            <div class="glass rounded-3xl p-4 shadow-glow">
+              <div class="grid sm:grid-cols-5 gap-3">
+                <!-- mini order book -->
+                <div class="sm:col-span-2 bg-black/5 dark:bg-white/5 rounded-2xl p-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">Order Book</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">BTC/USDT</span>
+                  </div>
+                  <div class="mt-2 space-y-1 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-red-400">68,320</span><span>0.512</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-red-400">68,310</span><span>0.884</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-emerald-400">68,340</span><span>0.213</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-emerald-400">68,355</span><span>1.003</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-emerald-400">68,370</span><span>0.552</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- canvas chart -->
+                <div class="sm:col-span-3 bg-white dark:bg-[#0B1324] rounded-2xl p-3 border border-black/5 dark:border-white/5">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="text-xs font-semibold">BTC/USDT</div>
+                    <div class="text-xs text-gray-500">1h</div>
+                  </div>
+                  <canvas id="heroChart" height="160"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- decorative ring -->
+            <div class="absolute -inset-8 -z-10 grid-overlay rounded-[2.2rem]"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TICKER -->
+  <section class="py-3 border-y border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur">
+    <div class="max-w-7xl mx-auto overflow-hidden px-4">
+      <div class="flex gap-8 animate-[marquee_30s_linear_infinite] whitespace-nowrap text-sm font-medium">
+        <div class="flex items-center gap-2"><span class="text-gray-500">BTC</span><span>$68,355</span><span class="text-emerald-500">+1.2%</span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-500">ETH</span><span>$3,210</span><span class="text-red-500">-0.4%</span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-500">SOL</span><span>$182.4</span><span class="text-emerald-500">+2.1%</span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-500">XRP</span><span>$0.62</span><span class="text-emerald-500">+0.7%</span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-500">BNB</span><span>$598.3</span><span class="text-emerald-500">+0.9%</span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-500">ADA</span><span>$0.52</span><span class="text-red-500">-0.3%</span></div>
+      </div>
+    </div>
+    <style>
+      @keyframes marquee { 0% {transform: translateX(0)} 100% {transform: translateX(-50%)} }
+    </style>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl font-extrabold">Everything for Pro‑Level Trading</h2>
+        <p class="mt-3 text-gray-600 dark:text-gray-300">Lightning charts, instant execution, portfolio insights, and enterprise‑grade security.</p>
+      </div>
+
+      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- card -->
+        <article class="group rounded-2xl p-6 border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur hover:shadow-glow transition">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-emerald-500 text-white grid place-items-center shadow-glow">📊</div>
+          <h3 class="mt-4 font-semibold text-xl">Real‑Time Charts</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Candles, depth, indicators, and multiple timeframes powered by GPU‑smooth rendering.</p>
+        </article>
+
+        <article class="group rounded-2xl p-6 border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur hover:shadow-glow transition">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-emerald-500 text-white grid place-items-center shadow-glow">🧠</div>
+          <h3 class="mt-4 font-semibold text-xl">Strategy & Backtests</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Paper-trade, run backtests, and compare PnL curves to refine your edge.</p>
+        </article>
+
+        <article class="group rounded-2xl p-6 border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur hover:shadow-glow transition">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-emerald-500 text-white grid place-items-center shadow-glow">🔐</div>
+          <h3 class="mt-4 font-semibold text-xl">Bank‑Grade Security</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">2FA, device trust, and encrypted wallets. Your assets and identity stay protected.</p>
+        </article>
+
+        <article class="group rounded-2xl p-6 border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur hover:shadow-glow transition">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-emerald-500 text-white grid place-items-center shadow-glow">📈</div>
+          <h3 class="mt-4 font-semibold text-xl">Portfolio Analytics</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Allocation, Sharpe ratio, drawdown, and risk-adjusted performance at a glance.</p>
+        </article>
+
+        <article class="group rounded-2xl p-6 border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur hover:shadow-glow transition">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-emerald-500 text-white grid place-items-center shadow-glow">⚡</div>
+          <h3 class="mt-4 font-semibold text-xl">Fast Execution</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Low‑latency order routing, streamlined UI, and instant confirmations.</p>
+        </article>
+
+        <article class="group rounded-2xl p-6 border border-black/5 dark:border-white/5 bg-white/60 dark:bg-white/5 backdrop-blur hover:shadow-glow transition">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-emerald-500 text-white grid place-items-center shadow-glow">🛠️</div>
+          <h3 class="mt-4 font-semibold text-xl">Admin Oversight</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Separate admin auth, user controls, balances, and audit trails built in.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- INVEST / ROI -->
+  <section id="invest" class="py-20 bg-gradient-to-b from-white to-brand-50/40 dark:from-[#0A0F1A] dark:to-[#0B1324]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold">Grow with smart, automated investing</h2>
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
+            Create recurring plans, diversify by strategy, and track potential outcomes with our ROI simulator.
+          </p>
+
+          <div class="mt-8 grid sm:grid-cols-3 gap-4">
+            <div>
+              <label class="text-xs text-gray-500">Initial Amount ($)</label>
+              <input id="roiInitial" type="number" class="mt-1 w-full px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/5" value="1000" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Monthly ($)</label>
+              <input id="roiMonthly" type="number" class="mt-1 w-full px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/5" value="200" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Expected APY (%)</label>
+              <input id="roiApy" type="number" class="mt-1 w-full px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/5" value="8" />
+            </div>
+          </div>
+          <button id="roiBtn" class="mt-4 px-5 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition">Calculate</button>
+
+          <p class="mt-3 text-sm text-gray-500">*For illustration only. Not financial advice.</p>
+        </div>
+
+        <div class="bg-white dark:bg-[#0B1324] border border-black/5 dark:border-white/5 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold">Projected Portfolio Value</span>
+            <span id="roiResult" class="text-sm text-emerald-400">$0</span>
+          </div>
+          <canvas id="roiChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl sm:text-4xl font-extrabold">Simple, transparent pricing</h2>
+      <p class="mt-2 text-gray-600 dark:text-gray-300">Start free, scale when you’re ready.</p>
+
+      <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-2xl border border-black/5 dark:border-white/5 p-6">
+          <h3 class="font-semibold text-lg">Starter</h3>
+          <p class="mt-1 text-sm text-gray-500">Paper trading & portfolio basics</p>
+          <div class="mt-5 text-4xl font-extrabold">$0</div>
+          <ul class="mt-5 space-y-2 text-sm text-gray-600 dark:text-gray-300 text-left">
+            <li>• Real‑time charts (delayed data)</li>
+            <li>• 10 assets</li>
+            <li>• Community support</li>
+          </ul>
+          <a href="/auth/register" class="mt-6 inline-block w-full px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600">Get Started</a>
+        </div>
+
+        <div class="rounded-2xl border-2 border-brand-500 p-6 shadow-glow">
+          <h3 class="font-semibold text-lg">Pro</h3>
+          <p class="mt-1 text-sm text-gray-500">Live data & advanced analytics</p>
+          <div class="mt-5 text-4xl font-extrabold">$19<span class="text-base font-bold">/mo</span></div>
+          <ul class="mt-5 space-y-2 text-sm text-gray-600 dark:text-gray-300 text-left">
+            <li>• Full real‑time market data</li>
+            <li>• 100+ assets & futures</li>
+            <li>• Portfolio analytics</li>
+            <li>• Priority support</li>
+          </ul>
+          <a href="/auth/subscribe" class="mt-6 inline-block w-full px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600">Upgrade</a>
+        </div>
+
+        <div class="rounded-2xl border border-black/5 dark:border-white/5 p-6">
+          <h3 class="font-semibold text-lg">Enterprise</h3>
+          <p class="mt-1 text-sm text-gray-500">Teams & custom controls</p>
+          <div class="mt-5 text-4xl font-extrabold">Custom</div>
+          <ul class="mt-5 space-y-2 text-sm text-gray-600 dark:text-gray-300 text-left">
+            <li>• SLA & dedicated infra</li>
+            <li>• Admin audit & SSO</li>
+            <li>• Custom integrations</li>
+          </ul>
+          <a href="/contact" class="mt-6 inline-block w-full px-4 py-2 rounded-lg border border-brand-500 text-brand-600 hover:bg-brand-50 dark:hover:bg-white/5">Talk to Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-16">
+    <div class="max-w-5xl mx-auto px-4">
+      <h2 class="text-3xl font-extrabold text-center">Frequently asked</h2>
+      <div class="mt-8 space-y-4">
+        <details class="group rounded-xl border border-black/5 dark:border-white/5 p-4">
+          <summary class="cursor-pointer font-semibold">Is ECO TRADING PRO a real exchange?</summary>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">It’s a trading and investment platform. You can simulate or connect to real markets depending on your plan and region.</p>
+        </details>
+        <details class="group rounded-xl border border-black/5 dark:border-white/5 p-4">
+          <summary class="cursor-pointer font-semibold">Do you support separate admin access?</summary>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Yes. Admins sign in via <code>/admin/login</code> and users via <code>/auth/login</code>. Authorization is isolated.</p>
+        </details>
+        <details class="group rounded-xl border border-black/5 dark:border-white/5 p-4">
+          <summary class="cursor-pointer font-semibold">Can I start for free?</summary>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Absolutely. The Starter tier is free—upgrade anytime.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 dark:border-white/5 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center gap-2">
+            <svg class="w-8 h-8" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+              <circle cx="32" cy="32" r="28" fill="#0A84FF" opacity=".14"/>
+              <path d="M16 34c8-6 14-14 16-24 2 10 8 18 16 24-8 6-14 14-16 24-2-10-8-18-16-24z" fill="#10B981"/>
+            </svg>
+            <span class="font-extrabold">ECO TRADING PRO</span>
+          </div>
+          <p class="mt-3 text-sm text-gray-500">Trade smarter. Invest confidently.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold">Platform</h4>
+          <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+            <li><a href="#features" class="hover:text-brand-500">Features</a></li>
+            <li><a href="#pricing" class="hover:text-brand-500">Pricing</a></li>
+            <li><a href="#" class="hover:text-brand-500">API</a></li>
+            <li><a href="#" class="hover:text-brand-500">Docs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold">Company</h4>
+          <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+            <li><a href="#" class="hover:text-brand-500">About</a></li>
+            <li><a href="#" class="hover:text-brand-500">Blog</a></li>
+            <li><a href="#" class="hover:text-brand-500">Careers</a></li>
+            <li><a href="#" class="hover:text-brand-500">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold">Legal</h4>
+          <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+            <li><a href="#" class="hover:text-brand-500">Security</a></li>
+            <li><a href="#" class="hover:text-brand-500">Privacy</a></li>
+            <li><a href="#" class="hover:text-brand-500">Terms</a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-10 text-xs text-gray-500">&copy; <span id="year"></span> ECO TRADING PRO. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script>
+    // Theme
+    const themeBtn = document.getElementById('themeBtn');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    function setTheme(mode){
+      document.documentElement.classList.toggle('dark', mode === 'dark');
+      localStorage.setItem('theme', mode);
+      themeBtn.textContent = mode === 'dark' ? '☀️' : '🌙';
+    }
+    function initTheme(){
+      const saved = localStorage.getItem('theme');
+      if(saved){ setTheme(saved); }
+      else { setTheme(prefersDark.matches ? 'dark' : 'light'); }
+    }
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setTheme(isDark ? 'light' : 'dark');
+    });
+    prefersDark.addEventListener('change', (e)=>{ if(!localStorage.getItem('theme')) setTheme(e.matches ? 'dark' : 'light'); });
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // KPI Counters
+    const counters = document.querySelectorAll('[data-counter]');
+    const animateCounter = (el, target) => {
+      let start = 0;
+      const step = () => {
+        start += Math.max(1, Math.floor(target/60));
+        if (start >= target){ el.textContent = target.toLocaleString(); return; }
+        el.textContent = start.toLocaleString();
+        requestAnimationFrame(step);
+      };
+      step();
+    };
+    const onVisible = (els, cb) => {
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => { if(e.isIntersecting){ cb(e.target); io.unobserve(e.target); } });
+      }, {threshold: 0.4});
+      els.forEach(el => io.observe(el));
+    };
+    onVisible(counters, (el)=> animateCounter(el, Number(el.dataset.counter)));
+
+    // Hero Chart (mock)
+    const heroCtx = document.getElementById('heroChart').getContext('2d');
+    const randomWalk = (n=50, start=68000) => {
+      const d=[start]; for(let i=1;i<n;i++){ d.push(d[i-1] + (Math.random()-0.5)*120); } return d;
+    }
+    new Chart(heroCtx, {
+      type: 'line',
+      data: {
+        labels: Array.from({length: 60}, (_,i)=> i),
+        datasets: [{
+          data: randomWalk(60, 68300),
+          tension: .35,
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 0,
+          borderColor: 'rgba(10,132,255,1)',
+          backgroundColor: 'rgba(10,132,255,.12)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: {display:false}, tooltip: {enabled:false}},
+        scales: {
+          x: { display: false },
+          y: { display: false }
+        },
+        animation: { duration: 1500 }
+      }
+    });
+
+    // ROI Calculator
+    const roiCtx = document.getElementById('roiChart').getContext('2d');
+    const roiChart = new Chart(roiCtx, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Projected', data: [], borderColor: 'rgba(16,185,129,1)', backgroundColor: 'rgba(16,185,129,.12)', tension: .35, pointRadius: 0, fill: true }] },
+      options: {
+        responsive: true,
+        plugins: { legend: {display:false}},
+        scales: {
+          x: { ticks: { color: '#9CA3AF' } },
+          y: { ticks: { color: '#9CA3AF' } }
+        }
+      }
+    });
+
+    function calcROI(initial, monthly, apy, months=24){
+      const r = apy/100/12;
+      const values=[], labels=[];
+      let bal = Number(initial);
+      for(let m=1; m<=months; m++){
+        bal = bal*(1+r) + Number(monthly);
+        values.push(Number(bal.toFixed(2)));
+        labels.push('M' + m);
+      }
+      return {values, labels, total: bal};
+    }
+    function updateROI(){
+      const initial = Number(document.getElementById('roiInitial').value || 0);
+      const monthly = Number(document.getElementById('roiMonthly').value || 0);
+      const apy = Number(document.getElementById('roiApy').value || 0);
+      const {values, labels, total} = calcROI(initial, monthly, apy, 36);
+      roiChart.data.labels = labels;
+      roiChart.data.datasets[0].data = values;
+      roiChart.update();
+      document.getElementById('roiResult').textContent = '$' + total.toLocaleString(undefined, {maximumFractionDigits: 2});
+    }
+    document.getElementById('roiBtn').addEventListener('click', updateROI);
+    updateROI(); // initial render
+
+    // Init Theme after DOM
+    initTheme();
+  </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
