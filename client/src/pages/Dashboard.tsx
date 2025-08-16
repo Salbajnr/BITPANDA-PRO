@@ -29,6 +29,7 @@ import QuickStatsGrid from "@/components/QuickStatsGrid";
 import NewsSection from "@/components/NewsSection";
 import { LiveMarketStats } from "@/components/LiveMarketStats";
 import { useRealTimePrice } from "@/hooks/useRealTimePrice";
+import NewsWidget from '@/components/NewsWidget';
 
 
 interface PortfolioData {
@@ -140,18 +141,18 @@ export default function Dashboard() {
 
     let totalCurrentValue = 0;
     let totalInvestedValue = 0;
-    
+
     portfolioData.holdings.forEach(holding => {
       const currentValue = parseFloat(holding.amount) * parseFloat(holding.currentPrice);
       const investedValue = parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice);
-      
+
       totalCurrentValue += currentValue;
       totalInvestedValue += investedValue;
     });
 
     const totalGainLoss = totalCurrentValue - totalInvestedValue;
     const totalGainLossPercent = totalInvestedValue > 0 ? (totalGainLoss / totalInvestedValue) * 100 : 0;
-    
+
     // Simulate daily/weekly/monthly changes based on current performance
     const dailyChange = totalCurrentValue * (Math.random() * 0.06 - 0.03); // -3% to +3%
     const dailyChangePercent = totalCurrentValue > 0 ? (dailyChange / totalCurrentValue) * 100 : 0;
@@ -211,7 +212,7 @@ export default function Dashboard() {
   const availableCash = portfolioData?.portfolio?.availableCash ?
     parseFloat(portfolioData.portfolio.availableCash) : 0;
   const investedValue = totalPortfolioValue - availableCash;
-  
+
   // Calculate portfolio metrics
   const portfolioMetrics = calculatePortfolioMetrics();
   const dailyChange = portfolioMetrics.dailyChange;
@@ -389,7 +390,7 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex-1 py-4">
                 <nav className="space-y-1 px-4">
                   {sidebarItems.map((item) => {
@@ -853,6 +854,8 @@ export default function Dashboard() {
             {/* News Section */}
             {activeSection === "news" && (
               <div className="space-y-6">
+                {/* Integrated NewsWidget */}
+                <NewsWidget /> 
                 <Card>
                   <CardHeader>
                     <CardTitle>Latest Market News</CardTitle>

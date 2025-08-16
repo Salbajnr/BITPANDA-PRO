@@ -41,6 +41,7 @@ import Deposit from "./pages/Deposit";
 import DepositHistory from "./pages/DepositHistory";
 import AdminDepositManagement from "./pages/AdminDepositManagement";
 import Academy from "@/pages/Academy";
+import News from './pages/News';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -183,6 +184,7 @@ function AppContent() {
       <Route path="/deposit-history" component={DepositHistory} />
       <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route path="/academy" component={Academy} />
+      <Route path="/news" component={News} />
       <Route component={NotFound} />
     </Switch>
   );

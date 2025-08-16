@@ -36,7 +36,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
     { href: "/transactions", label: "Transaction History", icon: History },
     { href: "/watchlist", label: "Watchlist", icon: Wallet },
     { href: "#trading", label: "Trading", icon: ArrowLeftRight },
-    { href: "#news", label: "News", icon: Newspaper },
+    { href: "/news", label: "News", icon: Newspaper },
     { href: "/kyc", label: "KYC Verification", icon: ShieldCheck },
     { href: "/support", label: "Live Support", icon: MessageCircle },
     { href: "/settings", label: "Settings", icon: User },
@@ -68,7 +68,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
           {navigationItems.map((item) => {
             const isActive = location === item.href || (item.href === "/dashboard" && location === "/");
             const Icon = item.icon;
-            
+
             return (
               <Link key={item.href} href={item.href}>
                 <a className={cn(
@@ -95,7 +95,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
               {adminItems.map((item) => {
                 const isActive = location === item.href;
                 const Icon = item.icon;
-                
+
                 return (
                   <Link key={item.href} href={item.href}>
                     <a className={cn(
@@ -150,7 +150,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
                 {navigationItems.map((item) => {
                   const isActive = location === item.href || (item.href === "/dashboard" && location === "/");
                   const Icon = item.icon;
-                  
+
                   return (
                     <Link key={item.href} href={item.href}>
                       <a 
@@ -180,7 +180,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
                     {adminItems.map((item) => {
                       const isActive = location === item.href;
                       const Icon = item.icon;
-                      
+
                       return (
                         <Link key={item.href} href={item.href}>
                           <a 
