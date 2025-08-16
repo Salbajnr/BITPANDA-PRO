@@ -1,178 +1,196 @@
-import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import {
-  TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart,
-  ArrowUp, ArrowDown, Target, AlertTriangle, Star, Calendar,
-  Shield, Activity, Award, RefreshCw, Download, Eye, TrendingUpIcon
-} from "lucide-react";
-import {
-  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart as RechartsPieChart, Cell, AreaChart, Area, BarChart, Bar,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend
-} from "recharts";
-import { useState } from "react";
+  TrendingUp,
+  TrendingDown,
+  PieChart,
+  BarChart3,
+  Calendar,
+  Download,
+  RefreshCw,
+  DollarSign,
+  Percent,
+  Target,
+  AlertCircle
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PortfolioData {
-  portfolio: {
-    id: string;
-    totalValue: string;
-    availableCash: string;
-    userId: string;
-  };
-  holdings: Array<{
-    id: string;
-    symbol: string;
-    name: string;
-    amount: string;
-    averagePurchasePrice: string;
-    currentPrice: string;
-  }>;
-  transactions: Array<{
-    id: string;
-    type: string;
-    symbol: string;
-    amount: string;
-    price: string;
-    total: string;
-    createdAt: string;
-  }>;
+  totalValue: number;
+  totalCost: number;
+  totalPnL: number;
+  totalPnLPercentage: number;
+  dayPnL: number;
+  dayPnLPercentage: number;
+  holdings: Holding[];
+  performance: PerformanceData[];
+  allocation: AllocationData[];
 }
 
-interface RiskMetrics {
-  sharpeRatio: number;
-  volatility: number;
-  maxDrawdown: number;
-  beta: number;
-  alpha: number;
-  riskScore: number;
+interface Holding {
+  id: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  currentPrice: number;
+  averageCost: number;
+  totalValue: number;
+  totalCost: number;
+  pnl: number;
+  pnlPercentage: number;
+  allocation: number;
+  image: string;
+}
+
+interface PerformanceData {
+  date: string;
+  value: number;
+  pnl: number;
+}
+
+interface AllocationData {
+  symbol: string;
+  name: string;
+  percentage: number;
+  value: number;
+  color: string;
 }
 
 export default function PortfolioAnalytics() {
   const { user } = useAuth();
-  const [timeFrame, setTimeFrame] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [timeframe, setTimeframe] = useState('7d');
 
-  const { data: portfolioData, isLoading } = useQuery<PortfolioData>({
-    queryKey: ["/api/portfolio"],
-    retry: false,
-    enabled: !!user,
-  });
+  useEffect(() => {
+    fetchPortfolioData();
+  }, [timeframe]);
 
-  if (isLoading) {
+  const fetchPortfolioData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/portfolio/analytics?timeframe=${timeframe}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPortfolioData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching portfolio data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  const formatPercentage = (percentage: number) => {
+    return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%`;
+  };
+
+  const getColorForAllocation = (index: number) => {
+    const colors = [
+      '#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6',
+      '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#6B7280'
+    ];
+    return colors[index % colors.length];
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading portfolio analytics...</p>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-64"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-slate-200 dark:bg-slate-700 rounded"></div>
+              ))}
+            </div>
+            <div className="h-96 bg-slate-200 dark:bg-slate-700 rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
-  const totalValue = parseFloat(portfolioData?.portfolio?.totalValue || '0');
-  const availableCash = parseFloat(portfolioData?.portfolio?.availableCash || '0');
-  const investedValue = totalValue - availableCash;
-
-  // Calculate portfolio metrics
-  const holdingsAnalysis = portfolioData?.holdings?.map(holding => {
-    const amount = parseFloat(holding.amount);
-    const currentPrice = parseFloat(holding.currentPrice);
-    const avgPrice = parseFloat(holding.averagePurchasePrice);
-    const currentValue = amount * currentPrice;
-    const investedAmount = amount * avgPrice;
-    const pnl = currentValue - investedAmount;
-    const pnlPercentage = (pnl / investedAmount) * 100;
-
-    return {
-      ...holding,
-      amount,
-      currentPrice,
-      averagePurchasePrice: avgPrice,
-      currentValue,
-      investedAmount,
-      pnl,
-      pnlPercentage,
-      allocation: investedValue > 0 ? (currentValue / investedValue) * 100 : 0,
-    };
-  }) || [];
-
-  // Mock enhanced performance data with more metrics
-  const performanceData = Array.from({ length: 30 }, (_, i) => {
-    const baseValue = totalValue * (0.95 + Math.random() * 0.1);
-    return {
-      date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: baseValue,
-      change: (Math.random() - 0.5) * 1000,
-      benchmark: baseValue * (0.98 + Math.random() * 0.04), // Mock market benchmark
-      volume: Math.random() * 50000 + 10000,
-    };
-  });
-
-  // Mock risk metrics
-  const riskMetrics: RiskMetrics = {
-    sharpeRatio: 1.85,
-    volatility: 18.5,
-    maxDrawdown: -8.2,
-    beta: 1.12,
-    alpha: 4.3,
-    riskScore: 7.5, // Out of 10
-  };
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658'];
-
-  const pieData = holdingsAnalysis.map((holding, index) => ({
-    name: holding.symbol,
-    value: holding.currentValue,
-    color: COLORS[index % COLORS.length],
-    percentage: holding.allocation,
-  }));
-
-  // Risk analysis radar chart data
-  const riskRadarData = [
-    { metric: 'Volatility', score: 100 - riskMetrics.volatility, fullMark: 100 },
-    { metric: 'Liquidity', score: 85, fullMark: 100 },
-    { metric: 'Diversification', score: Math.min(holdingsAnalysis.length * 20, 100), fullMark: 100 },
-    { metric: 'Performance', score: Math.max(0, Math.min(100, (riskMetrics.sharpeRatio / 3) * 100)), fullMark: 100 },
-    { metric: 'Stability', score: Math.max(0, 100 + riskMetrics.maxDrawdown), fullMark: 100 },
-  ];
-
-  const totalPnL = holdingsAnalysis.reduce((sum, holding) => sum + holding.pnl, 0);
-  const totalPnLPercentage = investedValue > 0 ? (totalPnL / investedValue) * 100 : 0;
-
-  // Top performers and losers
-  const topPerformers = [...holdingsAnalysis].sort((a, b) => b.pnlPercentage - a.pnlPercentage).slice(0, 3);
-  const topLosers = [...holdingsAnalysis].sort((a, b) => a.pnlPercentage - b.pnlPercentage).slice(0, 3);
+  if (!portfolioData) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12">
+            <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+              No Portfolio Data
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400">
+              Start trading to see your portfolio analytics
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Enhanced Header */}
-        <div className="flex justify-between items-center">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Portfolio Analytics</h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              Comprehensive analysis of your investment performance and risk metrics
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+              Portfolio Analytics
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
+              Detailed insights into your trading performance
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              {(['7d', '30d', '90d', '1y'] as const).map((period) => (
-                <Button
-                  key={period}
-                  variant={timeFrame === period ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTimeFrame(period)}
-                >
-                  {period}
-                </Button>
-              ))}
+              <Button
+                variant={timeframe === '24h' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeframe('24h')}
+              >
+                24H
+              </Button>
+              <Button
+                variant={timeframe === '7d' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeframe('7d')}
+              >
+                7D
+              </Button>
+              <Button
+                variant={timeframe === '30d' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeframe('30d')}
+              >
+                30D
+              </Button>
+              <Button
+                variant={timeframe === '1y' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeframe('1y')}
+              >
+                1Y
+              </Button>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={fetchPortfolioData}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -183,392 +201,365 @@ export default function PortfolioAnalytics() {
           </div>
         </div>
 
-        {/* Enhanced Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <Card className="relative overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">Total Portfolio Value</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    ${totalValue.toLocaleString()}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                    <span className="text-green-500 text-sm">+12.5% (24h)</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-blue-500" />
-                </div>
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center">
+                <DollarSign className="h-4 w-4 mr-2" />
+                Total Value
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                {formatCurrency(portfolioData.totalValue)}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Cost: {formatCurrency(portfolioData.totalCost)}
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">Total P&L</p>
-                  <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {totalPnL >= 0 ? '+' : ''}${totalPnL.toLocaleString()}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    {totalPnL >= 0 ? (
-                      <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
-                    ) : (
-                      <ArrowDown className="h-4 w-4 text-red-500 mr-1" />
-                    )}
-                    <span className={`text-sm ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {totalPnLPercentage >= 0 ? '+' : ''}{totalPnLPercentage.toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  totalPnL >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'
-                }`}>
-                  {totalPnL >= 0 ? (
-                    <TrendingUp className="h-6 w-6 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-6 w-6 text-red-500" />
-                  )}
-                </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Total P&L
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${
+                portfolioData.totalPnL >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {formatCurrency(portfolioData.totalPnL)}
               </div>
-              <div className={`absolute bottom-0 left-0 right-0 h-1 ${
-                totalPnL >= 0 ? 'bg-green-500' : 'bg-red-500'
-              }`}></div>
+              <div className={`text-sm mt-1 flex items-center ${
+                portfolioData.totalPnLPercentage >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {portfolioData.totalPnLPercentage >= 0 ? (
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                )}
+                {formatPercentage(portfolioData.totalPnLPercentage)}
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">Sharpe Ratio</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {riskMetrics.sharpeRatio.toFixed(2)}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <Award className="h-4 w-4 text-yellow-500 mr-1" />
-                    <span className="text-yellow-500 text-sm">Excellent</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                  <Target className="h-6 w-6 text-yellow-500" />
-                </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center">
+                <Calendar className="h-4 w-4 mr-2" />
+                24H P&L
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${
+                portfolioData.dayPnL >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {formatCurrency(portfolioData.dayPnL)}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-500"></div>
+              <div className={`text-sm mt-1 flex items-center ${
+                portfolioData.dayPnLPercentage >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {portfolioData.dayPnLPercentage >= 0 ? (
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                )}
+                {formatPercentage(portfolioData.dayPnLPercentage)}
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">Risk Score</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {riskMetrics.riskScore.toFixed(1)}/10
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <Shield className="h-4 w-4 text-orange-500 mr-1" />
-                    <span className="text-orange-500 text-sm">Moderate</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-orange-500" />
-                </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center">
+                <PieChart className="h-4 w-4 mr-2" />
+                Assets
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                {portfolioData.holdings.length}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500"></div>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">Diversification</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {holdingsAnalysis.length}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <PieChart className="h-4 w-4 text-purple-500 mr-1" />
-                    <span className="text-purple-500 text-sm">Assets</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
-                  <BarChart3 className="h-6 w-6 text-purple-500" />
-                </div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Cryptocurrencies
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500"></div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Enhanced Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+        {/* Main Content */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="risk">Risk Analysis</TabsTrigger>
             <TabsTrigger value="holdings">Holdings</TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="allocation">Allocation</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Portfolio Performance Chart */}
-              <Card>
+              {/* Performance Chart */}
+              <Card className="lg:col-span-2">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
-                    Portfolio vs Benchmark
+                  <CardTitle className="flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Portfolio Performance
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={350}>
-                    <AreaChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip 
-                        formatter={(value, name) => [
-                          `$${Number(value).toLocaleString()}`,
-                          name === 'value' ? 'Portfolio' : 'Benchmark'
-                        ]}
-                      />
-                      <Legend />
-                      <Area type="monotone" dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} name="Portfolio" />
-                      <Area type="monotone" dataKey="benchmark" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.1} name="Benchmark" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Asset Allocation */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    Asset Allocation
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {pieData.length > 0 ? (
-                    <div className="space-y-4">
-                      <ResponsiveContainer width="100%" height={250}>
-                        <RechartsPieChart>
-                          <Pie
-                            data={pieData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={100}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {pieData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Value']} />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                      <div className="grid grid-cols-2 gap-2">
-                        {pieData.map((entry, index) => (
-                          <div key={entry.name} className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: entry.color }}
-                            ></div>
-                            <span className="text-sm">{entry.name}</span>
-                            <span className="text-sm text-slate-500 ml-auto">
-                              {entry.percentage.toFixed(1)}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                  <div className="h-64 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded">
+                    <div className="text-center">
+                      <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+                      <p className="text-slate-600 dark:text-slate-400">
+                        Performance chart will be displayed here
+                      </p>
                     </div>
-                  ) : (
-                    <div className="h-[300px] flex items-center justify-center text-slate-500">
-                      <div className="text-center">
-                        <PieChart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                        <p>No holdings to display</p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Top Performers and Losers */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600">
-                    <TrendingUp className="h-5 w-5" />
-                    Top Performers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {topPerformers.map((holding, index) => (
-                      <div key={holding.symbol} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                            <span className="text-green-600 font-bold text-sm">{index + 1}</span>
-                          </div>
-                          <div>
-                            <p className="font-medium">{holding.symbol}</p>
-                            <p className="text-sm text-slate-500">{holding.name}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                            +{holding.pnlPercentage.toFixed(2)}%
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Top Performers */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-600">
-                    <TrendingDown className="h-5 w-5" />
-                    Underperformers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {topLosers.map((holding, index) => (
-                      <div key={holding.symbol} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-                            <span className="text-red-600 font-bold text-sm">{index + 1}</span>
-                          </div>
-                          <div>
-                            <p className="font-medium">{holding.symbol}</p>
-                            <p className="text-sm text-slate-500">{holding.name}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant="destructive">
-                            {holding.pnlPercentage.toFixed(2)}%
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="risk" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Risk Metrics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Risk Metrics</CardTitle>
+                  <CardTitle className="text-lg">Top Performers</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Sharpe Ratio</p>
-                      <p className="text-2xl font-bold text-green-600">{riskMetrics.sharpeRatio}</p>
-                      <p className="text-xs text-slate-500">Excellent performance</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Max Drawdown</p>
-                      <p className="text-2xl font-bold text-red-600">{riskMetrics.maxDrawdown}%</p>
-                      <p className="text-xs text-slate-500">Low risk</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Volatility</p>
-                      <p className="text-2xl font-bold text-yellow-600">{riskMetrics.volatility}%</p>
-                      <p className="text-xs text-slate-500">Moderate</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Beta</p>
-                      <p className="text-2xl font-bold text-blue-600">{riskMetrics.beta}</p>
-                      <p className="text-xs text-slate-500">Market correlation</p>
-                    </div>
-                  </div>
+                  {portfolioData.holdings
+                    .filter(h => h.pnlPercentage > 0)
+                    .sort((a, b) => b.pnlPercentage - a.pnlPercentage)
+                    .slice(0, 3)
+                    .map((holding) => (
+                      <div key={holding.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src={holding.image}
+                            alt={holding.name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                          <div>
+                            <div className="font-medium text-slate-900 dark:text-white">
+                              {holding.symbol}
+                            </div>
+                            <div className="text-sm text-slate-500">
+                              {holding.name}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-green-600 font-medium">
+                            +{holding.pnlPercentage.toFixed(2)}%
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            {formatCurrency(holding.pnl)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                 </CardContent>
               </Card>
 
-              {/* Risk Radar Chart */}
+              {/* Biggest Losers */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Risk Profile</CardTitle>
+                  <CardTitle className="text-lg">Biggest Losers</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={riskRadarData}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="metric" />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                      <Radar name="Risk Score" dataKey="score" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                <CardContent className="space-y-4">
+                  {portfolioData.holdings
+                    .filter(h => h.pnlPercentage < 0)
+                    .sort((a, b) => a.pnlPercentage - b.pnlPercentage)
+                    .slice(0, 3)
+                    .map((holding) => (
+                      <div key={holding.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src={holding.image}
+                            alt={holding.name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                          <div>
+                            <div className="font-medium text-slate-900 dark:text-white">
+                              {holding.symbol}
+                            </div>
+                            <div className="text-sm text-slate-500">
+                              {holding.name}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-red-600 font-medium">
+                            {holding.pnlPercentage.toFixed(2)}%
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            {formatCurrency(holding.pnl)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
           <TabsContent value="holdings" className="space-y-6">
-            {/* Holdings Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>Holdings Analysis</CardTitle>
+                <CardTitle>All Holdings</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {holdingsAnalysis.map((holding) => (
-                    <div
-                      key={holding.symbol}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                      data-testid={`holding-${holding.symbol}`}
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="font-bold text-sm text-primary">{holding.symbol}</span>
-                        </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-left py-3 px-4 font-medium text-slate-600 dark:text-slate-400">
+                          Asset
+                        </th>
+                        <th className="text-right py-3 px-4 font-medium text-slate-600 dark:text-slate-400">
+                          Amount
+                        </th>
+                        <th className="text-right py-3 px-4 font-medium text-slate-600 dark:text-slate-400">
+                          Current Price
+                        </th>
+                        <th className="text-right py-3 px-4 font-medium text-slate-600 dark:text-slate-400">
+                          Total Value
+                        </th>
+                        <th className="text-right py-3 px-4 font-medium text-slate-600 dark:text-slate-400">
+                          P&L
+                        </th>
+                        <th className="text-right py-3 px-4 font-medium text-slate-600 dark:text-slate-400">
+                          Allocation
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {portfolioData.holdings.map((holding) => (
+                        <tr key={holding.id} className="border-b border-slate-100 dark:border-slate-800">
+                          <td className="py-4 px-4">
+                            <div className="flex items-center space-x-3">
+                              <img
+                                src={holding.image}
+                                alt={holding.name}
+                                className="w-8 h-8 rounded-full"
+                              />
+                              <div>
+                                <div className="font-medium text-slate-900 dark:text-white">
+                                  {holding.symbol}
+                                </div>
+                                <div className="text-sm text-slate-500">
+                                  {holding.name}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-right py-4 px-4 text-slate-900 dark:text-white">
+                            {holding.amount.toLocaleString()}
+                          </td>
+                          <td className="text-right py-4 px-4 text-slate-900 dark:text-white">
+                            {formatCurrency(holding.currentPrice)}
+                          </td>
+                          <td className="text-right py-4 px-4 text-slate-900 dark:text-white">
+                            {formatCurrency(holding.totalValue)}
+                          </td>
+                          <td className={`text-right py-4 px-4 ${
+                            holding.pnl >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            <div>{formatCurrency(holding.pnl)}</div>
+                            <div className="text-sm">
+                              {formatPercentage(holding.pnlPercentage)}
+                            </div>
+                          </td>
+                          <td className="text-right py-4 px-4">
+                            <div className="flex items-center justify-end space-x-2">
+                              <Progress 
+                                value={holding.allocation} 
+                                className="w-16 h-2"
+                              />
+                              <span className="text-sm text-slate-600 dark:text-slate-400">
+                                {holding.allocation.toFixed(1)}%
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="allocation" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Asset Allocation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded">
+                    <div className="text-center">
+                      <PieChart className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+                      <p className="text-slate-600 dark:text-slate-400">
+                        Pie chart will be displayed here
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Allocation Breakdown</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {portfolioData.allocation.map((item, index) => (
+                    <div key={item.symbol} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: getColorForAllocation(index) }}
+                        />
                         <div>
-                          <div className="font-semibold text-slate-900 dark:text-white">
-                            {holding.name}
+                          <div className="font-medium text-slate-900 dark:text-white">
+                            {item.symbol}
                           </div>
-                          <div className="text-sm text-slate-500 dark:text-slate-400">
-                            {holding.amount} {holding.symbol} @ ${holding.averagePurchasePrice.toLocaleString()}
+                          <div className="text-sm text-slate-500">
+                            {item.name}
                           </div>
                         </div>
                       </div>
-
-                      <div className="text-right space-y-1">
-                        <div className="font-semibold text-slate-900 dark:text-white">
-                          ${holding.currentValue.toLocaleString()}
+                      <div className="text-right">
+                        <div className="font-medium text-slate-900 dark:text-white">
+                          {item.percentage.toFixed(1)}%
                         </div>
-                        <div className="flex items-center justify-end space-x-2">
-                          <Badge
-                            variant={holding.pnl >= 0 ? 'default' : 'destructive'}
-                            className={holding.pnl >= 0 ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
-                          >
-                            {holding.pnl >= 0 ? '+' : ''}${holding.pnl.toFixed(2)}
-                          </Badge>
-                          <Badge variant="outline">
-                            {holding.pnlPercentage >= 0 ? '+' : ''}{holding.pnlPercentage.toFixed(2)}%
-                          </Badge>
-                        </div>
-                        <div className="w-24">
-                          <Progress value={holding.allocation} className="h-2" />
-                          <span className="text-xs text-slate-500">{holding.allocation.toFixed(1)}%</span>
+                        <div className="text-sm text-slate-500">
+                          {formatCurrency(item.value)}
                         </div>
                       </div>
                     </div>
                   ))}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Historical Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-96 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded">
+                  <div className="text-center">
+                    <BarChart3 className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+                    <p className="text-slate-600 dark:text-slate-400">
+                      Historical performance chart will be displayed here
+                    </p>
+                    <p className="text-sm text-slate-500 mt-2">
+                      Showing portfolio value over time with P&L tracking
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>

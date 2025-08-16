@@ -10,6 +10,7 @@ import depositRoutes from './deposit-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';
 import { portfolioRoutes } from './portfolio-routes';
+import { portfolioAnalyticsRoutes } from './portfolio-analytics-routes';
 import alertRoutes from './alert-routes';
 import { z } from "zod";
 import { Router } from "express";
@@ -54,7 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/trading', tradingRoutes);
 
   // Portfolio routes (enhanced with real-time pricing)
-  app.use('/api', portfolioRoutes);
+  app.use('/api/portfolio', portfolioRoutes);
+  app.use('/api/portfolio', portfolioAnalyticsRoutes);
 
   // Auth routes
   // Admin auth routes
