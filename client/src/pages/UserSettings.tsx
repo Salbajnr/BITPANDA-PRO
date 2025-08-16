@@ -42,7 +42,7 @@ interface SecuritySettings {
 }
 
 export default function UserSettings() {
-  const { user, refetch } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -94,13 +94,13 @@ export default function UserSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: (data: Partial<UserProfile>) =>
-      apiRequest('/api/auth/profile', { method: 'PATCH', body: data }),
+      apiRequest('/api/auth/profile', { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error: any) => {
       toast({
@@ -113,7 +113,7 @@ export default function UserSettings() {
 
   const updatePasswordMutation = useMutation({
     mutationFn: (data: typeof passwordForm) =>
-      apiRequest('/api/auth/change-password', { method: 'POST', body: data }),
+      apiRequest('/api/auth/change-password', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       toast({
         title: "Success",

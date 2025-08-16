@@ -1,10 +1,7 @@
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth } from './simple-auth';
-
-// Extend Express Request type
-type AuthenticatedRequest = Request & { user: NonNullable<Request['user']> };
 import { storage } from './storage';
 
 const router = Router();
@@ -19,9 +16,14 @@ const executeTradeSchema = z.object({
 });
 
 // Execute trade
-router.post('/execute', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/execute', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    
     const portfolio = await storage.getPortfolio(userId);
     
     if (!portfolio) {
@@ -41,16 +43,17 @@ router.post('/execute', requireAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     // Create transaction
-    const transaction = await storage.createTransaction({
-      portfolioId: portfolio.id,
+    const transactionData = {
+      userId: userId,
       symbol: tradeData.symbol,
       type: tradeData.type,
-      orderType: tradeData.orderType,
       amount: tradeData.amount,
       price: tradeData.price,
       total: tradeData.total,
       status: 'completed',
-    });
+    };
+    
+    const transaction = await storage.createTransaction(transactionData);
 
     // Update holdings and portfolio
     if (tradeData.type === 'buy') {
@@ -132,7 +135,7 @@ router.post('/execute', requireAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // Get trading history
-router.get('/history', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.get('/history', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const portfolio = await storage.getPortfolio(userId);
@@ -142,7 +145,7 @@ router.get('/history', requireAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const limit = parseInt(req.query.limit as string) || 50;
-    const transactions = await storage.getTransactions(portfolio.id, limit);
+    const transactions = await storage.getUserTransactions(userId, limit);
     
     res.json(transactions);
   } catch (error) {

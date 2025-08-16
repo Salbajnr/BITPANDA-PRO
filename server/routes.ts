@@ -9,6 +9,7 @@ import authRoutes from './auth-routes';
 import depositRoutes from './deposit-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';
+import { portfolioRoutes } from './portfolio-routes';
 import { z } from "zod";
 import { Router } from "express";
 
@@ -37,6 +38,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Trading routes
   app.use('/api/trading', tradingRoutes);
+  
+  // Portfolio routes (enhanced with real-time pricing)
+  app.use('/api', portfolioRoutes);
 
   // Auth routes
   // Admin auth routes
@@ -240,24 +244,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Portfolio routes
-  app.get('/api/portfolio', requireAuth, async (req, res) => {
+  // User Profile Management
+  app.patch('/api/auth/profile', requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const portfolio = await storage.getPortfolio(userId);
-      if (!portfolio) {
-        return res.status(404).json({ message: "Portfolio not found" });
+      const { username, email, firstName, lastName, profileImageUrl } = req.body;
+
+      // Validate email uniqueness if being changed
+      if (email) {
+        const currentUser = await storage.getUser(userId);
+        if (currentUser?.email !== email) {
+          const existingUser = await storage.getUserByEmail(email);
+          if (existingUser) {
+            return res.status(400).json({ message: "Email already in use" });
+          }
+        }
       }
 
-      const holdings = await storage.getHoldings(portfolio.id);
-      const transactions = await storage.getTransactions(portfolio.id, 10);
+      const updates: any = {};
+      if (username) updates.username = username;
+      if (email) updates.email = email;
+      if (firstName) updates.firstName = firstName;
+      if (lastName) updates.lastName = lastName;
+      if (profileImageUrl) updates.profileImageUrl = profileImageUrl;
 
-      res.json({ portfolio, holdings, transactions });
+      await storage.updateUser(userId, updates);
+
+      const updatedUser = await storage.getUser(userId);
+      res.json(updatedUser);
     } catch (error) {
-      console.error("Error fetching portfolio:", error);
-      res.status(500).json({ message: "Failed to fetch portfolio" });
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
+
+  // Change Password
+  app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { currentPassword, newPassword, confirmPassword } = req.body;
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ message: "New passwords do not match" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      // Verify current password
+      const user = await storage.getUser(userId);
+      if (!user || !user.password) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isValidPassword = await verifyPassword(currentPassword, user.password);
+      if (!isValidPassword) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      // Hash new password and update
+      const hashedNewPassword = await hashPassword(newPassword);
+      await storage.updateUser(userId, { password: hashedNewPassword });
+
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+
 
   // Trading routes
   app.post('/api/trade', requireAuth, async (req, res) => {

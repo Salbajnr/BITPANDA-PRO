@@ -1,16 +1,13 @@
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth } from './simple-auth';
-
-// Extend Express Request type
-type AuthenticatedRequest = Request & { user: NonNullable<Request['user']> };
 import { storage } from './storage';
 
 const router = Router();
 
 // Admin middleware
-const requireAdmin = async (req: AuthenticatedRequest, res: any, next: any) => {
+const requireAdmin = async (req: Request, res: Response, next: any) => {
   try {
     const user = await storage.getUser(req.user!.id);
     if (!user || user.role !== 'admin') {
@@ -24,7 +21,7 @@ const requireAdmin = async (req: AuthenticatedRequest, res: any, next: any) => {
 };
 
 // User Management
-router.get('/users', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -76,7 +73,7 @@ router.get('/users', requireAuth, requireAdmin, async (req: AuthenticatedRequest
   }
 });
 
-router.post('/users/:userId/suspend', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/users/:userId/suspend', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const { reason } = req.body;
@@ -99,7 +96,7 @@ router.post('/users/:userId/suspend', requireAuth, requireAdmin, async (req: Aut
   }
 });
 
-router.post('/users/:userId/reactivate', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/users/:userId/reactivate', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     
@@ -119,7 +116,7 @@ router.post('/users/:userId/reactivate', requireAuth, requireAdmin, async (req: 
   }
 });
 
-router.delete('/users/:userId', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.delete('/users/:userId', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     
@@ -148,7 +145,7 @@ const adjustBalanceSchema = z.object({
   reason: z.string().optional(),
 });
 
-router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const data = adjustBalanceSchema.parse(req.body);
     
@@ -190,7 +187,7 @@ router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: Authen
   }
 });
 
-router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.query.userId as string;
     const page = parseInt(req.query.page as string) || 1;
@@ -205,7 +202,7 @@ router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: Authen
 });
 
 // Transaction Management
-router.get('/transactions', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/transactions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
@@ -220,7 +217,7 @@ router.get('/transactions', requireAuth, requireAdmin, async (req: Authenticated
   }
 });
 
-router.post('/transactions/:transactionId/reverse', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/transactions/:transactionId/reverse', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { transactionId } = req.params;
     const { reason } = req.body;
@@ -235,7 +232,7 @@ router.post('/transactions/:transactionId/reverse', requireAuth, requireAdmin, a
 });
 
 // Platform Analytics
-router.get('/analytics/overview', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/analytics/overview', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const overview = await storage.getAnalyticsOverview();
     res.json(overview);
@@ -245,7 +242,7 @@ router.get('/analytics/overview', requireAuth, requireAdmin, async (req: Authent
   }
 });
 
-router.get('/analytics/revenue', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/analytics/revenue', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const period = req.query.period as string || '7d';
     const revenue = await storage.getRevenueAnalytics(period);
@@ -256,7 +253,7 @@ router.get('/analytics/revenue', requireAuth, requireAdmin, async (req: Authenti
   }
 });
 
-router.get('/analytics/users', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/analytics/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const period = req.query.period as string || '30d';
     const userAnalytics = await storage.getUserAnalytics(period);
@@ -268,7 +265,7 @@ router.get('/analytics/users', requireAuth, requireAdmin, async (req: Authentica
 });
 
 // Security & Monitoring
-router.get('/security/sessions', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/security/sessions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const sessions = await storage.getActiveSessions();
     res.json(sessions);
@@ -278,7 +275,7 @@ router.get('/security/sessions', requireAuth, requireAdmin, async (req: Authenti
   }
 });
 
-router.post('/security/force-logout/:userId', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/security/force-logout/:userId', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     await storage.invalidateUserSessions(userId);
@@ -298,7 +295,7 @@ router.post('/security/force-logout/:userId', requireAuth, requireAdmin, async (
 });
 
 // System Configuration
-router.get('/system/config', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/system/config', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const config = await storage.getSystemConfig();
     res.json(config);
@@ -308,7 +305,7 @@ router.get('/system/config', requireAuth, requireAdmin, async (req: Authenticate
   }
 });
 
-router.put('/system/config', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.put('/system/config', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const config = await storage.updateSystemConfig(req.body);
     
@@ -327,7 +324,7 @@ router.put('/system/config', requireAuth, requireAdmin, async (req: Authenticate
 });
 
 // Audit Logs
-router.get('/audit-logs', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/audit-logs', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;

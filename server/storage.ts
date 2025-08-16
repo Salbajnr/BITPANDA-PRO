@@ -6,6 +6,7 @@ import {
   balanceAdjustments,
   newsArticles,
   deposits, // Added deposits schema import
+  userPreferences,
   type User,
   type UpsertUser,
   type Portfolio,
@@ -18,6 +19,8 @@ import {
   type InsertBalanceAdjustment,
   type NewsArticle,
   type InsertNewsArticle,
+  type UserPreferences,
+  type InsertUserPreferences,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, gte } from "drizzle-orm";
@@ -83,6 +86,11 @@ export interface IStorage {
   // Audit operations
   logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void>;
   getAuditLogs(params: { page: number, limit: number, action?: string }): Promise<{ logs: any[], total: number }>;
+
+  // User Preferences operations
+  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
+  createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
+  updateUserPreferences(userId: string, updates: Partial<InsertUserPreferences>): Promise<UserPreferences>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -635,6 +643,64 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching audit logs:", error);
       return { logs: [], total: 0 };
+    }
+  }
+
+  // User Preferences operations
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    try {
+      const db = this.ensureDb();
+      const result = await db
+        .select()
+        .from(userPreferences)
+        .where(eq(userPreferences.userId, userId))
+        .limit(1);
+      
+      return result[0];
+    } catch (error) {
+      console.error("Error fetching user preferences:", error);
+      return undefined;
+    }
+  }
+
+  async createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences> {
+    try {
+      const db = this.ensureDb();
+      const result = await db
+        .insert(userPreferences)
+        .values(preferences)
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error("Error creating user preferences:", error);
+      throw error;
+    }
+  }
+
+  async updateUserPreferences(userId: string, updates: Partial<InsertUserPreferences>): Promise<UserPreferences> {
+    try {
+      const db = this.ensureDb();
+      
+      // Check if preferences exist
+      const existing = await this.getUserPreferences(userId);
+      
+      if (!existing) {
+        // Create new preferences with updates
+        return await this.createUserPreferences({ userId, ...updates } as InsertUserPreferences);
+      }
+      
+      // Update existing preferences
+      const result = await db
+        .update(userPreferences)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(userPreferences.userId, userId))
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error("Error updating user preferences:", error);
+      throw error;
     }
   }
 }
