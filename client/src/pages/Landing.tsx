@@ -8,12 +8,19 @@ import {
   Smartphone, Globe, Lock, Bell, Menu, X, ArrowRight, Quote,
   PlayCircle, Briefcase, CreditCard, Wallet, Target, Layers,
   Building2, UserCheck, CreditCard as CardIcon, TrendingDown,
-  Coins, Coins as ChartPie, Banknote, Gem, ChartColumn
+  Coins, Coins as ChartPie, Banknote, Gem, ChartColumn, Rocket,
+  Bitcoin, University, RefreshCw, BalanceScale, ClipboardCheck,
+  Vault, UserSecret, Settings, FileText, Robot, Newspaper
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@/assets/logo.jpeg";
 import { getCryptoLogo, BitcoinLogo, EthereumLogo, SolanaLogo, AvalancheLogo, CardanoLogo, PolkadotLogo } from "@/components/CryptoLogos";
+import { AnimatedChart } from "@/components/AnimatedChart";
+import { NewsTicker } from "@/components/NewsTicker";
+import { FeatureCard } from "@/components/FeatureCard";
+import { StepIndicator } from "@/components/StepIndicator";
+import { FloatingParticles } from "@/components/FloatingParticles";
 
 interface MarketData {
   symbol: string;

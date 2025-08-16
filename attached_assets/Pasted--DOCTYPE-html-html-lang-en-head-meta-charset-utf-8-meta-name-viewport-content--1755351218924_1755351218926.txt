@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>bitpanda.pro — Unified Crypto & Precious Metals Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0e1116;         /* deep slate */
+      --card: #151a22;       /* slightly lighter for cards */
+      --text: #eaecee;       /* near-white text */
+      --muted: #a7b0bc;      /* muted copy */
+      --accent: #d4af37;     /* single accent (gold) */
+      --accent-hover: #e6c34f;
+      --border: #1f2631;     /* subtle borders */
+      --success: #10b981;    /* success green */
+      --danger: #ef4444;     /* danger red */
+      --chart-up: #00c853;   /* green for positive */
+      --chart-down: #ff1744; /* red for negative */
+    }
+    * { box-sizing: border-box; }
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      background: var(--bg); 
+      color: var(--text); 
+      font: 16px/1.6 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial; 
+      scroll-behavior: smooth;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    .container { max-width: 1200px; margin: auto; padding: 0 24px; }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes glowPulse {
+      0% { opacity: 0.2; }
+      50% { opacity: 0.4; }
+      100% { opacity: 0.2; }
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    @keyframes ticker {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    
+    /* Header */
+    header { 
+      position: sticky; 
+      top: 0; 
+      z-index: 50; 
+      background: rgba(14,17,22,.95); 
+      backdrop-filter: saturate(150%) blur(8px); 
+      border-bottom: 1px solid var(--border);
+      animation: fadeIn 0.8s ease-out;
+    }
+    .nav { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 16px 0; 
+    }
+    .brand { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      font-weight: 700; 
+      letter-spacing: .6px; 
+      font-size: 18px; 
+      animation: fadeIn 0.6s 0.2s backwards;
+    }
+    .logo { 
+      width: 24px; 
+      height: 24px; 
+      border: 2px solid var(--accent); 
+      border-radius: 6px; 
+      display: inline-block; 
+      transform: rotate(45deg);
+      animation: float 4s ease-in-out infinite;
+    }
+    .menu { 
+      display: flex; 
+      gap: 24px; 
+      align-items: center; 
+      animation: fadeIn 0.6s 0.4s backwards;
+    }
+    .menu a { 
+      font-weight: 500; 
+      transition: color .2s; 
+      position: relative;
+    }
+    .menu a:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .menu a:hover:after {
+      width: 100%;
+    }
+    .menu a:hover { color: var(--accent); }
+    .btn { 
+      display: inline-flex; 
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px; 
+      border: 1px solid var(--accent); 
+      color: var(--text); 
+      border-radius: 8px; 
+      font-weight: 600; 
+      transition: .2s; 
+      cursor: pointer;
+    }
+    .btn:hover { 
+      background: var(--accent); 
+      color: #0b0d12; 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(212, 175, 55, 0.2);
+    }
+    .btn--ghost { 
+      border-color: #394250; 
+      color: var(--text); 
+    }
+    .btn--ghost:hover { 
+      background: #1a202a; 
+      box-shadow: 0 6px 12px rgba(57, 66, 80, 0.2);
+    }
+    
+    /* Mobile Menu */
+    .hamburger { 
+      display: none; 
+      cursor: pointer; 
+      animation: fadeIn 0.6s 0.6s backwards;
+    }
+    .hamburger div { 
+      width: 24px; 
+      height: 2px; 
+      background: var(--text); 
+      margin: 5px 0; 
+      transition: .3s; 
+    }
+    .menu.open { 
+      display: flex; 
+      flex-direction: column; 
+      position: absolute; 
+      top: 100%; 
+      left: 0; 
+      right: 0; 
+      background: var(--bg); 
+      padding: 16px; 
+      border-bottom: 1px solid var(--border); 
+      animation: fadeIn 0.4s ease;
+    }
+    
+    /* Hero */
+    .hero { 
+      padding: 96px 0 72px; 
+      border-bottom: 1px solid var(--border); 
+      position: relative; 
+      overflow: hidden; 
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      animation: fadeIn 0.8s 0.3s backwards;
+    }
+    .hero h1 { 
+      font-size: 52px; 
+      line-height: 1.1; 
+      margin: 0 0 20px; 
+      font-weight: 700; 
+      max-width: 800px;
+    }
+    .hero p { 
+      max-width: 720px; 
+      color: var(--muted); 
+      margin: 0 0 32px; 
+      font-size: 18px; 
+      font-weight: 300;
+    }
+    .cta { 
+      display: flex; 
+      gap: 16px; 
+      flex-wrap: wrap; 
+    }
+    .glow { 
+      position: absolute; 
+      inset: -40%; 
+      background: radial-gradient(60% 60% at 30% 20%, rgba(212,175,55,.15), transparent 60%); 
+      animation: glowPulse 6s infinite ease-in-out;
+    }
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(212, 175, 55, 0.2);
+      animation: float 6s infinite ease-in-out;
+    }
+    
+    /* Badges */
+    .badges { 
+      display: flex; 
+      gap: 24px; 
+      flex-wrap: wrap; 
+      margin-top: 28px; 
+    }
+    .badge { 
+      padding: 8px 16px; 
+      background: #131820; 
+      border: 1px solid #232b36; 
+      border-radius: 999px; 
+      font-size: 14px; 
+      color: var(--muted); 
+      transition: transform 0.3s, background 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge:hover {
+      transform: translateY(-3px);
+      background: #1a202a;
+    }
+    .badge i {
+      color: var(--accent);
+      font-size: 16px;
+    }
+    .badge strong { 
+      color: var(--text); 
+      font-weight: 600;
+    }
+    
+    /* Sections */
+    section { 
+      padding: 96px 0; 
+      border-bottom: 1px solid var(--border); 
+    }
+    h2 { 
+      font-size: 36px; 
+      font-weight: 700; 
+      margin: 0 0 24px; 
+      position: relative;
+      display: inline-block;
+    }
+    h2:after {
+      content: '';
+      position: absolute;
+      width: 60%;
+      height: 3px;
+      background: var(--accent);
+      bottom: -8px;
+      left: 0;
+      border-radius: 3px;
+    }
+    .grid { display: grid; gap: 24px; }
+    .cards { 
+      display: grid; 
+      grid-template-columns: repeat(3, 1fr); 
+      gap: 32px; 
+    }
+    .card { 
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      padding: 28px; 
+      transition: transform .3s, box-shadow .3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s ease;
+    }
+    .card:hover:before {
+      transform: scaleX(1);
+    }
+    .card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+    }
+    .card h3 { 
+      margin: 0 0 16px; 
+      font-size: 20px; 
+      font-weight: 600; 
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .muted { 
+      color: var(--muted); 
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    
+    /* Icons in cards */
+    .icon { 
+      width: 48px; 
+      height: 48px; 
+      margin-bottom: 16px; 
+      fill: var(--accent); 
+      background: rgba(212, 175, 55, 0.1);
+      padding: 12px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* How it works */
+    .steps { 
+      display: grid; 
+      grid-template-columns: repeat(5, 1fr); 
+      gap: 20px; 
+    }
+    .step { 
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      padding: 24px; 
+      position: relative;
+      overflow: hidden;
+    }
+    .step:after {
+      content: '→';
+      position: absolute;
+      right: -20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .step:last-child:after {
+      display: none;
+    }
+    .step .num { 
+      display: inline-flex; 
+      align-items: center;
+      justify-content: center;
+      min-width: 40px; 
+      height: 40px; 
+      border: 1px solid var(--accent); 
+      border-radius: 50%; 
+      text-align: center; 
+      line-height: 1;
+      margin-bottom: 16px; 
+      font-weight: 700; 
+      font-size: 18px;
+      background: rgba(212, 175, 55, 0.1);
+    }
+    
+    /* Trust */
+    .list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    
+    /* Footer */
+    footer { 
+      padding: 48px 0 32px; 
+      color: var(--muted); 
+      background: #0a0c10;
+    }
+    .footer-content { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      flex-wrap: wrap; 
+      gap: 40px; 
+    }
+    .footer-links { 
+      display: flex; 
+      flex-direction: column;
+      gap: 12px; 
+    }
+    .footer-links a { 
+      color: var(--muted); 
+      font-size: 14px; 
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { 
+      color: var(--text); 
+    }
+    .fine { 
+      font-size: 14px; 
+      margin-top: 32px;
+      text-align: center;
+      width: 100%;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .footer-brand {
+      flex: 1;
+      max-width: 300px;
+    }
+    .footer-brand .logo {
+      width: 36px;
+      height: 36px;
+      margin-bottom: 16px;
+    }
+    .social-links {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .social-links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #1a202a;
+      color: var(--muted);
+      transition: all 0.3s;
+    }
+    .social-links a:hover {
+      background: var(--accent);
+      color: #0b0d12;
+      transform: translateY(-3px);
+    }
+    
+    /* Charts */
+    .chart-container {
+      height: 200px;
+      width: 100%;
+      margin-top: 16px;
+      position: relative;
+    }
+    .chart {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Deposit methods */
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 32px;
+    }
+    
+    /* News ticker */
+    .news-ticker {
+      background: #131820;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      padding: 12px 0;
+      margin: 48px 0;
+    }
+    .ticker-container {
+      display: flex;
+      white-space: nowrap;
+      animation: ticker 40s linear infinite;
+    }
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .ticker-item i {
+      color: var(--accent);
+      margin-right: 10px;
+    }
+    .ticker-item .price {
+      margin-left: 8px;
+      color: var(--success);
+      font-weight: 500;
+    }
+    .ticker-item .down {
+      color: var(--danger);
+    }
+    
+    /* Portfolio value */
+    .portfolio-value {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-family: ui-monospace, Menlo, Consolas;
+    }
+    .portfolio-change {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--success);
+      font-weight: 500;
+    }
+    .portfolio-change.down {
+      color: var(--danger);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .cards, .steps, .list, .method-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero h1 { font-size: 42px; }
+      .step:after {
+        display: none;
+      }
+    }
+    @media (max-width: 768px) {
+      .menu { display: none; }
+      .hamburger { display: block; }
+      .menu.open { display: flex; }
+      .cards, .steps, .list, .method-grid { grid-template-columns: 1fr; }
+      .hero { padding: 72px 0 56px; }
+      .hero h1 { font-size: 36px; }
+      .hero p { font-size: 16px; }
+      .footer-content {
+        flex-direction: column;
+        gap: 32px;
+      }
+    }
+    
+    /* Tiny utility */
+    .sep { 
+      height: 1px; 
+      background: var(--border); 
+      margin: 16px 0 24px; 
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .refresh-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    .refresh-btn:hover {
+      background: #1a202a;
+      color: var(--text);
+    }
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <span>bitpanda.pro</span>
+    </div>
+    <nav class="menu" id="menu">
+      <a href="#features">Features</a>
+      <a href="#markets">Markets</a>
+      <a href="#how">How It Works</a>
+      <a href="#deposit">Deposit Methods</a>
+      <a href="#trust">Security & Trust</a>
+      <a href="#start" class="btn">Create Account</a>
+    </nav>
+    <div class="hamburger" id="hamburger">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="glow"></div>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+      <div class="hero-content">
+        <h1>Fast-Track Your Investments in Crypto & Precious Metals</h1>
+        <p>
+          <strong>bitpanda.pro</strong> seamlessly combines cryptocurrency trading with physical gold, silver, and other metals. Enjoy real-time pricing, secure storage options, automated savings plans, and a professional dashboard for all your assets.
+        </p>
+        <div class="cta">
+          <a href="#start" class="btn"><i class="fas fa-rocket"></i>Get Started Today</a>
+          <a href="#markets" class="btn btn--ghost"><i class="fas fa-chart-line"></i>View Live Markets</a>
+        </div>
+        <div class="badges">
+          <span class="badge"><i class="fas fa-layer-group"></i><strong>Unified Platform</strong> · Crypto + Metals</span>
+          <span class="badge"><i class="fas fa-bolt"></i><strong>Real-Time</strong> Data & Insights</span>
+          <span class="badge"><i class="fas fa-shield-alt"></i><strong>Secure & Verified</strong> Transactions</span>
+          <span class="badge"><i class="fas fa-certificate"></i><strong>Regulated</strong> Compliance</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Everything You Need in One Secure Platform</h2>
+        <button class="refresh-btn" id="refreshFeatures">
+          <i class="fas fa-sync"></i> Refresh
+        </button>
+      </div>
+      <div class="sep"></div>
+      <div class="cards">
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-wallet fa-2x"></i>
+          </div>
+          <h3>Unified Wallets & Portfolios</h3>
+          <p class="muted">Manage cryptocurrencies and precious metals in one place. Track balances, allocations, and performance with intuitive tools.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-chart-line fa-2x"></i>
+          </div>
+          <h3>Live Market Insights</h3>
+          <p class="muted">Access streaming prices for BTC, ETH, Gold (XAU), Silver (XAG), and more. Low-latency updates for informed decisions.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-shield-alt fa-2x"></i>
+          </div>
+          <h3>Secure & Verified Deposits</h3>
+          <p class="muted">Deposit via top exchanges like Binance, Bybit, or Crypto.com. Upload proof for quick admin verification.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-robot fa-2x"></i>
+          </div>
+          <h3>Automated Savings Plans</h3>
+          <p class="muted">Set up recurring DCA for crypto or metals. Flexible, with options to pause, resume, or adjust.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-newspaper fa-2x"></i>
+          </div>
+          <h3>Knowledge & News Hub</h3>
+          <p class="muted">Stay informed with curated news, market analyses, and guides on crypto and precious metals investing.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-user-cog fa-2x"></i>
+          </div>
+          <h3>Admin Oversight & Compliance</h3>
+          <p class="muted">Robust admin tools for balance management, deposit approvals, audits, and regulatory compliance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="markets">
+    <div class="container">
+      <div class="section-header">
+        <h2>Markets at a Glance</h2>
+        <button class="refresh-btn" id="refreshMarkets">
+          <i class="fas fa-sync"></i> Refresh Data
+        </button>
+      </div>
+      <div class="sep"></div>
+      <div class="cards">
+        <div class="card fade-in">
+          <h3><i class="fab fa-bitcoin"></i> Top Cryptocurrencies</h3>
+          <p class="muted">Monitor BTC, ETH, SOL, USDT with real-time depth, spreads, and performance metrics.</p>
+          <div class="chart-container">
+            <canvas id="cryptoChart" class="chart"></canvas>
+          </div>
+          <div id="cryptoTickers" class="muted" style="font-family: ui-monospace, Menlo, Consolas; white-space: pre; font-size: 14px; margin-top: 16px;"></div>
+        </div>
+        <div class="card fade-in">
+          <h3><i class="fas fa-gem"></i> Precious Metals</h3>
+          <p class="muted">Track Gold (XAU), Silver (XAG), Platinum (XPT), Palladium (XPD) prices and daily changes.</p>
+          <div class="chart-container">
+            <canvas id="metalsChart" class="chart"></canvas>
+          </div>
+          <div id="metalTickers" class="muted" style="font-family: ui-monospace, Menlo, Consolas; white-space: pre; font-size: 14px; margin-top: 16px;"></div>
+        </div>
+        <div class="card fade-in">
+          <h3><i class="fas fa-chart-pie"></i> Portfolio Overview</h3>
+          <p class="muted">View your total asset value, diversification, and daily profit/loss after signing in.</p>
+          <div class="portfolio-value">$42,568.92</div>
+          <div class="portfolio-change">
+            <i class="fas fa-caret-up"></i> +$1,284.35 (3.11%) Today
+          </div>
+          <div class="chart-container">
+            <canvas id="portfolioChart" class="chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="container">
+      <h2>How It Works</h2>
+      <div class="sep"></div>
+      <div class="steps">
+        <div class="step fade-in">
+          <span class="num">1</span>
+          <div><strong>Sign Up & Verify</strong><br><span class="muted">Create an account and complete quick identity verification.</span></div>
+        </div>
+        <div class="step fade-in">
+          <span class="num">2</span>
+          <div><strong>Select Assets</strong><br><span class="muted">Choose from crypto or precious metals like gold and silver.</span></div>
+        </div>
+        <div class="step fade-in">
+          <span class="num">3</span>
+          <div><strong>Deposit Funds</strong><br><span class="muted">Send via your preferred method and upload transaction proof.</span></div>
+        </div>
+        <div class="step fade-in">
+          <span class="num">4</span>
+          <div><strong>Get Verified</strong><br><span class="muted">Our team reviews and credits your balance securely.</span></div>
+        </div>
+        <div class="step fade-in">
+          <span class="num">5</span>
+          <div><strong>Trade & Invest</strong><br><span class="muted">Buy, sell, save, and monitor your portfolio 24/7.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="deposit">
+    <div class="container">
+      <h2>Deposit Methods</h2>
+      <div class="sep"></div>
+      <p>Fund your account using any of these trusted methods.</p>
+      <div class="method-grid">
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-university fa-2x"></i>
+          </div>
+          <h3>Bank Transfer (SEPA)</h3>
+          <p class="muted">Secure EUR deposits directly from your bank account. SEPA transfers typically complete within 1 business day.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fab fa-bitcoin fa-2x"></i>
+          </div>
+          <h3>Crypto Wallet</h3>
+          <p class="muted">Deposit directly from your external crypto wallet. Supports BTC, ETH, USDT and 50+ other coins.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-credit-card fa-2x"></i>
+          </div>
+          <h3>Credit/Debit Card</h3>
+          <p class="muted">Instant deposits with Visa or Mastercard. Low 1.5% fee with immediate account funding.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-exchange-alt fa-2x"></i>
+          </div>
+          <h3>Exchange Transfer</h3>
+          <p class="muted">Transfer from Binance, Bybit, or Crypto.com. Upload proof for fast admin verification.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="news-ticker">
+    <div class="ticker-container">
+      <div class="ticker-item"><i class="fab fa-bitcoin"></i> BTC: $62,430 <span class="price">+0.84%</span></div>
+      <div class="ticker-item"><i class="fas fa-coins"></i> ETH: $3,124 <span class="price">-0.12%</span></div>
+      <div class="ticker-item"><i class="fas fa-gem"></i> XAU: $2,386/oz <span class="price">+0.21%</span></div>
+      <div class="ticker-item"><i class="fas fa-bolt"></i> SOL: $146 <span class="price">+1.05%</span></div>
+      <div class="ticker-item"><i class="fas fa-coins"></i> XAG: $28.41/oz <span class="price down">-0.44%</span></div>
+      <div class="ticker-item"><i class="fab fa-bitcoin"></i> ADA: $0.48 <span class="price">+0.32%</span></div>
+      <div class="ticker-item"><i class="fas fa-gem"></i> XPT: $1,007 <span class="price">+0.10%</span></div>
+      <div class="ticker-item"><i class="fas fa-bolt"></i> DOT: $6.92 <span class="price down">-0.18%</span></div>
+    </div>
+  </div>
+
+  <section id="trust">
+    <div class="container">
+      <h2>Built on Security & Trust</h2>
+      <div class="sep"></div>
+      <div class="list">
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-balance-scale fa-2x"></i>
+          </div>
+          <h3>Regulatory Compliance</h3>
+          <p class="muted">Fully compliant with European standards for data, IT, and anti-money laundering.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-lock fa-2x"></i>
+          </div>
+          <h3>Advanced Encryption</h3>
+          <p class="muted">TLS encryption, hashed credentials, and role-based access controls.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-clipboard-check fa-2x"></i>
+          </div>
+          <h3>Comprehensive Audits</h3>
+          <p class="muted">Detailed logs for every action, ensuring transparency and accountability.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-vault fa-2x"></i>
+          </div>
+          <h3>Secure Storage</h3>
+          <p class="muted">Physical metals in insured vaults; crypto in cold wallets.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-user-secret fa-2x"></i>
+          </div>
+          <h3>Anonymous Options</h3>
+          <p class="muted">Limited anonymous purchases compliant with regulations.</p>
+        </div>
+        <div class="card fade-in">
+          <div class="icon">
+            <i class="fas fa-users fa-2x"></i>
+          </div>
+          <h3>Trusted by Millions</h3>
+          <p class="muted">Join a growing community with excellent user reviews.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="container">
+      <h2>Ready to Invest?</h2>
+      <div class="sep"></div>
+      <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 24px;">
+        <div class="card fade-in">
+          <h3><i class="fas fa-user-plus"></i> Create Your Account</h3>
+          <p class="muted">Sign up in minutes to access markets, deposits, and personalized tools.</p>
+          <a href="/auth/user/register" class="btn">Create Account</a>
+        </div>
+        <div class="card fade-in">
+          <h3><i class="fas fa-sign-in-alt"></i> Existing User?</h3>
+          <p class="muted">Log in to your dashboard and manage your investments seamlessly.</p>
+          <a href="/auth/user/login" class="btn btn--ghost">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container footer-content">
+    <div class="footer-brand">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <span>bitpanda.pro</span>
+      </div>
+      <p class="muted" style="margin-top: 16px;">The premier platform for unified cryptocurrency and precious metals trading. Secure, regulated, and trusted by investors worldwide.</p>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+    
+    <div class="footer-links">
+      <h3 style="color: var(--text); margin-bottom: 12px;">Products</h3>
+      <a href="#">Cryptocurrencies</a>
+      <a href="#">Precious Metals</a>
+      <a href="#">Trading Platform</a>
+      <a href="#">Savings Plans</a>
+      <a href="#">Crypto Wallet</a>
+    </div>
+    
+    <div class="footer-links">
+      <h3 style="color: var(--text); margin-bottom: 12px;">Company</h3>
+      <a href="#">About Us</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+      <a href="#">Blog</a>
+      <a href="#">Affiliates</a>
+    </div>
+    
+    <div class="footer-links">
+      <h3 style="color: var(--text); margin-bottom: 12px;">Support</h3>
+      <a href="#">Help Center</a>
+      <a href="#">Contact Support</a>
+      <a href="#">System Status</a>
+      <a href="#">Fees</a>
+      <a href="#">Legal</a>
+    </div>
+    
+    <div class="fine">© 2025 bitpanda.pro · All Rights Reserved. bitpanda.pro is a registered trademark. Cryptocurrency and precious metals trading involves substantial risk of loss and is not suitable for every investor.</div>
+  </div>
+</footer>
+
+<script>
+  // Mobile menu toggle
+  const hamburger = document.getElementById('hamburger');
+  const menu = document.getElementById('menu');
+  hamburger.addEventListener('click', () => {
+    menu.classList.toggle('open');
+    hamburger.querySelectorAll('div').forEach((line, i) => {
+      line.style.transform = menu.classList.contains('open') ? (i === 0 ? 'rotate(45deg) translate(5px, 5px)' : i === 1 ? 'opacity(0)' : 'rotate(-45deg) translate(6px, -6px)') : 'none';
+    });
+  });
+
+  // Smooth scrolling for anchors
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      if (window.innerWidth < 768) menu.classList.remove('open'); // Close mobile menu
+    });
+  });
+
+  // Create particles for hero background
+  const particlesContainer = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const particle = document.createElement('div');
+    particle.classList.add('particle');
+    particle.style.width = `${Math.random() * 10 + 2}px`;
+    particle.style.height = particle.style.width;
+    particle.style.left = `${Math.random() * 100}%`;
+    particle.style.top = `${Math.random() * 100}%`;
+    particle.style.animationDelay = `${Math.random() * 5}s`;
+    particle.style.opacity = Math.random() * 0.5 + 0.1;
+    particlesContainer.appendChild(particle);
+  }
+
+  // Create animated charts
+  function createChart(canvasId, type, data, options = {}) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    
+    // Create gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, type === 'line' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(16, 185, 129, 0.3)');
+    gradient.addColorStop(1, 'rgba(14, 17, 22, 0)');
+    
+    // Chart data
+    const chartData = {
+      labels: data.labels,
+      datasets: [{
+        label: data.label,
+        data: data.values,
+        borderColor: type === 'line' ? '#d4af37' : '#10b981',
+        backgroundColor: gradient,
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: true
+      }]
+    };
+    
+    // Chart options
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          display: false
+        },
+        y: {
+          display: false
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          enabled: false
+        }
+      },
+      animation: {
+        duration: 2000,
+        easing: 'easeOutQuart'
+      },
+      ...options
+    };
+    
+    // Create chart
+    return new Chart(ctx, {
+      type: type,
+      data: chartData,
+      options: chartOptions
+    });
+  }
+
+  // Crypto chart data
+  const cryptoData = {
+    labels: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    values: [62000, 62200, 62500, 62300, 62100, 61900, 61700, 61800, 62000, 62300, 62500, 62700, 62600, 62400, 62300, 62500, 62700, 62900, 63100, 63000],
+    label: 'Bitcoin'
+  };
+
+  // Metals chart data
+  const metalsData = {
+    labels: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    values: [2380, 2385, 2382, 2386, 2389, 2392, 2395, 2398, 2396, 2393, 2390, 2387, 2384, 2382, 2385, 2388, 2391, 2394, 2396, 2393],
+    label: 'Gold'
+  };
+
+  // Portfolio chart data
+  const portfolioData = {
+    labels: ['Bitcoin', 'Ethereum', 'Gold', 'Silver', 'Stablecoins'],
+    values: [35, 25, 20, 10, 10],
+    label: 'Portfolio Allocation'
+  };
+
+  // Create charts
+  const cryptoChart = createChart('cryptoChart', 'line', cryptoData);
+  const metalsChart = createChart('metalsChart', 'line', metalsData);
+  const portfolioChart = createChart('portfolioChart', 'doughnut', portfolioData, {
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#a7b0bc',
+          font: {
+            size: 11
+          }
+        }
+      }
+    },
+    cutout: '70%'
+  });
+
+  // Ticker data
+  function updateTickers() {
+    const crypto = [
+      { s: 'BTC', p: (Math.random() * 1000 + 62000).toFixed(2), d: (Math.random() > 0.5 ? '+' : '') + (Math.random() * 0.5).toFixed(2) + '%' },
+      { s: 'ETH', p: (Math.random() * 100 + 3100).toFixed(2), d: (Math.random() > 0.5 ? '+' : '') + (Math.random() * 0.3).toFixed(2) + '%' },
+      { s: 'SOL', p: (Math.random() * 5 + 145).toFixed(2), d: (Math.random() > 0.5 ? '+' : '') + (Math.random() * 0.8).toFixed(2) + '%' }
+    ];
+    
+    const metals = [
+      { s: 'XAU', p: (Math.random() * 10 + 2380).toFixed(2), d: (Math.random() > 0.5 ? '+' : '') + (Math.random() * 0.3).toFixed(2) + '%' },
+      { s: 'XAG', p: (Math.random() * 0.5 + 28.1).toFixed(2), d: (Math.random() > 0.5 ? '+' : '') + (Math.random() * 0.4).toFixed(2) + '%' },
+      { s: 'XPT', p: (Math.random() * 10 + 1000).toFixed(2), d: (Math.random() > 0.5 ? '+' : '') + (Math.random() * 0.3).toFixed(2) + '%' }
+    ];
+    
+    const fmt = arr => arr.map(x => `${x.s.padEnd(4)} $${String(x.p).padStart(8)}  ${x.d}`).join('\n');
+    document.getElementById('cryptoTickers').textContent = fmt(crypto);
+    document.getElementById('metalTickers').textContent = fmt(metals);
+    
+    // Update portfolio value
+    const portfolioValue = (Math.random() * 2000 + 41500).toFixed(2);
+    const portfolioChange = (Math.random() * 2).toFixed(2);
+    const changeElement = document.querySelector('.portfolio-value');
+    const changeText = document.querySelector('.portfolio-change');
+    
+    changeElement.textContent = `$${portfolioValue}`;
+    changeText.innerHTML = `<i class="fas ${portfolioChange > 0 ? 'fa-caret-up' : 'fa-caret-down'}"></i> ${portfolioChange > 0 ? '+' : ''}${portfolioChange}% Today`;
+    changeText.className = portfolioChange > 0 ? 'portfolio-change' : 'portfolio-change down';
+  }
+
+  // Initialize tickers
+  updateTickers();
+  
+  // Update tickers every 10 seconds
+  setInterval(updateTickers, 10000);
+
+  // Refresh buttons
+  document.getElementById('refreshFeatures').addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-sync spinner"></i> Refreshing...';
+    setTimeout(() => {
+      this.innerHTML = '<i class="fas fa-sync"></i> Refresh';
+    }, 1500);
+  });
+  
+  document.getElementById('refreshMarkets').addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-sync spinner"></i> Refreshing...';
+    setTimeout(() => {
+      this.innerHTML = '<i class="fas fa-sync"></i> Refresh Data';
+      updateTickers();
+      cryptoChart.update();
+      metalsChart.update();
+      portfolioChart.update();
+    }, 1500);
+  });
+
+  // Scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.1
+  });
+  
+  document.querySelectorAll('.fade-in').forEach(element => {
+    observer.observe(element);
+  });
+</script>
+</body>
+</html>

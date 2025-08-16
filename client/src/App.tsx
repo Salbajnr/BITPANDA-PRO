@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Landing from "@/pages/Landing";
+import EnhancedLanding from "@/pages/EnhancedLanding";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import Features from "@/pages/Features";
@@ -54,7 +55,8 @@ function AppContent() {
 
   return (
     <Switch>
-      <Route path="/" component={() => user ? <Redirect to="/dashboard" /> : <Landing />} />
+      <Route path="/" component={() => user ? <Redirect to="/dashboard" /> : <EnhancedLanding />} />
+      <Route path="/classic" component={() => user ? <Redirect to="/dashboard" /> : <Landing />} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       <Route path="/features" component={Features} />
