@@ -5,8 +5,8 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Try Render database first, fallback to Replit if Render is not accessible
-const databaseUrl = process.env.RENDER_DATABASE_URL || process.env.DATABASE_URL;
+// Use ONLY Render database as requested by user
+const databaseUrl = process.env.RENDER_DATABASE_URL;
 
 if (!databaseUrl) {
   console.error("⚠️  No database URL found. Please set RENDER_DATABASE_URL or DATABASE_URL.");
@@ -14,7 +14,7 @@ if (!databaseUrl) {
 }
 
 console.log("🔌 Attempting to connect to database...");
-console.log(databaseUrl ? `📍 Using database: ${databaseUrl.includes('render') ? 'Render PostgreSQL' : 'Replit PostgreSQL'}` : "❌ No database configured");
+console.log(databaseUrl ? '📍 Using database: Render PostgreSQL (user requested)' : '❌ RENDER_DATABASE_URL not configured');
 
 console.log("🔌 Attempting to connect to database...");
 
