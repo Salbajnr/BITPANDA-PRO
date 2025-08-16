@@ -268,7 +268,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Portfolio not found" });
       }
 
-      const tradeData = { ...insertTransactionSchema.parse(req.body), userId: req.user!.id };
+      const { type, symbol, amount, price, total } = req.body;
+      const tradeData = {
+        userId: req.user!.id,
+        type,
+        symbol,
+        amount,
+        price,
+        total,
+        status: 'completed'
+      };
 
       const transaction = await storage.createTransaction(tradeData);
 
