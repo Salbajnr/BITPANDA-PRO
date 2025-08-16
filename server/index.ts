@@ -61,60 +61,61 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    // Rethrow the error to ensure it's logged by the next error handler if any, or terminates the process if unhandled.
-    // However, since we are already sending a response, we might not want to terminate the process here.
-    // For now, we'll just log it and send the response.
-    console.error(`Error occurred: ${err.stack || err}`);
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // ALIGNs the API with the portfolio routes
-  app.use('/api', portfolioRoutes);
-  
-  // Crypto routes for real-time price data
-  app.use('/api/crypto', cryptoRoutes);
-
-  // Seed database with initial data
   try {
-    await seedDatabase();
-  } catch (error) {
-    console.warn('⚠️  Database seeding failed (this is normal if already seeded):', error.message);
-  }
+    const server = await registerRoutes(app);
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000");
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-  // Handle server startup errors
-  server.on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`❌ Port ${port} is already in use. Trying to kill existing processes...`);
-      process.exit(1);
+      res.status(status).json({ message });
+      // Rethrow the error to ensure it's logged by the next error handler if any, or terminates the process if unhandled.
+      // However, since we are already sending a response, we might not want to terminate the process here.
+      // For now, we'll just log it and send the response.
+      console.error(`Error occurred: ${err.stack || err}`);
+    });
+
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
     } else {
-      console.error('❌ Server error:', err);
-      process.exit(1);
+      serveStatic(app);
     }
-  });
 
-  server.listen(port, "0.0.0.0", () => {
-    console.log(`
+    // ALIGNs the API with the portfolio routes
+    app.use('/api', portfolioRoutes);
+
+    // Crypto routes for real-time price data
+    app.use('/api/crypto', cryptoRoutes);
+
+    // Seed database with initial data
+    try {
+      await seedDatabase();
+    } catch (error) {
+      console.warn('⚠️  Database seeding failed (this is normal if already seeded):', error.message);
+    }
+
+    // ALWAYS serve the app on the port specified in the environment variable PORT
+    // Other ports are firewalled. Default to 5000 if not specified.
+    // this serves both the API and the client.
+    // It is the only port that is not firewalled.
+    const port = parseInt(process.env.PORT || "5000");
+
+    // Handle server startup errors
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`❌ Port ${port} is already in use. Trying to kill existing processes...`);
+        process.exit(1);
+      } else {
+        console.error('❌ Server error:', err);
+        process.exit(1);
+      }
+    });
+
+    server.listen(port, "0.0.0.0", () => {
+      console.log(`
 🚀 Server running on http://0.0.0.0:${port}
 📊 Portfolio Analytics: /api/portfolio/analytics
 🔔 Price Alerts: /api/alerts
@@ -124,27 +125,31 @@ app.use((req, res, next) => {
 📡 WebSocket: ws://0.0.0.0:${port}/ws
 `);
 
-    // Initialize WebSocket server
-    webSocketManager.initialize(server);
-  });
-
-  // Gracefully handle existing server shutdown
-  process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully');
-    webSocketManager.shutdown();
-    server.close(() => {
-      console.log('Process terminated');
+      // Initialize WebSocket server
+      webSocketManager.initialize(server);
     });
-  });
 
-  process.on('SIGINT', () => {
-    console.log('SIGINT received, shutting down gracefully');
-    webSocketManager.shutdown();
-    server.close(() => {
-      console.log('Process terminated');
+    // Gracefully handle existing server shutdown
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      webSocketManager.shutdown();
+      server.close(() => {
+        console.log('Process terminated');
+      });
     });
-  });
 
-  // Start price monitoring service
-  priceMonitor.start();
+    process.on('SIGINT', () => {
+      console.log('SIGINT received, shutting down gracefully');
+      webSocketManager.shutdown();
+      server.close(() => {
+        console.log('Process terminated');
+      });
+    });
+
+    // Start price monitoring service
+    priceMonitor.start();
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
 })();

@@ -11,6 +11,7 @@ declare global {
         email: string;
         username: string;
         role: string;
+        isActive: boolean;
       };
     }
   }
@@ -32,12 +33,13 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.session?.userId;
-  if (!userId) {
-    return res.status(401).json({ error: "Authentication required" });
+  const user = (req as any).user;
+  if (!user) {
+    return res.status(401).json({ message: "Authentication required" });
   }
-  // Set req.user for compatibility
-  req.user = { id: userId };
+  if (!user.isActive) {
+    return res.status(401).json({ message: "Account is disabled" });
+  }
   next();
 };
 
@@ -59,18 +61,18 @@ export const requireAdmin = async (req: any, res: any, next: any) => {
 };
 
 export const loadUser = async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.session?.userId;
-  if (userId) {
-    try {
-      const user = await storage.getUser(userId);
+  try {
+    if ((req.session as any)?.userId) {
+      const user = await storage.getUser((req.session as any).userId);
       if (user && user.isActive) {
-        req.user = user;
+        (req as any).user = user;
+      } else if (user && !user.isActive) {
+        // Clear session if user is inactive
+        req.session?.destroy(() => {});
       }
-    } catch (error) {
-      console.error("Error loading user:", error);
-      // Clear invalid session
-      req.session?.destroy(() => {});
     }
+  } catch (error) {
+    console.error("Error loading user:", error);
   }
   next();
 };

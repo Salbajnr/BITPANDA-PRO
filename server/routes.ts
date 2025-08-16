@@ -15,8 +15,15 @@ import alertRoutes from './alert-routes';
 import { z } from "zod";
 import { Router } from "express";
 
-// Placeholder for db connection status, assuming storage module might expose this
-const db = storage.isDbConnected(); // Assume storage has a way to check connection status
+// Database connection check
+const checkDbAvailable = () => {
+  try {
+    return storage.isDbConnected();
+  } catch (error) {
+    console.error('Database connection check failed:', error);
+    return false;
+  }
+};
 
 const registerSchema = z.object({
   username: z.string().min(3).max(30),
@@ -32,9 +39,18 @@ const loginSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      database: checkDbAvailable() ? 'connected' : 'disconnected'
+    });
+  });
+
   // Database check middleware
   const checkDbConnection = (req: Request, res: Response, next: NextFunction) => {
-    if (!db) {
+    if (!checkDbAvailable()) {
       return res.status(503).json({
         message: "Database not available. Please check DATABASE_URL configuration."
       });

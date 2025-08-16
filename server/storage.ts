@@ -125,6 +125,14 @@ export class DatabaseStorage implements IStorage {
     return this.db;
   }
 
+  isDbConnected(): boolean {
+    try {
+      return this.db ? true : false;
+    } catch (error) {
+      return false;
+    }
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const db = this.ensureDb();
     const [user] = await db.select().from(users).where(eq(users.id, id));

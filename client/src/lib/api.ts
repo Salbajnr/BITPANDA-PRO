@@ -1,53 +1,75 @@
-export class ApiService {
-  private static baseUrl = '';
+const API_BASE = '/api';
 
-  static async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+class ApiClient {
+  private async request(endpoint: string, options: RequestInit = {}) {
+    const url = `${API_BASE}${endpoint}`;
 
-    const response = await fetch(url, {
-      credentials: 'include',
+    const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      credentials: 'include',
       ...options,
-    });
+    };
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        window.location.href = '/api/login';
-        throw new Error('Unauthorized');
+    try {
+      const response = await fetch(url, config);
+
+      // Handle different response types
+      const contentType = response.headers.get('content-type');
+      let data;
+
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
       }
 
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        const errorMessage = typeof data === 'object' && data.message 
+          ? data.message 
+          : `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
-  static async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get(endpoint: string) {
+    return this.request(endpoint);
   }
 
-  static async post<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
+  async post(endpoint: string, data?: any) {
+    return this.request(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  static async put<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
+  async put(endpoint: string, data?: any) {
+    return this.request(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  static async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+  async patch(endpoint: string, data?: any) {
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async delete(endpoint: string) {
+    return this.request(endpoint, {
+      method: 'DELETE',
+    });
   }
 }
+
+export const api = new ApiClient();
