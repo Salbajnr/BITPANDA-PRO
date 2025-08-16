@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer } from 'ws';
 import { createSessionMiddleware } from "./session";
@@ -12,6 +12,9 @@ import adminRoutes from './admin-routes';
 import { portfolioRoutes } from './portfolio-routes';
 import { z } from "zod";
 import { Router } from "express";
+
+// Placeholder for db connection status, assuming storage module might expose this
+const db = storage.isDbConnected(); // Assume storage has a way to check connection status
 
 const registerSchema = z.object({
   username: z.string().min(3).max(30),
@@ -27,6 +30,16 @@ const loginSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Database check middleware
+  const checkDbConnection = (req: Request, res: Response, next: NextFunction) => {
+    if (!db) {
+      return res.status(503).json({ 
+        message: "Database not available. Please check DATABASE_URL configuration." 
+      });
+    }
+    next();
+  };
+
   // Session middleware
   app.use(createSessionMiddleware());
 
@@ -35,16 +48,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes
   app.use('/api/auth', authRoutes);
-  
+
   // Trading routes
   app.use('/api/trading', tradingRoutes);
-  
+
   // Portfolio routes (enhanced with real-time pricing)
   app.use('/api', portfolioRoutes);
 
   // Auth routes
   // Admin auth routes
-  app.post('/api/auth-admin/login', async (req, res) => {
+  app.post('/api/auth-admin/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
 
@@ -102,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/register', async (req, res) => {
+  app.post('/api/auth/register', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const userData = registerSchema.parse(req.body);
 
@@ -158,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/login', async (req, res) => {
+  app.post('/api/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
 
@@ -508,7 +521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Deposit routes
   app.use('/api/deposits', depositRoutes);
-  
+
   // Admin routes
   app.use('/api/admin', adminRoutes);
 
@@ -527,7 +540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   wss.on('connection', (ws) => {
     console.log('Client connected to WebSocket');
     const clientId = Date.now().toString();
-    
+
     // Send initial connection confirmation
     ws.send(JSON.stringify({
       type: 'connection',
@@ -542,11 +555,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const response = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`
         );
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch prices');
         }
-        
+
         const data = await response.json();
         return data;
       } catch (error) {
@@ -559,16 +572,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
-        
+
         if (message.type === 'subscribe') {
           // Client wants to subscribe to price updates for specific symbols
           console.log('Client subscribed to:', message.symbols);
-          
+
           // Clear existing subscription if any
           if (clientSubscriptions.has(clientId)) {
             clearInterval(clientSubscriptions.get(clientId).interval);
           }
-          
+
           // Send initial real-time prices
           const realPrices = await fetchRealPrices(message.symbols);
           if (realPrices && ws.readyState === ws.OPEN) {
@@ -586,13 +599,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             }
           }
-          
+
           // Start sending periodic price updates (every 10 seconds for real API)
           const interval = setInterval(async () => {
             if (ws.readyState === ws.OPEN) {
               try {
                 const realPrices = await fetchRealPrices(message.symbols);
-                
+
                 if (realPrices) {
                   // Send real prices from API
                   for (const symbol of message.symbols) {
@@ -614,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     const basePrice = symbol === 'bitcoin' ? 45000 : 
                                     symbol === 'ethereum' ? 2500 : 
                                     Math.random() * 1000 + 100;
-                    
+
                     const priceUpdate = {
                       type: 'price_update',
                       symbol: symbol,
@@ -623,7 +636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       volume_24h: Math.random() * 1000000000,
                       timestamp: Date.now()
                     };
-                    
+
                     ws.send(JSON.stringify(priceUpdate));
                   }
                 }
@@ -641,7 +654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Store subscription
           clientSubscriptions.set(clientId, { interval, symbols: message.symbols });
         }
-        
+
         if (message.type === 'unsubscribe') {
           if (clientSubscriptions.has(clientId)) {
             clearInterval(clientSubscriptions.get(clientId).interval);

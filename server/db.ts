@@ -36,5 +36,8 @@ if (pool) {
     })
     .catch(err => {
       console.error("❌ Database connection failed:", err.message);
+      console.error("🔧 Please check your DATABASE_URL and network connection");
     });
+} else {
+  console.warn("⚠️ Running without database connection - some features will be limited");
 }
