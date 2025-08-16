@@ -1,22 +1,26 @@
-
-import bcrypt from 'bcrypt';
 import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
 import { storage } from './storage';
 
-// Extend session data to include userId
+// Extend Express Request to include user info
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        email: string;
+        username: string;
+        role: string;
+      };
+    }
+  }
+}
+
+// Session data extension
 declare module 'express-session' {
   interface SessionData {
     userId?: string;
   }
-}
-
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    username: string;
-    role: string;
-  };
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -27,14 +31,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-export function isAuthenticated(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (!req.session?.userId) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  next();
-}
-
-export async function loadUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function loadUser(req: Request, res: Response, next: NextFunction) {
   if (req.session?.userId) {
     try {
       const user = await storage.getUser(req.session.userId);
@@ -53,14 +50,14 @@ export async function loadUser(req: AuthenticatedRequest, res: Response, next: N
   next();
 }
 
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   next();
 }
 
-export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(401).json({ error: 'Authentication required' });
   }

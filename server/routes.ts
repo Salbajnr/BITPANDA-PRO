@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer } from 'ws';
-import session from "express-session";
+import { createSessionMiddleware } from "./session";
 import { storage } from "./storage";
-import { hashPassword, verifyPassword, isAuthenticated, loadUser, AuthenticatedRequest } from "./auth";
+import { hashPassword, verifyPassword, loadUser, requireAuth, requireAdmin } from "./simple-auth";
 import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema } from "@shared/schema";
 import authRoutes from './auth-routes';
 import depositRoutes from './deposit-routes';
@@ -27,21 +27,12 @@ const loginSchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session middleware
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'crypto-trading-secret-key-change-in-production',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false, // Set to true in production with HTTPS
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  }));
+  app.use(createSessionMiddleware());
 
   // Load user middleware
   app.use(loadUser);
 
-  // Authentication routes (forgot password, OTP, etc.)
+  // Authentication routes
   app.use('/api/auth', authRoutes);
   
   // Trading routes
@@ -225,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get('/api/auth/user', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/auth/user', requireAuth, async (req, res) => {
     try {
       const user = req.user!;
       const fullUser = await storage.getUser(user.id);
@@ -250,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Portfolio routes
-  app.get('/api/portfolio', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/portfolio', requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
       const portfolio = await storage.getPortfolio(userId);
@@ -269,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Trading routes
-  app.post('/api/trade', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/trade', requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
       const portfolio = await storage.getPortfolio(userId);
@@ -277,8 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Portfolio not found" });
       }
 
-      const tradeData = insertTransactionSchema.parse(req.body);
-      tradeData.portfolioId = portfolio.id;
+      const tradeData = { ...insertTransactionSchema.parse(req.body), userId: req.user!.id };
 
       const transaction = await storage.createTransaction(tradeData);
 
@@ -332,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get('/api/admin/users', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/admin/users', requireAdmin, async (req, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
@@ -354,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/simulate-balance', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/admin/simulate-balance', requireAdmin, async (req, res) => {
     try {
       const adminUser = await storage.getUser(req.user!.id);
       if (!adminUser || adminUser.role !== 'admin') {
@@ -405,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/adjustments/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/admin/adjustments/:userId?', requireAdmin, async (req, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
@@ -420,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/news', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/admin/news', requireAdmin, async (req, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
@@ -436,7 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/admin/news/:id', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.delete('/api/admin/news/:id', requireAdmin, async (req, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
@@ -482,7 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }));
 
     // Function to fetch real crypto prices from CoinGecko
-    const fetchRealPrices = async (symbols) => {
+    const fetchRealPrices = async (symbols: string[]) => {
       try {
         const response = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`
