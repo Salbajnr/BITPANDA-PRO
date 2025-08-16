@@ -5,13 +5,12 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Prioritize the working DATABASE_URL, with RENDER_DATABASE_URL as fallback
-const databaseUrl = process.env.DATABASE_URL || process.env.RENDER_DATABASE_URL;
+// Use only the Render database URL
+const databaseUrl = process.env.RENDER_DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error("⚠️  DATABASE_URL is not set. Please create a PostgreSQL database in Replit.");
-  console.error("📋 Instructions: See SETUP_DATABASE.md for step-by-step setup guide.");
-  console.error("🔧 The app will continue but database operations will fail until DATABASE_URL is set.");
+  console.error("⚠️  RENDER_DATABASE_URL is not set. Please provide your Render PostgreSQL connection string.");
+  console.error("🔧 The app will continue but database operations will fail until RENDER_DATABASE_URL is set.");
   // Don't exit in development, let the app start so user can set up database
 }
 
