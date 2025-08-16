@@ -154,31 +154,44 @@ router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: Reques
       ...data,
     });
     
-    const portfolio = await storage.getPortfolio(data.targetUserId);
-    if (portfolio) {
-      let newValue: number;
-      const currentValue = parseFloat(portfolio.totalValue);
-      const adjustmentAmount = parseFloat(data.amount);
-      
-      switch (data.adjustmentType) {
-        case 'add':
-          newValue = currentValue + adjustmentAmount;
-          break;
-        case 'remove':
-          newValue = Math.max(0, currentValue - adjustmentAmount);
-          break;
-        case 'set':
-          newValue = adjustmentAmount;
-          break;
-        default:
-          throw new Error('Invalid adjustment type');
-      }
-      
-      await storage.updatePortfolio(portfolio.id, {
-        totalValue: newValue.toString(),
-        availableCash: data.currency === 'USD' ? newValue.toString() : portfolio.availableCash
+    // Update portfolio balance
+    let portfolio = await storage.getPortfolio(data.targetUserId);
+    if (!portfolio) {
+      // Create portfolio if it doesn't exist
+      portfolio = await storage.createPortfolio({
+        userId: data.targetUserId,
+        totalValue: '0',
+        availableCash: '0'
       });
     }
+
+    let newTotalValue: number;
+    let newAvailableCash: number;
+    const currentTotalValue = parseFloat(portfolio.totalValue);
+    const currentAvailableCash = parseFloat(portfolio.availableCash);
+    const adjustmentAmount = parseFloat(data.amount);
+    
+    switch (data.adjustmentType) {
+      case 'add':
+        newTotalValue = currentTotalValue + adjustmentAmount;
+        newAvailableCash = data.currency === 'USD' ? currentAvailableCash + adjustmentAmount : currentAvailableCash;
+        break;
+      case 'remove':
+        newTotalValue = Math.max(0, currentTotalValue - adjustmentAmount);
+        newAvailableCash = data.currency === 'USD' ? Math.max(0, currentAvailableCash - adjustmentAmount) : currentAvailableCash;
+        break;
+      case 'set':
+        newTotalValue = adjustmentAmount;
+        newAvailableCash = data.currency === 'USD' ? adjustmentAmount : currentAvailableCash;
+        break;
+      default:
+        throw new Error('Invalid adjustment type');
+    }
+    
+    await storage.updatePortfolio(portfolio.id, {
+      totalValue: newTotalValue.toString(),
+      availableCash: newAvailableCash.toString()
+    });
     
     res.json(adjustment);
   } catch (error) {

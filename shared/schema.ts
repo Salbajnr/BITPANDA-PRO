@@ -9,11 +9,13 @@ import {
   text,
   timestamp,
   varchar,
+  numeric, // Import numeric type
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { nanoid } from 'nanoid';
+import { InferInsertModel, InferSelectModel } from 'drizzle-orm'; // Import InferInsertModel and InferSelectModel
 
 // Helper function to generate a unique ID (e.g., for Replit Auth compatibility)
 const generateUniqueId = () => nanoid();
@@ -87,44 +89,25 @@ export const transactions = pgTable('transactions', {
 
 // Deposits
 export const deposits = pgTable('deposits', {
-  id: text('id').primaryKey().$defaultFn(() => nanoid()),
-  userId: text('user_id').references(() => users.id).notNull(),
-  amount: text('amount').notNull(),
-  currency: text('currency').notNull(),
-  paymentMethod: text('payment_method').notNull(), // 'bybit', 'binance', 'crypto.com', 'okx', 'kucoin'
-  network: text('network'),
-  screenshot: text('screenshot'),
-  status: text('status').notNull().default('pending'), // 'pending', 'approved', 'rejected'
-  transactionId: text('transaction_id').notNull(),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
+  currency: text('currency').notNull().default('USD'),
+  status: text('status').notNull().default('pending'), // pending, approved, rejected
   rejectionReason: text('rejection_reason'),
-  approvedBy: text('approved_by').references(() => users.id),
-  approvedAt: timestamp('approved_at'),
-  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
-  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Notifications
-export const notifications = pgTable('notifications', {
-  id: text('id').primaryKey().default(generateUniqueId()),
-  userId: text('user_id').notNull().references(() => users.id),
-  type: text('type').notNull(), // 'price_alert', 'trade_complete', 'system', etc.
-  title: text('title').notNull(),
-  message: text('message').notNull(),
-  data: text('data'), // JSON string for additional data
-  isRead: boolean('is_read').default(false),
-  createdAt: timestamp('created_at').defaultNow(),
-});
-
-// Admin balance adjustments (for simulation)
-export const balanceAdjustments = pgTable("balance_adjustments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  adminId: varchar("admin_id").references(() => users.id).notNull(),
-  targetUserId: varchar("target_user_id").references(() => users.id).notNull(),
-  adjustmentType: varchar("adjustment_type", { length: 20 }).notNull(), // 'add', 'remove', 'set'
-  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
-  currency: varchar("currency", { length: 10 }).notNull(),
-  reason: text("reason"),
-  createdAt: timestamp("created_at").defaultNow(),
+export const balanceAdjustments = pgTable('balance_adjustments', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  adminId: text('admin_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  targetUserId: text('target_user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  adjustmentType: text('adjustment_type').notNull(), // 'add', 'remove', 'set'
+  amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
+  currency: text('currency').notNull().default('USD'),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // News articles
@@ -309,7 +292,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   targetAdjustments: many(balanceAdjustments, {
     relationName: 'targetAdjustments',
   }),
-  deposits: many(deposits),
   transactions: many(transactions),
 }));
 
@@ -331,17 +313,6 @@ export const holdingsRelations = relations(holdings, ({ one }) => ({
 export const transactionsRelations = relations(transactions, ({ one }) => ({
   user: one(users, {
     fields: [transactions.userId],
-    references: [users.id],
-  }),
-}));
-
-export const depositsRelations = relations(deposits, ({ one }) => ({
-  user: one(users, {
-    fields: [deposits.userId],
-    references: [users.id],
-  }),
-  approvedBy: one(users, {
-    fields: [deposits.approvedBy],
     references: [users.id],
   }),
 }));
@@ -389,8 +360,6 @@ export const insertDepositSchema = createInsertSchema(deposits).omit({
   createdAt: true,
   updatedAt: true,
 });
-
-// Removed the duplicate notifications schema definition and kept the updated one above.
 
 export const insertBalanceAdjustmentSchema = createInsertSchema(balanceAdjustments).omit({
   id: true,
@@ -456,10 +425,10 @@ export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Deposit = typeof deposits.$inferSelect;
 export type InsertDeposit = z.infer<typeof insertDepositSchema>;
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type BalanceAdjustment = typeof balanceAdjustments.$inferSelect;
 export type InsertBalanceAdjustment = z.infer<typeof insertBalanceAdjustmentSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NewsArticle = typeof newsArticles.$inferSelect;
 export type InsertNewsArticle = z.infer<typeof insertNewsArticleSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;

@@ -64,7 +64,7 @@ export interface IStorage {
   // Admin operations
   getAllUsers(): Promise<User[]>;
   createBalanceAdjustment(adjustment: InsertBalanceAdjustment): Promise<BalanceAdjustment>;
-  getBalanceAdjustments(userId?: string, page?: number, limit?: number): Promise<{ adjustments: BalanceAdjustment[], total: number }>;
+  getBalanceAdjustments(userId?: string, page?: number, limit?: number): Promise<BalanceAdjustment[]>;
   updatePortfolioBalance(userId: string, amount: number): Promise<void>;
 
   // News operations
@@ -425,7 +425,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBalanceAdjustments(userId?: string, page: number = 1, limit: number = 50): Promise<{ adjustments: BalanceAdjustment[], total: number }> {
+  async getBalanceAdjustments(userId?: string, page: number = 1, limit: number = 50): Promise<BalanceAdjustment[]> {
     try {
       const offset = (page - 1) * limit;
       const db = this.ensureDb();
@@ -440,17 +440,10 @@ export class DatabaseStorage implements IStorage {
         .limit(limit)
         .offset(offset);
 
-      const totalQuery = db.select({ count: sql`count(*)` }).from(balanceAdjustments);
-      if (userId) {
-        totalQuery.where(eq(balanceAdjustments.targetUserId, userId));
-      }
-
-      const [{ count }] = await totalQuery;
-
-      return { adjustments, total: Number(count) };
+      return adjustments;
     } catch (error) {
       console.error("Error fetching balance adjustments:", error);
-      return { adjustments: [], total: 0 };
+      return [];
     }
   }
 

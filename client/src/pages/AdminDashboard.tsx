@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +17,7 @@ import {
   Search, Plus, ArrowUp, ArrowDown, CheckSquare, Trash2,
   Activity, MessageCircle, PieChart, Clock, ChevronLeft, ChevronRight,
   MoreHorizontal, Sun, Moon, Ban, RotateCcw, Eye, Download,
-  AlertTriangle, UserCheck, Lock, Unlock, RefreshCw
+  AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
 
@@ -211,7 +210,7 @@ export default function AdminDashboard() {
 
   const handleBalanceAdjustment = () => {
     if (!selectedUser || !balanceAdjustment.amount) return;
-    
+
     adjustBalanceMutation.mutate({
       targetUserId: selectedUser.id,
       adjustmentType: balanceAdjustment.type,

@@ -1,4 +1,3 @@
-
 export class ApiService {
   private static baseUrl = '';
 
@@ -7,7 +6,7 @@ export class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
       credentials: 'include',
       headers: {
@@ -22,7 +21,7 @@ export class ApiService {
         window.location.href = '/api/login';
         throw new Error('Unauthorized');
       }
-      
+
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }

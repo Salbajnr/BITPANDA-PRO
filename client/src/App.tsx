@@ -183,7 +183,7 @@ function AppContent() {
       <Route path="/terms" component={Terms} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/deposit-history" component={DepositHistory} />
-      
+
       <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route path="/admin/balance" component={AdminBalanceManagement} />
       <Route path="/admin/dashboard" component={AdminDashboard} />

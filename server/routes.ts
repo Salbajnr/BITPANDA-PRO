@@ -35,8 +35,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Database check middleware
   const checkDbConnection = (req: Request, res: Response, next: NextFunction) => {
     if (!db) {
-      return res.status(503).json({ 
-        message: "Database not available. Please check DATABASE_URL configuration." 
+      return res.status(503).json({
+        message: "Database not available. Please check DATABASE_URL configuration."
       });
     }
     next();
@@ -98,16 +98,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ 
-        user: { 
-          id: user.id, 
-          username: user.username, 
-          email: user.email, 
-          firstName: user.firstName, 
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role 
-        }, 
-        portfolio 
+          role: user.role
+        },
+        portfolio
       });
     } catch (error) {
       console.error("Admin login error:", error);
@@ -125,8 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already exists
       const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
       if (existingUser) {
-        return res.status(400).json({ 
-          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken' 
+        return res.status(400).json({
+          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken'
         });
       }
 
@@ -154,16 +154,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       (req.session as any).userId = user.id;
 
-      res.json({ 
-        user: { 
-          id: user.id, 
-          username: user.username, 
-          email: user.email, 
-          firstName: user.firstName, 
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role 
-        }, 
-        portfolio 
+          role: user.role
+        },
+        portfolio
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -207,16 +207,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ 
-        user: { 
-          id: user.id, 
-          username: user.username, 
-          email: user.email, 
-          firstName: user.firstName, 
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role 
-        }, 
-        portfolio 
+          role: user.role
+        },
+        portfolio
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -357,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existing = await storage.getHolding(portfolio.id, tradeData.symbol);
         if (existing) {
           const newAmount = parseFloat(existing.amount) + parseFloat(tradeData.amount);
-          const newAverage = (parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) + 
+          const newAverage = (parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) +
                             parseFloat(tradeData.price) * parseFloat(tradeData.amount)) / newAmount;
 
           await storage.upsertHolding({
@@ -463,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(400).json({ message: "Invalid adjustment type" });
         }
 
-        await storage.updatePortfolio(portfolio.id, { 
+        await storage.updatePortfolio(portfolio.id, {
           totalValue: newValue.toString(),
           availableCash: currency === 'USD' ? newValue.toString() : portfolio.availableCash
         });
@@ -534,9 +534,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Add WebSocket server for real-time updates
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws' 
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws'
   });
 
   // Store client subscriptions and intervals
@@ -630,8 +630,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } else {
                   // Fallback to simulated data if API fails
                   for (const symbol of message.symbols) {
-                    const basePrice = symbol === 'bitcoin' ? 45000 : 
-                                    symbol === 'ethereum' ? 2500 : 
+                    const basePrice = symbol === 'bitcoin' ? 45000 :
+                                    symbol === 'ethereum' ? 2500 :
                                     Math.random() * 1000 + 100;
 
                     const priceUpdate = {
