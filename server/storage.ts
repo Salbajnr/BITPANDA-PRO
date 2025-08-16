@@ -414,10 +414,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createBalanceAdjustment(adjustmentData: InsertBalanceAdjustment): Promise<BalanceAdjustment> {
-    const db = this.ensureDb();
-    const [adjustment] = await db.insert(balanceAdjustments).values(adjustmentData).returning();
-    return adjustment;
+  async createBalanceAdjustment(data: InsertBalanceAdjustment): Promise<BalanceAdjustment> {
+    try {
+      const db = this.ensureDb();
+      const [adjustment] = await db.insert(balanceAdjustments).values(data).returning();
+      return adjustment;
+    } catch (error) {
+      console.error("Error creating balance adjustment:", error);
+      throw new Error("Failed to create balance adjustment");
+    }
   }
 
   async getBalanceAdjustments(userId?: string, page: number = 1, limit: number = 50): Promise<{ adjustments: BalanceAdjustment[], total: number }> {

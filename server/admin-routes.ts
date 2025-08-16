@@ -234,7 +234,29 @@ router.post('/transactions/:transactionId/reverse', requireAuth, requireAdmin, a
 // Platform Analytics
 router.get('/analytics/overview', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
-    const overview = await storage.getAnalyticsOverview();
+    const users = await storage.getAllUsers();
+    const portfolios = await Promise.all(users.map(u => storage.getPortfolio(u.id)));
+    const validPortfolios = portfolios.filter(p => p !== null);
+    
+    const totalPlatformValue = validPortfolios.reduce((sum, p) => sum + parseFloat(p?.totalValue || '0'), 0);
+    const adjustments = await storage.getBalanceAdjustments();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const adjustmentsToday = adjustments.filter(adj => {
+      const adjDate = new Date(adj.createdAt);
+      adjDate.setHours(0, 0, 0, 0);
+      return adjDate.getTime() === today.getTime();
+    });
+
+    const overview = {
+      totalUsers: users.length,
+      activePortfolios: validPortfolios.length,
+      totalPlatformValue: totalPlatformValue.toFixed(2),
+      adjustmentsToday: adjustmentsToday.length,
+      totalAdjustments: adjustments.length,
+    };
+    
     res.json(overview);
   } catch (error) {
     console.error('Analytics overview error:', error);
