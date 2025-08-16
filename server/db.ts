@@ -5,7 +5,10 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
+// Use RENDER_DATABASE_URL if available, otherwise fall back to DATABASE_URL
+const databaseUrl = process.env.RENDER_DATABASE_URL || process.env.DATABASE_URL;
+
+if (!databaseUrl) {
   console.error("⚠️  DATABASE_URL is not set. Please create a PostgreSQL database in Replit.");
   console.error("📋 Instructions: See SETUP_DATABASE.md for step-by-step setup guide.");
   console.error("🔧 The app will continue but database operations will fail until DATABASE_URL is set.");
@@ -14,9 +17,9 @@ if (!process.env.DATABASE_URL) {
 
 console.log("🔌 Attempting to connect to database...");
 
-export const pool = process.env.DATABASE_URL 
+export const pool = databaseUrl 
   ? new Pool({ 
-      connectionString: process.env.DATABASE_URL,
+      connectionString: databaseUrl,
       ssl: {
         rejectUnauthorized: false
       }

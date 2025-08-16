@@ -167,7 +167,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined> {
-    const [holding] = await this.db
+    const db = this.ensureDb();
+    const [holding] = await db
       .select()
       .from(holdings)
       .where(and(eq(holdings.portfolioId, portfolioId), eq(holdings.symbol, symbol)));
@@ -178,25 +179,29 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getHolding(holdingData.portfolioId, holdingData.symbol);
 
     if (existing) {
-      const [holding] = await this.db
+      const db = this.ensureDb();
+      const [holding] = await db
         .update(holdings)
         .set({ ...holdingData, updatedAt: new Date() })
         .where(eq(holdings.id, existing.id))
         .returning();
       return holding;
     } else {
-      const [holding] = await this.db.insert(holdings).values(holdingData).returning();
+      const db = this.ensureDb();
+      const [holding] = await db.insert(holdings).values(holdingData).returning();
       return holding;
     }
   }
 
   async createHolding(holdingData: InsertHolding): Promise<Holding> {
-    const [holding] = await this.db.insert(holdings).values(holdingData).returning();
+    const db = this.ensureDb();
+    const [holding] = await db.insert(holdings).values(holdingData).returning();
     return holding;
   }
 
   async updateHolding(holdingId: string, updates: Partial<InsertHolding>): Promise<void> {
-    await this.db
+    const db = this.ensureDb();
+    await db
       .update(holdings)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(holdings.id, holdingId));
@@ -205,20 +210,22 @@ export class DatabaseStorage implements IStorage {
   async deleteHolding(id: string): Promise<void>;
   async deleteHolding(portfolioId: string, symbol: string): Promise<void>;
   async deleteHolding(idOrPortfolioId: string, symbol?: string): Promise<void> {
+    const db = this.ensureDb();
     if (symbol) {
       // Delete by portfolioId and symbol
-      await this.db.delete(holdings).where(and(
+      await db.delete(holdings).where(and(
         eq(holdings.portfolioId, idOrPortfolioId),
         eq(holdings.symbol, symbol)
       ));
     } else {
       // Delete by id
-      await this.db.delete(holdings).where(eq(holdings.id, idOrPortfolioId));
+      await db.delete(holdings).where(eq(holdings.id, idOrPortfolioId));
     }
   }
 
   async updatePortfolioBalance(userId: string, amount: number): Promise<void> {
-    const [portfolio] = await this.db.select().from(portfolios).where(eq(portfolios.userId, userId));
+    const db = this.ensureDb();
+    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId));
     if (!portfolio) {
       throw new Error('Portfolio not found');
     }
@@ -226,7 +233,7 @@ export class DatabaseStorage implements IStorage {
     const currentBalance = parseFloat(portfolio.availableCash);
     const newBalance = currentBalance + amount;
 
-    await this.db
+    await db
       .update(portfolios)
       .set({
         availableCash: newBalance.toString(),
@@ -236,7 +243,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTransactions(userId: string, limit = 50): Promise<Transaction[]> {
-    return await this.db
+    const db = this.ensureDb();
+    return await db
       .select()
       .from(transactions)
       .where(eq(transactions.userId, userId))
@@ -245,13 +253,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTransaction(transactionData: InsertTransaction): Promise<Transaction> {
-    const [transaction] = await this.db.insert(transactions).values(transactionData).returning();
+    const db = this.ensureDb();
+    const [transaction] = await db.insert(transactions).values(transactionData).returning();
     return transaction;
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<void> {
     try {
-      await this.db.update(users).set(updates).where(eq(users.id, userId));
+      const db = this.ensureDb();
+      await db.update(users).set(updates).where(eq(users.id, userId));
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
@@ -260,8 +270,9 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(userId: string): Promise<void> {
     try {
+      const db = this.ensureDb();
       // Delete user and cascade will handle related records
-      await this.db.delete(users).where(eq(users.id, userId));
+      await db.delete(users).where(eq(users.id, userId));
     } catch (error) {
       console.error("Error deleting user:", error);
       throw error;
@@ -270,7 +281,8 @@ export class DatabaseStorage implements IStorage {
 
   async getUserTransactions(userId: string, limit: number = 50): Promise<Transaction[]> {
     try {
-      return await this.db.select()
+      const db = this.ensureDb();
+      return await db.select()
         .from(transactions)
         .where(eq(transactions.userId, userId))
         .orderBy(desc(transactions.createdAt))
@@ -283,7 +295,8 @@ export class DatabaseStorage implements IStorage {
 
   async getUserTransactionCount(userId: string): Promise<number> {
     try {
-      const [{ count }] = await this.db
+      const db = this.ensureDb();
+      const [{ count }] = await db
         .select({ count: sql`count(*)` })
         .from(transactions)
         .where(eq(transactions.userId, userId));
@@ -299,8 +312,9 @@ export class DatabaseStorage implements IStorage {
       const { page, limit, userId, type } = params;
       const offset = (page - 1) * limit;
 
-      let query = this.db.select().from(transactions);
-      let countQuery = this.db.select({ count: sql`count(*)` }).from(transactions);
+      const db = this.ensureDb();
+      let query = db.select().from(transactions);
+      let countQuery = db.select({ count: sql`count(*)` }).from(transactions);
 
       const conditions = [];
       if (userId) conditions.push(eq(transactions.userId, userId));
@@ -327,10 +341,11 @@ export class DatabaseStorage implements IStorage {
 
   async reverseTransaction(transactionId: string, adminId: string, reason: string): Promise<Transaction> {
     try {
-      const original = await this.db.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
+      const db = this.ensureDb();
+      const original = await db.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
       if (!original.length) throw new Error('Transaction not found');
 
-      const reversedTransaction = await this.db.insert(transactions).values({
+      const reversedTransaction = await db.insert(transactions).values({
         userId: original[0].userId,
         type: original[0].type === 'buy' ? 'sell' : 'buy',
         symbol: original[0].symbol,
@@ -357,7 +372,8 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     try {
-      return await this.db.select().from(users).orderBy(desc(users.createdAt));
+      const db = this.ensureDb();
+      return await db.select().from(users).orderBy(desc(users.createdAt));
     } catch (error) {
       console.error("Error fetching all users:", error);
       return [];
@@ -365,14 +381,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBalanceAdjustment(adjustmentData: InsertBalanceAdjustment): Promise<BalanceAdjustment> {
-    const [adjustment] = await this.db.insert(balanceAdjustments).values(adjustmentData).returning();
+    const db = this.ensureDb();
+    const [adjustment] = await db.insert(balanceAdjustments).values(adjustmentData).returning();
     return adjustment;
   }
 
   async getBalanceAdjustments(userId?: string, page: number = 1, limit: number = 50): Promise<{ adjustments: BalanceAdjustment[], total: number }> {
     try {
       const offset = (page - 1) * limit;
-      let query = this.db.select().from(balanceAdjustments);
+      const db = this.ensureDb();
+      let query = db.select().from(balanceAdjustments);
 
       if (userId) {
         query = query.where(eq(balanceAdjustments.targetUserId, userId));
@@ -383,7 +401,7 @@ export class DatabaseStorage implements IStorage {
         .limit(limit)
         .offset(offset);
 
-      const totalQuery = this.db.select({ count: sql`count(*)` }).from(balanceAdjustments);
+      const totalQuery = db.select({ count: sql`count(*)` }).from(balanceAdjustments);
       if (userId) {
         totalQuery.where(eq(balanceAdjustments.targetUserId, userId));
       }
@@ -398,7 +416,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNewsArticles(limit = 10): Promise<NewsArticle[]> {
-    return await this.db
+    const db = this.ensureDb();
+    return await db
       .select()
       .from(newsArticles)
       .orderBy(desc(newsArticles.publishedAt))
@@ -406,23 +425,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNewsArticle(articleData: InsertNewsArticle): Promise<NewsArticle> {
-    const [article] = await this.db.insert(newsArticles).values(articleData).returning();
+    const db = this.ensureDb();
+    const [article] = await db.insert(newsArticles).values(articleData).returning();
     return article;
   }
 
   async deleteNewsArticle(id: string): Promise<void> {
-    await this.db.delete(newsArticles).where(eq(newsArticles.id, id));
+    const db = this.ensureDb();
+    await db.delete(newsArticles).where(eq(newsArticles.id, id));
   }
 
   // Deposit methods
   async createDeposit(deposit: any) {
-    const [result] = await this.db.insert(deposits).values(deposit).returning();
+    const db = this.ensureDb();
+    const [result] = await db.insert(deposits).values(deposit).returning();
     return result;
   }
 
   async getUserDeposits(userId: string, limit: number = 5): Promise<any[]> {
     try {
-      return await this.db.select()
+      const db = this.ensureDb();
+      return await db.select()
         .from(deposits)
         .where(eq(deposits.userId, userId))
         .orderBy(desc(sql`${deposits.createdAt}`))
@@ -434,7 +457,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllDeposits() {
-    return await this.db.select({
+    const db = this.ensureDb();
+    return await db.select({
       deposit: deposits,
       user: {
         id: users.id,
@@ -450,7 +474,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDepositStatus(id: string, status: string, rejectionReason?: string) {
-    const [result] = await this.db
+    const db = this.ensureDb();
+    const [result] = await db
       .update(deposits)
       .set({
         status,
