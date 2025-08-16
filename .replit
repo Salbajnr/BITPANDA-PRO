@@ -13,7 +13,6 @@ build = ["npm", "run", "build"]
 
 [[ports]]
 localPort = 5000
-externalPort = 80
 
 [env]
 PORT = "5000"
