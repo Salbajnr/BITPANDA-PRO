@@ -489,11 +489,12 @@ export class DatabaseStorage implements IStorage {
 
   async getAnalyticsOverview(): Promise<any> {
     try {
-      const [userCount] = await this.db.select({ count: sql`count(*)` }).from(users);
-      const [transactionCount] = await this.db.select({ count: sql`count(*)` }).from(transactions);
-      const [depositCount] = await this.db.select({ count: sql`count(*)` }).from(deposits);
+      const db = this.ensureDb();
+      const [userCount] = await db.select({ count: sql`count(*)` }).from(users);
+      const [transactionCount] = await db.select({ count: sql`count(*)` }).from(transactions);
+      const [depositCount] = await db.select({ count: sql`count(*)` }).from(deposits);
 
-      const [totalVolume] = await this.db
+      const [totalVolume] = await db
         .select({ total: sql`sum(${transactions.total})` })
         .from(transactions)
         .where(eq(transactions.status, 'completed'));
@@ -539,12 +540,13 @@ export class DatabaseStorage implements IStorage {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
 
-      const [newUsers] = await this.db
+      const db = this.ensureDb();
+      const [newUsers] = await db
         .select({ count: sql`count(*)` })
         .from(users)
         .where(gte(users.createdAt, cutoff));
 
-      const [activeUsers] = await this.db
+      const [activeUsers] = await db
         .select({ count: sql`count(*)` })
         .from(users)
         .where(and(

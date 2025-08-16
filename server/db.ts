@@ -5,8 +5,8 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Use RENDER_DATABASE_URL if available, otherwise fall back to DATABASE_URL
-const databaseUrl = process.env.RENDER_DATABASE_URL || process.env.DATABASE_URL;
+// Prioritize the working DATABASE_URL, with RENDER_DATABASE_URL as fallback
+const databaseUrl = process.env.DATABASE_URL || process.env.RENDER_DATABASE_URL;
 
 if (!databaseUrl) {
   console.error("⚠️  DATABASE_URL is not set. Please create a PostgreSQL database in Replit.");
