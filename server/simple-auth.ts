@@ -31,29 +31,13 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-export async function loadUser(req: Request, res: Response, next: NextFunction) {
-  if (req.session?.userId) {
-    try {
-      const user = await storage.getUser(req.session.userId);
-      if (user) {
-        req.user = {
-          id: user.id,
-          email: user.email!,
-          username: user.username!,
-          role: user.role,
-        };
-      }
-    } catch (error) {
-      console.error('Error loading user:', error);
-    }
-  }
-  next();
-}
-
-export const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.user || !req.user.id) {
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.session?.userId;
+  if (!userId) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  // Set req.user for compatibility
+  req.user = { id: userId };
   next();
 };
 
@@ -72,4 +56,21 @@ export const requireAdmin = async (req: any, res: any, next: any) => {
     console.error('Admin check error:', error);
     res.status(500).json({ message: 'Authorization failed' });
   }
+};
+
+export const loadUser = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.session?.userId;
+  if (userId) {
+    try {
+      const user = await storage.getUser(userId);
+      if (user && user.isActive) {
+        req.user = user;
+      }
+    } catch (error) {
+      console.error("Error loading user:", error);
+      // Clear invalid session
+      req.session?.destroy(() => {});
+    }
+  }
+  next();
 };

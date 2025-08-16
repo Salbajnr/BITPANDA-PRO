@@ -187,13 +187,13 @@ export default function Dashboard() {
   useEffect(() => {
     if (!authLoading && !user) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Authentication Required",
+        description: "Please log in to access your dashboard",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
+        window.location.href = "/auth";
+      }, 1000);
       return;
     }
   }, [user, authLoading, toast]);

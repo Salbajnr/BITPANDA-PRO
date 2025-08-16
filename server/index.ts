@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { portfolioRoutes } from './portfolio-routes';
 import { priceMonitor } from "./price-monitor";
+import { seedDatabase } from "./seedData";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -82,6 +83,13 @@ app.use((req, res, next) => {
 
   // ALIGNs the API with the portfolio routes
   app.use('/api', portfolioRoutes);
+
+  // Seed database with initial data
+  try {
+    await seedDatabase();
+  } catch (error) {
+    console.warn('⚠️  Database seeding failed (this is normal if already seeded):', error.message);
+  }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.

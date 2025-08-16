@@ -1,6 +1,6 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import queryClient from "@/lib/queryClient";
 
 export interface User {
   id: string;
@@ -22,11 +22,24 @@ export interface User {
 export function useAuth() {
   const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/auth/user"],
+    queryFn: async () => {
+      const response = await fetch("/api/auth/user", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Clear any cached data on auth failure
+          queryClient.clear();
+        }
+        throw new Error("Not authenticated");
+      }
+
+      return response.json();
+    },
     retry: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
   });
 
   return { user: user || null, isLoading, error };

@@ -191,8 +191,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHoldings(portfolioId: string): Promise<Holding[]> {
-    const db = this.ensureDb();
-    return await db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
+    try {
+      const db = this.ensureDb();
+      return await db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
+    } catch (error) {
+      console.error("Error fetching holdings:", error);
+      return [];
+    }
   }
 
   async getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined> {
@@ -800,6 +805,22 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating user preferences:", error);
       throw error;
+    }
+  }
+
+  // Get holdings with current prices
+  async getHoldingsWithPrices(portfolioId: string) {
+    try {
+      const userHoldings = await this.getHoldings(portfolioId);
+      // In production, fetch real prices from crypto API
+      return userHoldings.map(holding => ({
+        ...holding,
+        currentPrice: parseFloat(holding.currentPrice),
+        totalValue: parseFloat(holding.amount) * parseFloat(holding.currentPrice)
+      }));
+    } catch (error) {
+      console.error("Error fetching holdings with prices:", error);
+      return [];
     }
   }
 }

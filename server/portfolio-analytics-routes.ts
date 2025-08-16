@@ -36,11 +36,26 @@ router.get('/analytics', async (req, res) => {
     // Get user's transactions for analysis
     const userTransactions = await storage.getUserTransactions(userId, 100);
 
-    // Calculate holdings from transactions
+    // Get existing holdings from portfolio
+    const existingHoldings = await storage.getHoldings(portfolio.id);
+    
+    // Calculate holdings from database + transactions
     const holdingsMap = new Map();
     
+    // Add existing holdings first
+    for (const holding of existingHoldings) {
+      holdingsMap.set(holding.symbol, {
+        symbol: holding.symbol,
+        name: holding.name,
+        totalAmount: parseFloat(holding.amount),
+        totalCost: parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice),
+        transactions: []
+      });
+    }
+    
+    // Process recent transactions
     for (const transaction of userTransactions) {
-      const key = transaction.symbol || transaction.cryptoSymbol;
+      const key = transaction.symbol;
       if (!holdingsMap.has(key)) {
         holdingsMap.set(key, {
           symbol: key,

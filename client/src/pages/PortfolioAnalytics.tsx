@@ -84,9 +84,27 @@ export default function PortfolioAnalytics() {
       if (response.ok) {
         const data = await response.json();
         setPortfolioData(data);
+      } else if (response.status === 401) {
+        // Redirect to login if unauthorized
+        window.location.href = '/auth';
+      } else {
+        console.error('Failed to fetch portfolio data:', response.statusText);
+        // Set empty portfolio data
+        setPortfolioData({
+          totalValue: 0,
+          totalCost: 0,
+          totalPnL: 0,
+          totalPnLPercentage: 0,
+          dayPnL: 0,
+          dayPnLPercentage: 0,
+          holdings: [],
+          performance: [],
+          allocation: []
+        });
       }
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
+      setPortfolioData(null);
     } finally {
       setLoading(false);
     }

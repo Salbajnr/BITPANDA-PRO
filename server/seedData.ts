@@ -1,76 +1,121 @@
 
-import { db } from "./db";
-import { cryptoAssets, users, portfolios } from "../shared/schema";
-import { eq } from "drizzle-orm";
-import { hashPassword } from "./auth";
+import { storage } from './storage';
+import { hashPassword } from './simple-auth';
 
 export async function seedDatabase() {
   try {
-    console.log("🌱 Starting database seeding...");
-    
-    // Create default admin user
-    const adminExists = await db.select().from(users).where(eq(users.email, 'admin@bitpandapro.com'));
-    
-    if (adminExists.length === 0) {
-      const hashedPassword = await hashPassword('admin123');
-      await db.insert(users).values({
-        username: 'admin',
-        email: 'admin@bitpandapro.com',
-        password: hashedPassword,
-        firstName: 'Admin',
-        lastName: 'User',
-        role: 'admin',
-        isActive: true,
-      });
-      console.log("✅ Default admin user created");
+    console.log('🌱 Starting database seeding...');
+
+    // Check if admin user already exists
+    const existingAdmin = await storage.getUserByEmail('admin@bitpanda.com');
+    if (existingAdmin) {
+      console.log('✅ Admin user already exists, skipping seed');
+      return;
     }
-    
-    // Seed initial crypto assets
-    const assets = [
-      { symbol: "BTC", name: "Bitcoin", currentPrice: "43250.00", marketCap: "847500000000.00", volume24h: "24000000000.00", priceChange24h: "2.45" },
-      { symbol: "ETH", name: "Ethereum", currentPrice: "2680.50", marketCap: "322000000000.00", volume24h: "12000000000.00", priceChange24h: "-1.23" },
-      { symbol: "SOL", name: "Solana", currentPrice: "98.75", marketCap: "43000000000.00", volume24h: "580000000.00", priceChange24h: "5.67" },
-      { symbol: "ADA", name: "Cardano", currentPrice: "0.485", marketCap: "17000000000.00", volume24h: "340000000.00", priceChange24h: "3.21" },
-      { symbol: "BNB", name: "BNB", currentPrice: "312.80", marketCap: "46000000000.00", volume24h: "1200000000.00", priceChange24h: "1.89" },
-      { symbol: "MATIC", name: "Polygon", currentPrice: "0.89", marketCap: "8200000000.00", volume24h: "245000000.00", priceChange24h: "-0.75" },
-      { symbol: "DOT", name: "Polkadot", currentPrice: "7.25", marketCap: "9100000000.00", volume24h: "180000000.00", priceChange24h: "4.12" },
-      { symbol: "AVAX", name: "Avalanche", currentPrice: "36.50", marketCap: "13500000000.00", volume24h: "425000000.00", priceChange24h: "-2.18" },
+
+    // Create admin user
+    const adminPassword = await hashPassword('admin123');
+    const adminUser = await storage.createUser({
+      username: 'admin',
+      email: 'admin@bitpanda.com',
+      password: adminPassword,
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'admin',
+      isActive: true,
+    });
+
+    // Create admin portfolio
+    await storage.createPortfolio({
+      userId: adminUser.id,
+      totalValue: '100000.00',
+      availableCash: '100000.00',
+    });
+
+    // Create demo user
+    const demoPassword = await hashPassword('demo123');
+    const demoUser = await storage.createUser({
+      username: 'demo',
+      email: 'demo@example.com',
+      password: demoPassword,
+      firstName: 'Demo',
+      lastName: 'User',
+      role: 'user',
+      isActive: true,
+    });
+
+    // Create demo portfolio with sample data
+    const demoPortfolio = await storage.createPortfolio({
+      userId: demoUser.id,
+      totalValue: '15000.00',
+      availableCash: '5000.00',
+    });
+
+    // Add sample holdings to demo portfolio
+    const sampleHoldings = [
+      { symbol: 'BTC', name: 'Bitcoin', amount: '0.5', price: '45000' },
+      { symbol: 'ETH', name: 'Ethereum', amount: '5', price: '2500' },
+      { symbol: 'ADA', name: 'Cardano', amount: '1000', price: '0.5' },
     ];
 
-    for (const asset of assets) {
-      await db.insert(cryptoAssets).values(asset).onConflictDoNothing();
+    for (const holding of sampleHoldings) {
+      await storage.upsertHolding({
+        portfolioId: demoPortfolio.id,
+        symbol: holding.symbol,
+        name: holding.name,
+        amount: holding.amount,
+        averagePurchasePrice: holding.price,
+        currentPrice: holding.price,
+      });
+
+      // Create sample transaction
+      await storage.createTransaction({
+        userId: demoUser.id,
+        type: 'buy',
+        symbol: holding.symbol,
+        amount: holding.amount,
+        price: holding.price,
+        total: (parseFloat(holding.amount) * parseFloat(holding.price)).toString(),
+        status: 'completed',
+      });
     }
 
-    console.log("✅ Crypto assets seeded successfully");
-    
-    // Create portfolios for existing users who don't have one
-    const existingUsers = await db.select().from(users);
-    
-    for (const user of existingUsers) {
-      const existingPortfolio = await db.select().from(portfolios).where(eq(portfolios.userId, user.id));
-      
-      if (existingPortfolio.length === 0) {
-        await db.insert(portfolios).values({
-          userId: user.id,
-          totalValue: "10000.00", // Give users $10,000 starting balance
-          availableBalance: "10000.00",
-          lockedBalance: "0.00"
-        });
-        console.log(`✅ Created portfolio for user ${user.email}`);
+    // Add sample news articles
+    const newsArticles = [
+      {
+        title: 'Bitcoin Reaches New All-Time High',
+        content: 'Bitcoin has surged to unprecedented levels as institutional adoption continues...',
+        excerpt: 'BTC breaks resistance levels with strong market momentum',
+        source: 'Crypto News',
+        publishedAt: new Date(),
+      },
+      {
+        title: 'Ethereum 2.0 Staking Rewards Increase',
+        content: 'The latest Ethereum upgrade has improved staking rewards for validators...',
+        excerpt: 'ETH staking becomes more attractive for long-term holders',
+        source: 'DeFi Weekly',
+        publishedAt: new Date(),
       }
+    ];
+
+    for (const article of newsArticles) {
+      await storage.createNewsArticle(article);
     }
 
-    console.log("🎉 Database seeding completed!");
+    console.log('✅ Database seeding completed successfully');
+    console.log('📊 Created accounts:');
+    console.log('   Admin: admin@bitpanda.com / admin123');
+    console.log('   Demo:  demo@example.com / demo123');
+
   } catch (error) {
-    console.error("❌ Error seeding database:", error);
+    console.error('❌ Database seeding failed:', error);
     throw error;
   }
 }
 
-// Helper function to run seeding manually
+// Run seeding if called directly
 if (require.main === module) {
-  seedDatabase().then(() => process.exit(0)).catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+  seedDatabase()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
 }
