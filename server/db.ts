@@ -5,19 +5,16 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Use ONLY Render database as requested by user
-// Check secrets first, then fall back to env vars
-const databaseUrl = process.env.RENDER_DATABASE_URL || process.env.DATABASE_URL;
+// Use Replit's built-in PostgreSQL database
+const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error("⚠️  No database URL found. Please set RENDER_DATABASE_URL secret or DATABASE_URL.");
+  console.error("⚠️  No database URL found. Please set DATABASE_URL.");
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
 }
 
 console.log("🔌 Attempting to connect to database...");
-console.log(databaseUrl ? '📍 Using database: Render PostgreSQL (user requested)' : '❌ RENDER_DATABASE_URL not configured');
-
-console.log("🔌 Attempting to connect to database...");
+console.log(databaseUrl ? '📍 Using database: Replit PostgreSQL' : '❌ DATABASE_URL not configured');
 
 export const pool = databaseUrl 
   ? new Pool({ 
