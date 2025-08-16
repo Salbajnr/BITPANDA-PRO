@@ -12,8 +12,27 @@ if (!process.env.DATABASE_URL) {
   // Don't exit in development, let the app start so user can set up database
 }
 
+console.log("🔌 Attempting to connect to database...");
+
 export const pool = process.env.DATABASE_URL 
-  ? new Pool({ connectionString: process.env.DATABASE_URL })
+  ? new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    })
   : null;
 
 export const db = pool ? drizzle({ client: pool, schema }) : null;
+
+// Test the connection
+if (pool) {
+  pool.connect()
+    .then(client => {
+      console.log("✅ Database connected successfully");
+      client.release();
+    })
+    .catch(err => {
+      console.error("❌ Database connection failed:", err.message);
+    });
+}
