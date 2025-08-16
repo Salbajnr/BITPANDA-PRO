@@ -10,7 +10,6 @@ export default defineConfig({
   out: "./migrations",
   schema: "./shared/schema.ts",
   dialect: "postgresql",
-  driver: "pg",
   dbCredentials: {
     connectionString: databaseUrl,
     ssl: {
