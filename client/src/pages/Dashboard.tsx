@@ -32,6 +32,7 @@ import { useRealTimePrice } from "@/hooks/useRealTimePrice";
 import NewsWidget from '@/components/NewsWidget';
 import PriceAlertsList from '@/components/PriceAlertsList';
 import PriceAlertModal from '@/components/PriceAlertModal';
+import RealTimePriceWidget from "@/components/RealTimePriceWidget";
 
 
 interface PortfolioData {
@@ -818,7 +819,7 @@ export default function Dashboard() {
               <div className="space-y-6">
                 {/* Price Alerts */}
                 <PriceAlertsList />
-                
+
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
@@ -860,7 +861,15 @@ export default function Dashboard() {
             {activeSection === "news" && (
               <div className="space-y-6">
                 {/* Integrated NewsWidget */}
-                <NewsWidget /> 
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                  <PriceAlertsList />
+                  <RealTimePriceWidget 
+                    symbols={['BTC', 'ETH', 'BNB', 'ADA', 'SOL']}
+                    title="Live Market"
+                    maxItems={5}
+                  />
+                  <NewsWidget />
+                </div>
                 <Card>
                   <CardHeader>
                     <CardTitle>Latest Market News</CardTitle>

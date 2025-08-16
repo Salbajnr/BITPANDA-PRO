@@ -5,6 +5,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { portfolioRoutes } from './portfolio-routes';
 import { priceMonitor } from "./price-monitor";
 import { seedDatabase } from "./seedData";
+import { webSocketManager } from "./websocket-server";
+import cryptoRoutes from './crypto-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -83,6 +85,9 @@ app.use((req, res, next) => {
 
   // ALIGNs the API with the portfolio routes
   app.use('/api', portfolioRoutes);
+  
+  // Crypto routes for real-time price data
+  app.use('/api/crypto', cryptoRoutes);
 
   // Seed database with initial data
   try {
@@ -115,13 +120,18 @@ app.use((req, res, next) => {
 🔔 Price Alerts: /api/alerts
 💰 Trading: /api/trading
 👥 Admin: /api/admin
+💎 Crypto Data: /api/crypto
 📡 WebSocket: ws://0.0.0.0:${port}/ws
 `);
+
+    // Initialize WebSocket server
+    webSocketManager.initialize(server);
   });
 
   // Gracefully handle existing server shutdown
   process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
+    webSocketManager.shutdown();
     server.close(() => {
       console.log('Process terminated');
     });
@@ -129,6 +139,7 @@ app.use((req, res, next) => {
 
   process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully');
+    webSocketManager.shutdown();
     server.close(() => {
       console.log('Process terminated');
     });
