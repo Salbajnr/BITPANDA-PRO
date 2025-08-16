@@ -6,10 +6,11 @@ import * as schema from "@shared/schema";
 neonConfig.webSocketConstructor = ws;
 
 // Use ONLY Render database as requested by user
-const databaseUrl = process.env.RENDER_DATABASE_URL;
+// Check secrets first, then fall back to env vars
+const databaseUrl = process.env.RENDER_DATABASE_URL || process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error("⚠️  No database URL found. Please set RENDER_DATABASE_URL or DATABASE_URL.");
+  console.error("⚠️  No database URL found. Please set RENDER_DATABASE_URL secret or DATABASE_URL.");
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
 }
 
