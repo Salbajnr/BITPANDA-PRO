@@ -88,7 +88,7 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // Assuming db is initialized and accessible here, or passed in constructor
   private db = db; // Make db accessible within the class
-  
+
   private ensureDb() {
     if (!this.db) {
       throw new Error('Database not initialized. Please set DATABASE_URL and restart the application.');
@@ -342,7 +342,7 @@ export class DatabaseStorage implements IStorage {
   async reverseTransaction(transactionId: string, adminId: string, reason: string): Promise<Transaction> {
     try {
       const db = this.ensureDb();
-      const original = await db.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
+      const [original] = await db.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
       if (!original.length) throw new Error('Transaction not found');
 
       const reversedTransaction = await db.insert(transactions).values({

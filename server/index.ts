@@ -5,8 +5,26 @@ import { setupVite, serveStatic, log } from "./vite";
 import { portfolioRoutes } from './portfolio-routes';
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Add CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -46,7 +64,10 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    // Rethrow the error to ensure it's logged by the next error handler if any, or terminates the process if unhandled.
+    // However, since we are already sending a response, we might not want to terminate the process here.
+    // For now, we'll just log it and send the response.
+    console.error(`Error occurred: ${err.stack || err}`);
   });
 
   // importantly only setup vite in development and after
