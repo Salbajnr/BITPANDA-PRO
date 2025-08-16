@@ -1,6 +1,8 @@
-node_modules
-dist
-.DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+curl -XDELETE $REPLIT_DB_URL/postgresql://bitpanda_production_user:q2hpL8cEuCHCCbtRU969f10PTzAvCyRe@dpg-d2eurker433s738hnht0-a.oregon-postgres.render.com/bitpanda_production
+curl -XDELETE $REPLIT_DB_URL/postgresql://bitpanda_production_user:q2hpL8cEuCHCCbtRU969f10PTzAvCyRe@dpg-d2eurker433s738hnht0-a.oregon-postgres.render.com/bitpanda_production
+curl $REPLIT_DB_URL -d 'DATABASE_URL = postgresql://bitpanda_production_user:q2hpL8cEuCHCCbtRU969f10PTzAvCyRe@dpg-d2eurker433s738hnht0-a.oregon-postgres.render.com/bitpanda_production'
+curl $REPLIT_DB_URL/DATABASE_URL
+curl $REPLIT_DB_URL -d 'DATABASE_URL = postgresql://bitpanda_production_user:q2hpL8cEuCHCCbtRU969f10PTzAvCyRe@dpg-d2eurker433s738hnht0-a.oregon-postgres.render.com/bitpanda_production'
+curl $REPLIT_DB_URL -d 'key = value'
+curl $REPLIT_DB_URL -d 'key = value'
+curl $REPLIT_DB_URL -d 'key = value'
