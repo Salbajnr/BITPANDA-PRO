@@ -1,7 +1,10 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { isAuthenticated, AuthenticatedRequest } from './auth';
+import { requireAuth } from './simple-auth';
+
+// Extend Express Request type
+type AuthenticatedRequest = Request & { user: NonNullable<Request['user']> };
 import { storage } from './storage';
 
 const router = Router();
@@ -16,7 +19,7 @@ const executeTradeSchema = z.object({
 });
 
 // Execute trade
-router.post('/execute', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+router.post('/execute', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     const portfolio = await storage.getPortfolio(userId);
@@ -129,7 +132,7 @@ router.post('/execute', isAuthenticated, async (req: AuthenticatedRequest, res) 
 });
 
 // Get trading history
-router.get('/history', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+router.get('/history', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     const portfolio = await storage.getPortfolio(userId);

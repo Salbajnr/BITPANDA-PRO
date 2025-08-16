@@ -340,6 +340,69 @@ body {
   background: linear-gradient(90deg, hsl(var(--colors-green_primary)), hsl(var(--bitpanda-green-light)));
 }
 
+/* Responsive Layout Utilities */
+.mobile-hidden {
+  @apply hidden lg:block;
+}
+
+.mobile-only {
+  @apply block lg:hidden;
+}
+
+.responsive-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6;
+}
+
+.responsive-flex {
+  @apply flex flex-col lg:flex-row gap-4 lg:gap-6;
+}
+
+.responsive-padding {
+  @apply p-4 lg:p-6;
+}
+
+.responsive-text {
+  @apply text-sm lg:text-base;
+}
+
+.responsive-sidebar {
+  @apply w-full lg:w-64 xl:w-72;
+}
+
+.responsive-container {
+  @apply max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Mobile Navigation Improvements */
+.mobile-nav-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden;
+}
+
+.mobile-nav-sidebar {
+  @apply fixed left-0 top-0 h-full w-80 max-w-sm bg-white dark:bg-slate-800 z-50 transform transition-transform duration-300 ease-in-out;
+}
+
+.mobile-nav-open {
+  @apply translate-x-0;
+}
+
+.mobile-nav-closed {
+  @apply -translate-x-full;
+}
+
+/* Card Responsive Improvements */
+.responsive-card {
+  @apply w-full max-w-full lg:max-w-md xl:max-w-lg;
+}
+
+.responsive-stats-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6;
+}
+
+.responsive-chart-container {
+  @apply w-full h-64 sm:h-72 lg:h-80 xl:h-96;
+}
+
 /* Enhanced visual identity and design feel */
 .fintech-card {
   background: white !important;

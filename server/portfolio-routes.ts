@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express';
 import { db } from './db';
 import { portfolios, holdings } from '../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { requireAuth } from './auth';
+import { requireAuth } from './simple-auth';
 
 const router = Router();
 

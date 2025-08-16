@@ -1,6 +1,22 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { isAuthenticated, AuthenticatedRequest } from './auth';
+import { requireAuth } from './simple-auth';
+
+// Extend Express Request type
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        email: string;
+        username: string;
+        role: string;
+      };
+    }
+  }
+}
+
+type AuthenticatedRequest = Request & { user: NonNullable<Request['user']> };
 import { storage } from './storage';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
@@ -31,7 +47,7 @@ const createDepositSchema = z.object({
 });
 
 // Create deposit request
-router.post('/', isAuthenticated, upload.single('screenshot'), async (req: AuthenticatedRequest, res) => {
+router.post('/', requireAuth, upload.single('screenshot'), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     const depositData = createDepositSchema.parse(req.body);
@@ -55,7 +71,7 @@ router.post('/', isAuthenticated, upload.single('screenshot'), async (req: Authe
 });
 
 // Get user deposits
-router.get('/', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     const deposits = await storage.getUserDeposits(userId);
@@ -67,7 +83,7 @@ router.get('/', isAuthenticated, async (req: AuthenticatedRequest, res) => {
 });
 
 // Get all deposits (admin only)
-router.get('/all', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+router.get('/all', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const user = await storage.getUser(req.user!.id);
     if (!user || user.role !== 'admin') {
@@ -83,7 +99,7 @@ router.get('/all', isAuthenticated, async (req: AuthenticatedRequest, res) => {
 });
 
 // Update deposit status (admin only)
-router.patch('/:id/status', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+router.patch('/:id/status', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const user = await storage.getUser(req.user!.id);
     if (!user || user.role !== 'admin') {

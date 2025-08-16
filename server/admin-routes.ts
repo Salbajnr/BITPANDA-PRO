@@ -1,7 +1,10 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { isAuthenticated, AuthenticatedRequest } from './auth';
+import { requireAuth } from './simple-auth';
+
+// Extend Express Request type
+type AuthenticatedRequest = Request & { user: NonNullable<Request['user']> };
 import { storage } from './storage';
 
 const router = Router();
@@ -21,7 +24,7 @@ const requireAdmin = async (req: AuthenticatedRequest, res: any, next: any) => {
 };
 
 // User Management
-router.get('/users', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/users', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -73,7 +76,7 @@ router.get('/users', isAuthenticated, requireAdmin, async (req: AuthenticatedReq
   }
 });
 
-router.post('/users/:userId/suspend', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/users/:userId/suspend', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const { userId } = req.params;
     const { reason } = req.body;
@@ -96,7 +99,7 @@ router.post('/users/:userId/suspend', isAuthenticated, requireAdmin, async (req:
   }
 });
 
-router.post('/users/:userId/reactivate', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/users/:userId/reactivate', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const { userId } = req.params;
     
@@ -116,7 +119,7 @@ router.post('/users/:userId/reactivate', isAuthenticated, requireAdmin, async (r
   }
 });
 
-router.delete('/users/:userId', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.delete('/users/:userId', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const { userId } = req.params;
     
@@ -145,7 +148,7 @@ const adjustBalanceSchema = z.object({
   reason: z.string().optional(),
 });
 
-router.post('/balance-adjustment', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const data = adjustBalanceSchema.parse(req.body);
     
@@ -187,7 +190,7 @@ router.post('/balance-adjustment', isAuthenticated, requireAdmin, async (req: Au
   }
 });
 
-router.get('/balance-adjustments', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.query.userId as string;
     const page = parseInt(req.query.page as string) || 1;
@@ -202,7 +205,7 @@ router.get('/balance-adjustments', isAuthenticated, requireAdmin, async (req: Au
 });
 
 // Transaction Management
-router.get('/transactions', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/transactions', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
@@ -217,7 +220,7 @@ router.get('/transactions', isAuthenticated, requireAdmin, async (req: Authentic
   }
 });
 
-router.post('/transactions/:transactionId/reverse', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/transactions/:transactionId/reverse', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const { transactionId } = req.params;
     const { reason } = req.body;
@@ -232,7 +235,7 @@ router.post('/transactions/:transactionId/reverse', isAuthenticated, requireAdmi
 });
 
 // Platform Analytics
-router.get('/analytics/overview', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/analytics/overview', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const overview = await storage.getAnalyticsOverview();
     res.json(overview);
@@ -242,7 +245,7 @@ router.get('/analytics/overview', isAuthenticated, requireAdmin, async (req: Aut
   }
 });
 
-router.get('/analytics/revenue', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/analytics/revenue', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const period = req.query.period as string || '7d';
     const revenue = await storage.getRevenueAnalytics(period);
@@ -253,7 +256,7 @@ router.get('/analytics/revenue', isAuthenticated, requireAdmin, async (req: Auth
   }
 });
 
-router.get('/analytics/users', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/analytics/users', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const period = req.query.period as string || '30d';
     const userAnalytics = await storage.getUserAnalytics(period);
@@ -265,7 +268,7 @@ router.get('/analytics/users', isAuthenticated, requireAdmin, async (req: Authen
 });
 
 // Security & Monitoring
-router.get('/security/sessions', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/security/sessions', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const sessions = await storage.getActiveSessions();
     res.json(sessions);
@@ -275,7 +278,7 @@ router.get('/security/sessions', isAuthenticated, requireAdmin, async (req: Auth
   }
 });
 
-router.post('/security/force-logout/:userId', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.post('/security/force-logout/:userId', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const { userId } = req.params;
     await storage.invalidateUserSessions(userId);
@@ -295,7 +298,7 @@ router.post('/security/force-logout/:userId', isAuthenticated, requireAdmin, asy
 });
 
 // System Configuration
-router.get('/system/config', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/system/config', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const config = await storage.getSystemConfig();
     res.json(config);
@@ -305,7 +308,7 @@ router.get('/system/config', isAuthenticated, requireAdmin, async (req: Authenti
   }
 });
 
-router.put('/system/config', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.put('/system/config', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const config = await storage.updateSystemConfig(req.body);
     
@@ -324,7 +327,7 @@ router.put('/system/config', isAuthenticated, requireAdmin, async (req: Authenti
 });
 
 // Audit Logs
-router.get('/audit-logs', isAuthenticated, requireAdmin, async (req: AuthenticatedRequest, res) => {
+router.get('/audit-logs', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;

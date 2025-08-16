@@ -18,9 +18,11 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface SidebarProps {
   portfolioData?: any;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ portfolioData }: SidebarProps) {
+export default function Sidebar({ portfolioData, isOpen = false, onClose }: SidebarProps) {
   const [location] = useLocation();
   const { user } = useAuth();
 
@@ -48,7 +50,9 @@ export default function Sidebar({ portfolioData }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 hidden lg:block">
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 hidden lg:block">
       <div className="p-6">
         {/* Quick Portfolio Summary */}
         <div className="bg-gradient-to-r from-primary to-primary-dark rounded-xl p-4 text-white mb-6">
@@ -110,6 +114,97 @@ export default function Sidebar({ portfolioData }: SidebarProps) {
           </div>
         )}
       </div>
-    </aside>
+      </aside>
+
+      {/* Mobile Sidebar Overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+          <aside className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transform transition-transform duration-300 ease-in-out">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-green-600 flex items-center justify-center">
+                    <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-6 h-6 rounded-full" />
+                  </div>
+                  <span className="text-lg font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
+                </div>
+                <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Quick Portfolio Summary */}
+              <div className="bg-gradient-to-r from-primary to-primary-dark rounded-xl p-4 text-white mb-6">
+                <h3 className="text-sm font-medium opacity-90">Portfolio Value</h3>
+                <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
+                <div className="text-sm opacity-90">
+                  <span className="text-green-300">+${dailyChange.toFixed(2)} (+2.29%)</span>
+                </div>
+              </div>
+
+              {/* Navigation Links */}
+              <nav className="space-y-2">
+                {navigationItems.map((item) => {
+                  const isActive = location === item.href || (item.href === "/dashboard" && location === "/");
+                  const Icon = item.icon;
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <a 
+                        className={cn(
+                          "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
+                          isActive 
+                            ? "bg-primary text-white" 
+                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        )}
+                        onClick={onClose}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.label}</span>
+                      </a>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Admin Section */}
+              {user?.role === 'admin' && (
+                <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+                  <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                    Admin Panel
+                  </h4>
+                  <nav className="space-y-2">
+                    {adminItems.map((item) => {
+                      const isActive = location === item.href;
+                      const Icon = item.icon;
+                      
+                      return (
+                        <Link key={item.href} href={item.href}>
+                          <a 
+                            className={cn(
+                              "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
+                              isActive
+                                ? "bg-red-500 text-white"
+                                : "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            )}
+                            onClick={onClose}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.label}</span>
+                          </a>
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

@@ -10,9 +10,9 @@ import { TrendingUp, Activity, DollarSign, BarChart3 } from 'lucide-react';
 
 export default function Trading() {
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoPrice | null>(null);
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-white text-black flex items-center justify-center">
         <div className="text-center">
@@ -40,9 +40,9 @@ export default function Trading() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 lg:mb-8 space-y-4 lg:space-y-0">
           <div>
             <h1 className="text-4xl font-bold mb-2 gradient-bitpanda-text">
               Professional Trading
@@ -61,7 +61,7 @@ export default function Trading() {
               <div className="text-right">
                 <p className="text-sm text-gray-400">Trading Balance</p>
                 <p className="text-xl font-bold text-green-400">
-                  ${Number(user.walletBalance || 0).toLocaleString()}
+                  ${Number(user.portfolio?.availableCash || 0).toLocaleString()}
                 </p>
               </div>
             )}
@@ -69,7 +69,7 @@ export default function Trading() {
         </div>
 
         {/* Trading Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
           <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
             <div className="flex items-center justify-between">
               <div>
@@ -116,9 +116,9 @@ export default function Trading() {
         </div>
 
         {/* Main Trading Interface */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
           {/* Crypto Table */}
-          <div className="lg:col-span-2">
+          <div className="xl:col-span-2">
             <RealTimeCryptoTable 
               onTradeClick={handleTradeClick}
               limit={50}
@@ -127,7 +127,7 @@ export default function Trading() {
           </div>
           
           {/* Trading Panel */}
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1">
             {selectedCrypto ? (
               <TradingInterface 
                 crypto={selectedCrypto}

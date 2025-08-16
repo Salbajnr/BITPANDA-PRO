@@ -86,6 +86,7 @@ export default function Dashboard() {
   const [selectedTimeframe, setSelectedTimeframe] = useState("7d");
   const [showWatchlist, setShowWatchlist] = useState(false);
   const [portfolioView, setPortfolioView] = useState("overview");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: portfolioData, isLoading: portfolioLoading } = useQuery<PortfolioData>({
@@ -287,8 +288,18 @@ export default function Dashboard() {
       <Navbar />
 
       <div className="flex h-screen pt-16 relative z-10">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="fixed top-20 left-4 z-40 p-2 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 lg:hidden"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
         {/* Enhanced Sidebar */}
-        <div className="w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
+        <div className="hidden lg:flex lg:w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col">
           <div className="p-6 border-b border-slate-200 dark:border-slate-700">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-primary to-green-600 flex items-center justify-center">
@@ -358,6 +369,55 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Mobile Sidebar */}
+        {isSidebarOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setIsSidebarOpen(false)} />
+            <div className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transform transition-transform duration-300 ease-in-out">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-green-600 flex items-center justify-center">
+                      <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-6 h-6 rounded-lg" />
+                    </div>
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
+                  </div>
+                  <button onClick={() => setIsSidebarOpen(false)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 py-4">
+                <nav className="space-y-1 px-4">
+                  {sidebarItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveSection(item.id);
+                          setIsSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center px-4 py-3 rounded-lg transition-all text-left ${
+                          activeSection === item.id
+                            ? 'bg-primary/10 text-primary font-medium border border-primary/20'
+                            : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 mr-3" />
+                        <span className="text-sm">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Enhanced Header with Actions */}
@@ -391,7 +451,7 @@ export default function Dashboard() {
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 lg:p-6">
             {/* Portfolio Overview Section */}
             {activeSection === "portfolio" && (
               <div className="space-y-6">
@@ -408,7 +468,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Enhanced Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                   <Card className="relative overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -420,7 +480,7 @@ export default function Dashboard() {
                           <div className="mt-2">
                             <div className="flex items-center text-sm text-green-600">
                               <TrendingUp className="h-4 w-4 mr-1" />
-                              <span>{dailyChangePercent.toFixed(1)}% today</span>
+                              <span>{portfolioMetrics.dailyChangePercent.toFixed(1)}% today</span>
                             </div>
                           </div>
                         </div>
@@ -511,7 +571,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Portfolio Chart and Allocation */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
                   <Card className="lg:col-span-2">
                     <CardHeader>
                       <div className="flex justify-between items-center">
