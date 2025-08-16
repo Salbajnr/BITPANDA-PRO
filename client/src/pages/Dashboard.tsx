@@ -30,6 +30,8 @@ import NewsSection from "@/components/NewsSection";
 import { LiveMarketStats } from "@/components/LiveMarketStats";
 import { useRealTimePrice } from "@/hooks/useRealTimePrice";
 import NewsWidget from '@/components/NewsWidget';
+import PriceAlertsList from '@/components/PriceAlertsList';
+import PriceAlertModal from '@/components/PriceAlertModal';
 
 
 interface PortfolioData {
@@ -814,6 +816,9 @@ export default function Dashboard() {
             {/* Watchlist Section */}
             {activeSection === "watchlist" && (
               <div className="space-y-6">
+                {/* Price Alerts */}
+                <PriceAlertsList />
+                
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
@@ -982,6 +987,10 @@ export default function Dashboard() {
                                     <Button size="sm" variant="outline">
                                       <Star className="h-4 w-4" />
                                     </Button>
+                                    <PriceAlertModal 
+                                      symbol={crypto.symbol.toUpperCase()} 
+                                      currentPrice={crypto.current_price}
+                                    />
                                     <Button size="sm">
                                       Trade
                                     </Button>

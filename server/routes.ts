@@ -4,12 +4,13 @@ import { WebSocketServer } from 'ws';
 import { createSessionMiddleware } from "./session";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, loadUser, requireAuth, requireAdmin } from "./simple-auth";
-import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema } from "@shared/schema";
+import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema, priceAlerts, notifications } from "@shared/schema";
 import authRoutes from './auth-routes';
 import depositRoutes from './deposit-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';
 import { portfolioRoutes } from './portfolio-routes';
+import alertRoutes from './alert-routes';
 import { z } from "zod";
 import { Router } from "express";
 
@@ -524,6 +525,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin routes
   app.use('/api/admin', adminRoutes);
+
+  // Alert routes
+  app.use('/api/alerts', alertRoutes);
 
   const httpServer = createServer(app);
 

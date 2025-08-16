@@ -7,6 +7,8 @@ import {
   newsArticles,
   deposits, // Added deposits schema import
   userPreferences,
+  priceAlerts, // Assuming priceAlerts schema is available
+  notifications, // Assuming notifications schema is available
   type User,
   type UpsertUser,
   type Portfolio,
@@ -21,6 +23,10 @@ import {
   type InsertNewsArticle,
   type UserPreferences,
   type InsertUserPreferences,
+  type PriceAlert, // Assuming PriceAlert type is available
+  type InsertPriceAlert, // Assuming InsertPriceAlert type is available
+  type Notification, // Assuming Notification type is available
+  type InsertNotification, // Assuming InsertNotification type is available
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, gte } from "drizzle-orm";
@@ -91,6 +97,21 @@ export interface IStorage {
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
   updateUserPreferences(userId: string, updates: Partial<InsertUserPreferences>): Promise<UserPreferences>;
+
+  // Price Alert operations
+  createPriceAlert(data: InsertPriceAlert): Promise<PriceAlert>;
+  getUserPriceAlerts(userId: string): Promise<PriceAlert[]>;
+  getPriceAlert(userId: string, symbol: string): Promise<PriceAlert | undefined>;
+  getPriceAlertById(alertId: string): Promise<PriceAlert | undefined>;
+  updatePriceAlert(alertId: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert>;
+  deletePriceAlert(alertId: string): Promise<void>;
+  getActivePriceAlerts(): Promise<PriceAlert[]>;
+
+  // Notification operations
+  createNotification(data: InsertNotification): Promise<Notification>;
+  getUserNotifications(userId: string, limit?: number): Promise<Notification[]>;
+  markNotificationAsRead(notificationId: string): Promise<void>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -443,6 +464,84 @@ export class DatabaseStorage implements IStorage {
     await db.delete(newsArticles).where(eq(newsArticles.id, id));
   }
 
+  // Price Alert methods
+  async createPriceAlert(data: InsertPriceAlert): Promise<PriceAlert> {
+    const db = this.ensureDb();
+    const [alert] = await db.insert(priceAlerts).values(data).returning();
+    return alert;
+  }
+
+  async getUserPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    const db = this.ensureDb();
+    return await db.select().from(priceAlerts)
+      .where(eq(priceAlerts.userId, userId))
+      .orderBy(desc(priceAlerts.createdAt));
+  }
+
+  async getPriceAlert(userId: string, symbol: string): Promise<PriceAlert | undefined> {
+    const db = this.ensureDb();
+    const [alert] = await db.select().from(priceAlerts)
+      .where(and(eq(priceAlerts.userId, userId), eq(priceAlerts.symbol, symbol)));
+    return alert;
+  }
+
+  async getPriceAlertById(alertId: string): Promise<PriceAlert | undefined> {
+    const db = this.ensureDb();
+    const [alert] = await db.select().from(priceAlerts)
+      .where(eq(priceAlerts.id, alertId));
+    return alert;
+  }
+
+  async updatePriceAlert(alertId: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert> {
+    const db = this.ensureDb();
+    const [alert] = await db.update(priceAlerts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(priceAlerts.id, alertId))
+      .returning();
+    return alert;
+  }
+
+  async deletePriceAlert(alertId: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.delete(priceAlerts).where(eq(priceAlerts.id, alertId));
+  }
+
+  async getActivePriceAlerts(): Promise<PriceAlert[]> {
+    const db = this.ensureDb();
+    return await db.select().from(priceAlerts)
+      .where(and(eq(priceAlerts.isActive, true), eq(priceAlerts.isTriggered, false)));
+  }
+
+  // Notification methods
+  async createNotification(data: InsertNotification): Promise<Notification> {
+    const db = this.ensureDb();
+    const [notification] = await db.insert(notifications).values(data).returning();
+    return notification;
+  }
+
+  async getUserNotifications(userId: string, limit = 20): Promise<Notification[]> {
+    const db = this.ensureDb();
+    return await db.select().from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, notificationId));
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const db = this.ensureDb();
+    const [result] = await db.select({ count: sql`count(*)` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return parseInt(result.count as string) || 0;
+  }
+
   // Deposit methods
   async createDeposit(deposit: any) {
     const db = this.ensureDb();
@@ -655,7 +754,7 @@ export class DatabaseStorage implements IStorage {
         .from(userPreferences)
         .where(eq(userPreferences.userId, userId))
         .limit(1);
-      
+
       return result[0];
     } catch (error) {
       console.error("Error fetching user preferences:", error);
@@ -670,7 +769,7 @@ export class DatabaseStorage implements IStorage {
         .insert(userPreferences)
         .values(preferences)
         .returning();
-      
+
       return result[0];
     } catch (error) {
       console.error("Error creating user preferences:", error);
@@ -681,22 +780,22 @@ export class DatabaseStorage implements IStorage {
   async updateUserPreferences(userId: string, updates: Partial<InsertUserPreferences>): Promise<UserPreferences> {
     try {
       const db = this.ensureDb();
-      
+
       // Check if preferences exist
       const existing = await this.getUserPreferences(userId);
-      
+
       if (!existing) {
         // Create new preferences with updates
         return await this.createUserPreferences({ userId, ...updates } as InsertUserPreferences);
       }
-      
+
       // Update existing preferences
       const result = await db
         .update(userPreferences)
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(userPreferences.userId, userId))
         .returning();
-      
+
       return result[0];
     } catch (error) {
       console.error("Error updating user preferences:", error);

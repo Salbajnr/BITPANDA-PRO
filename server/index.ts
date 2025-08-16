@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { portfolioRoutes } from './portfolio-routes';
+import { priceMonitor } from "./price-monitor";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -87,7 +88,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  
+
   // Gracefully handle existing server shutdown
   process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
@@ -103,12 +104,13 @@ app.use((req, res, next) => {
     });
   });
 
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`\n🚀 Server running on http://0.0.0.0:${port}`);
+    console.log(`📊 Database connected and ready`);
+    console.log(`🔒 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+    // Start price monitoring service
+    priceMonitor.start();
   }).on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Port ${port} is already in use. Please kill existing processes first.`);

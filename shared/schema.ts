@@ -11,9 +11,12 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { nanoid } from 'nanoid';
+
+// Helper function to generate a unique ID (e.g., for Replit Auth compatibility)
+const generateUniqueId = () => nanoid();
 
 // Session storage table (mandatory for Replit Auth)
 export const sessions = pgTable(
@@ -102,14 +105,14 @@ export const deposits = pgTable('deposits', {
 
 // Notifications
 export const notifications = pgTable('notifications', {
-  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(generateUniqueId()),
   userId: text('user_id').notNull().references(() => users.id),
+  type: text('type').notNull(), // 'price_alert', 'trade_complete', 'system', etc.
   title: text('title').notNull(),
   message: text('message').notNull(),
-  type: text('type').notNull(), // 'deposit', 'withdrawal', 'trade', 'security', 'general'
-  isRead: boolean('is_read').notNull().default(false),
-  relatedId: text('related_id'), // reference to deposit/transaction id
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  data: text('data'), // JSON string for additional data
+  isRead: boolean('is_read').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 // Admin balance adjustments (for simulation)
@@ -262,6 +265,38 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Price Alerts Table
+export const priceAlerts = pgTable("price_alerts", {
+  id: text("id").primaryKey().default(generateUniqueId()),
+  userId: text("user_id").notNull().references(() => users.id),
+  symbol: text("symbol").notNull(),
+  targetPrice: text("target_price").notNull(),
+  alertType: text("alert_type").notNull(), // 'above' or 'below'
+  isActive: boolean("is_active").default(true),
+  isTriggered: boolean("is_triggered").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPriceAlertSchema = createInsertSchema(priceAlerts);
+export const selectPriceAlertSchema = createSelectSchema(priceAlerts);
+
+// Notifications Table (updated)
+export const notifications = pgTable('notifications', {
+  id: text('id').primaryKey().default(generateUniqueId()),
+  userId: text('user_id').notNull().references(() => users.id),
+  type: text('type').notNull(), // 'price_alert', 'trade_complete', 'system', etc.
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  data: text('data'), // JSON string for additional data
+  isRead: boolean('is_read').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications);
+export const selectNotificationSchema = createSelectSchema(notifications);
+
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   portfolio: one(portfolios, {
@@ -275,7 +310,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     relationName: 'targetAdjustments',
   }),
   deposits: many(deposits),
-  notifications: many(notifications),
   transactions: many(transactions),
 }));
 
@@ -308,13 +342,6 @@ export const depositsRelations = relations(deposits, ({ one }) => ({
   }),
   approvedBy: one(users, {
     fields: [deposits.approvedBy],
-    references: [users.id],
-  }),
-}));
-
-export const notificationsRelations = relations(notifications, ({ one }) => ({
-  user: one(users, {
-    fields: [notifications.userId],
     references: [users.id],
   }),
 }));
@@ -363,10 +390,7 @@ export const insertDepositSchema = createInsertSchema(deposits).omit({
   updatedAt: true,
 });
 
-export const insertNotificationSchema = createInsertSchema(notifications).omit({
-  id: true,
-  createdAt: true,
-});
+// Removed the duplicate notifications schema definition and kept the updated one above.
 
 export const insertBalanceAdjustmentSchema = createInsertSchema(balanceAdjustments).omit({
   id: true,
@@ -454,3 +478,5 @@ export type LiveChatMessage = typeof liveChatMessages.$inferSelect;
 export type InsertLiveChatMessage = z.infer<typeof insertLiveChatMessageSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type PriceAlert = typeof priceAlerts.$inferSelect;
+export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;
