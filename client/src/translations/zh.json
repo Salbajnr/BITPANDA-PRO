@@ -1,0 +1,117 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "view": "查看",
+    "close": "关闭",
+    "next": "下一个",
+    "previous": "上一个",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "export": "导出",
+    "import": "导入"
+  },
+  "navigation": {
+    "home": "首页",
+    "about": "关于我们",
+    "features": "功能特色",
+    "contact": "联系我们",
+    "dashboard": "仪表板",
+    "portfolio": "投资组合",
+    "trading": "交易",
+    "analytics": "分析",
+    "transactions": "交易记录",
+    "settings": "设置",
+    "help": "帮助",
+    "logout": "退出登录",
+    "login": "登录",
+    "register": "注册"
+  },
+  "landing": {
+    "title": "安心交易加密货币",
+    "subtitle": "专业交易平台",
+    "description": "体验无缝的加密货币交易，配备先进的工具、实时市场数据和强大的安全功能。",
+    "getStarted": "开始使用",
+    "learnMore": "了解更多",
+    "watchDemo": "观看演示",
+    "features": {
+      "title": "为什么选择我们的平台",
+      "trading": {
+        "title": "高级交易",
+        "description": "专业级交易工具，配备实时图表和市场分析"
+      },
+      "security": {
+        "title": "银行级安全",
+        "description": "多层加密和冷存储保护您的数字资产"
+      },
+      "support": {
+        "title": "7×24小时支持",
+        "description": "全天候客户支持，随时随地为您提供帮助"
+      }
+    },
+    "stats": {
+      "users": "活跃用户",
+      "volume": "交易量",
+      "countries": "服务国家",
+      "uptime": "平台正常运行时间"
+    }
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "email": "邮箱地址",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "forgotPassword": "忘记密码？",
+    "rememberMe": "记住我",
+    "createAccount": "创建账户",
+    "alreadyHaveAccount": "已有账户？",
+    "noAccount": "没有账户？",
+    "resetPassword": "重置密码",
+    "backToLogin": "返回登录"
+  },
+  "dashboard": {
+    "welcome": "欢迎回来",
+    "portfolioValue": "投资组合价值",
+    "todaysPnL": "今日盈亏",
+    "totalBalance": "总余额",
+    "availableBalance": "可用余额",
+    "quickActions": "快捷操作",
+    "recentTransactions": "最近交易",
+    "marketOverview": "市场概览",
+    "topGainers": "涨幅榜",
+    "topLosers": "跌幅榜"
+  },
+  "trading": {
+    "buy": "买入",
+    "sell": "卖出",
+    "price": "价格",
+    "amount": "数量",
+    "total": "总计",
+    "balance": "余额",
+    "orderBook": "订单簿",
+    "tradeHistory": "交易历史",
+    "openOrders": "委托单",
+    "marketOrder": "市价单",
+    "limitOrder": "限价单",
+    "stopOrder": "止损单"
+  },
+  "settings": {
+    "profile": "个人资料",
+    "security": "安全设置",
+    "notifications": "通知设置",
+    "preferences": "偏好设置",
+    "language": "语言",
+    "theme": "主题",
+    "twoFactor": "双重认证",
+    "changePassword": "修改密码",
+    "apiKeys": "API密钥"
+  }
+}

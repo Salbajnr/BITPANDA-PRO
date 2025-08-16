@@ -1,0 +1,117 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "view": "Ansehen",
+    "close": "Schließen",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "sort": "Sortieren",
+    "export": "Exportieren",
+    "import": "Importieren"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "features": "Funktionen",
+    "contact": "Kontakt",
+    "dashboard": "Dashboard",
+    "portfolio": "Portfolio",
+    "trading": "Trading",
+    "analytics": "Analytik",
+    "transactions": "Transaktionen",
+    "settings": "Einstellungen",
+    "help": "Hilfe",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "landing": {
+    "title": "Handel mit Krypto mit Vertrauen",
+    "subtitle": "Professionelle Trading-Plattform",
+    "description": "Erleben Sie nahtlosen Kryptowährungshandel mit fortschrittlichen Tools, Echtzeit-Marktdaten und robusten Sicherheitsfeatures.",
+    "getStarted": "Loslegen",
+    "learnMore": "Mehr Erfahren",
+    "watchDemo": "Demo Ansehen",
+    "features": {
+      "title": "Warum Unsere Plattform Wählen",
+      "trading": {
+        "title": "Fortgeschrittenes Trading",
+        "description": "Professionelle Trading-Tools mit Echtzeit-Charts und Marktanalyse"
+      },
+      "security": {
+        "title": "Bank-Level Sicherheit",
+        "description": "Multi-Layer Verschlüsselung und Cold Storage zum Schutz Ihrer digitalen Assets"
+      },
+      "support": {
+        "title": "24/7 Support",
+        "description": "Rund-um-die-Uhr Kundensupport, um Ihnen jederzeit und überall zu helfen"
+      }
+    },
+    "stats": {
+      "users": "Aktive Benutzer",
+      "volume": "Handelsvolumen",
+      "countries": "Länder Bedient",
+      "uptime": "Plattform-Betriebszeit"
+    }
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "email": "E-Mail Adresse",
+    "password": "Passwort",
+    "confirmPassword": "Passwort Bestätigen",
+    "forgotPassword": "Passwort Vergessen?",
+    "rememberMe": "Angemeldet Bleiben",
+    "createAccount": "Konto Erstellen",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "noAccount": "Haben Sie kein Konto?",
+    "resetPassword": "Passwort Zurücksetzen",
+    "backToLogin": "Zurück zur Anmeldung"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück",
+    "portfolioValue": "Portfolio-Wert",
+    "todaysPnL": "Heutiger P&L",
+    "totalBalance": "Gesamtguthaben",
+    "availableBalance": "Verfügbares Guthaben",
+    "quickActions": "Schnellaktionen",
+    "recentTransactions": "Letzte Transaktionen",
+    "marketOverview": "Marktübersicht",
+    "topGainers": "Größte Gewinner",
+    "topLosers": "Größte Verlierer"
+  },
+  "trading": {
+    "buy": "Kaufen",
+    "sell": "Verkaufen",
+    "price": "Preis",
+    "amount": "Menge",
+    "total": "Gesamt",
+    "balance": "Guthaben",
+    "orderBook": "Orderbuch",
+    "tradeHistory": "Handelshistorie",
+    "openOrders": "Offene Orders",
+    "marketOrder": "Marktorder",
+    "limitOrder": "Limit-Order",
+    "stopOrder": "Stop-Order"
+  },
+  "settings": {
+    "profile": "Profil",
+    "security": "Sicherheit",
+    "notifications": "Benachrichtigungen",
+    "preferences": "Einstellungen",
+    "language": "Sprache",
+    "theme": "Design",
+    "twoFactor": "Zwei-Faktor-Authentifizierung",
+    "changePassword": "Passwort Ändern",
+    "apiKeys": "API-Schlüssel"
+  }
+}

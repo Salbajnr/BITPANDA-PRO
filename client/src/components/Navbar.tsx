@@ -21,10 +21,13 @@ import { Badge } from "@/components/ui/badge";
 import { Leaf, Moon, Sun, Bell, User, LogOut, Shield, ChevronDown, Menu, X } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Navbar() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -135,6 +138,7 @@ export default function Navbar() {
           {/* Right Side Controls */}
           <div className="hidden lg:flex items-center space-x-4">
             {/* Theme Toggle */}
+            <LanguageToggle />
             <Button
               variant="ghost"
               size="icon"
@@ -310,7 +314,10 @@ export default function Navbar() {
               )}
 
               {/* Mobile Theme Toggle */}
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="px-2">
+                  <LanguageToggle />
+                </div>
                 <Button
                   variant="ghost"
                   onClick={toggleTheme}

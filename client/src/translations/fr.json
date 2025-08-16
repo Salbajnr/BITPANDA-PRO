@@ -1,0 +1,117 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Sauvegarder",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "close": "Fermer",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "export": "Exporter",
+    "import": "Importer"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "about": "À propos",
+    "features": "Fonctionnalités",
+    "contact": "Contact",
+    "dashboard": "Tableau de Bord",
+    "portfolio": "Portefeuille",
+    "trading": "Trading",
+    "analytics": "Analyses",
+    "transactions": "Transactions",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire"
+  },
+  "landing": {
+    "title": "Tradez les Cryptos en Toute Confiance",
+    "subtitle": "Plateforme de Trading Professionnelle",
+    "description": "Expérimentez le trading de cryptomonnaies sans effort avec des outils avancés, des données de marché en temps réel et des fonctionnalités de sécurité robustes.",
+    "getStarted": "Commencer",
+    "learnMore": "En Savoir Plus",
+    "watchDemo": "Voir la Démo",
+    "features": {
+      "title": "Pourquoi Choisir Notre Plateforme",
+      "trading": {
+        "title": "Trading Avancé",
+        "description": "Outils de trading de niveau professionnel avec graphiques en temps réel et analyse de marché"
+      },
+      "security": {
+        "title": "Sécurité Bancaire",
+        "description": "Chiffrement multicouche et stockage à froid pour protéger vos actifs numériques"
+      },
+      "support": {
+        "title": "Support 24/7",
+        "description": "Support client 24h/24 pour vous assister à tout moment, n'importe où"
+      }
+    },
+    "stats": {
+      "users": "Utilisateurs Actifs",
+      "volume": "Volume de Trading",
+      "countries": "Pays Desservis",
+      "uptime": "Temps de Fonctionnement"
+    }
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "email": "Adresse Email",
+    "password": "Mot de Passe",
+    "confirmPassword": "Confirmer le Mot de Passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "createAccount": "Créer un Compte",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "noAccount": "Pas de compte ?",
+    "resetPassword": "Réinitialiser le Mot de Passe",
+    "backToLogin": "Retour à la Connexion"
+  },
+  "dashboard": {
+    "welcome": "Bon retour",
+    "portfolioValue": "Valeur du Portefeuille",
+    "todaysPnL": "P&L d'Aujourd'hui",
+    "totalBalance": "Solde Total",
+    "availableBalance": "Solde Disponible",
+    "quickActions": "Actions Rapides",
+    "recentTransactions": "Transactions Récentes",
+    "marketOverview": "Aperçu du Marché",
+    "topGainers": "Plus Gros Gains",
+    "topLosers": "Plus Grosses Pertes"
+  },
+  "trading": {
+    "buy": "Acheter",
+    "sell": "Vendre",
+    "price": "Prix",
+    "amount": "Montant",
+    "total": "Total",
+    "balance": "Solde",
+    "orderBook": "Carnet d'Ordres",
+    "tradeHistory": "Historique des Trades",
+    "openOrders": "Ordres Ouverts",
+    "marketOrder": "Ordre de Marché",
+    "limitOrder": "Ordre Limite",
+    "stopOrder": "Ordre Stop"
+  },
+  "settings": {
+    "profile": "Profil",
+    "security": "Sécurité",
+    "notifications": "Notifications",
+    "preferences": "Préférences",
+    "language": "Langue",
+    "theme": "Thème",
+    "twoFactor": "Authentification à Deux Facteurs",
+    "changePassword": "Changer le Mot de Passe",
+    "apiKeys": "Clés API"
+  }
+}
