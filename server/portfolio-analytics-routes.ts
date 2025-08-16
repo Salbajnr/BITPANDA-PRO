@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { db } from './db';
 import { portfolios, transactions, users } from '../shared/schema';
 import { eq, and, desc, gte } from 'drizzle-orm';
+import { storage } from './storage';
 
 const router = Router();
 
@@ -17,13 +18,8 @@ router.get('/analytics', async (req, res) => {
     const timeframe = req.query.timeframe as string || '7d';
     
     // Get user's portfolio
-    const userPortfolio = await db
-      .select()
-      .from(portfolios)
-      .where(eq(portfolios.userId, userId))
-      .limit(1);
-
-    if (!userPortfolio.length) {
+    const portfolio = await storage.getPortfolio(userId);
+    if (!portfolio) {
       return res.json({
         totalValue: 0,
         totalCost: 0,
@@ -37,24 +33,18 @@ router.get('/analytics', async (req, res) => {
       });
     }
 
-    const portfolio = userPortfolio[0];
-
     // Get user's transactions for analysis
-    const userTransactions = await db
-      .select()
-      .from(transactions)
-      .where(eq(transactions.userId, userId))
-      .orderBy(desc(transactions.createdAt));
+    const userTransactions = await storage.getUserTransactions(userId, 100);
 
     // Calculate holdings from transactions
     const holdingsMap = new Map();
     
     for (const transaction of userTransactions) {
-      const key = transaction.cryptoSymbol;
+      const key = transaction.symbol || transaction.cryptoSymbol;
       if (!holdingsMap.has(key)) {
         holdingsMap.set(key, {
-          symbol: transaction.cryptoSymbol,
-          name: transaction.cryptoSymbol, // In real app, get from crypto API
+          symbol: key,
+          name: key, // In real app, get from crypto API
           totalAmount: 0,
           totalCost: 0,
           transactions: []
@@ -64,35 +54,78 @@ router.get('/analytics', async (req, res) => {
       const holding = holdingsMap.get(key);
       holding.transactions.push(transaction);
       
+      const amount = parseFloat(transaction.amount);
+      const price = parseFloat(transaction.price);
+      
       if (transaction.type === 'buy') {
-        holding.totalAmount += transaction.amount;
-        holding.totalCost += transaction.amount * transaction.price;
+        holding.totalAmount += amount;
+        holding.totalCost += amount * price;
       } else if (transaction.type === 'sell') {
-        holding.totalAmount -= transaction.amount;
-        holding.totalCost -= transaction.amount * transaction.price;
+        holding.totalAmount -= amount;
+        holding.totalCost -= amount * price;
       }
     }
 
-    // Mock current prices (in production, fetch from crypto API)
-    const mockPrices: { [key: string]: number } = {
-      'BTC': 43500,
-      'ETH': 2650,
-      'ADA': 0.48,
-      'DOT': 7.2,
-      'SOL': 98,
-      'MATIC': 0.85,
-      'LINK': 15.2,
-      'UNI': 6.8
+    // Fetch real crypto prices from CoinGecko
+    const fetchCryptoPrices = async (symbols: string[]) => {
+      try {
+        const coinIds = symbols.map(symbol => {
+          const mapping: { [key: string]: string } = {
+            'BTC': 'bitcoin',
+            'ETH': 'ethereum',
+            'ADA': 'cardano',
+            'DOT': 'polkadot',
+            'SOL': 'solana',
+            'MATIC': 'polygon',
+            'LINK': 'chainlink',
+            'UNI': 'uniswap'
+          };
+          return mapping[symbol] || symbol.toLowerCase();
+        });
+
+        const response = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${coinIds.join(',')}&vs_currencies=usd`
+        );
+
+        if (!response.ok) throw new Error('Failed to fetch prices');
+        
+        const data = await response.json();
+        const prices: { [key: string]: number } = {};
+        
+        symbols.forEach((symbol, index) => {
+          const coinId = coinIds[index];
+          prices[symbol] = data[coinId]?.usd || 100; // Fallback price
+        });
+        
+        return prices;
+      } catch (error) {
+        console.error('Error fetching crypto prices:', error);
+        // Fallback to mock prices
+        const mockPrices: { [key: string]: number } = {
+          'BTC': 43500,
+          'ETH': 2650,
+          'ADA': 0.48,
+          'DOT': 7.2,
+          'SOL': 98,
+          'MATIC': 0.85,
+          'LINK': 15.2,
+          'UNI': 6.8
+        };
+        return mockPrices;
+      }
     };
+
+    const holdingSymbols = Array.from(holdingsMap.keys());
+    const currentPrices = await fetchCryptoPrices(holdingSymbols);
 
     const holdings = Array.from(holdingsMap.values())
       .filter(h => h.totalAmount > 0)
       .map(holding => {
-        const currentPrice = mockPrices[holding.symbol] || 100;
+        const currentPrice = currentPrices[holding.symbol] || 100;
         const totalValue = holding.totalAmount * currentPrice;
-        const averageCost = holding.totalCost / holding.totalAmount;
+        const averageCost = holding.totalCost > 0 ? holding.totalCost / holding.totalAmount : 0;
         const pnl = totalValue - holding.totalCost;
-        const pnlPercentage = (pnl / holding.totalCost) * 100;
+        const pnlPercentage = holding.totalCost > 0 ? (pnl / holding.totalCost) * 100 : 0;
         
         return {
           id: holding.symbol,

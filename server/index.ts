@@ -87,7 +87,29 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(process.env.PORT || "5000");
+
+  // Handle server startup errors
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`❌ Port ${port} is already in use. Trying to kill existing processes...`);
+      process.exit(1);
+    } else {
+      console.error('❌ Server error:', err);
+      process.exit(1);
+    }
+  });
+
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`
+🚀 Server running on http://0.0.0.0:${port}
+📊 Portfolio Analytics: /api/portfolio/analytics
+🔔 Price Alerts: /api/alerts
+💰 Trading: /api/trading
+👥 Admin: /api/admin
+📡 WebSocket: ws://0.0.0.0:${port}/ws
+`);
+  });
 
   // Gracefully handle existing server shutdown
   process.on('SIGTERM', () => {
@@ -104,20 +126,6 @@ app.use((req, res, next) => {
     });
   });
 
-  server.listen(port, "0.0.0.0", () => {
-    console.log(`\n🚀 Server running on http://0.0.0.0:${port}`);
-    console.log(`📊 Database connected and ready`);
-    console.log(`🔒 Environment: ${process.env.NODE_ENV || 'development'}`);
-
-    // Start price monitoring service
-    priceMonitor.start();
-  }).on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${port} is already in use. Please kill existing processes first.`);
-      process.exit(1);
-    } else {
-      console.error('Server error:', err);
-      process.exit(1);
-    }
-  });
+  // Start price monitoring service
+  priceMonitor.start();
 })();

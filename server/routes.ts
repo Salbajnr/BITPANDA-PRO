@@ -10,7 +10,7 @@ import depositRoutes from './deposit-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';
 import { portfolioRoutes } from './portfolio-routes';
-import { portfolioAnalyticsRoutes } from './portfolio-analytics-routes';
+import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import alertRoutes from './alert-routes';
 import { z } from "zod";
 import { Router } from "express";

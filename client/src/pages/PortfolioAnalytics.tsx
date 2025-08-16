@@ -75,7 +75,10 @@ export default function PortfolioAnalytics() {
     try {
       setLoading(true);
       const response = await fetch(`/api/portfolio/analytics?timeframe=${timeframe}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (response.ok) {
