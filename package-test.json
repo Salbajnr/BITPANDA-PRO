@@ -1,0 +1,20 @@
+
+{
+  "name": "crypto-platform-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:auto": "tsx run-tests.ts"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "supertest": "^6.3.0",
+    "@types/supertest": "^6.0.0",
+    "jsdom": "^23.0.0"
+  }
+}
