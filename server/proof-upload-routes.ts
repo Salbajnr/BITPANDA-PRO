@@ -1,8 +1,13 @@
 import type { Express } from "express";
 import { depositService, uploadProof } from "./deposit-service";
-import { isAuthenticated } from "./simple-auth";
+import { requireAuth } from "./simple-auth";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export function registerProofUploadRoutes(app: Express) {
   console.log("📎 Registering proof upload routes");
@@ -27,7 +32,7 @@ export function registerProofUploadRoutes(app: Express) {
   }
 
   // Upload proof of payment
-  app.post("/api/deposits/upload-proof", isAuthenticated, uploadProof.single('proof'), async (req, res) => {
+  app.post("/api/deposits/upload-proof", requireAuth, uploadProof.single('proof'), async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -54,7 +59,7 @@ export function registerProofUploadRoutes(app: Express) {
   });
 
   // Submit deposit request with proof
-  app.post("/api/deposits/create", isAuthenticated, async (req, res) => {
+  app.post("/api/deposits/create", requireAuth, async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -91,7 +96,7 @@ export function registerProofUploadRoutes(app: Express) {
   });
 
   // Get user's deposits
-  app.get("/api/deposits/my-deposits", isAuthenticated, async (req, res) => {
+  app.get("/api/deposits/my-deposits", requireAuth, async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -109,7 +114,7 @@ export function registerProofUploadRoutes(app: Express) {
   // Admin routes
   
   // Get pending deposits (admin only)
-  app.get("/api/admin/deposits/pending", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/deposits/pending", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       if (!user || user.role !== 'admin') {
@@ -125,7 +130,7 @@ export function registerProofUploadRoutes(app: Express) {
   });
 
   // Approve/reject deposit (admin only)
-  app.post("/api/admin/deposits/:id/review", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/deposits/:id/review", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       if (!user || user.role !== 'admin') {
@@ -161,7 +166,7 @@ export function registerProofUploadRoutes(app: Express) {
   });
 
   // Get all deposits (admin only)
-  app.get("/api/admin/deposits", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/deposits", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       if (!user || user.role !== 'admin') {
@@ -180,7 +185,7 @@ export function registerProofUploadRoutes(app: Express) {
   });
 
   // Get deposit statistics (admin only)
-  app.get("/api/admin/deposits/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/deposits/stats", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       if (!user || user.role !== 'admin') {
@@ -196,7 +201,7 @@ export function registerProofUploadRoutes(app: Express) {
   });
 
   // Get specific deposit (admin only)
-  app.get("/api/admin/deposits/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/deposits/:id", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       if (!user || user.role !== 'admin') {

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { metalsService } from "./metals-service";
 import { db } from "./db";
 import { metalsPricing } from "@shared/schema";
-import { isAuthenticated } from "./simple-auth";
+import { requireAuth } from "./simple-auth";
 
 export function registerMetalsRoutes(app: Express) {
   console.log("🥇 Registering metals trading routes");
@@ -59,7 +59,7 @@ export function registerMetalsRoutes(app: Express) {
   });
 
   // Buy metals (authenticated)
-  app.post("/api/metals/buy", isAuthenticated, async (req, res) => {
+  app.post("/api/metals/buy", requireAuth, async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -96,7 +96,7 @@ export function registerMetalsRoutes(app: Express) {
   });
 
   // Sell metals (authenticated)
-  app.post("/api/metals/sell", isAuthenticated, async (req, res) => {
+  app.post("/api/metals/sell", requireAuth, async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -131,7 +131,7 @@ export function registerMetalsRoutes(app: Express) {
   });
 
   // Update metals prices in database (admin only)
-  app.post("/api/metals/update-prices", isAuthenticated, async (req, res) => {
+  app.post("/api/metals/update-prices", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       if (!user || user.role !== 'admin') {

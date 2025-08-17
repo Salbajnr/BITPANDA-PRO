@@ -1,93 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import queryClient from "@/lib/queryClient";
 
-export interface User {
+interface User {
   id: string;
-  username: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  profileImageUrl?: string;
-  role: 'admin' | 'user';
+  username: string;
+  role: string;
   isActive: boolean;
-  portfolio?: {
-    id: string;
-    totalValue: string;
-    availableCash: string;
-    userId: string;
-  };
 }
 
 export function useAuth() {
   const { data: user, isLoading, error } = useQuery<User>({
-    queryKey: ["/api/auth/user"],
-    queryFn: async () => {
-      const response = await fetch("/api/auth/user", {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Clear any cached data on auth failure
-          queryClient.clear();
-        }
-        throw new Error("Not authenticated");
-      }
-
-      return response.json();
-    },
+    queryKey: ["/api/auth/me"],
+    queryFn: () => apiRequest("/api/auth/me"),
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
   });
 
-  return { user: user || null, isLoading, error };
-}
-
-// Authentication helper functions
-export async function login(emailOrUsername: string, password: string) {
-  const response = await apiRequest('/api/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ emailOrUsername, password }),
-  });
-  return response;
-}
-
-export async function adminLogin(emailOrUsername: string, password: string) {
-  const response = await apiRequest('/api/auth-admin/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ emailOrUsername, password }),
-  });
-  return response;
-}
-
-export async function register(userData: {
-  username: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-}) {
-  const response = await apiRequest('/api/auth/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-  return response;
-}
-
-export async function logout() {
-  const response = await apiRequest('/api/auth/logout', {
-    method: 'POST',
-  });
-  return response;
+  return {
+    user: user || null,
+    isLoading,
+    isAuthenticated: !!user,
+    error,
+  };
 }

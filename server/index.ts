@@ -13,7 +13,8 @@ import authRoutes from './auth-routes';
 import alertRoutes from './alert-routes';
 import depositRoutes from './deposit-routes';
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
-import metalsRoutes from './metals-routes';
+import { registerMetalsRoutes } from './metals-routes';
+import { registerProofUploadRoutes } from './proof-upload-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -102,7 +103,9 @@ app.use((req, res, next) => {
     app.use('/api/alerts', alertRoutes);
     app.use('/api/deposits', depositRoutes);
     app.use('/api/portfolio-analytics', portfolioAnalyticsRoutes);
-    app.use('/api/metals', metalsRoutes);
+    // Register metals and proof upload routes
+    registerMetalsRoutes(app);
+    registerProofUploadRoutes(app);
 
 
     // Seed database with initial data
