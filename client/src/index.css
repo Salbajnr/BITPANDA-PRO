@@ -4,32 +4,52 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
+    /* BITPANDA PRO Color System */
+    --background: 11 15% 6%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 11 15% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary: 39 100% 59%;
+    --primary-foreground: 11 15% 6%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 42 87% 55%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 39 100% 59%;
+    --accent-foreground: 11 15% 6%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 50%;
+    --ring: 39 100% 59%;
+    --chart-1: 39 100% 59%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --success: 142 71% 45%;
     --danger: 0 84% 60%;
+    
+    /* Brand Colors */
+    --brand-orange: 39 100% 59%;
+    --brand-bitcoin: 24 95% 53%;
+    --brand-dark: 11 15% 6%;
+    --brand-darker: 210 24% 8%;
+    --brand-gray: 215 20% 65%;
+    --brand-light-gray: 210 20% 85%;
+    
+    /* Status Colors */
+    --status-success: 142 71% 45%;
+    --status-warning: 45 93% 47%;
+    --status-danger: 0 62.8% 30.6%;
+    --status-info: 210 100% 56%;
+    
+    /* Surface Colors */
+    --surface-elevated: 217.2 32.6% 17.5%;
+    --surface-overlay: 11 15% 8%;
+    --surface-interactive: 39 100% 59%;
   }
 }
 
@@ -111,4 +131,174 @@
 /* Refresh button animation */
 .spinner {
   animation: spin 1s linear infinite;
+}
+
+/* BITPANDA PRO Design System */
+.brand-gradient {
+  background: linear-gradient(135deg, hsl(var(--brand-orange)) 0%, hsl(var(--brand-bitcoin)) 100%);
+}
+
+.brand-text-gradient {
+  background: linear-gradient(135deg, hsl(var(--brand-orange)) 0%, hsl(var(--brand-bitcoin)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.crypto-card {
+  background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--surface-elevated)) 100%);
+  border: 1px solid hsl(var(--border));
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+.crypto-card:hover {
+  border-color: hsl(var(--brand-orange));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(255, 184, 47, 0.15);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glow-effect {
+  position: relative;
+}
+
+.glow-effect::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, hsl(var(--brand-orange)), hsl(var(--brand-bitcoin)));
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.glow-effect:hover::before {
+  opacity: 0.7;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, 
+    hsl(var(--card)) 0%, 
+    hsl(var(--surface-elevated)) 50%, 
+    hsl(var(--card)) 100%
+  );
+  border: 1px solid hsl(var(--border));
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: hsl(var(--brand-orange) / 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px hsl(var(--brand-orange) / 0.1);
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.section-spacing {
+  padding: 4rem 0;
+}
+
+.section-spacing-large {
+  padding: 6rem 0;
+}
+
+.hero-gradient {
+  background: radial-gradient(ellipse at top, 
+    hsl(var(--brand-orange) / 0.15) 0%, 
+    hsl(var(--brand-dark)) 50%
+  );
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Typography Scale */
+.text-hero {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.text-subtitle {
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* Interactive Elements */
+.btn-primary {
+  background: hsl(var(--brand-orange));
+  color: hsl(var(--brand-dark));
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: hsl(var(--brand-bitcoin));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px hsl(var(--brand-orange) / 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid hsl(var(--brand-orange));
+  color: hsl(var(--brand-orange));
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: hsl(var(--brand-orange));
+  color: hsl(var(--brand-dark));
+}
+
+/* Layout Utilities */
+.container-max {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-auto-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .section-spacing {
+    padding: 2rem 0;
+  }
+  
+  .section-spacing-large {
+    padding: 3rem 0;
+  }
 }
