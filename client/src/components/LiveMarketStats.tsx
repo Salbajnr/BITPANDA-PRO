@@ -31,8 +31,8 @@ function LiveMarketStats() {
       
       // Fetch global market data and trending coins in parallel
       const [globalResponse, trendingResponse] = await Promise.all([
-        fetch('https://api.coingecko.com/api/v3/global'),
-        fetch('https://api.coingecko.com/api/v3/search/trending')
+        fetch('/api/crypto/coingecko/global'),
+        fetch('/api/crypto/coingecko/search/trending')
       ]);
       
       if (!globalResponse.ok) throw new Error('Failed to fetch global data');

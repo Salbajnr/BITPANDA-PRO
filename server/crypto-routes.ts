@@ -9,7 +9,7 @@ const router = Router();
 // Server-side proxy for CoinGecko API to avoid CORS issues
 router.get('/coingecko/*', async (req, res) => {
   try {
-    const path = req.params[0];
+    const path = req.params[0] || '';
     const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
     const apiUrl = `https://api.coingecko.com/api/v3/${path}${queryString ? '?' + queryString : ''}`;
     
