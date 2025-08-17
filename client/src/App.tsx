@@ -29,7 +29,7 @@ import NotFound from "@/pages/not-found";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import Auth from "./pages/Auth";
-import TradingPro from "./pages/TradingPro";
+import Trading from "./pages/Trading";
 import Orders from "./pages/Orders";
 import Security from "./pages/Security";
 import HelpCenter from './pages/HelpCenter';
@@ -174,7 +174,7 @@ function AppContent() {
         }
       />
 
-      <Route path="/trading-pro" component={TradingPro} />
+      <Route path="/trading" component={Trading} />
       <Route path="/orders" component={Orders} />
       <Route path="/security" component={Security} />
       <Route path="/help-center" component={HelpCenter} />

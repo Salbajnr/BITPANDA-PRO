@@ -12,7 +12,8 @@ import {
   DollarSign,
   BarChart3,
   MessageCircle,
-  ShieldCheck
+  ShieldCheck,
+  TrendingUp
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -35,7 +36,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
     { href: "/analytics", label: "Portfolio Analytics", icon: BarChart3 },
     { href: "/transactions", label: "Transaction History", icon: History },
     { href: "/watchlist", label: "Watchlist", icon: Wallet },
-    { href: "#trading", label: "Trading", icon: ArrowLeftRight },
+    { href: "/trading", label: "Trading", icon: TrendingUp },
     { href: "/news", label: "News", icon: Newspaper },
     { href: "/kyc", label: "KYC Verification", icon: ShieldCheck },
     { href: "/support", label: "Live Support", icon: MessageCircle },

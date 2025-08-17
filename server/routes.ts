@@ -67,12 +67,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.use('/api/auth', authRoutes);
 
-  // Trading routes
-  app.use('/api/trading', tradingRoutes);
-
   // Portfolio routes (enhanced with real-time pricing)
   app.use('/api/portfolio', portfolioRoutes);
   app.use('/api/portfolio', portfolioAnalyticsRoutes);
+
+  // Trading routes
+  app.use('/api/trading', tradingRoutes);
 
   // Auth routes
   // Admin auth routes

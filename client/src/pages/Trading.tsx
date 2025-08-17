@@ -1,152 +1,388 @@
 
-import React, { useState } from 'react';
-import { RealTimeCryptoTable } from '../components/RealTimeCryptoTable';
-import { TradingInterface } from '../components/TradingInterface';
-import { CryptoPrice } from '../services/cryptoApi';
-import { useAuth } from '../hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Activity, DollarSign, BarChart3 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { TrendingUp, TrendingDown, DollarSign, BarChart3, Activity, Zap, Target, AlertCircle } from "lucide-react";
+import { getCryptoLogo } from "@/components/CryptoLogos";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import TradingInterface from "@/components/TradingInterface";
+import RealTimeCryptoTable from "@/components/RealTimeCryptoTable";
+import { useAuth } from "@/hooks/useAuth";
+import { Redirect } from "wouter";
+
+const tradingPairs = [
+  { symbol: "BTC", name: "Bitcoin", price: 45234.56, change: 2.34, volume: "28.5B" },
+  { symbol: "ETH", name: "Ethereum", price: 2876.43, change: -1.23, volume: "12.8B" },
+  { symbol: "BNB", name: "BNB", price: 298.76, change: 3.45, volume: "2.1B" },
+  { symbol: "ADA", name: "Cardano", price: 0.4521, change: 1.87, volume: "890M" },
+  { symbol: "SOL", name: "Solana", price: 98.32, change: 4.12, volume: "1.2B" },
+  { symbol: "XRP", name: "XRP", price: 0.6234, change: -0.45, volume: "1.8B" },
+  { symbol: "DOT", name: "Polkadot", price: 7.89, change: 2.15, volume: "456M" },
+  { symbol: "DOGE", name: "Dogecoin", price: 0.0823, change: -2.34, volume: "678M" }
+];
+
+const orderTypes = [
+  { value: "market", label: "Market Order", description: "Execute immediately at current market price" },
+  { value: "limit", label: "Limit Order", description: "Execute when price reaches your specified level" },
+  { value: "stop-loss", label: "Stop Loss", description: "Sell when price falls below specified level" },
+  { value: "take-profit", label: "Take Profit", description: "Sell when price rises above specified level" }
+];
+
+const marketStats = {
+  totalMarketCap: "$2.1T",
+  volume24h: "$89.5B",
+  btcDominance: "42.8%",
+  activeCoins: "500+"
+};
+
+const featuredOrders = [
+  { id: 1, pair: "BTC/USD", type: "Buy", amount: "0.5", price: "45,200", status: "Pending" },
+  { id: 2, pair: "ETH/USD", type: "Sell", amount: "2.0", price: "2,850", status: "Filled" },
+  { id: 3, pair: "BNB/USD", type: "Buy", amount: "10", price: "295", status: "Pending" }
+];
 
 export default function Trading() {
-  const [selectedCrypto, setSelectedCrypto] = useState<CryptoPrice | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [selectedPair, setSelectedPair] = useState(tradingPairs[0]);
+  const [orderType, setOrderType] = useState("market");
+  const [tradeType, setTradeType] = useState("buy");
+  const [amount, setAmount] = useState("");
+  const [price, setPrice] = useState("");
+  const [activeTab, setActiveTab] = useState("trade");
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-white text-black flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Trading Access Required</h1>
-          <p className="text-gray-300 mb-8">Please log in to access the trading platform</p>
-          <Button
-            onClick={() => window.location.href = '/auth'}
-            className="bg-blue-600 hover:bg-blue-700"
-            data-testid="button-login"
-          >
-            Login to Trade
-          </Button>
-        </div>
-      </div>
-    );
+    return <Redirect to="/auth" />;
   }
 
-  const handleTradeClick = (crypto: CryptoPrice) => {
-    setSelectedCrypto(crypto);
-  };
+  const handleTrade = () => {
+    if (!amount || (orderType !== "market" && !price)) {
+      toast({
+        title: "Invalid Trade",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  const handleCloseTrading = () => {
-    setSelectedCrypto(null);
+    toast({
+      title: "Trade Submitted",
+      description: `${tradeType.toUpperCase()} order for ${amount} ${selectedPair.symbol} submitted successfully`,
+    });
+
+    // Reset form
+    setAmount("");
+    setPrice("");
   };
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 lg:mb-8 space-y-4 lg:space-y-0">
-          <div>
-            <h1 className="text-4xl font-bold mb-2 gradient-bitpanda-text">
-              Professional Trading
-            </h1>
-            <p className="text-xl text-gray-600">
-              Real-time cryptocurrency trading with live market data
-            </p>
-          </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
           
-          <div className="flex items-center space-x-4">
-            <Badge variant="default" className="bg-green-600 px-4 py-2">
-              <Activity className="h-4 w-4 mr-2" />
-              Market Open
-            </Badge>
-            {user && (
-              <div className="text-right">
-                <p className="text-sm text-gray-400">Trading Balance</p>
-                <p className="text-xl font-bold text-green-400">
-                  ${Number(user.portfolio?.availableCash || 0).toLocaleString()}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Trading Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">24h Volume</p>
-                <p className="text-2xl font-bold text-white">$1.2T</p>
-                <p className="text-green-400 text-sm">+5.2%</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-blue-400" />
-            </div>
-          </div>
-          
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Market Cap</p>
-                <p className="text-2xl font-bold text-white">$2.8T</p>
-                <p className="text-green-400 text-sm">+2.1%</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-400" />
-            </div>
-          </div>
-          
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">BTC Dominance</p>
-                <p className="text-2xl font-bold text-white">54.2%</p>
-                <p className="text-red-400 text-sm">-0.8%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-400" />
-            </div>
-          </div>
-          
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Active Trades</p>
-                <p className="text-2xl font-bold text-white">12</p>
-                <p className="text-blue-400 text-sm">Live</p>
-              </div>
-              <Activity className="h-8 w-8 text-purple-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Main Trading Interface */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-          {/* Crypto Table */}
-          <div className="xl:col-span-2">
-            <RealTimeCryptoTable 
-              onTradeClick={handleTradeClick}
-              limit={50}
-              showWatchlist={true}
-            />
-          </div>
-          
-          {/* Trading Panel */}
-          <div className="xl:col-span-1">
-            {selectedCrypto ? (
-              <TradingInterface 
-                crypto={selectedCrypto}
-                onClose={handleCloseTrading}
-              />
-            ) : (
-              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800 h-full flex items-center justify-center">
-                <div className="text-center">
-                  <Activity className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-400 mb-2">
-                    Select a Cryptocurrency
-                  </h3>
-                  <p className="text-gray-500 text-sm">
-                    Click "Trade" on any cryptocurrency to start trading
+          <main className="flex-1 overflow-y-auto p-6">
+            {/* Header */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Trading Pro</h1>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Advanced cryptocurrency trading with professional tools
                   </p>
                 </div>
+                <div className="flex items-center space-x-4">
+                  <Badge className="bg-green-500">
+                    <Activity className="w-4 h-4 mr-1" />
+                    Live Market
+                  </Badge>
+                  <Badge variant="outline">
+                    <Zap className="w-4 h-4 mr-1" />
+                    Fast Execution
+                  </Badge>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+
+            {/* Market Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Market Cap</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {marketStats.totalMarketCap}
+                      </p>
+                    </div>
+                    <BarChart3 className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">24h Volume</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {marketStats.volume24h}
+                      </p>
+                    </div>
+                    <Activity className="h-8 w-8 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">BTC Dominance</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {marketStats.btcDominance}
+                      </p>
+                    </div>
+                    <Target className="h-8 w-8 text-orange-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Active Coins</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {marketStats.activeCoins}
+                      </p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-purple-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="trade">Trade</TabsTrigger>
+                <TabsTrigger value="markets">Markets</TabsTrigger>
+                <TabsTrigger value="orders">Orders</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="trade" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Trading Interface */}
+                  <div className="lg:col-span-2">
+                    <TradingInterface />
+                  </div>
+
+                  {/* Order Form */}
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <DollarSign className="w-5 h-5 mr-2" />
+                          Place Order
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Trading Pair Selection */}
+                        <div>
+                          <Label>Trading Pair</Label>
+                          <Select value={selectedPair.symbol} onValueChange={(value) => {
+                            const pair = tradingPairs.find(p => p.symbol === value);
+                            if (pair) setSelectedPair(pair);
+                          }}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {tradingPairs.map((pair) => (
+                                <SelectItem key={pair.symbol} value={pair.symbol}>
+                                  <div className="flex items-center space-x-2">
+                                    <img 
+                                      src={getCryptoLogo(pair.symbol)} 
+                                      alt={pair.name}
+                                      className="w-6 h-6"
+                                    />
+                                    <span>{pair.symbol}/USD</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Order Type */}
+                        <div>
+                          <Label>Order Type</Label>
+                          <Select value={orderType} onValueChange={setOrderType}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {orderTypes.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  <div>
+                                    <div className="font-medium">{type.label}</div>
+                                    <div className="text-sm text-slate-500">{type.description}</div>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Buy/Sell Toggle */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant={tradeType === "buy" ? "default" : "outline"}
+                            className={`${tradeType === "buy" ? "bg-green-500 hover:bg-green-600" : ""}`}
+                            onClick={() => setTradeType("buy")}
+                          >
+                            Buy
+                          </Button>
+                          <Button
+                            variant={tradeType === "sell" ? "default" : "outline"}
+                            className={`${tradeType === "sell" ? "bg-red-500 hover:bg-red-600" : ""}`}
+                            onClick={() => setTradeType("sell")}
+                          >
+                            Sell
+                          </Button>
+                        </div>
+
+                        {/* Price Input (for limit orders) */}
+                        {orderType !== "market" && (
+                          <div>
+                            <Label>Price (USD)</Label>
+                            <Input
+                              type="number"
+                              placeholder="0.00"
+                              value={price}
+                              onChange={(e) => setPrice(e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        {/* Amount Input */}
+                        <div>
+                          <Label>Amount ({selectedPair.symbol})</Label>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                          />
+                        </div>
+
+                        {/* Order Summary */}
+                        <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Current Price</span>
+                            <span className="font-medium">${selectedPair.price.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Est. Total</span>
+                            <span className="font-medium">
+                              ${amount && (orderType === "market" ? selectedPair.price : parseFloat(price || "0")) ? 
+                                ((parseFloat(amount) || 0) * (orderType === "market" ? selectedPair.price : parseFloat(price || "0"))).toLocaleString() : 
+                                "0.00"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Fee (0.1%)</span>
+                            <span className="font-medium">
+                              ${amount && (orderType === "market" ? selectedPair.price : parseFloat(price || "0")) ? 
+                                (((parseFloat(amount) || 0) * (orderType === "market" ? selectedPair.price : parseFloat(price || "0"))) * 0.001).toFixed(2) : 
+                                "0.00"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Button 
+                          onClick={handleTrade}
+                          className={`w-full ${tradeType === "buy" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}`}
+                        >
+                          {tradeType === "buy" ? "Buy" : "Sell"} {selectedPair.symbol}
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Recent Orders */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Recent Orders</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {featuredOrders.map((order) => (
+                            <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                              <div>
+                                <div className="font-medium">{order.pair}</div>
+                                <div className="text-sm text-slate-600 dark:text-slate-400">
+                                  {order.type} {order.amount} @ ${order.price}
+                                </div>
+                              </div>
+                              <Badge variant={order.status === "Filled" ? "default" : "secondary"}>
+                                {order.status}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="markets" className="space-y-6">
+                <RealTimeCryptoTable />
+              </TabsContent>
+
+              <TabsContent value="orders" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Order Management</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-12">
+                      <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                      <p className="text-slate-600 dark:text-slate-400">
+                        Order management functionality will be available soon
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Trading Analytics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-12">
+                      <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                      <p className="text-slate-600 dark:text-slate-400">
+                        Advanced trading analytics coming soon
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </main>
         </div>
       </div>
     </div>
