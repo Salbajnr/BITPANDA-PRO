@@ -292,9 +292,27 @@ export default function AdminDepositManagement() {
                       
                       <div className="flex flex-col space-y-3">
                         {item.deposit.proofType === 'file' && (
-                          <Button variant="outline" className="w-full">
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => window.open(`/api/deposits/proof/${item.deposit.id}`, '_blank')}
+                          >
                             <Eye className="h-4 w-4 mr-2" />
                             View Proof File
+                          </Button>
+                        )}
+                        
+                        {item.deposit.proofType === 'hash' && (
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => {
+                              const explorerUrl = `https://blockchair.com/search?q=${item.deposit.proofOfPayment}`;
+                              window.open(explorerUrl, '_blank');
+                            }}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Verify on Blockchain
                           </Button>
                         )}
                         

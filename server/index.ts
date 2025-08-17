@@ -7,6 +7,13 @@ import { priceMonitor } from "./price-monitor";
 import { seedDatabase } from "./seedData";
 import { webSocketManager } from "./websocket-server";
 import cryptoRoutes from './crypto-routes';
+import tradingRoutes from './trading-routes';
+import adminRoutes from './admin-routes';
+import authRoutes from './auth-routes';
+import alertRoutes from './alert-routes';
+import depositRoutes from './deposit-routes';
+import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
+import metalsRoutes from './metals-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -89,6 +96,14 @@ app.use((req, res, next) => {
 
     // Crypto routes for real-time price data
     app.use('/api/crypto', cryptoRoutes);
+    app.use('/api/trading', tradingRoutes);
+    app.use('/api/admin', adminRoutes);
+    app.use('/api/auth', authRoutes);
+    app.use('/api/alerts', alertRoutes);
+    app.use('/api/deposits', depositRoutes);
+    app.use('/api/portfolio-analytics', portfolioAnalyticsRoutes);
+    app.use('/api/metals', metalsRoutes);
+
 
     // Seed database with initial data
     try {

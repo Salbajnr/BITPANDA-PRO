@@ -32,24 +32,46 @@ export default function Deposit() {
   const [proofType, setProofType] = useState<'file' | 'hash'>('file');
 
   useEffect(() => {
-    fetchPaymentMethods();
+    // Initialize with major crypto platforms
+    setPaymentMethods({
+      binance: {
+        name: 'Binance',
+        logo: 'https://cryptologos.cc/logos/binance-coin-bnb-logo.png',
+        url: 'https://www.binance.com',
+        currencies: ['BTC', 'ETH', 'BNB', 'USDT', 'USDC', 'ADA', 'SOL', 'DOT', 'MATIC', 'LINK']
+      },
+      bybit: {
+        name: 'Bybit',
+        logo: 'https://static.bybit.com/web/new-header-logo.png',
+        url: 'https://www.bybit.com',
+        currencies: ['BTC', 'ETH', 'USDT', 'USDC', 'SOL', 'ADA', 'DOGE', 'AVAX', 'XRP', 'DOT']
+      },
+      cryptocom: {
+        name: 'Crypto.com',
+        logo: 'https://crypto.com/favicon.ico',
+        url: 'https://crypto.com',
+        currencies: ['BTC', 'ETH', 'CRO', 'USDT', 'USDC', 'BNB', 'ADA', 'SOL', 'MATIC', 'VET']
+      },
+      kraken: {
+        name: 'Kraken',
+        logo: 'https://assets.kraken.com/marketing/web/icons/kraken-logo.svg',
+        url: 'https://kraken.com',
+        currencies: ['BTC', 'ETH', 'USDT', 'USDC', 'ADA', 'SOL', 'DOT', 'LINK', 'UNI', 'ALGO']
+      },
+      coinbase: {
+        name: 'Coinbase',
+        logo: 'https://dynamic-assets.coinbase.com/img/favicon.ico',
+        url: 'https://coinbase.com',
+        currencies: ['BTC', 'ETH', 'USDC', 'USDT', 'ADA', 'SOL', 'DOGE', 'MATIC', 'LINK', 'UNI']
+      },
+      kucoin: {
+        name: 'KuCoin',
+        logo: 'https://assets.kucoin.com/cdn/assets/images/common/kcs_logo.png',
+        url: 'https://kucoin.com',
+        currencies: ['BTC', 'ETH', 'KCS', 'USDT', 'USDC', 'ADA', 'SOL', 'DOGE', 'TRX', 'VET']
+      }
+    });
   }, []);
-
-  const fetchPaymentMethods = async () => {
-    try {
-      const response = await fetch('/api/deposits/payment-methods', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const methods = await response.json();
-      setPaymentMethods(methods);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load payment methods",
-        variant: "destructive",
-      });
-    }
-  };
 
   const generateDepositAddress = async () => {
     if (!selectedMethod || !selectedCurrency) return;
