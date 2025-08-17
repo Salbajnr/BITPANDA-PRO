@@ -44,6 +44,7 @@ import AdminDepositManagement from "./pages/AdminDepositManagement";
 import AdminBalanceManagement from "./pages/AdminBalanceManagement";
 import Academy from "@/pages/Academy";
 import News from './pages/News';
+import { lazy } from 'react';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -175,7 +176,9 @@ function AppContent() {
       />
 
       <Route path="/trading" component={Trading} />
+      <Route path="/markets" component={Markets} />
       <Route path="/orders" component={Orders} />
+      <Route path="/alerts" component={lazy(() => import("./pages/Alerts"))} />
       <Route path="/security" component={Security} />
       <Route path="/help-center" component={HelpCenter} />
       <Route path="/tutorials" component={Tutorials} />

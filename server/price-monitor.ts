@@ -1,97 +1,82 @@
 
 import { storage } from './storage';
 
-interface CryptoPrice {
-  [key: string]: {
+interface PriceData {
+  [symbol: string]: {
     usd: number;
+    usd_24h_change: number;
   };
 }
 
 class PriceMonitorService {
-  private isRunning = false;
-  private intervalId: NodeJS.Timeout | null = null;
+  private monitoringInterval: NodeJS.Timeout | null = null;
   private readonly CHECK_INTERVAL = 30000; // 30 seconds
+  private lastPrices: Map<string, number> = new Map();
 
   async start() {
-    if (this.isRunning) {
-      console.log('Price monitor is already running');
-      return;
+    console.log('🔔 Starting price monitor service...');
+    
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
     }
 
-    this.isRunning = true;
-    console.log('🔔 Starting price monitor service...');
+    // Initial check
+    await this.checkPriceAlerts();
 
-    this.intervalId = setInterval(async () => {
-      try {
-        await this.checkPriceAlerts();
-      } catch (error) {
-        console.error('Error checking price alerts:', error);
-      }
+    // Set up periodic checks
+    this.monitoringInterval = setInterval(async () => {
+      await this.checkPriceAlerts();
     }, this.CHECK_INTERVAL);
   }
 
   stop() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+      console.log('🔔 Price monitor service stopped');
     }
-    this.isRunning = false;
-    console.log('🔔 Price monitor service stopped');
   }
 
-  private async checkPriceAlerts() {
+  async checkPriceAlerts() {
     try {
       // Get all active alerts
-      const alerts = await storage.getActivePriceAlerts();
+      const alerts = await storage.getAllActivePriceAlerts();
       
       if (alerts.length === 0) {
         return;
       }
 
       // Get unique symbols from alerts
-      const symbols = [...new Set(alerts.map(alert => alert.symbol.toLowerCase()))];
+      const symbols = [...new Set(alerts.map(alert => this.getCoinGeckoId(alert.symbol)))];
       
-      // Fetch current prices from CoinGecko
+      // Fetch current prices
       const prices = await this.fetchCurrentPrices(symbols);
       
       if (!prices) {
-        console.log('Failed to fetch prices, skipping alert check');
+        console.error('Failed to fetch prices for alert checking');
         return;
       }
 
       // Check each alert
       for (const alert of alerts) {
-        const symbolKey = alert.symbol.toLowerCase();
-        const currentPrice = prices[symbolKey]?.usd;
+        const coinGeckoId = this.getCoinGeckoId(alert.symbol);
+        const currentPrice = prices[coinGeckoId]?.usd;
         
-        if (!currentPrice) {
-          console.log(`Price not found for ${alert.symbol}`);
-          continue;
-        }
-
-        const targetPrice = parseFloat(alert.targetPrice);
-        let shouldTrigger = false;
-
-        if (alert.alertType === 'above' && currentPrice >= targetPrice) {
-          shouldTrigger = true;
-        } else if (alert.alertType === 'below' && currentPrice <= targetPrice) {
-          shouldTrigger = true;
-        }
-
-        if (shouldTrigger) {
+        if (currentPrice && this.shouldTriggerAlert(alert, currentPrice)) {
           await this.triggerAlert(alert, currentPrice);
         }
       }
+
+      console.log(`✅ Checked ${alerts.length} price alerts`);
     } catch (error) {
       console.error('Error in checkPriceAlerts:', error);
     }
   }
 
-  private async fetchCurrentPrices(symbols: string[]): Promise<CryptoPrice | null> {
+  private async fetchCurrentPrices(symbols: string[]): Promise<PriceData | null> {
     try {
-      const symbolsParam = symbols.join(',');
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${symbolsParam}&vs_currencies=usd`
+        `https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd&include_24hr_change=true`
       );
 
       if (!response.ok) {
@@ -105,35 +90,79 @@ class PriceMonitorService {
     }
   }
 
+  private getCoinGeckoId(symbol: string): string {
+    // Map common symbols to CoinGecko IDs
+    const symbolMap: { [key: string]: string } = {
+      'BTC': 'bitcoin',
+      'ETH': 'ethereum',
+      'BNB': 'binancecoin',
+      'ADA': 'cardano',
+      'SOL': 'solana',
+      'XRP': 'ripple',
+      'DOT': 'polkadot',
+      'DOGE': 'dogecoin',
+      'AVAX': 'avalanche-2',
+      'MATIC': 'matic-network',
+      'LTC': 'litecoin',
+      'UNI': 'uniswap',
+      'LINK': 'chainlink',
+      'ATOM': 'cosmos',
+      'XLM': 'stellar',
+      'VET': 'vechain',
+      'ICP': 'internet-computer',
+      'FIL': 'filecoin',
+      'TRX': 'tron',
+      'ETC': 'ethereum-classic',
+    };
+
+    return symbolMap[symbol.toUpperCase()] || symbol.toLowerCase();
+  }
+
+  private shouldTriggerAlert(alert: any, currentPrice: number): boolean {
+    const targetPrice = parseFloat(alert.targetPrice);
+    const lastPrice = this.lastPrices.get(alert.symbol);
+
+    // Update last known price
+    this.lastPrices.set(alert.symbol, currentPrice);
+
+    // Don't trigger on first check if we don't have a previous price
+    if (lastPrice === undefined) {
+      return false;
+    }
+
+    // Check if price crossed the threshold
+    if (alert.condition === 'above') {
+      return lastPrice <= targetPrice && currentPrice > targetPrice;
+    } else {
+      return lastPrice >= targetPrice && currentPrice < targetPrice;
+    }
+  }
+
   private async triggerAlert(alert: any, currentPrice: number) {
     try {
-      console.log(`🔔 Triggering alert for ${alert.symbol}: ${alert.alertType} $${alert.targetPrice}, current: $${currentPrice}`);
+      console.log(`🚨 Alert triggered for ${alert.symbol}: ${currentPrice} ${alert.condition} ${alert.targetPrice}`);
 
       // Create notification
       await storage.createNotification({
         userId: alert.userId,
         type: 'price_alert',
-        title: 'Price Alert Triggered!',
-        message: `${alert.symbol} has ${alert.alertType === 'above' ? 'exceeded' : 'fallen below'} your target price of $${alert.targetPrice}. Current price: $${currentPrice.toFixed(2)}`,
-        data: JSON.stringify({
+        title: `Price Alert: ${alert.name}`,
+        message: `${alert.symbol} is now ${alert.condition} $${alert.targetPrice}. Current price: $${currentPrice.toFixed(6)}`,
+        data: {
           alertId: alert.id,
           symbol: alert.symbol,
-          targetPrice: alert.targetPrice,
-          currentPrice: currentPrice.toFixed(2),
-          alertType: alert.alertType
-        }),
-        isRead: false,
+          currentPrice: currentPrice,
+          targetPrice: parseFloat(alert.targetPrice),
+          condition: alert.condition,
+        },
       });
 
-      // Mark alert as triggered and deactivate
-      await storage.updatePriceAlert(alert.id, {
-        isTriggered: true,
-        isActive: false,
-      });
+      // Deactivate the alert (one-time trigger)
+      await storage.updatePriceAlert(alert.id, { isActive: false });
 
-      console.log(`✅ Alert triggered and notification created for user ${alert.userId}`);
+      console.log(`✅ Alert notification created for user ${alert.userId}`);
     } catch (error) {
-      console.error(`Error triggering alert ${alert.id}:`, error);
+      console.error('Error triggering alert:', error);
     }
   }
 }

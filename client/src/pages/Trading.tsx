@@ -15,6 +15,7 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import TradingInterface from "@/components/TradingInterface";
 import RealTimeCryptoTable from "@/components/RealTimeCryptoTable";
+import { PriceAlertsList } from "@/components/PriceAlertsList";
 import { useAuth } from "@/hooks/useAuth";
 import { Redirect } from "wouter";
 
@@ -173,10 +174,11 @@ export default function Trading() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="trade">Trade</TabsTrigger>
                 <TabsTrigger value="markets">Markets</TabsTrigger>
                 <TabsTrigger value="orders">Orders</TabsTrigger>
+                <TabsTrigger value="alerts">Alerts</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
               </TabsList>
 
@@ -364,6 +366,10 @@ export default function Trading() {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="alerts" className="space-y-6">
+                <PriceAlertsList />
               </TabsContent>
 
               <TabsContent value="analytics" className="space-y-6">

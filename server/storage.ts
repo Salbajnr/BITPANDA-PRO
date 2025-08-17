@@ -455,13 +455,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getNewsArticles(limit = 10): Promise<NewsArticle[]> {
-    const db = this.ensureDb();
-    return await db
-      .select()
-      .from(newsArticles)
-      .orderBy(desc(newsArticles.publishedAt))
-      .limit(limit);
+  async getNewsArticles(limit: number = 10): Promise<NewsArticle[]> {
+    try {
+      const db = this.ensureDb();
+      const articles = await db.select()
+        .from(newsArticles)
+        .orderBy(desc(newsArticles.publishedAt))
+        .limit(limit);
+      return articles;
+    } catch (error) {
+      console.error("Error getting news articles:", error);
+      throw error;
+    }
   }
 
   async createNewsArticle(articleData: InsertNewsArticle): Promise<NewsArticle> {
@@ -475,82 +480,159 @@ export class DatabaseStorage implements IStorage {
     await db.delete(newsArticles).where(eq(newsArticles.id, id));
   }
 
-  // Price Alert methods
-  async createPriceAlert(data: InsertPriceAlert): Promise<PriceAlert> {
-    const db = this.ensureDb();
-    const [alert] = await db.insert(priceAlerts).values(data).returning();
-    return alert;
+  // Price Alerts methods
+  async createPriceAlert(alertData: InsertPriceAlert): Promise<PriceAlert> {
+    try {
+      const db = this.ensureDb();
+      const [alert] = await db.insert(priceAlerts).values(alertData).returning();
+      return alert;
+    } catch (error) {
+      console.error("Error creating price alert:", error);
+      throw error;
+    }
   }
 
   async getUserPriceAlerts(userId: string): Promise<PriceAlert[]> {
-    const db = this.ensureDb();
-    return await db.select().from(priceAlerts)
-      .where(eq(priceAlerts.userId, userId))
-      .orderBy(desc(priceAlerts.createdAt));
+    try {
+      const db = this.ensureDb();
+      const alerts = await db.select()
+        .from(priceAlerts)
+        .where(eq(priceAlerts.userId, userId))
+        .orderBy(desc(priceAlerts.createdAt));
+      return alerts;
+    } catch (error) {
+      console.error("Error getting price alerts:", error);
+      throw error;
+    }
   }
 
   async getPriceAlert(userId: string, symbol: string): Promise<PriceAlert | undefined> {
-    const db = this.ensureDb();
-    const [alert] = await db.select().from(priceAlerts)
-      .where(and(eq(priceAlerts.userId, userId), eq(priceAlerts.symbol, symbol)));
-    return alert;
+    try {
+      const db = this.ensureDb();
+      const [alert] = await db.select()
+        .from(priceAlerts)
+        .where(and(eq(priceAlerts.userId, userId), eq(priceAlerts.symbol, symbol)));
+      return alert;
+    } catch (error) {
+      console.error("Error getting price alert:", error);
+      throw error;
+    }
   }
 
   async getPriceAlertById(alertId: string): Promise<PriceAlert | undefined> {
-    const db = this.ensureDb();
-    const [alert] = await db.select().from(priceAlerts)
-      .where(eq(priceAlerts.id, alertId));
-    return alert;
+    try {
+      const db = this.ensureDb();
+      const [alert] = await db.select()
+        .from(priceAlerts)
+        .where(eq(priceAlerts.id, alertId));
+      return alert;
+    } catch (error) {
+      console.error("Error getting price alert:", error);
+      throw error;
+    }
   }
 
   async updatePriceAlert(alertId: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert> {
-    const db = this.ensureDb();
-    const [alert] = await db.update(priceAlerts)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(priceAlerts.id, alertId))
-      .returning();
-    return alert;
+    try {
+      const db = this.ensureDb();
+      const [alert] = await db.update(priceAlerts)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(priceAlerts.id, alertId))
+        .returning();
+      return alert;
+    } catch (error) {
+      console.error("Error updating price alert:", error);
+      throw error;
+    }
   }
 
   async deletePriceAlert(alertId: string): Promise<void> {
-    const db = this.ensureDb();
-    await db.delete(priceAlerts).where(eq(priceAlerts.id, alertId));
+    try {
+      const db = this.ensureDb();
+      await db.delete(priceAlerts)
+        .where(eq(priceAlerts.id, alertId));
+    } catch (error) {
+      console.error("Error deleting price alert:", error);
+      throw error;
+    }
   }
 
   async getActivePriceAlerts(): Promise<PriceAlert[]> {
-    const db = this.ensureDb();
-    return await db.select().from(priceAlerts)
-      .where(and(eq(priceAlerts.isActive, true), eq(priceAlerts.isTriggered, false)));
+    try {
+      const db = this.ensureDb();
+      const alerts = await db.select()
+        .from(priceAlerts)
+        .where(and(eq(priceAlerts.isActive, true), eq(priceAlerts.isTriggered, false)));
+      return alerts;
+    } catch (error) {
+      console.error("Error getting active price alerts:", error);
+      throw error;
+    }
   }
 
   // Notification methods
   async createNotification(data: InsertNotification): Promise<Notification> {
-    const db = this.ensureDb();
-    const [notification] = await db.insert(notifications).values(data).returning();
-    return notification;
+    try {
+      const db = this.ensureDb();
+      const [notification] = await db.insert(notifications).values(data).returning();
+      return notification;
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      throw error;
+    }
   }
 
   async getUserNotifications(userId: string, limit = 20): Promise<Notification[]> {
-    const db = this.ensureDb();
-    return await db.select().from(notifications)
-      .where(eq(notifications.userId, userId))
-      .orderBy(desc(notifications.createdAt))
-      .limit(limit);
+    try {
+      const db = this.ensureDb();
+      const userNotifications = await db.select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+      return userNotifications;
+    } catch (error) {
+      console.error("Error getting notifications:", error);
+      throw error;
+    }
+  }
+
+  async getNotification(notificationId: string): Promise<Notification | undefined> {
+    try {
+      const db = this.ensureDb();
+      const [notification] = await db.select()
+        .from(notifications)
+        .where(eq(notifications.id, notificationId));
+      return notification;
+    } catch (error) {
+      console.error("Error getting notification:", error);
+      throw error;
+    }
   }
 
   async markNotificationAsRead(notificationId: string): Promise<void> {
-    const db = this.ensureDb();
-    await db.update(notifications)
-      .set({ isRead: true })
-      .where(eq(notifications.id, notificationId));
+    try {
+      const db = this.ensureDb();
+      await db.update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.id, notificationId));
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      throw error;
+    }
   }
 
   async getUnreadNotificationCount(userId: string): Promise<number> {
-    const db = this.ensureDb();
-    const [result] = await db.select({ count: sql`count(*)` })
-      .from(notifications)
-      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
-    return parseInt(result.count as string) || 0;
+    try {
+      const db = this.ensureDb();
+      const [result] = await db.select({ count: sql`count(*)` })
+        .from(notifications)
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+      return parseInt(result.count as string) || 0;
+    } catch (error) {
+      console.error("Error fetching unread notification count:", error);
+      return 0;
+    }
   }
 
   // Deposit methods

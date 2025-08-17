@@ -13,7 +13,8 @@ import {
   BarChart3,
   MessageCircle,
   ShieldCheck,
-  TrendingUp
+  TrendingUp,
+  Bell
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -42,6 +43,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
     { href: "/support", label: "Live Support", icon: MessageCircle },
     { href: "/settings", label: "Settings", icon: User },
     { href: "/help", label: "Help", icon: Shield },
+    { href: "/alerts", label: "Alerts", icon: Bell },
   ];
 
   const adminItems = [
