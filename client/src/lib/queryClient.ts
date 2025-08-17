@@ -55,3 +55,6 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
 
   return response.json();
 };
+
+// Export as default for backwards compatibility
+export default queryClient;

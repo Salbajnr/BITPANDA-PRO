@@ -1,6 +1,4 @@
 
-import fetch from 'node-fetch';
-
 interface CryptoPrice {
   symbol: string;
   name: string;
@@ -20,13 +18,15 @@ interface CoinGeckoResponse {
   };
 }
 
+type CryptoSymbol = 'BTC' | 'ETH' | 'BNB' | 'ADA' | 'SOL' | 'XRP' | 'DOT' | 'DOGE' | 'AVAX' | 'MATIC' | 'LINK' | 'UNI' | 'LTC' | 'ALGO' | 'VET' | 'ICP' | 'FIL' | 'TRX' | 'ETC' | 'XLM';
+
 class CryptoService {
   private cache = new Map<string, { data: CryptoPrice; timestamp: number }>();
   private readonly CACHE_TTL = 30000; // 30 seconds
   private readonly API_BASE = 'https://api.coingecko.com/api/v3';
   
   // Popular cryptocurrencies with their CoinGecko IDs
-  private readonly CRYPTO_IDS = {
+  private readonly CRYPTO_IDS: Record<CryptoSymbol, string> = {
     'BTC': 'bitcoin',
     'ETH': 'ethereum',
     'BNB': 'binancecoin',
@@ -56,7 +56,7 @@ class CryptoService {
     }
 
     try {
-      const coinId = this.CRYPTO_IDS[symbol.toUpperCase()] || symbol.toLowerCase();
+      const coinId = this.CRYPTO_IDS[symbol.toUpperCase() as CryptoSymbol] || symbol.toLowerCase();
       const response = await fetch(
         `${this.API_BASE}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
       );
@@ -93,7 +93,7 @@ class CryptoService {
 
   async getPrices(symbols: string[]): Promise<CryptoPrice[]> {
     const coinIds = symbols.map(symbol => 
-      this.CRYPTO_IDS[symbol.toUpperCase()] || symbol.toLowerCase()
+      this.CRYPTO_IDS[symbol.toUpperCase() as CryptoSymbol] || symbol.toLowerCase()
     ).join(',');
 
     try {
@@ -109,7 +109,7 @@ class CryptoService {
       const results: CryptoPrice[] = [];
 
       for (const symbol of symbols) {
-        const coinId = this.CRYPTO_IDS[symbol.toUpperCase()] || symbol.toLowerCase();
+        const coinId = this.CRYPTO_IDS[symbol.toUpperCase() as CryptoSymbol] || symbol.toLowerCase();
         const priceData = data[coinId];
 
         if (priceData) {
@@ -165,7 +165,7 @@ class CryptoService {
   }
 
   private getFallbackPrice(symbol: string): CryptoPrice | null {
-    const fallbackPrices = {
+    const fallbackPrices: Record<string, number> = {
       'BTC': 45000,
       'ETH': 2800,
       'BNB': 350,
@@ -226,7 +226,7 @@ class CryptoService {
   }
 
   private getCryptoName(symbol: string): string {
-    const names = {
+    const names: Record<string, string> = {
       'BTC': 'Bitcoin',
       'ETH': 'Ethereum',
       'BNB': 'BNB',

@@ -73,3 +73,27 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
+// Export for backwards compatibility 
+export const ApiService = api;
+
+// Export for React Query mutations
+export const apiRequest = async (url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Unauthorized');
+    }
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
