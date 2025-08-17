@@ -47,7 +47,7 @@ const cryptocurrencies = [
   { symbol: 'XLM', name: 'Stellar' },
 ];
 
-export function PriceAlertModal({ alert, trigger, isOpen, onOpenChange }: PriceAlertModalProps) {
+function PriceAlertModal({ alert, trigger, isOpen, onOpenChange }: PriceAlertModalProps) {
   const [open, setOpen] = useState(isOpen || false);
   const [formData, setFormData] = useState({
     symbol: alert?.symbol || '',
@@ -344,3 +344,5 @@ export function PriceAlertModal({ alert, trigger, isOpen, onOpenChange }: PriceA
     </Dialog>
   );
 }
+
+export default PriceAlertModal;

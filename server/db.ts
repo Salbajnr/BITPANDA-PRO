@@ -31,7 +31,7 @@ let db: ReturnType<typeof drizzle>;
 
 try {
   client = postgres(process.env.DATABASE_URL!, {
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: { rejectUnauthorized: false },
     max: 10,
     idle_timeout: 20,
     connect_timeout: 10,

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export function FloatingParticles() {
+function FloatingParticles() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,3 +44,5 @@ export function FloatingParticles() {
     />
   );
 }
+
+export default FloatingParticles;

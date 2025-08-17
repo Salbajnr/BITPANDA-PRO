@@ -9,7 +9,7 @@ interface TickerItem {
   icon: React.ReactNode;
 }
 
-export function NewsTicker() {
+function NewsTicker() {
   const [tickerData, setTickerData] = useState<TickerItem[]>([
     { symbol: 'BTC', name: 'Bitcoin', price: 62430, change: 0.84, icon: <Bitcoin className="w-4 h-4" /> },
     { symbol: 'ETH', name: 'Ethereum', price: 3124, change: -0.12, icon: <DollarSign className="w-4 h-4" /> },
@@ -53,3 +53,5 @@ export function NewsTicker() {
     </div>
   );
 }
+
+export default NewsTicker;

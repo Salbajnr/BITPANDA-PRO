@@ -15,7 +15,7 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import TradingInterface from "@/components/TradingInterface";
 import RealTimeCryptoTable from "@/components/RealTimeCryptoTable";
-import { PriceAlertsList } from "@/components/PriceAlertsList";
+import PriceAlertsList from "@/components/PriceAlertsList";
 import { useAuth } from "@/hooks/useAuth";
 import { Redirect } from "wouter";
 

@@ -2,8 +2,38 @@
 import { Router } from 'express';
 import { cryptoService } from './crypto-service';
 import { webSocketManager } from './websocket-server';
+import fetch from 'node-fetch';
 
 const router = Router();
+
+// Server-side proxy for CoinGecko API to avoid CORS issues
+router.get('/coingecko/*', async (req, res) => {
+  try {
+    const path = req.params[0];
+    const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
+    const apiUrl = `https://api.coingecko.com/api/v3/${path}${queryString ? '?' + queryString : ''}`;
+    
+    console.log(`🔄 Proxying CoinGecko API: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl, {
+      method: req.method,
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'BitPanda-Clone/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('CoinGecko proxy error:', error);
+    res.status(500).json({ error: 'Failed to fetch data from CoinGecko' });
+  }
+});
 
 // Get single cryptocurrency price
 router.get('/price/:symbol', async (req, res) => {

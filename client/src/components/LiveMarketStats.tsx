@@ -20,7 +20,7 @@ interface MarketStats {
   }>;
 }
 
-export function LiveMarketStats() {
+function LiveMarketStats() {
   const [stats, setStats] = useState<MarketStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -259,3 +259,5 @@ export function LiveMarketStats() {
     </div>
   );
 }
+
+export default LiveMarketStats;

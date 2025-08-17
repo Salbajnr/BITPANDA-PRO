@@ -13,7 +13,7 @@ interface AnimatedChartProps {
   showLegend?: boolean;
 }
 
-export function AnimatedChart({ type, data, height = 200, showLegend = false }: AnimatedChartProps) {
+function AnimatedChart({ type, data, height = 200, showLegend = false }: AnimatedChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -113,3 +113,5 @@ export function AnimatedChart({ type, data, height = 200, showLegend = false }: 
     </div>
   );
 }
+
+export default AnimatedChart;

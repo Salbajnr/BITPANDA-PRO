@@ -13,7 +13,7 @@ interface RealTimeCryptoTableProps {
   showWatchlist?: boolean;
 }
 
-export function RealTimeCryptoTable({ 
+function RealTimeCryptoTable({ 
   onTradeClick, 
   limit = 50, 
   showWatchlist = true 
@@ -314,3 +314,5 @@ export function RealTimeCryptoTable({
     </div>
   );
 }
+
+export default RealTimeCryptoTable;

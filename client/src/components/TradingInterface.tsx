@@ -19,7 +19,7 @@ interface TradingInterfaceProps {
   onClose: () => void;
 }
 
-export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
+function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
   const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop_loss' | 'take_profit'>('market');
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState("");
@@ -389,3 +389,5 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
     </Card>
   );
 }
+
+export default TradingInterface;

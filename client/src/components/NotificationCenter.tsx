@@ -25,7 +25,7 @@ interface Notification {
   };
 }
 
-export function NotificationCenter() {
+function NotificationCenter() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -219,3 +219,5 @@ export function NotificationCenter() {
     </div>
   );
 }
+
+export default NotificationCenter;

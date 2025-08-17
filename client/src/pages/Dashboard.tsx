@@ -27,7 +27,7 @@ import { ChartContainer } from "@/components/ui/chart";
 import CryptoTable from "@/components/CryptoTable";
 import QuickStatsGrid from "@/components/QuickStatsGrid";
 import NewsSection from "@/components/NewsSection";
-import { LiveMarketStats } from "@/components/LiveMarketStats";
+import LiveMarketStats from "@/components/LiveMarketStats";
 import { useRealTimePrice } from "@/hooks/useRealTimePrice";
 import NewsWidget from '@/components/NewsWidget';
 import PriceAlertsList from '@/components/PriceAlertsList';

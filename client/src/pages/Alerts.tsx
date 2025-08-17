@@ -2,8 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PriceAlertsList } from '@/components/PriceAlertsList';
-import { NotificationCenter } from '@/components/NotificationCenter';
+import PriceAlertsList from '@/components/PriceAlertsList';
+import NotificationCenter from '@/components/NotificationCenter';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/hooks/useAuth';

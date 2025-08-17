@@ -16,7 +16,7 @@ import {
   Plus
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PriceAlertModal } from './PriceAlertModal';
+import PriceAlertModal from './PriceAlertModal';
 import { getCryptoLogo } from './CryptoLogos';
 
 interface PriceAlert {
@@ -30,7 +30,7 @@ interface PriceAlert {
   createdAt: string;
 }
 
-export function PriceAlertsList() {
+function PriceAlertsList() {
   const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -270,3 +270,5 @@ export function PriceAlertsList() {
     </div>
   );
 }
+
+export default PriceAlertsList;

@@ -8,7 +8,7 @@ interface FeatureCardProps {
   delay?: number;
 }
 
-export function FeatureCard({ icon: Icon, title, description, delay = 0 }: FeatureCardProps) {
+function FeatureCard({ icon: Icon, title, description, delay = 0 }: FeatureCardProps) {
   return (
     <div 
       className="group relative bg-card border border-border rounded-xl p-7 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-accent/10 fade-in overflow-hidden"
@@ -32,3 +32,5 @@ export function FeatureCard({ icon: Icon, title, description, delay = 0 }: Featu
     </div>
   );
 }
+
+export default FeatureCard;

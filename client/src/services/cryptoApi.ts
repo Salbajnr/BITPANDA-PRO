@@ -1,4 +1,4 @@
-const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3';
+const COINGECKO_API_BASE = '/api/crypto/coingecko';
 
 export interface CryptoPrice {
   id: string;
@@ -36,7 +36,7 @@ export interface MarketData {
 }
 
 export class CryptoApiService {
-  private static readonly BASE_URL = 'https://api.coingecko.com/api/v3';
+  private static readonly BASE_URL = '/api/crypto/coingecko';
   private static cache = new Map<string, { data: any; timestamp: number }>();
   private static readonly CACHE_DURATION = 30000; // 30 seconds cache
 
