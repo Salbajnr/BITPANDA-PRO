@@ -42,6 +42,7 @@ import Deposit from "./pages/Deposit";
 import DepositHistory from "./pages/DepositHistory";
 import AdminDepositManagement from "./pages/AdminDepositManagement";
 import AdminBalanceManagement from "./pages/AdminBalanceManagement";
+import AdminNewsManagement from './pages/AdminNewsManagement';
 import Academy from "@/pages/Academy";
 import News from './pages/News';
 import { lazy } from 'react';
@@ -191,6 +192,7 @@ function AppContent() {
 
       <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route path="/admin/balance" component={AdminBalanceManagement} />
+      <Route path="/admin/news-management" element={<AdminNewsManagement />} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/academy" component={Academy} />
       <Route path="/news" component={News} />

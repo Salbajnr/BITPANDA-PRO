@@ -29,7 +29,7 @@ import {
   type InsertNotification, // Assuming InsertNotification type is available
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, sql, gte } from "drizzle-orm";
+import { eq, desc, gte, lte, asc, count, and, or, sql, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -68,9 +68,12 @@ export interface IStorage {
   updatePortfolioBalance(userId: string, amount: number): Promise<void>;
 
   // News operations
-  getNewsArticles(limit?: number): Promise<NewsArticle[]>;
+  getNewsArticles(limit?: number, category?: string, search?: string): Promise<NewsArticle[]>;
+  getNewsArticleById(id: string): Promise<NewsArticle | null>;
   createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle>;
+  updateNewsArticle(id: string, updates: Partial<InsertNewsArticle>): Promise<NewsArticle | null>;
   deleteNewsArticle(id: string): Promise<void>;
+  getNewsAnalytics(): Promise<any>;
 
   // Deposit operations
   createDeposit(deposit: any): Promise<any>;
@@ -455,16 +458,49 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getNewsArticles(limit: number = 10): Promise<NewsArticle[]> {
+  // Get news articles with filtering
+  async getNewsArticles(limit: number = 10, category?: string, search?: string): Promise<NewsArticle[]> {
     try {
-      const db = this.ensureDb();
-      const articles = await db.select()
-        .from(newsArticles)
+      let query = this.db
+        .select()
+        .from(newsArticles);
+
+      if (category) {
+        query = query.where(eq(newsArticles.source, category));
+      }
+
+      if (search) {
+        query = query.where(
+          or(
+            ilike(newsArticles.title, `%${search}%`),
+            ilike(newsArticles.content, `%${search}%`)
+          )
+        );
+      }
+
+      const articles = await query
         .orderBy(desc(newsArticles.publishedAt))
         .limit(limit);
+
       return articles;
     } catch (error) {
-      console.error("Error getting news articles:", error);
+      console.error('Error fetching news articles:', error);
+      throw error;
+    }
+  }
+
+  // Get single news article by ID
+  async getNewsArticleById(id: string): Promise<NewsArticle | null> {
+    try {
+      const article = await this.db
+        .select()
+        .from(newsArticles)
+        .where(eq(newsArticles.id, id))
+        .limit(1);
+
+      return article[0] || null;
+    } catch (error) {
+      console.error('Error fetching news article:', error);
       throw error;
     }
   }
@@ -475,9 +511,56 @@ export class DatabaseStorage implements IStorage {
     return article;
   }
 
+  // Update news article
+  async updateNewsArticle(id: string, updates: Partial<InsertNewsArticle>): Promise<NewsArticle | null> {
+    try {
+      const updated = await this.db
+        .update(newsArticles)
+        .set(updates)
+        .where(eq(newsArticles.id, id))
+        .returning();
+
+      return updated[0] || null;
+    } catch (error) {
+      console.error('Error updating news article:', error);
+      throw error;
+    }
+  }
+
   async deleteNewsArticle(id: string): Promise<void> {
     const db = this.ensureDb();
     await db.delete(newsArticles).where(eq(newsArticles.id, id));
+  }
+
+  // Get news analytics
+  async getNewsAnalytics() {
+    try {
+      const totalArticles = await this.db
+        .select({ count: count() })
+        .from(newsArticles);
+
+      const articlesBySource = await this.db
+        .select({
+          source: newsArticles.source,
+          count: count()
+        })
+        .from(newsArticles)
+        .groupBy(newsArticles.source);
+
+      const recentArticles = await this.db
+        .select({ count: count() })
+        .from(newsArticles)
+        .where(gte(newsArticles.publishedAt, sql`NOW() - INTERVAL '7 days'`));
+
+      return {
+        totalArticles: totalArticles[0]?.count || 0,
+        articlesBySource,
+        recentArticles: recentArticles[0]?.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching news analytics:', error);
+      throw error;
+    }
   }
 
   // Price Alerts methods

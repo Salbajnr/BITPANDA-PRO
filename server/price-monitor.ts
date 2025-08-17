@@ -40,7 +40,7 @@ class PriceMonitorService {
   async checkPriceAlerts() {
     try {
       // Get all active alerts
-      const alerts = await storage.getAllActivePriceAlerts();
+      const alerts = await storage.getActivePriceAlerts();
       
       if (alerts.length === 0) {
         return;

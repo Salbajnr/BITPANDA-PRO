@@ -18,6 +18,26 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
+// Dummy SidebarMenuButton component for demonstration purposes
+// In a real app, this would likely be imported from a UI library
+const SidebarMenuButton = ({ children, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex items-center w-full px-3 py-2 rounded-lg transition-colors",
+      isActive
+        ? "bg-primary text-white"
+        : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+    )}
+  >
+    {children}
+  </button>
+);
+
+// Dummy navigate function for demonstration purposes
+const navigate = (path) => console.log(`Navigating to ${path}`);
+
+
 interface SidebarProps {
   portfolioData?: any;
   isOpen?: boolean;
@@ -51,6 +71,10 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
     { href: "#admin-balances", label: "Simulate Balances", icon: DollarSign },
     { href: "#admin-analytics", label: "Analytics", icon: BarChart3 },
   ];
+
+  // Placeholder for currentPath and navigate if not defined in the original context
+  // In a real application, these would come from a routing library like Wouter or React Router
+  const currentPath = location; 
 
   return (
     <>
@@ -201,6 +225,14 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
                         </Link>
                       );
                     })}
+                    {/* Added News Management Link */}
+                    <SidebarMenuButton 
+                      isActive={currentPath === '/admin/news-management'}
+                      onClick={() => navigate('/admin/news-management')}
+                    >
+                      <Newspaper className="mr-2 h-4 w-4" />
+                      News Management
+                    </SidebarMenuButton>
                   </nav>
                 </div>
               )}

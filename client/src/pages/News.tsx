@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,9 +15,14 @@ import {
   Filter,
   Globe,
   Calendar,
-  ArrowRight
+  ArrowRight,
+  Activity,
+  BarChart3
 } from 'lucide-react';
 import { newsApi, NewsArticle } from '@/services/newsApi';
+import { NewsTicker } from '@/components/NewsTicker';
+import NewsWidget from '@/components/NewsWidget';
+import EnhancedNewsSection from '@/components/EnhancedNewsSection';
 
 export default function News() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -47,7 +51,7 @@ export default function News() {
     const now = new Date();
     const publishedDate = new Date(dateString);
     const diffInHours = Math.floor((now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
@@ -87,7 +91,7 @@ export default function News() {
               />
             </div>
           )}
-          
+
           <div className="lg:w-2/3 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
@@ -100,11 +104,11 @@ export default function News() {
                 </Badge>
               )}
             </div>
-            
+
             <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2">
               {article.description}
             </p>
-            
+
             <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
@@ -116,7 +120,7 @@ export default function News() {
                   <span>{formatTimeAgo(article.publishedAt)}</span>
                 </div>
               </div>
-              
+
               {article.coins && article.coins.length > 0 && (
                 <div className="flex gap-1">
                   {article.coins.slice(0, 3).map(coin => (
@@ -127,7 +131,7 @@ export default function News() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center justify-between pt-2">
               <Button 
                 variant="ghost" 
@@ -138,7 +142,7 @@ export default function News() {
                 Read full article
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
-              
+
               <Button variant="outline" size="sm">
                 <ExternalLink className="h-3 w-3 mr-1" />
                 Share
@@ -168,7 +172,7 @@ export default function News() {
               </p>
             </div>
           </div>
-          
+
           {/* Search */}
           <form onSubmit={handleSearch} className="flex gap-2 max-w-md">
             <div className="relative flex-1">
@@ -270,14 +274,14 @@ export default function News() {
                       </CardContent>
                     </Card>
                   )}
-                  
+
                   {/* News List */}
                   <div className="space-y-4">
                     {newsData?.articles?.slice(1).map((article) => (
                       <NewsCard key={article.id} article={article} />
                     ))}
                   </div>
-                  
+
                   {/* Load More */}
                   {newsData?.articles && newsData.articles.length >= 10 && (
                     <div className="text-center pt-6">

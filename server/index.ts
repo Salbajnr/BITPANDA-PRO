@@ -4,7 +4,6 @@ import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
 import { setupVite, serveStatic, log } from "./vite";
 import { portfolioRoutes } from './portfolio-routes';
-import { priceMonitor } from "./price-monitor";
 import { seedDatabase } from "./seedData";
 import { webSocketManager } from "./websocket-server";
 import cryptoRoutes from './crypto-routes';
@@ -16,6 +15,7 @@ import depositRoutes from './deposit-routes';
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import { registerMetalsRoutes } from './metals-routes';
 import { registerProofUploadRoutes } from './proof-upload-routes';
+import newsRoutes from './news-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -91,6 +91,34 @@ app.use((req, res, next) => {
       await setupVite(app, server);
     } else {
       serveStatic(app);
+    }
+
+    // ALIGNs the API with the portfolio routes
+    app.use('/api', portfolioRoutes);
+
+    // Crypto routes for real-time price data
+    app.use('/api/crypto', cryptoRoutes);
+    app.use('/api/trading', tradingRoutes);
+    app.use('/api/admin', adminRoutes);
+    app.use('/api/auth', authRoutes);
+    // Alert routes
+    app.use('/api/alerts', alertRoutes);
+
+    // News routes
+    app.use('/api/news', newsRoutes);
+
+    app.use('/api/deposits', depositRoutes);
+    app.use('/api/portfolio-analytics', portfolioAnalyticsRoutes);
+    // Register metals and proof upload routes
+    registerMetalsRoutes(app);
+    registerProofUploadRoutes(app);
+
+
+    // Seed database with initial data
+    try {
+      await seedDatabase();
+    } catch (error) {
+      console.warn('⚠️  Database seeding failed (this is normal if already seeded):', error.message);
     }
 
     // ALIGNs the API with the portfolio routes
