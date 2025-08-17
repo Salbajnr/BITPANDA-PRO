@@ -31,8 +31,12 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User roles enum
+// Enums for the platform
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
+export const assetTypeEnum = pgEnum('asset_type', ['crypto', 'metal']);
+export const transactionTypeEnum = pgEnum('transaction_type', ['buy', 'sell', 'deposit', 'withdrawal']);
+export const depositStatusEnum = pgEnum('deposit_status', ['pending', 'approved', 'rejected']);
+export const paymentMethodEnum = pgEnum('payment_method', ['binance', 'bybit', 'crypto_com', 'bank_transfer', 'other']);
 
 // User storage table
 export const users = pgTable("users", {
@@ -60,10 +64,11 @@ export const portfolios = pgTable("portfolios", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Crypto holdings
+// Holdings (both crypto and metals)
 export const holdings = pgTable("holdings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   portfolioId: varchar("portfolio_id").references(() => portfolios.id, { onDelete: 'cascade' }).notNull(),
+  assetType: assetTypeEnum("asset_type").notNull(),
   symbol: varchar("symbol", { length: 10 }).notNull(),
   name: varchar("name", { length: 100 }).notNull(),
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
@@ -73,28 +78,69 @@ export const holdings = pgTable("holdings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Trading transactions
+// Trading transactions (enhanced for both crypto and metals)
 export const transactions = pgTable('transactions', {
   id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   userId: text('user_id').notNull().references(() => users.id),
-  type: text('type').notNull(), // 'buy', 'sell', 'deposit', 'withdrawal'
+  type: transactionTypeEnum('type').notNull(),
+  assetType: assetTypeEnum('asset_type').notNull(),
   symbol: text('symbol').notNull(),
   amount: decimal('amount', { precision: 20, scale: 8 }).notNull(),
   price: decimal('price', { precision: 20, scale: 8 }).notNull(),
   total: decimal('total', { precision: 20, scale: 8 }).notNull(),
   status: text('status').notNull().default('pending'), // 'pending', 'completed', 'failed'
+  fees: decimal('fees', { precision: 20, scale: 8 }).default('0').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Deposits
+// Enhanced deposits with proof of payment
 export const deposits = pgTable('deposits', {
   id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
   currency: text('currency').notNull().default('USD'),
-  status: text('status').notNull().default('pending'), // pending, approved, rejected
+  assetType: assetTypeEnum('asset_type').notNull().default('crypto'),
+  paymentMethod: paymentMethodEnum('payment_method').notNull(),
+  status: depositStatusEnum('status').notNull().default('pending'),
   rejectionReason: text('rejection_reason'),
+  proofImageUrl: text('proof_image_url'), // URL to uploaded proof of payment
+  adminNotes: text('admin_notes'),
+  approvedById: text('approved_by_id').references(() => users.id),
+  approvedAt: timestamp('approved_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Precious metals pricing table
+export const metalsPricing = pgTable('metals_pricing', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  symbol: text('symbol').notNull(), // 'GOLD', 'SILVER', 'PLATINUM', 'PALLADIUM'
+  name: text('name').notNull(),
+  pricePerOunce: numeric('price_per_ounce', { precision: 20, scale: 8 }).notNull(),
+  changePercent24h: numeric('change_percent_24h', { precision: 10, scale: 4 }),
+  lastUpdated: timestamp('last_updated').defaultNow().notNull(),
+});
+
+// Platform settings and admin controls
+export const platformSettings = pgTable('platform_settings', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  updatedById: text('updated_by_id').references(() => users.id),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// User preferences and settings
+export const userSettings = pgTable('user_settings', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  preferredCurrency: text('preferred_currency').default('USD').notNull(),
+  emailNotifications: boolean('email_notifications').default(true).notNull(),
+  priceAlerts: boolean('price_alerts').default(true).notNull(),
+  darkMode: boolean('dark_mode').default(false).notNull(),
+  language: text('language').default('en').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
