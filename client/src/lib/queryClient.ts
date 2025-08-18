@@ -3,6 +3,12 @@ import { QueryClient } from "@tanstack/react-query";
 const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
   const url = queryKey[0] as string;
 
+  // Ensure URL is a string and not an object
+  if (!url || typeof url !== 'string') {
+    console.error('Invalid URL in query key:', queryKey);
+    throw new Error(`Invalid URL: ${url}`);
+  }
+
   const response = await fetch(url, {
     credentials: 'include', // Important for session cookies
     headers: {

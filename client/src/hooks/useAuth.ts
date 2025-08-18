@@ -15,6 +15,9 @@ export function useAuth() {
     queryFn: () => apiRequest("/api/auth/me"),
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false, // Disable automatic refetching
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
   });
 
   return {
