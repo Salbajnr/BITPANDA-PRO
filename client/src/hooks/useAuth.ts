@@ -10,11 +10,28 @@ interface User {
 }
 
 export function useAuth() {
-  const { data: user, isLoading, error } = useQuery<User>({
-    queryKey: ["/api/auth/me"],
-    queryFn: () => apiRequest("/api/auth/me"),
+  const { data: user, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+      });
+
+      if (response.status === 401) {
+        return null;
+      }
+
+      if (!response.ok) {
+        throw new Error('Authentication failed');
+      }
+
+      return response.json();
+    },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes instead of every second
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   return {

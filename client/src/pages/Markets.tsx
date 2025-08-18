@@ -39,6 +39,23 @@ export default function Markets() {
     queryKey: ['market-data', activeTab],
     queryFn: () => CryptoApiService.getTopCryptos(100),
     refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 10000, // Consider data fresh for 10 seconds
+    enabled: true,
+  });
+
+  // Fetch user's watchlist
+  const { data: userWatchlist = [] } = useQuery({
+    queryKey: ['user-watchlist'],
+    queryFn: async () => {
+      if (!isAuthenticated) return [];
+      const response = await fetch('/api/watchlist', {
+        credentials: 'include',
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Filter and sort the data

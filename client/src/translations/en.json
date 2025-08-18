@@ -16,7 +16,8 @@
     "filter": "Filter",
     "sort": "Sort",
     "export": "Export",
-    "import": "Import"
+    "import": "Import",
+    "refresh": "Refresh"
   },
   "navigation": {
     "home": "Home",
@@ -104,12 +105,13 @@
     "stopOrder": "Stop Order"
   },
   "settings": {
-    "profile": "Profile",
-    "security": "Security",
-    "notifications": "Notifications",
-    "preferences": "Preferences",
+    "title": "Settings",
     "language": "Language",
     "theme": "Theme",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "security": "Security",
+    "profile": "Profile",
     "twoFactor": "Two-Factor Authentication",
     "changePassword": "Change Password",
     "apiKeys": "API Keys"

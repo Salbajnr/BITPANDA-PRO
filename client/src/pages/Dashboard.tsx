@@ -96,12 +96,21 @@ export default function Dashboard() {
   const { data: portfolioData, isLoading: portfolioLoading } = useQuery<PortfolioData>({
     queryKey: ["/api/portfolio"],
     queryFn: async () => {
-      const response = await fetch('/api/portfolio');
-      if (!response.ok) throw new Error('Network response was not ok');
+      const response = await fetch('/api/portfolio', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized');
+        }
+        throw new Error('Failed to fetch portfolio data');
+      }
       return response.json();
     },
-    retry: false,
+    retry: 1,
     enabled: !!user,
+    staleTime: 1000 * 30, // 30 seconds
+    refetchInterval: 1000 * 60, // Refetch every minute
   });
 
   const { data: cryptoData = [], isLoading: cryptoLoading } = useQuery<CryptoData[]>({

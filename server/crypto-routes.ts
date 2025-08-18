@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { cryptoService } from './crypto-service';
 import { webSocketManager } from './websocket-server';
@@ -12,9 +11,9 @@ router.get('/coingecko/*', async (req, res) => {
     const path = req.params[0] || '';
     const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
     const apiUrl = `https://api.coingecko.com/api/v3/${path}${queryString ? '?' + queryString : ''}`;
-    
+
     console.log(`🔄 Proxying CoinGecko API: ${apiUrl}`);
-    
+
     const response = await fetch(apiUrl, {
       method: req.method,
       headers: {
@@ -40,7 +39,7 @@ router.get('/price/:symbol', async (req, res) => {
   try {
     const { symbol } = req.params;
     const price = await cryptoService.getPrice(symbol);
-    
+
     if (!price) {
       return res.status(404).json({ 
         message: `Price not found for ${symbol}` 
@@ -60,7 +59,7 @@ router.get('/price/:symbol', async (req, res) => {
 router.post('/prices', async (req, res) => {
   try {
     const { symbols } = req.body;
-    
+
     if (!Array.isArray(symbols) || symbols.length === 0) {
       return res.status(400).json({ 
         message: 'symbols array is required' 
@@ -87,7 +86,7 @@ router.post('/prices', async (req, res) => {
 router.get('/top/:limit?', async (req, res) => {
   try {
     const limit = parseInt(req.params.limit || '20');
-    
+
     if (limit < 1 || limit > 100) {
       return res.status(400).json({ 
         message: 'Limit must be between 1 and 100' 
@@ -108,17 +107,17 @@ router.get('/top/:limit?', async (req, res) => {
 router.get('/market-overview', async (req, res) => {
   try {
     const topCryptos = await cryptoService.getTopCryptos(10);
-    
+
     // Calculate market statistics
     const totalMarketCap = topCryptos.reduce((sum, crypto) => sum + crypto.market_cap, 0);
     const totalVolume = topCryptos.reduce((sum, crypto) => sum + crypto.volume_24h, 0);
     const avgChange = topCryptos.reduce((sum, crypto) => sum + crypto.change_24h, 0) / topCryptos.length;
-    
+
     const gainers = topCryptos
       .filter(crypto => crypto.change_24h > 0)
       .sort((a, b) => b.change_24h - a.change_24h)
       .slice(0, 3);
-    
+
     const losers = topCryptos
       .filter(crypto => crypto.change_24h < 0)
       .sort((a, b) => a.change_24h - b.change_24h)

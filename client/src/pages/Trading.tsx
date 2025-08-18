@@ -72,25 +72,45 @@ export default function Trading() {
 
   // Trading mutation
   const tradeMutation = useMutation({
-    mutationFn: async (tradeData) => {
-      return api.post('/api/trade', tradeData);
+    mutationFn: async (tradeData: { 
+      type: 'buy' | 'sell'; 
+      symbol: string; 
+      name: string; 
+      amount: string; 
+      price: string; 
+    }) => {
+      const response = await fetch('/api/trade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(tradeData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Trade failed');
+      }
+
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Trade Executed",
-        description: "Your trade has been successfully executed.",
+        description: `Successfully ${data.type} ${data.amount} ${data.symbol.toUpperCase()} at $${parseFloat(data.price).toFixed(2)}`,
       });
       // Refresh portfolio and holdings
-      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio'] });
       queryClient.invalidateQueries({ queryKey: ['holdings'] });
       // Clear form
       setAmount("");
       setPrice("");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Trade Failed",
-        description: error.response?.data?.message || "Failed to execute trade",
+        description: error.message || "Failed to execute trade",
         variant: "destructive",
       });
     },
