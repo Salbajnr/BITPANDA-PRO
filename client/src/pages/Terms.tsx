@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { FileText, Shield, AlertTriangle, Scale, User, CreditCard } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { FileText, User, CreditCard, Shield, AlertTriangle, Scale } from 'lucide-react';
 
 const Terms = () => {
   const sections = [
