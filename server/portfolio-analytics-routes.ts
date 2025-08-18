@@ -1,20 +1,81 @@
 
 import { Router } from 'express';
-import { db } from './db';
-import { portfolios, transactions, users } from '../shared/schema';
-import { eq, and, desc, gte } from 'drizzle-orm';
+import { requireAuth } from './simple-auth';
 import { storage } from './storage';
+import { cryptoService } from './crypto-service';
 
 const router = Router();
 
-// Get portfolio analytics
-router.get('/analytics', async (req, res) => {
+// Get portfolio overview with analytics
+router.get('/overview', requireAuth, async (req, res) => {
   try {
-    const userId = req.session?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    const userId = req.user!.id;
+    
+    // Get portfolio
+    const portfolio = await storage.getPortfolio(userId);
+    if (!portfolio) {
+      return res.status(404).json({ message: 'Portfolio not found' });
     }
 
+    // Get holdings with current prices
+    const holdings = await storage.getHoldingsWithPrices(portfolio.id);
+    
+    // Calculate total portfolio value
+    let totalValue = 0;
+    let totalCost = 0;
+    
+    const holdingsWithMetrics = await Promise.all(holdings.map(async (holding) => {
+      const currentPrice = await cryptoService.getPrice(holding.symbol.toLowerCase());
+      const currentValue = parseFloat(holding.amount) * (currentPrice?.price || 0);
+      const totalCostForHolding = parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice);
+      const profitLoss = currentValue - totalCostForHolding;
+      const profitLossPercentage = totalCostForHolding > 0 ? (profitLoss / totalCostForHolding) * 100 : 0;
+      
+      totalValue += currentValue;
+      totalCost += totalCostForHolding;
+      
+      return {
+        ...holding,
+        currentPrice: currentPrice?.price || 0,
+        currentValue,
+        totalCost: totalCostForHolding,
+        profitLoss,
+        profitLossPercentage,
+        allocation: 0 // Will be calculated after totalValue is known
+      };
+    }));
+
+    // Calculate allocation percentages
+    const holdingsWithAllocation = holdingsWithMetrics.map(holding => ({
+      ...holding,
+      allocation: totalValue > 0 ? (holding.currentValue / totalValue) * 100 : 0
+    }));
+
+    const totalProfitLoss = totalValue - totalCost;
+    const totalProfitLossPercentage = totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0;
+
+    res.json({
+      portfolio,
+      holdings: holdingsWithAllocation,
+      analytics: {
+        totalValue,
+        totalCost,
+        totalProfitLoss,
+        totalProfitLossPercentage,
+        availableCash: parseFloat(portfolio.availableCash),
+        totalAssets: holdingsWithAllocation.length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching portfolio analytics:', error);
+    res.status(500).json({ message: 'Failed to fetch portfolio analytics' });
+  }
+});
+
+// Get portfolio analytics (comprehensive data)
+router.get('/analytics', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
     const timeframe = req.query.timeframe as string || '7d';
     
     // Get user's portfolio
@@ -216,80 +277,6 @@ router.get('/analytics', async (req, res) => {
   } catch (error) {
     console.error('Error fetching portfolio analytics:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-export default router;
-import { Router } from 'express';
-import { requireAuth } from './simple-auth';
-import { storage } from './storage';
-import { cryptoService } from './crypto-service';
-
-const router = Router();
-
-// Get portfolio overview with analytics
-router.get('/overview', requireAuth, async (req, res) => {
-  try {
-    const userId = req.user!.id;
-    
-    // Get portfolio
-    const portfolio = await storage.getPortfolio(userId);
-    if (!portfolio) {
-      return res.status(404).json({ message: 'Portfolio not found' });
-    }
-
-    // Get holdings with current prices
-    const holdings = await storage.getHoldingsWithPrices(portfolio.id);
-    
-    // Calculate total portfolio value
-    let totalValue = 0;
-    let totalCost = 0;
-    
-    const holdingsWithMetrics = await Promise.all(holdings.map(async (holding) => {
-      const currentPrice = await cryptoService.getPrice(holding.symbol.toLowerCase());
-      const currentValue = parseFloat(holding.amount) * (currentPrice?.price || 0);
-      const totalCostForHolding = parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice);
-      const profitLoss = currentValue - totalCostForHolding;
-      const profitLossPercentage = totalCostForHolding > 0 ? (profitLoss / totalCostForHolding) * 100 : 0;
-      
-      totalValue += currentValue;
-      totalCost += totalCostForHolding;
-      
-      return {
-        ...holding,
-        currentPrice: currentPrice?.price || 0,
-        currentValue,
-        totalCost: totalCostForHolding,
-        profitLoss,
-        profitLossPercentage,
-        allocation: 0 // Will be calculated after totalValue is known
-      };
-    }));
-
-    // Calculate allocation percentages
-    const holdingsWithAllocation = holdingsWithMetrics.map(holding => ({
-      ...holding,
-      allocation: totalValue > 0 ? (holding.currentValue / totalValue) * 100 : 0
-    }));
-
-    const totalProfitLoss = totalValue - totalCost;
-    const totalProfitLossPercentage = totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0;
-
-    res.json({
-      portfolio,
-      holdings: holdingsWithAllocation,
-      analytics: {
-        totalValue,
-        totalCost,
-        totalProfitLoss,
-        totalProfitLossPercentage,
-        availableCash: parseFloat(portfolio.availableCash),
-        totalAssets: holdingsWithAllocation.length
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching portfolio analytics:', error);
-    res.status(500).json({ message: 'Failed to fetch portfolio analytics' });
   }
 });
 
