@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,8 @@ import {
   AlertCircle,
   Wallet,
   Timer,
-  Eye
+  Eye,
+  European
 } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
 import Navbar from "@/components/Navbar";
@@ -44,47 +46,82 @@ const topCryptos = [
 const features = [
   {
     icon: TrendingUp,
-    title: "Advanced Trading Tools",
-    description: "Professional-grade trading interface with real-time charts and advanced order management.",
-    color: "text-green-500"
+    title: "Trade in minutes from only €1",
+    description: "Start trading cryptocurrencies with the minimum investment that fits your budget.",
+    color: "text-green-600"
   },
   {
     icon: Shield,
-    title: "Bank-Grade Security",
-    description: "Multi-layer security with cold storage, 2FA, and insurance protection for your assets.",
-    color: "text-green-500"
+    title: "Your No.1 European broker",
+    description: "Regulated by Austrian Financial Market Authority (FMA) and trusted across Europe.",
+    color: "text-green-600"
   },
   {
     icon: Zap,
-    title: "Lightning Fast Execution",
-    description: "Ultra-low latency trading engine with instant order execution and real-time data.",
-    color: "text-green-500"
+    title: "Trade 24/7",
+    description: "Access global cryptocurrency markets around the clock with instant execution.",
+    color: "text-green-600"
+  },
+  {
+    icon: DollarSign,
+    title: "Fee-free on all deposits",
+    description: "No hidden fees on deposits. Transparent pricing for all your trading activities.",
+    color: "text-green-600"
   },
   {
     icon: BarChart3,
-    title: "Portfolio Analytics",
-    description: "Comprehensive portfolio tracking with performance metrics and detailed reports.",
-    color: "text-green-500"
-  },
-  {
-    icon: Globe,
-    title: "Global Market Access",
-    description: "Trade 500+ cryptocurrencies with access to global markets and liquidity pools.",
-    color: "text-green-500"
+    title: "500+ Assets",
+    description: "Trade cryptocurrencies, stocks, ETFs, indices and precious metals all in one place.",
+    color: "text-green-600"
   },
   {
     icon: Users,
-    title: "24/7 Support",
-    description: "Expert customer support team available around the clock to assist you.",
-    color: "text-green-500"
+    title: "2M+ Active Users",
+    description: "Join millions of investors who trust BITPANDA PRO for their investment needs.",
+    color: "text-green-600"
   }
 ];
 
-const stats = [
-  { label: "Active Traders", value: "2M+", icon: Users },
-  { label: "Trading Volume", value: "$50B+", icon: Activity },
-  { label: "Cryptocurrencies", value: "500+", icon: PieChart },
-  { label: "Countries", value: "180+", icon: Globe }
+const trustIndicators = [
+  {
+    icon: Shield,
+    title: "EU Regulated",
+    description: "Licensed by Austrian FMA",
+    badge: "🇪🇺"
+  },
+  {
+    icon: Lock,
+    title: "Bank-Grade Security",
+    description: "Your funds are safe",
+    badge: "🔒"
+  },
+  {
+    icon: Award,
+    title: "Award Winning",
+    description: "Best Crypto Platform 2024",
+    badge: "🏆"
+  }
+];
+
+const steps = [
+  {
+    number: "01",
+    title: "Sign up",
+    description: "Create your free account in under 2 minutes",
+    icon: Users
+  },
+  {
+    number: "02", 
+    title: "Verify",
+    description: "Quick identity verification process",
+    icon: CheckCircle
+  },
+  {
+    number: "03",
+    title: "Start Trading",
+    description: "Buy your first crypto from €1",
+    icon: TrendingUp
+  }
 ];
 
 export default function Landing() {
@@ -95,56 +132,58 @@ export default function Landing() {
       <Navbar />
       <LiveTicker />
       
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-white via-green-50 to-green-100 pt-24 pb-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-100/20 via-transparent to-transparent"></div>
+      {/* Hero Section - Following Bitpanda's exact style */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50 pt-24 pb-20">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-green-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-400 rounded-full blur-3xl"></div>
+        </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center">
-            {/* Badge */}
-            <Badge className="mb-8 bg-green-500 hover:bg-green-600 text-white border-none px-6 py-2 text-sm font-medium">
-              🚀 Professional Crypto Trading Platform
-            </Badge>
+            {/* Trust Badge */}
+            <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-8">
+              <Shield className="w-4 h-4" />
+              <span>🇦🇹 Austria based and European regulated</span>
+            </div>
             
-            {/* Main Heading */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black mb-8 leading-tight">
-              Trade Crypto with
-              <span className="text-green-500 block mt-2">Confidence</span>
+            {/* Main Heading - Bitpanda Style */}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              BITPANDA PRO -
+              <span className="text-green-600 block mt-2">Start investing today</span>
             </h1>
             
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-gray-700 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Experience seamless cryptocurrency trading with advanced tools, real-time market data, and bank-grade security. Join millions of traders worldwide.
+            {/* Subtitle - Exact Bitpanda copy */}
+            <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-4xl mx-auto leading-relaxed font-medium">
+              Trade in minutes from only €1. Your No.1 European broker for stocks, crypto, indices, ETFs and precious metals. Trade 24/7. Fee-free on all deposits.
             </p>
             
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            {/* CTA Buttons - Bitpanda Style */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link href="/auth">
-                <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white font-semibold px-10 py-4 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  Start Trading Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
+                  Get started
                 </Button>
               </Link>
               
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white px-10 py-4 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-12 py-4 rounded-lg text-lg h-14 font-semibold transition-all duration-200"
               >
-                <Play className="mr-2 h-5 w-5" />
-                Watch Demo
+                Learn more
               </Button>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 mb-4 bg-green-100 rounded-full">
-                    <stat.icon className="w-6 h-6 text-green-600" />
+            {/* Trust Indicators */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {trustIndicators.map((indicator, index) => (
+                <div key={index} className="flex items-center justify-center space-x-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                  <span className="text-2xl">{indicator.badge}</span>
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900 text-sm">{indicator.title}</div>
+                    <div className="text-xs text-gray-600">{indicator.description}</div>
                   </div>
-                  <div className="text-3xl font-bold text-black mb-2">{stat.value}</div>
-                  <div className="text-gray-600 font-medium">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -152,17 +191,39 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Live Market Data */}
+      {/* How it works - Bitpanda style */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-black mb-4">Live Market Data</h2>
-            <p className="text-xl text-gray-600">Real-time prices from global cryptocurrency markets</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">How it works</h2>
+            <p className="text-xl text-gray-600">Get started in 3 simple steps</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {steps.map((step, index) => (
+              <div key={index} className="text-center">
+                <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                  {step.number}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{step.title}</h3>
+                <p className="text-gray-600">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Live Market Data */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Live prices</h2>
+            <p className="text-xl text-gray-600">Real-time market data for top cryptocurrencies</p>
           </div>
 
           <div className="grid gap-4 max-w-5xl mx-auto">
             {topCryptos.map((crypto, index) => (
-              <Card key={crypto.symbol} className="border border-gray-200 hover:border-green-300 transition-all duration-200 hover:shadow-lg">
+              <Card key={crypto.symbol} className="border border-gray-200 hover:border-green-300 transition-all duration-200 hover:shadow-md">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -173,16 +234,16 @@ export default function Landing() {
                       />
                     </div>
                     <div>
-                      <div className="font-semibold text-black text-lg">{crypto.name}</div>
-                      <div className="text-sm text-gray-500">{crypto.symbol}</div>
+                      <div className="font-bold text-gray-900 text-lg">{crypto.name}</div>
+                      <div className="text-sm text-gray-500 uppercase">{crypto.symbol}</div>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <div className="font-bold text-black text-xl">
-                      ${crypto.price.toLocaleString()}
+                    <div className="font-bold text-gray-900 text-xl">
+                      €{crypto.price.toLocaleString()}
                     </div>
-                    <div className={`text-sm flex items-center justify-end ${
+                    <div className={`text-sm flex items-center justify-end font-medium ${
                       crypto.change >= 0 ? 'text-green-600' : 'text-red-500'
                     }`}>
                       {crypto.change >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
@@ -191,8 +252,8 @@ export default function Landing() {
                   </div>
                   
                   <div className="text-right">
-                    <div className="text-sm text-gray-500 mb-1">Volume</div>
-                    <div className="font-semibold text-black">{crypto.volume}</div>
+                    <div className="text-sm text-gray-500 mb-1">24h Volume</div>
+                    <div className="font-semibold text-gray-900">{crypto.volume}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -201,24 +262,24 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-white">
+      {/* Features Section - Bitpanda style */}
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-black mb-4">Why Choose Our Platform</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why choose BITPANDA PRO</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Built for traders by traders, our platform combines cutting-edge technology with intuitive design
+              Europe's leading investment platform combining traditional and digital assets
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg group">
+              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg bg-white">
                 <CardHeader className="text-center pb-4">
-                  <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-full group-hover:bg-green-500 transition-colors duration-300">
-                    <feature.icon className="w-8 h-8 text-green-600 group-hover:text-white transition-colors duration-300" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-lg">
+                    <feature.icon className="w-8 h-8 text-green-600" />
                   </div>
-                  <CardTitle className="text-xl font-bold text-black mb-2">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl font-bold text-gray-900 mb-2">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center pt-0">
                   <p className="text-gray-600 leading-relaxed">{feature.description}</p>
@@ -229,122 +290,125 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Security & Trust Section */}
-      <section className="py-20 bg-green-50">
+      {/* Security Section - European Focus */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-black mb-4">Security & Trust</h2>
-            <p className="text-xl text-gray-600">Your security is our top priority</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Regulated and secure</h2>
+            <p className="text-xl text-gray-600">Your security and regulatory compliance is our priority</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border border-green-200 bg-white">
-              <CardHeader className="text-center">
-                <Shield className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <CardTitle className="text-xl font-bold text-black">Bank-Grade Security</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600">Multi-signature wallets, cold storage, and advanced encryption protect your funds</p>
-              </CardContent>
+            <Card className="border border-gray-200 bg-white text-center p-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Shield className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">EU Regulated</h3>
+              <p className="text-gray-600">Licensed by the Austrian Financial Market Authority (FMA) and fully compliant with European regulations</p>
             </Card>
 
-            <Card className="border border-green-200 bg-white">
-              <CardHeader className="text-center">
-                <Lock className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <CardTitle className="text-xl font-bold text-black">2FA Authentication</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600">Two-factor authentication and biometric security for maximum account protection</p>
-              </CardContent>
+            <Card className="border border-gray-200 bg-white text-center p-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Lock className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Secure Storage</h3>
+              <p className="text-gray-600">95% of digital assets stored offline in military-grade cold storage with multi-signature security</p>
             </Card>
 
-            <Card className="border border-green-200 bg-white">
-              <CardHeader className="text-center">
-                <Award className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <CardTitle className="text-xl font-bold text-black">Regulatory Compliance</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600">Fully licensed and compliant with global financial regulations</p>
-              </CardContent>
+            <Card className="border border-gray-200 bg-white text-center p-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Award className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Award Winning</h3>
+              <p className="text-gray-600">Recognized as Europe's most trusted crypto platform with multiple industry awards</p>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-green-500 to-green-600">
+      {/* CTA Section - Bitpanda style */}
+      <section className="py-20 bg-green-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">Ready to Start Trading?</h2>
-          <p className="text-xl text-green-100 mb-10">
-            Join millions of traders and start your crypto journey today. No hidden fees, no minimum deposits.
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to start investing?</h2>
+          <p className="text-xl text-green-100 mb-10 max-w-2xl mx-auto">
+            Join over 2 million users who trust BITPANDA PRO. Start trading from just €1 with no deposit fees.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth">
-              <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-10 py-4 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                Create Free Account
-                <ChevronRight className="ml-2 h-5 w-5" />
+              <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
+                Get started now
               </Button>
             </Link>
             
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-2 border-white text-white hover:bg-white hover:text-green-600 px-10 py-4 rounded-xl text-lg transition-all duration-300"
+              className="border-2 border-white text-white hover:bg-white hover:text-green-600 px-12 py-4 rounded-lg text-lg h-14 font-semibold transition-all duration-200"
             >
-              Learn More
+              Learn more
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black text-white py-16">
+      {/* Footer - European Compliance Focus */}
+      <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <h3 className="text-2xl font-bold mb-4 text-green-400">BITPANDA PRO</h3>
               <p className="text-gray-300 mb-6 max-w-md">
-                The world's leading cryptocurrency trading platform. Trade with confidence, security, and professional tools.
+                Austria based and European regulated cryptocurrency trading platform. Licensed by the Austrian Financial Market Authority (FMA).
               </p>
-              <div className="flex space-x-4">
-                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                  <Globe className="w-5 h-5" />
-                </div>
-                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5" />
-                </div>
-                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                  <Shield className="w-5 h-5" />
-                </div>
+              <div className="flex items-center space-x-4 text-sm text-gray-400">
+                <span className="flex items-center">
+                  <Shield className="w-4 h-4 mr-2" />
+                  🇦🇹 Austria based
+                </span>
+                <span className="flex items-center">
+                  <Award className="w-4 h-4 mr-2" />
+                  EU regulated
+                </span>
               </div>
             </div>
             
             <div>
               <h4 className="text-lg font-semibold mb-4 text-green-400">Products</h4>
               <ul className="space-y-2 text-gray-300">
-                <li><Link href="/trading" className="hover:text-green-400 transition-colors">Spot Trading</Link></li>
-                <li><Link href="/markets" className="hover:text-green-400 transition-colors">Markets</Link></li>
-                <li><Link href="/portfolio" className="hover:text-green-400 transition-colors">Portfolio</Link></li>
-                <li><Link href="/alerts" className="hover:text-green-400 transition-colors">Price Alerts</Link></li>
+                <li><Link href="/trading" className="hover:text-green-400 transition-colors">Cryptocurrencies</Link></li>
+                <li><Link href="/markets" className="hover:text-green-400 transition-colors">Stocks</Link></li>
+                <li><Link href="/portfolio" className="hover:text-green-400 transition-colors">ETFs</Link></li>
+                <li><Link href="/alerts" className="hover:text-green-400 transition-colors">Precious Metals</Link></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-green-400">Support</h4>
+              <h4 className="text-lg font-semibold mb-4 text-green-400">Company</h4>
               <ul className="space-y-2 text-gray-300">
-                <li><Link href="/help" className="hover:text-green-400 transition-colors">Help Center</Link></li>
+                <li><Link href="/about" className="hover:text-green-400 transition-colors">About</Link></li>
                 <li><Link href="/security" className="hover:text-green-400 transition-colors">Security</Link></li>
-                <li><Link href="/terms" className="hover:text-green-400 transition-colors">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:text-green-400 transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-green-400 transition-colors">Legal</Link></li>
+                <li><Link href="/privacy" className="hover:text-green-400 transition-colors">Privacy</Link></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-gray-400">
-              © 2025 BITPANDA PRO. All rights reserved. | Licensed and regulated cryptocurrency exchange.
-            </p>
+          <div className="border-t border-gray-800 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p className="text-gray-400 text-sm">
+                © 2025 BITPANDA PRO. All rights reserved. BITPANDA PRO is licensed by the Austrian Financial Market Authority (FMA).
+              </p>
+              <div className="flex items-center space-x-6 mt-4 md:mt-0">
+                <span className="text-gray-400 text-sm flex items-center">
+                  <Shield className="w-4 h-4 mr-2" />
+                  FMA Licensed
+                </span>
+                <span className="text-gray-400 text-sm flex items-center">
+                  🇪🇺 EU Compliant
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
