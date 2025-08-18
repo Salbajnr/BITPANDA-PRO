@@ -13,8 +13,8 @@ import { TrendingUp, TrendingDown, DollarSign, BarChart3, Activity, Zap, Target,
 import { getCryptoLogo } from "@/components/CryptoLogos";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import TradingInterface from "@/components/TradingInterface";
-import RealTimeCryptoTable from "@/components/RealTimeCryptoTable";
+import { TradingInterface } from "@/components/TradingInterface";
+import { RealTimeCryptoTable } from "@/components/RealTimeCryptoTable";
 import { PriceAlertsList } from "@/components/PriceAlertsList";
 import { useAuth } from "@/hooks/useAuth";
 import { Redirect } from "wouter";

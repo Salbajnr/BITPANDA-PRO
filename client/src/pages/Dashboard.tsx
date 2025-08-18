@@ -19,7 +19,7 @@ import {
   Globe, Zap, Shield, Award, TrendingDownIcon
 } from "lucide-react";
 import { Link } from "wouter";
-import NotificationCenter from "@/components/NotificationCenter";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import {
   LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from "recharts";
@@ -30,8 +30,8 @@ import NewsSection from "@/components/NewsSection";
 import { LiveMarketStats } from "@/components/LiveMarketStats";
 import { useRealTimePrice } from "@/hooks/useRealTimePrice";
 import NewsWidget from '@/components/NewsWidget';
-import PriceAlertsList from '@/components/PriceAlertsList';
-import PriceAlertModal from '@/components/PriceAlertModal';
+import { PriceAlertsList } from '@/components/PriceAlertsList';
+import { PriceAlertModal } from '@/components/PriceAlertModal';
 import RealTimePriceWidget from "@/components/RealTimePriceWidget";
 
 

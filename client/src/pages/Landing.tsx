@@ -29,11 +29,11 @@ import {
 import { getCryptoLogo } from "@/components/CryptoLogos";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
-import FeatureCard from "@/components/FeatureCard";
-import FloatingParticles from "@/components/FloatingParticles";
-import AnimatedChart from "@/components/AnimatedChart";
-import LiveMarketStats from "@/components/LiveMarketStats";
-import NewsTicker from "@/components/NewsTicker";
+import { FeatureCard } from "@/components/FeatureCard";
+import { FloatingParticles } from "@/components/FloatingParticles";
+import { AnimatedChart } from "@/components/AnimatedChart";
+import { LiveMarketStats } from "@/components/LiveMarketStats";
+import { NewsTicker } from "@/components/NewsTicker";
 import VisualIdentityShowcase from "@/components/VisualIdentityShowcase";
 
 const topCryptos = [
