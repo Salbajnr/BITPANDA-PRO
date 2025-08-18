@@ -25,21 +25,13 @@ export default function NewsSection() {
     queryFn: async () => {
       try {
         // Using a simple news API fallback
-        const response = await fetch(
-          `https://newsapi.org/v2/everything?q=cryptocurrency&sortBy=publishedAt&pageSize=6&apiKey=${process.env.VITE_NEWS_API_KEY || 'demo'}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          return data.articles?.map((article: any) => ({
-            id: article.url,
-            title: article.title,
-            excerpt: article.description,
-            source: article.source.name,
-            publishedAt: article.publishedAt,
-            imageUrl: article.urlToImage,
-            sourceUrl: article.url,
-          })) || [];
-        }
+        // Disable external API calls for now to prevent errors
+        // const response = await fetch(
+        //   `https://newsapi.org/v2/everything?q=cryptocurrency&sortBy=publishedAt&pageSize=6&apiKey=${import.meta.env.VITE_NEWS_API_KEY || 'demo'}`
+        // );
+        
+        // Use fallback news data instead
+        throw new Error('External API disabled - using fallback data');
       } catch (error) {
         console.warn('News API fallback failed:', error);
       }

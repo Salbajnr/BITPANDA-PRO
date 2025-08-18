@@ -106,9 +106,9 @@ export function LiveMarketStats() {
   useEffect(() => {
     fetchMarketStats();
     
-    // Update every 60 seconds
-    const interval = setInterval(fetchMarketStats, 60000);
-    return () => clearInterval(interval);
+    // Disable automatic updates to prevent continuous errors for now
+    // const interval = setInterval(fetchMarketStats, 60000);
+    // return () => clearInterval(interval);
   }, []);
 
   const formatMarketCap = (value: number) => {

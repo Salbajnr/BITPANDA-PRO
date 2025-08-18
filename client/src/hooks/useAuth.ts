@@ -13,7 +13,11 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/auth/me"],
     queryFn: () => apiRequest("/api/auth/me"),
-    retry: false,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 Unauthorized
+      if (error.message === 'Unauthorized') return false;
+      return failureCount < 1; // Only retry once
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: false, // Disable automatic refetching
     refetchOnWindowFocus: false, // Disable refetch on window focus
