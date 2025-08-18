@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import { CryptoApiService } from "@/services/cryptoApi";
 import { 
   TrendingUp, 
   Shield, 
@@ -108,6 +110,13 @@ const securityFeatures = [
 function Landing() {
   const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
+
+  // Fetch real crypto data
+  const { data: cryptoData, isLoading: cryptoLoading } = useQuery({
+    queryKey: ['top-cryptos'],
+    queryFn: () => CryptoApiService.getTopCryptos(6),
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
 
   useEffect(() => {
     setIsVisible(true);
@@ -214,44 +223,75 @@ function Landing() {
           </div>
 
           <div className="grid-auto-fit">
-            {topCryptos.map((crypto, index) => (
-              <Card key={crypto.symbol} className="crypto-card">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 flex items-center justify-center">
-                        {getCryptoLogo(crypto.symbol)}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg">{crypto.name}</h3>
-                        <p className="text-muted-foreground">{crypto.symbol}</p>
+            {cryptoLoading ? (
+              // Loading skeleton
+              Array.from({ length: 6 }).map((_, index) => (
+                <Card key={index} className="crypto-card">
+                  <CardContent className="p-6">
+                    <div className="animate-pulse">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 rounded-full bg-gray-300"></div>
+                          <div>
+                            <div className="h-4 bg-gray-300 rounded w-20 mb-2"></div>
+                            <div className="h-3 bg-gray-300 rounded w-10"></div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="h-4 bg-gray-300 rounded w-24 mb-2"></div>
+                          <div className="h-3 bg-gray-300 rounded w-16"></div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg portfolio-value">
-                        ${crypto.price.toLocaleString()}
-                      </p>
-                      <div className={`flex items-center ${crypto.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {crypto.change >= 0 ? (
-                          <TrendingUp className="w-4 h-4 mr-1" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 mr-1" />
-                        )}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              (cryptoData || topCryptos).map((crypto, index) => (
+                <Card key={crypto.symbol} className="crypto-card">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 flex items-center justify-center">
+                          {getCryptoLogo(crypto.symbol)}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{crypto.name}</h3>
+                          <p className="text-muted-foreground">{crypto.symbol.toUpperCase()}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-lg portfolio-value">
+                          ${(crypto.current_price || crypto.price)?.toLocaleString()}
+                        </p>
+                        <div className={`flex items-center ${(crypto.price_change_percentage_24h || crypto.change) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {(crypto.price_change_percentage_24h || crypto.change) >= 0 ? (
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 mr-1" />
+                          )}
+                          <span className="font-medium">
+                            {(crypto.price_change_percentage_24h || crypto.change) >= 0 ? '+' : ''}
+                            {(crypto.price_change_percentage_24h || crypto.change)?.toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>24h Volume</span>
                         <span className="font-medium">
-                          {crypto.change >= 0 ? '+' : ''}{crypto.change}%
+                          {crypto.total_volume ? 
+                            `$${(crypto.total_volume / 1e9).toFixed(1)}B` : 
+                            crypto.volume
+                          }
                         </span>
                       </div>
                     </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>24h Volume</span>
-                      <span className="font-medium">{crypto.volume}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
 
           <div className="text-center mt-8">

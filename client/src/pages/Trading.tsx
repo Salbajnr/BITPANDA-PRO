@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,8 @@ import RealTimeCryptoTable from "@/components/RealTimeCryptoTable";
 import PriceAlertsList from "@/components/PriceAlertsList";
 import { useAuth } from "@/hooks/useAuth";
 import { Redirect } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 const tradingPairs = [
   { symbol: "BTC", name: "Bitcoin", price: 45234.56, change: 2.34, volume: "28.5B" },
@@ -53,12 +54,47 @@ const featuredOrders = [
 export default function Trading() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const [selectedPair, setSelectedPair] = useState(tradingPairs[0]);
   const [orderType, setOrderType] = useState("market");
   const [tradeType, setTradeType] = useState("buy");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
   const [activeTab, setActiveTab] = useState("trade");
+
+  // Fetch portfolio data
+  const { data: portfolio } = useQuery({
+    queryKey: ['portfolio'],
+    queryFn: () => api.get('/api/portfolio'),
+    enabled: !!user,
+  });
+
+  // Trading mutation
+  const tradeMutation = useMutation({
+    mutationFn: async (tradeData) => {
+      return api.post('/api/trade', tradeData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Trade Executed",
+        description: "Your trade has been successfully executed.",
+      });
+      // Refresh portfolio and holdings
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      queryClient.invalidateQueries({ queryKey: ['holdings'] });
+      // Clear form
+      setAmount("");
+      setPrice("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Trade Failed",
+        description: error.response?.data?.message || "Failed to execute trade",
+        variant: "destructive",
+      });
+    },
+  });
 
   if (!user) {
     return <Redirect to="/auth" />;
@@ -74,14 +110,40 @@ export default function Trading() {
       return;
     }
 
-    toast({
-      title: "Trade Submitted",
-      description: `${tradeType.toUpperCase()} order for ${amount} ${selectedPair.symbol} submitted successfully`,
-    });
+    const tradeAmount = parseFloat(amount);
+    // In a real application, you would fetch the current market price here
+    // For demonstration, we'll use a placeholder or the selectedPair's static price
+    const currentMarketPrice = selectedPair.price; 
+    const tradePrice = orderType === "market" ? currentMarketPrice : parseFloat(price);
+    
+    if (isNaN(tradeAmount) || (orderType === "limit" && isNaN(tradePrice))) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter valid numbers for amount and price.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Reset form
-    setAmount("");
-    setPrice("");
+    const total = tradeAmount * tradePrice;
+
+    // Check if user has enough balance for buy orders
+    if (tradeType === "buy" && portfolio && parseFloat(portfolio.availableCash) < total) {
+      toast({
+        title: "Insufficient Funds",
+        description: "You don't have enough cash to complete this trade",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    tradeMutation.mutate({
+      type: tradeType, // 'buy' or 'sell'
+      symbol: selectedPair.symbol.toLowerCase(),
+      name: selectedPair.name,
+      amount: tradeAmount.toString(),
+      price: orderType === "market" ? currentMarketPrice.toString() : tradePrice.toString(), // Use current market price for market orders
+    });
   };
 
   return (
@@ -90,7 +152,7 @@ export default function Trading() {
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Navbar />
-          
+
           <main className="flex-1 overflow-y-auto p-6">
             {/* Header */}
             <div className="mb-6">
@@ -315,8 +377,9 @@ export default function Trading() {
                         <Button 
                           onClick={handleTrade}
                           className={`w-full ${tradeType === "buy" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}`}
+                          disabled={tradeMutation.isPending}
                         >
-                          {tradeType === "buy" ? "Buy" : "Sell"} {selectedPair.symbol}
+                          {tradeMutation.isPending ? "Processing..." : `${tradeType === "buy" ? "Buy" : "Sell"} ${selectedPair.symbol}`}
                         </Button>
                       </CardContent>
                     </Card>

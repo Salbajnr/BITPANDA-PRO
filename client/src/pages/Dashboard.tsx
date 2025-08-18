@@ -95,6 +95,11 @@ export default function Dashboard() {
 
   const { data: portfolioData, isLoading: portfolioLoading } = useQuery<PortfolioData>({
     queryKey: ["/api/portfolio"],
+    queryFn: async () => {
+      const response = await fetch('/api/portfolio');
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    },
     retry: false,
     enabled: !!user,
   });
@@ -103,6 +108,7 @@ export default function Dashboard() {
     queryKey: ['crypto-data'],
     queryFn: async () => {
       const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1');
+      if (!response.ok) throw new Error('Network response was not ok');
       return response.json();
     },
     refetchInterval: 30000,
@@ -112,6 +118,7 @@ export default function Dashboard() {
     queryKey: ['/api/news'],
     queryFn: async () => {
       const response = await fetch('/api/news?limit=5');
+      if (!response.ok) throw new Error('Network response was not ok');
       return response.json();
     },
     refetchInterval: 60000,
@@ -528,8 +535,8 @@ export default function Dashboard() {
                           </div>
                           <div className="mt-2">
                             <div className={`flex items-center text-sm ${portfolioMetrics.dailyChangePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {portfolioMetrics.dailyChangePercent >= 0 ? 
-                                <TrendingUp className="h-4 w-4 mr-1" /> : 
+                              {portfolioMetrics.dailyChangePercent >= 0 ?
+                                <TrendingUp className="h-4 w-4 mr-1" /> :
                                 <TrendingDown className="h-4 w-4 mr-1" />
                               }
                               <span>{portfolioMetrics.dailyChangePercent >= 0 ? '+' : ''}{portfolioMetrics.dailyChangePercent.toFixed(2)}%</span>
@@ -554,8 +561,8 @@ export default function Dashboard() {
                           </div>
                           <div className="mt-2">
                             <div className={`flex items-center text-sm ${portfolioMetrics.totalGainLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {portfolioMetrics.totalGainLossPercent >= 0 ? 
-                                <TrendingUp className="h-4 w-4 mr-1" /> : 
+                              {portfolioMetrics.totalGainLossPercent >= 0 ?
+                                <TrendingUp className="h-4 w-4 mr-1" /> :
                                 <TrendingDown className="h-4 w-4 mr-1" />
                               }
                               <span>{portfolioMetrics.totalGainLossPercent >= 0 ? '+' : ''}{portfolioMetrics.totalGainLossPercent.toFixed(2)}%</span>
@@ -563,8 +570,8 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className={`w-12 h-12 rounded-xl ${portfolioMetrics.totalGainLoss >= 0 ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20' : 'bg-gradient-to-r from-red-500/20 to-pink-500/20'} flex items-center justify-center`}>
-                          {portfolioMetrics.totalGainLoss >= 0 ? 
-                            <TrendingUp className="h-6 w-6 text-green-500" /> : 
+                          {portfolioMetrics.totalGainLoss >= 0 ?
+                            <TrendingUp className="h-6 w-6 text-green-500" /> :
                             <TrendingDown className="h-6 w-6 text-red-500" />
                           }
                         </div>
@@ -863,7 +870,7 @@ export default function Dashboard() {
                 {/* Integrated NewsWidget */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                   <PriceAlertsList />
-                  <RealTimePriceWidget 
+                  <RealTimePriceWidget
                     symbols={['BTC', 'ETH', 'BNB', 'ADA', 'SOL']}
                     title="Live Market"
                     maxItems={5}
@@ -996,8 +1003,8 @@ export default function Dashboard() {
                                     <Button size="sm" variant="outline">
                                       <Star className="h-4 w-4" />
                                     </Button>
-                                    <PriceAlertModal 
-                                      symbol={crypto.symbol.toUpperCase()} 
+                                    <PriceAlertModal
+                                      symbol={crypto.symbol.toUpperCase()}
                                       currentPrice={crypto.current_price}
                                     />
                                     <Button size="sm">

@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { TrendingUp, TrendingDown, Search, Star, StarOff } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from 'wouter';
+import { useQuery } from "@tanstack/react-query";
+import { CryptoApiService } from "@/services/cryptoApi";
+
 
 interface MarketAsset {
   id?: string;
@@ -23,41 +26,40 @@ interface MarketAsset {
 
 export default function Markets() {
   const { isAuthenticated } = useAuth();
-  const [cryptoData, setCryptoData] = useState<MarketAsset[]>([]);
   const [metalsData, setMetalsData] = useState<MarketAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState("market_cap");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [activeTab, setActiveTab] = useState("all");
+
+  // Fetch real cryptocurrency data
+  const { data: cryptoData, isLoading, error } = useQuery({
+    queryKey: ['market-data', activeTab],
+    queryFn: () => CryptoApiService.getTopCryptos(100),
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  // Filter and sort the data
+  const filteredAndSortedData = cryptoData?.filter(crypto => 
+    crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+  ).sort((a, b) => {
+    const aValue = a[sortBy as keyof typeof a] as number;
+    const bValue = b[sortBy as keyof typeof b] as number;
+    return sortOrder === "desc" ? bValue - aValue : aValue - bValue;
+  }) || [];
+
 
   useEffect(() => {
-    fetchMarketData();
+    // fetchMarketData(); // This will be replaced by useQuery
     if (isAuthenticated) {
       fetchWatchlist();
     }
   }, [isAuthenticated]);
 
-  const fetchMarketData = async () => {
-    try {
-      const [cryptoResponse, metalsResponse] = await Promise.all([
-        fetch('/api/crypto/trending'),
-        fetch('/api/metals/prices')
-      ]);
-
-      if (cryptoResponse.ok) {
-        const crypto = await cryptoResponse.json();
-        setCryptoData(crypto.map((coin: any) => ({ ...coin, type: 'crypto' as const })));
-      }
-
-      if (metalsResponse.ok) {
-        const metals = await metalsResponse.json();
-        setMetalsData(metals.map((metal: any) => ({ ...metal, type: 'metal' as const })));
-      }
-    } catch (error) {
-      console.error('Error fetching market data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Removed fetchMarketData as it's now handled by useQuery
 
   const fetchWatchlist = async () => {
     try {
@@ -99,6 +101,7 @@ export default function Markets() {
     if (type === 'metal') {
       return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
+    // For crypto, handle prices less than 1 appropriately
     return price > 1 ? `$${price.toFixed(2)}` : `$${price.toFixed(6)}`;
   };
 
@@ -119,16 +122,13 @@ export default function Markets() {
     return `$${volume.toFixed(0)}`;
   };
 
-  const filterAssets = (assets: MarketAsset[]) => {
-    return assets.filter(asset => 
-      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
+  // Removed filterAssets as filtering is now done inline in the render logic
 
   const AssetRow = ({ asset }: { asset: MarketAsset }) => {
-    const price = asset.current_price || asset.price || 0;
-    const change = asset.price_change_percentage_24h || asset.changePercent24h || 0;
+    // Use current_price for crypto, price for metals if available, otherwise default to 0
+    const price = asset.current_price ?? asset.price ?? 0;
+    // Use price_change_percentage_24h for crypto, changePercent24h for metals if available, otherwise default to 0
+    const change = asset.price_change_percentage_24h ?? asset.changePercent24h ?? 0;
     const isInWatchlist = watchlist.includes(asset.symbol);
 
     return (
@@ -158,7 +158,7 @@ export default function Markets() {
             <p className="text-sm text-slate-600 dark:text-slate-400">{asset.name}</p>
           </div>
         </div>
-        
+
         <div className="text-right">
           <div className="font-semibold" data-testid={`price-${asset.symbol}`}>
             {formatPrice(price, asset.type)}
@@ -198,7 +198,7 @@ export default function Markets() {
     );
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
@@ -209,6 +209,14 @@ export default function Markets() {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center text-red-500">
+        Error loading market data: {error.message}
       </div>
     );
   }
@@ -235,7 +243,7 @@ export default function Markets() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs defaultValue="all" className="space-y-4" onValueChange={(value) => setActiveTab(value)}>
         <TabsList>
           <TabsTrigger value="all" data-testid="tab-all">All Markets</TabsTrigger>
           <TabsTrigger value="crypto" data-testid="tab-crypto">Cryptocurrencies</TabsTrigger>
@@ -255,8 +263,11 @@ export default function Markets() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-0" data-testid="all-markets-list">
-                {[...filterAssets(cryptoData), ...filterAssets(metalsData)].map((asset, index) => (
+                {filteredAndSortedData.map((asset, index) => (
                   <AssetRow key={`${asset.symbol}-${index}`} asset={asset} />
+                ))}
+                 {metalsData.map((asset, index) => (
+                  <AssetRow key={`metal-${asset.symbol}-${index}`} asset={asset} />
                 ))}
               </div>
             </CardContent>
@@ -273,7 +284,7 @@ export default function Markets() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-0" data-testid="crypto-list">
-                {filterAssets(cryptoData).map((asset, index) => (
+                {filteredAndSortedData.map((asset, index) => (
                   <AssetRow key={`crypto-${asset.symbol}-${index}`} asset={asset} />
                 ))}
               </div>
@@ -291,7 +302,7 @@ export default function Markets() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-0" data-testid="metals-list">
-                {filterAssets(metalsData).map((asset, index) => (
+                {metalsData.map((asset, index) => (
                   <AssetRow key={`metal-${asset.symbol}-${index}`} asset={asset} />
                 ))}
               </div>
