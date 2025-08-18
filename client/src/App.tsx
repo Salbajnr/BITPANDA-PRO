@@ -10,7 +10,6 @@ import Landing from "@/pages/Landing";
 import Markets from "@/pages/Markets";
 import Deposits from "@/pages/Deposits";
 import About from "@/pages/About";
-import Contact from "@/pages/Contact";
 import Features from "@/pages/Features";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -40,8 +39,6 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import UserAgreement from './pages/UserAgreement';
 import Contact from './pages/Contact';
-import Help from './pages/Help';
-import Features from './pages/Features';
 import Deposit from "./pages/Deposit";
 import DepositHistory from "./pages/DepositHistory";
 import AdminDepositManagement from "./pages/AdminDepositManagement";
@@ -53,6 +50,7 @@ import DualMarkets from './pages/DualMarkets';
 import { lazy } from 'react';
 import PreciousMetals from "@/pages/PreciousMetals";
 import Commodities from "@/pages/Commodities";
+import InvestmentPlans from './pages/InvestmentPlans';
 
 function AppContent() {
   const { user, isLoading, error } = useAuth();
@@ -85,7 +83,7 @@ function AppContent() {
       <Route path="/etfs" component={lazy(() => import("./pages/Etfs"))} />
       <Route path="/precious-metals" element={<PreciousMetals />} />
             <Route path="/commodities" element={<Commodities />} />
-      <Route path="/savings-plans" component={lazy(() => import("./pages/SavingsPlans"))} />
+      <Route path="/investment-plans" element={<InvestmentPlans />} />
       <Route path="/dual-markets" component={DualMarkets} />
       <Route path="/deposits" component={Deposits} />
       <Route path="/about" component={About} />

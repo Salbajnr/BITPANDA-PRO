@@ -195,7 +195,9 @@ export default function Navbar() {
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link href="/precious-metals" className="navbar-link">Precious Metals</Link>
+                  <Link href="/investment-plans" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
+                    Investment Plans
+                  </Link>
                   <Link to="/precious-metals" className="navbar-link">Precious Metals</Link>
                   <Link to="/commodities" className="navbar-link">Commodities</Link>
                 </NavigationMenuItem>
@@ -260,6 +262,12 @@ export default function Navbar() {
                   <div className="flex items-center space-x-3 py-2 text-gray-700 hover:text-green-600">
                     <Database className="w-5 h-5" />
                     <span>ETFs</span>
+                  </div>
+                </Link>
+                <Link href="/investment-plans">
+                  <div className="flex items-center space-x-3 py-2 text-gray-700 hover:text-green-600">
+                    <DollarSign className="w-5 h-5" />
+                    <span>Investment Plans</span>
                   </div>
                 </Link>
               </div>

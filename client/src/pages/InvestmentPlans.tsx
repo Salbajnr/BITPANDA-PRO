@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
-const savingsPlans = [
+const investmentPlans = [
   {
     id: 1,
     name: "Bitcoin Dollar-Cost Averaging",
@@ -54,6 +54,18 @@ const savingsPlans = [
     totalInvested: 800,
     currentValue: 845,
     nextExecution: "Paused"
+  },
+  {
+    id: 4,
+    name: "Tech Stocks Portfolio",
+    asset: "Apple Inc.",
+    symbol: "AAPL",
+    amount: 150,
+    frequency: "Monthly",
+    status: "Active",
+    totalInvested: 1800,
+    currentValue: 1945,
+    nextExecution: "2025-02-01"
   }
 ];
 
@@ -63,7 +75,9 @@ const popularAssets = [
   { name: "MSCI World ETF", symbol: "IWDA", type: "ETF", minAmount: 5 },
   { name: "S&P 500 ETF", symbol: "SPY", type: "ETF", minAmount: 5 },
   { name: "Gold", symbol: "XAU", type: "Metal", minAmount: 10 },
-  { name: "Apple", symbol: "AAPL", type: "Stock", minAmount: 1 }
+  { name: "Apple", symbol: "AAPL", type: "Stock", minAmount: 1 },
+  { name: "Microsoft", symbol: "MSFT", type: "Stock", minAmount: 1 },
+  { name: "Tesla", symbol: "TSLA", type: "Stock", minAmount: 1 }
 ];
 
 const frequencies = ["Weekly", "Bi-weekly", "Monthly", "Quarterly"];
@@ -74,8 +88,8 @@ export default function InvestmentPlans() {
   const [frequency, setFrequency] = useState("Monthly");
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const totalInvested = savingsPlans.reduce((sum, plan) => sum + plan.totalInvested, 0);
-  const totalValue = savingsPlans.reduce((sum, plan) => sum + plan.currentValue, 0);
+  const totalInvested = investmentPlans.reduce((sum, plan) => sum + plan.totalInvested, 0);
+  const totalValue = investmentPlans.reduce((sum, plan) => sum + plan.currentValue, 0);
   const totalGain = totalValue - totalInvested;
   const totalGainPercent = ((totalGain / totalInvested) * 100).toFixed(2);
 
@@ -141,7 +155,7 @@ export default function InvestmentPlans() {
                 <div>
                   <p className="text-sm text-gray-600">Active Plans</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {savingsPlans.filter(plan => plan.status === 'Active').length}
+                    {investmentPlans.filter(plan => plan.status === 'Active').length}
                   </p>
                 </div>
                 <Target className="w-8 h-8 text-purple-500" />
@@ -180,7 +194,7 @@ export default function InvestmentPlans() {
                     <option value="">Select an asset</option>
                     {popularAssets.map(asset => (
                       <option key={asset.symbol} value={asset.symbol}>
-                        {asset.name} ({asset.symbol})
+                        {asset.name} ({asset.symbol}) - {asset.type}
                       </option>
                     ))}
                   </select>
@@ -220,9 +234,9 @@ export default function InvestmentPlans() {
           </Card>
         )}
 
-        {/* Savings Plans List */}
+        {/* Investment Plans List */}
         <div className="space-y-4 mb-8">
-          {savingsPlans.map((plan) => (
+          {investmentPlans.map((plan) => (
             <Card key={plan.id} className="border border-gray-200 hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 items-center">
@@ -291,7 +305,7 @@ export default function InvestmentPlans() {
                 <Repeat className="w-8 h-8 text-green-600" />
               </div>
               <h4 className="text-lg font-semibold text-gray-900 mb-2">Dollar-Cost Averaging</h4>
-              <p className="text-gray-600">Reduce the impact of market volatility by investing regularly over time</p>
+              <p className="text-gray-600">Reduce the impact of market volatility by investing regularly over time across all asset classes</p>
             </div>
 
             <div className="text-center">
@@ -299,15 +313,15 @@ export default function InvestmentPlans() {
                 <Clock className="w-8 h-8 text-blue-600" />
               </div>
               <h4 className="text-lg font-semibold text-gray-900 mb-2">Automated Investing</h4>
-              <p className="text-gray-600">Set it and forget it - your investments happen automatically</p>
+              <p className="text-gray-600">Set it and forget it - your investments happen automatically across crypto, stocks, ETFs, and metals</p>
             </div>
 
             <div className="text-center">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Target className="w-8 h-8 text-purple-600" />
               </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Disciplined Approach</h4>
-              <p className="text-gray-600">Build wealth systematically without emotional market timing</p>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">Diversified Portfolio</h4>
+              <p className="text-gray-600">Build a balanced portfolio systematically across multiple investment vehicles</p>
             </div>
           </div>
         </div>
