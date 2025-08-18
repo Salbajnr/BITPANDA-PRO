@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Professional Green & Black Theme Variables */
+:root {
+  /* Primary Green Palette */
+  --primary-green: #22c55e;
+  --primary-green-dark: #16a34a;
+  --primary-green-light: #4ade80;
+  --accent-green: #10b981;
+  --accent-green-light: #34d399;
+  
+  /* Black & Gray Palette */
+  --primary-black: #000000;
+  --secondary-black: #1a1a1a;
+  --tertiary-black: #2d2d2d;
+  --text-primary: #000000;
+  --text-secondary: #4a4a4a;
+  --text-muted: #6b7280;
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-accent: #ecfdf5;
+  
+  /* Border & Divider Colors */
+  --border-primary: #e5e7eb;
+  --border-accent: #d1fae5;
+  
+  /* Status Colors */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+}
+
 @layer base {
   :root {
     --background: 222.2 84% 4.9%;
