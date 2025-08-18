@@ -13,7 +13,7 @@ export class ApiService {
     this.baseURL = baseURL;
   }
 
-  private async request<T = any>(
+  public async request<T = any>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
@@ -98,5 +98,6 @@ export class ApiService {
   }
 }
 
-export const api = new ApiClient();
+export const api = new ApiService();
+export const apiRequest = api.request.bind(api);
 export default api;
