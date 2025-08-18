@@ -1,190 +1,158 @@
-import type { Express } from "express";
-import { metalsService } from "./metals-service";
-import { db } from "./db";
-import { metalsPricing } from "@shared/schema";
-import { requireAuth } from "./simple-auth";
+import { Router } from 'express';
+import { metalsService } from './metals-service';
 
-export function registerMetalsRoutes(app: Express) {
-  console.log("🥇 Registering metals trading routes");
+const router = Router();
 
-  // Get all metals prices
-  app.get("/api/metals/prices", async (req, res) => {
-    try {
-      const prices = await metalsService.getMetalPrices();
-      res.json(prices);
-    } catch (error) {
-      console.error("Error fetching metals prices:", error);
-      res.status(500).json({ error: "Failed to fetch metals prices" });
-    }
-  });
-
-  // Get specific metal price
-  app.get("/api/metals/price/:symbol", async (req, res) => {
-    try {
-      const { symbol } = req.params;
-      const price = await metalsService.getMetalPrice(symbol.toUpperCase());
-      
-      if (!price) {
-        return res.status(404).json({ error: "Metal not found" });
-      }
-      
-      res.json(price);
-    } catch (error) {
-      console.error(`Error fetching ${req.params.symbol} price:`, error);
-      res.status(500).json({ error: "Failed to fetch metal price" });
-    }
-  });
-
-  // Get metal information
-  app.get("/api/metals/info/:symbol", async (req, res) => {
-    try {
-      const { symbol } = req.params;
-      const info = await metalsService.getMetalInfo(symbol.toUpperCase());
-      res.json(info);
-    } catch (error) {
-      console.error(`Error fetching ${req.params.symbol} info:`, error);
-      res.status(500).json({ error: "Failed to fetch metal information" });
-    }
-  });
-
-  // Get metals market summary
-  app.get("/api/metals/market-summary", async (req, res) => {
-    try {
-      const summary = await metalsService.getMarketSummary();
-      res.json(summary);
-    } catch (error) {
-      console.error("Error fetching metals market summary:", error);
-      res.status(500).json({ error: "Failed to fetch market summary" });
-    }
-  });
-
-  // Buy metals (authenticated)
-  app.post("/api/metals/buy", requireAuth, async (req, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({ error: "User not authenticated" });
-      }
-
-      const { symbol, amount, price } = req.body;
-
-      if (!symbol || !amount || !price) {
-        return res.status(400).json({ error: "Missing required fields: symbol, amount, price" });
-      }
-
-      // This would integrate with your existing trading logic
-      // For now, return success
-      res.json({
-        success: true,
-        transaction: {
-          id: `txn_${Date.now()}`,
-          userId,
-          type: "buy",
-          assetType: "metal",
-          symbol,
-          amount,
-          price,
-          total: amount * price,
-          status: "completed",
-          timestamp: new Date()
-        }
+// Get single metal price
+router.get('/price/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const price = await metalsService.getPrice(symbol);
+    
+    if (!price) {
+      return res.status(404).json({ 
+        message: `Price data not found for ${symbol}` 
       });
-    } catch (error) {
-      console.error("Error buying metals:", error);
-      res.status(500).json({ error: "Failed to execute buy order" });
     }
-  });
+    
+    res.json(price);
+  } catch (error) {
+    console.error('Error fetching metal price:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch metal price' 
+    });
+  }
+});
 
-  // Sell metals (authenticated)
-  app.post("/api/metals/sell", requireAuth, async (req, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({ error: "User not authenticated" });
-      }
-
-      const { symbol, amount, price } = req.body;
-
-      if (!symbol || !amount || !price) {
-        return res.status(400).json({ error: "Missing required fields: symbol, amount, price" });
-      }
-
-      res.json({
-        success: true,
-        transaction: {
-          id: `txn_${Date.now()}`,
-          userId,
-          type: "sell", 
-          assetType: "metal",
-          symbol,
-          amount,
-          price,
-          total: amount * price,
-          status: "completed",
-          timestamp: new Date()
-        }
+// Get multiple metal prices
+router.post('/prices', async (req, res) => {
+  try {
+    const { symbols } = req.body;
+    
+    if (!Array.isArray(symbols)) {
+      return res.status(400).json({ 
+        message: 'Symbols must be an array' 
       });
-    } catch (error) {
-      console.error("Error selling metals:", error);
-      res.status(500).json({ error: "Failed to execute sell order" });
     }
-  });
+    
+    const prices = await metalsService.getPrices(symbols);
+    res.json(prices);
+  } catch (error) {
+    console.error('Error fetching metal prices:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch metal prices' 
+    });
+  }
+});
 
-  // Update metals prices in database (admin only)
-  app.post("/api/metals/update-prices", requireAuth, async (req, res) => {
-    try {
-      const user = req.user;
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ error: "Admin access required" });
-      }
-
-      const prices = await metalsService.getMetalPrices();
-      
-      // Update database with latest prices
-      for (const price of prices) {
-        await db
-          .insert(metalsPricing)
-          .values({
-            symbol: price.symbol,
-            name: price.name,
-            pricePerOunce: price.price.toString(),
-            changePercent24h: price.changePercent24h?.toString(),
-            lastUpdated: new Date()
-          })
-          .onConflictDoUpdate({
-            target: metalsPricing.symbol,
-            set: {
-              pricePerOunce: price.price.toString(),
-              changePercent24h: price.changePercent24h?.toString(),
-              lastUpdated: new Date()
-            }
-          });
-      }
-
-      res.json({ success: true, updatedPrices: prices.length });
-    } catch (error) {
-      console.error("Error updating metals prices:", error);
-      res.status(500).json({ error: "Failed to update prices" });
+// Get top metals by market importance
+router.get('/top/:limit?', async (req, res) => {
+  try {
+    const limit = parseInt(req.params.limit) || 10;
+    
+    if (limit > 50) {
+      return res.status(400).json({ 
+        message: 'Limit cannot exceed 50' 
+      });
     }
-  });
+    
+    const topMetals = await metalsService.getTopMetals(limit);
+    res.json(topMetals);
+  } catch (error) {
+    console.error('Error fetching top metals:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch top metals' 
+    });
+  }
+});
 
-  // Get real-time price updates (WebSocket endpoint)
-  app.get("/api/metals/live-prices", async (req, res) => {
-    try {
-      const prices = await metalsService.getMetalPrices();
-      
-      // Add some real-time simulation
-      const liveData = prices.map(price => ({
-        ...price,
-        ...metalsService.simulatePriceUpdate(price.symbol)
-      }));
+// Get comprehensive market data
+router.get('/market-data', async (req, res) => {
+  try {
+    const marketData = await metalsService.getMarketData();
+    res.json(marketData);
+  } catch (error) {
+    console.error('Error fetching metals market data:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch market data' 
+    });
+  }
+});
 
-      res.json(liveData);
-    } catch (error) {
-      console.error("Error fetching live metals prices:", error);
-      res.status(500).json({ error: "Failed to fetch live prices" });
+// Get price history for charting
+router.get('/history/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const { period = '24h' } = req.query;
+    
+    const validPeriods = ['24h', '7d', '30d', '1y'];
+    if (!validPeriods.includes(period as string)) {
+      return res.status(400).json({ 
+        message: 'Invalid period. Use: 24h, 7d, 30d, 1y' 
+      });
     }
-  });
+    
+    const history = await metalsService.getPriceHistory(symbol, period as string);
+    res.json(history);
+  } catch (error) {
+    console.error('Error fetching price history:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch price history' 
+    });
+  }
+});
 
-  console.log("✅ Metals routes registered successfully");
-}
+// Get cache statistics
+router.get('/cache-stats', async (req, res) => {
+  try {
+    res.json({
+      cacheSize: metalsService.getCacheSize(),
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Error fetching cache stats:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch cache statistics' 
+    });
+  }
+});
+
+// Clear cache (admin only - add auth middleware in production)
+router.delete('/cache', async (req, res) => {
+  try {
+    metalsService.clearCache();
+    res.json({ 
+      message: 'Cache cleared successfully',
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    res.status(500).json({ 
+      message: 'Failed to clear cache' 
+    });
+  }
+});
+
+// Health check endpoint
+router.get('/health', async (req, res) => {
+  try {
+    // Test with gold price
+    const testPrice = await metalsService.getPrice('XAU');
+    res.json({
+      status: 'healthy',
+      timestamp: Date.now(),
+      service: 'metals-api',
+      test_data: testPrice ? 'available' : 'fallback'
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: Date.now(),
+      service: 'metals-api',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+export default router;

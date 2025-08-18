@@ -1,99 +1,102 @@
-const API_BASE = '/api';
+// API utility functions for making HTTP requests
+
+interface ApiResponse<T = any> {
+  data?: T;
+  message?: string;
+  error?: string;
+}
 
 class ApiClient {
-  private async request(endpoint: string, options: RequestInit = {}) {
-    const url = `${API_BASE}${endpoint}`;
+  private baseURL: string;
 
+  constructor(baseURL: string = '/api') {
+    this.baseURL = baseURL;
+  }
+
+  private async request<T = any>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
-      credentials: 'include',
       ...options,
     };
 
     try {
       const response = await fetch(url, config);
-
-      // Handle different response types
-      const contentType = response.headers.get('content-type');
-      let data;
-
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        data = await response.text();
-      }
-
+      
       if (!response.ok) {
-        const errorMessage = typeof data === 'object' && data.message 
-          ? data.message 
-          : `HTTP error! status: ${response.status}`;
-        throw new Error(errorMessage);
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(`${response.status}: ${errorData.message || 'Request failed'}`);
       }
 
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error(`API request failed: ${url}`, error);
       throw error;
     }
   }
 
-  async get(endpoint: string) {
-    return this.request(endpoint);
-  }
-
-  async post(endpoint: string, data?: any) {
-    return this.request(endpoint, {
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+  async get<T = any>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    let url = endpoint;
+    if (params) {
+      const searchParams = new URLSearchParams(params);
+      url += `?${searchParams.toString()}`;
+    }
+    
+    return this.request<T>(url, {
+      method: 'GET',
     });
   }
 
-  async put(endpoint: string, data?: any) {
-    return this.request(endpoint, {
+  async post<T = any>(
+    endpoint: string, 
+    data?: any, 
+    options: RequestInit = {}
+  ): Promise<T> {
+    const config: RequestInit = {
+      method: 'POST',
+      ...options,
+    };
+
+    // Handle FormData (for file uploads)
+    if (data instanceof FormData) {
+      // Don't set Content-Type for FormData, let browser set it with boundary
+      const { 'Content-Type': _, ...headers } = config.headers as Record<string, string> || {};
+      config.headers = headers;
+      config.body = data;
+    } else if (data) {
+      config.body = JSON.stringify(data);
+    }
+
+    return this.request<T>(endpoint, config);
+  }
+
+  async put<T = any>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async patch(endpoint: string, data?: any) {
-    return this.request(endpoint, {
+  async patch<T = any>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async delete(endpoint: string) {
-    return this.request(endpoint, {
+  async delete<T = any>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, {
       method: 'DELETE',
     });
   }
 }
 
 export const api = new ApiClient();
-
-// Export for backwards compatibility 
-export const ApiService = api;
-
-// Export for React Query mutations
-export const apiRequest = async (url: string, options: RequestInit = {}) => {
-  const response = await fetch(url, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Unauthorized');
-    }
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response.json();
-};
+export default api;

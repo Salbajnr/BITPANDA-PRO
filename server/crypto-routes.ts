@@ -1,7 +1,6 @@
 
 import { Router } from 'express';
 import { cryptoService } from './crypto-service';
-import { webSocketManager } from './websocket-server';
 
 const router = Router();
 
@@ -74,6 +73,48 @@ router.get('/top/:limit?', async (req, res) => {
   }
 });
 
+// Get market data for all cryptocurrencies
+router.get('/markets', async (req, res) => {
+  try {
+    const marketData = await cryptoService.getMarketData();
+    res.json(marketData);
+  } catch (error) {
+    console.error('Error fetching market data:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch market data' 
+    });
+  }
+});
+
+// Get price history for a specific cryptocurrency
+router.get('/history/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const { period = '24h' } = req.query;
+    
+    const history = await cryptoService.getPriceHistory(symbol, period as string);
+    res.json(history);
+  } catch (error) {
+    console.error('Error fetching price history:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch price history' 
+    });
+  }
+});
+
+// Get trending cryptocurrencies
+router.get('/trending', async (req, res) => {
+  try {
+    const trending = await cryptoService.getTrendingCryptos();
+    res.json(trending);
+  } catch (error) {
+    console.error('Error fetching trending data:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch trending cryptocurrencies' 
+    });
+  }
+});
+
 // Get market overview
 router.get('/market-overview', async (req, res) => {
   try {
@@ -114,19 +155,17 @@ router.get('/market-overview', async (req, res) => {
   }
 });
 
-// Get WebSocket connection statistics
-router.get('/websocket-stats', async (req, res) => {
+// Get cache statistics
+router.get('/cache-stats', async (req, res) => {
   try {
     res.json({
-      activeClients: webSocketManager.getActiveClientsCount(),
-      trackedSymbols: webSocketManager.getActiveSymbols(),
       cacheSize: cryptoService.getCacheSize(),
       timestamp: Date.now()
     });
   } catch (error) {
-    console.error('Error fetching WebSocket stats:', error);
+    console.error('Error fetching cache stats:', error);
     res.status(500).json({ 
-      message: 'Failed to fetch WebSocket statistics' 
+      message: 'Failed to fetch cache statistics' 
     });
   }
 });

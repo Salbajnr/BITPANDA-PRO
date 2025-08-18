@@ -1,331 +1,201 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TrendingUp, TrendingDown, Search, Star, StarOff } from 'lucide-react';
-import { useAuth } from "@/hooks/useAuth";
-import { Link } from 'wouter';
-
-interface MarketAsset {
-  id?: string;
-  symbol: string;
-  name: string;
-  current_price?: number;
-  price?: number;
-  price_change_percentage_24h?: number;
-  changePercent24h?: number;
-  market_cap?: number;
-  volume_24h?: number;
-  type: 'crypto' | 'metal';
-}
+import { Badge } from "@/components/ui/badge";
+import Navbar from "@/components/Navbar";
+import LiveTicker from "@/components/LiveTicker";
+import { getCryptoLogo } from "@/components/CryptoLogos";
+import {
+  TrendingUp, TrendingDown, Search, RefreshCw,
+  Bitcoin, Star, Eye
+} from "lucide-react";
 
 export default function Markets() {
-  const { isAuthenticated } = useAuth();
-  const [cryptoData, setCryptoData] = useState<MarketAsset[]>([]);
-  const [metalsData, setMetalsData] = useState<MarketAsset[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchMarketData();
-    if (isAuthenticated) {
-      fetchWatchlist();
+  // Fetch crypto data
+  const { data: cryptoData, isLoading, refetch } = useQuery({
+    queryKey: ['/api/crypto/market-data'],
+    refetchInterval: 30000,
+  });
+
+  // Filter data based on search
+  const filteredData = cryptoData?.filter((item: any) => 
+    item.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const formatPrice = (price: number) => {
+    return `$${price.toLocaleString()}`;
+  };
+
+  const formatMarketCap = (marketCap: number) => {
+    if (marketCap >= 1e12) {
+      return `$${(marketCap / 1e12).toFixed(2)}T`;
+    } else if (marketCap >= 1e9) {
+      return `$${(marketCap / 1e9).toFixed(2)}B`;
+    } else if (marketCap >= 1e6) {
+      return `$${(marketCap / 1e6).toFixed(2)}M`;
     }
-  }, [isAuthenticated]);
-
-  const fetchMarketData = async () => {
-    try {
-      const [cryptoResponse, metalsResponse] = await Promise.all([
-        fetch('/api/crypto/trending'),
-        fetch('/api/metals/prices')
-      ]);
-
-      if (cryptoResponse.ok) {
-        const crypto = await cryptoResponse.json();
-        setCryptoData(crypto.map((coin: any) => ({ ...coin, type: 'crypto' as const })));
-      }
-
-      if (metalsResponse.ok) {
-        const metals = await metalsResponse.json();
-        setMetalsData(metals.map((metal: any) => ({ ...metal, type: 'metal' as const })));
-      }
-    } catch (error) {
-      console.error('Error fetching market data:', error);
-    } finally {
-      setLoading(false);
-    }
+    return `$${marketCap.toLocaleString()}`;
   };
-
-  const fetchWatchlist = async () => {
-    try {
-      const response = await fetch('/api/watchlist');
-      if (response.ok) {
-        const data = await response.json();
-        setWatchlist(data.map((item: any) => item.symbol));
-      }
-    } catch (error) {
-      console.error('Error fetching watchlist:', error);
-    }
-  };
-
-  const toggleWatchlist = async (symbol: string) => {
-    if (!isAuthenticated) return;
-
-    try {
-      const isInWatchlist = watchlist.includes(symbol);
-      const method = isInWatchlist ? 'DELETE' : 'POST';
-      const response = await fetch('/api/watchlist', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol })
-      });
-
-      if (response.ok) {
-        setWatchlist(prev => 
-          isInWatchlist 
-            ? prev.filter(s => s !== symbol)
-            : [...prev, symbol]
-        );
-      }
-    } catch (error) {
-      console.error('Error updating watchlist:', error);
-    }
-  };
-
-  const formatPrice = (price: number, type: 'crypto' | 'metal') => {
-    if (type === 'metal') {
-      return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-    return price > 1 ? `$${price.toFixed(2)}` : `$${price.toFixed(6)}`;
-  };
-
-  const formatChange = (change: number) => {
-    const isPositive = change >= 0;
-    return (
-      <span className={`flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-        {isPositive ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
-        {isPositive ? '+' : ''}{change.toFixed(2)}%
-      </span>
-    );
-  };
-
-  const formatVolume = (volume: number) => {
-    if (volume >= 1e9) return `$${(volume / 1e9).toFixed(2)}B`;
-    if (volume >= 1e6) return `$${(volume / 1e6).toFixed(2)}M`;
-    if (volume >= 1e3) return `$${(volume / 1e3).toFixed(2)}K`;
-    return `$${volume.toFixed(0)}`;
-  };
-
-  const filterAssets = (assets: MarketAsset[]) => {
-    return assets.filter(asset => 
-      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
-
-  const AssetRow = ({ asset }: { asset: MarketAsset }) => {
-    const price = asset.current_price || asset.price || 0;
-    const change = asset.price_change_percentage_24h || asset.changePercent24h || 0;
-    const isInWatchlist = watchlist.includes(asset.symbol);
-
-    return (
-      <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50" data-testid={`asset-row-${asset.symbol}`}>
-        <div className="flex items-center space-x-4">
-          {isAuthenticated && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleWatchlist(asset.symbol)}
-              className="p-1 h-6 w-6"
-              data-testid={`watchlist-${asset.symbol}`}
-            >
-              {isInWatchlist ? 
-                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" /> : 
-                <StarOff className="h-4 w-4 text-slate-400" />
-              }
-            </Button>
-          )}
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-bold" data-testid={`symbol-${asset.symbol}`}>{asset.symbol}</span>
-              <Badge variant={asset.type === 'crypto' ? 'default' : 'secondary'}>
-                {asset.type === 'crypto' ? 'CRYPTO' : 'METAL'}
-              </Badge>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">{asset.name}</p>
-          </div>
-        </div>
-        
-        <div className="text-right">
-          <div className="font-semibold" data-testid={`price-${asset.symbol}`}>
-            {formatPrice(price, asset.type)}
-            {asset.type === 'metal' && <span className="text-sm text-slate-500 ml-1">/oz</span>}
-          </div>
-          <div data-testid={`change-${asset.symbol}`}>
-            {formatChange(change)}
-          </div>
-        </div>
-
-        {asset.type === 'crypto' && (
-          <div className="text-right hidden md:block">
-            <div className="text-sm font-medium" data-testid={`market-cap-${asset.symbol}`}>
-              {asset.market_cap ? formatVolume(asset.market_cap) : 'N/A'}
-            </div>
-            <p className="text-xs text-slate-500">Market Cap</p>
-          </div>
-        )}
-
-        {asset.type === 'crypto' && (
-          <div className="text-right hidden lg:block">
-            <div className="text-sm font-medium" data-testid={`volume-${asset.symbol}`}>
-              {asset.volume_24h ? formatVolume(asset.volume_24h) : 'N/A'}
-            </div>
-            <p className="text-xs text-slate-500">24h Volume</p>
-          </div>
-        )}
-
-        <div className="flex space-x-2">
-          <Link href={`/trading?symbol=${asset.symbol}&type=${asset.type}`}>
-            <Button size="sm" data-testid={`trade-${asset.symbol}`}>
-              Trade
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-48" />
-          <div className="space-y-3">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Markets</h1>
-        <p className="text-slate-600 dark:text-slate-400">
-          Live prices for cryptocurrencies and precious metals
-        </p>
-      </div>
-
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-          <Input
-            placeholder="Search assets..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-            data-testid="search-input"
-          />
-        </div>
-      </div>
-
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all" data-testid="tab-all">All Markets</TabsTrigger>
-          <TabsTrigger value="crypto" data-testid="tab-crypto">Cryptocurrencies</TabsTrigger>
-          <TabsTrigger value="metals" data-testid="tab-metals">Precious Metals</TabsTrigger>
-          {isAuthenticated && (
-            <TabsTrigger value="watchlist" data-testid="tab-watchlist">Watchlist</TabsTrigger>
-          )}
-        </TabsList>
-
-        <TabsContent value="all">
-          <Card>
-            <CardHeader>
-              <CardTitle>All Markets</CardTitle>
-              <CardDescription>
-                Combined view of cryptocurrency and precious metals markets
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-0" data-testid="all-markets-list">
-                {[...filterAssets(cryptoData), ...filterAssets(metalsData)].map((asset, index) => (
-                  <AssetRow key={`${asset.symbol}-${index}`} asset={asset} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="crypto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cryptocurrencies</CardTitle>
-              <CardDescription>
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <LiveTicker />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-black mb-4">
+                Crypto Markets
+              </h1>
+              <p className="text-xl text-gray-600">
                 Live cryptocurrency prices and market data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-0" data-testid="crypto-list">
-                {filterAssets(cryptoData).map((asset, index) => (
-                  <AssetRow key={`crypto-${asset.symbol}-${index}`} asset={asset} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <Button 
+                onClick={() => refetch()} 
+                variant="outline"
+                className="border-green-500 text-green-600 hover:bg-green-50"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
 
-        <TabsContent value="metals">
-          <Card>
+        {/* Search */}
+        <Card className="border border-gray-200 mb-6">
+          <CardContent className="p-6">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search cryptocurrencies..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-gray-300 focus:border-green-500"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Market Table */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-green-500" />
+            <p className="text-gray-600">Loading market data...</p>
+          </div>
+        ) : (
+          <Card className="border border-gray-200">
             <CardHeader>
-              <CardTitle>Precious Metals</CardTitle>
-              <CardDescription>
-                Live precious metals prices per ounce
-              </CardDescription>
+              <CardTitle className="text-xl font-bold text-black">
+                Cryptocurrency Markets
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-0" data-testid="metals-list">
-                {filterAssets(metalsData).map((asset, index) => (
-                  <AssetRow key={`metal-${asset.symbol}-${index}`} asset={asset} />
-                ))}
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">#</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Asset</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Price</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">24h Change</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Market Cap</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Volume</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.map((asset: any, index: number) => (
+                      <tr key={asset.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4 px-4 text-gray-500">
+                          {index + 1}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center space-x-3">
+                            <img 
+                              src={asset.image || getCryptoLogo(asset.symbol)} 
+                              alt={asset.symbol}
+                              className="w-8 h-8"
+                            />
+                            <div>
+                              <div className="font-medium text-black">{asset.symbol}</div>
+                              <div className="text-sm text-gray-500">{asset.name}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="font-medium text-black">
+                            {formatPrice(asset.current_price)}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className={`flex items-center space-x-1 ${
+                            asset.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {asset.price_change_percentage_24h >= 0 ? (
+                              <TrendingUp className="w-4 h-4" />
+                            ) : (
+                              <TrendingDown className="w-4 h-4" />
+                            )}
+                            <span className="font-medium">
+                              {asset.price_change_percentage_24h >= 0 ? '+' : ''}
+                              {asset.price_change_percentage_24h.toFixed(2)}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600">
+                          {asset.market_cap ? formatMarketCap(asset.market_cap) : 'N/A'}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600">
+                          {asset.total_volume ? formatMarketCap(asset.total_volume) : 'N/A'}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="border-green-500 text-green-600 hover:bg-green-50"
+                            >
+                              Trade
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              className="text-gray-600 hover:text-black"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
+
+              {filteredData.length === 0 && (
+                <div className="text-center py-12">
+                  <Search className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-xl font-semibold text-black mb-2">No Assets Found</h3>
+                  <p className="text-gray-600">
+                    Try adjusting your search criteria.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {isAuthenticated && (
-          <TabsContent value="watchlist">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Watchlist</CardTitle>
-                <CardDescription>
-                  Assets you're tracking
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="space-y-0" data-testid="watchlist">
-                  {[...cryptoData, ...metalsData]
-                    .filter(asset => watchlist.includes(asset.symbol))
-                    .map((asset, index) => (
-                      <AssetRow key={`watchlist-${asset.symbol}-${index}`} asset={asset} />
-                    ))}
-                  {watchlist.length === 0 && (
-                    <div className="text-center py-8 text-slate-500">
-                      No assets in your watchlist yet. Start by clicking the star icon next to any asset.
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         )}
-      </Tabs>
+      </div>
     </div>
   );
 }

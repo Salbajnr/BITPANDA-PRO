@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
 import Navbar from "@/components/Navbar";
+import LiveTicker from "@/components/LiveTicker";
 import { useAuth } from "@/hooks/useAuth";
 
 const topCryptos = [
@@ -92,6 +93,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
+      <LiveTicker />
       
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-white via-green-50 to-green-100 pt-24 pb-20">

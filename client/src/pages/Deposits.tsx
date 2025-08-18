@@ -1,271 +1,292 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileCheck, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { useAuth } from "@/hooks/useAuth";
-import { formatDistanceToNow } from 'date-fns';
+import Navbar from "@/components/Navbar";
+import LiveTicker from "@/components/LiveTicker";
+import {
+  Upload, FileText, DollarSign, Clock, CheckCircle, XCircle,
+  AlertTriangle, CreditCard, Building, Smartphone, 
+  ExternalLink, Eye, Calendar, Filter, RefreshCw,
+  Banknote, Coins, TrendingUp, Info
+} from "lucide-react";
 
 interface Deposit {
   id: string;
-  amount: string;
+  payment_method: string;
+  amount: number;
   currency: string;
-  assetType: 'crypto' | 'metal';
-  paymentMethod: string;
   status: 'pending' | 'approved' | 'rejected';
-  proofImageUrl?: string;
-  rejectionReason?: string;
-  adminNotes?: string;
-  createdAt: string;
-  approvedAt?: string;
+  admin_notes?: string;
+  created_at: string;
+  updated_at: string;
+  approved_at?: string;
+  proof_uploads?: ProofUpload[];
+}
+
+interface ProofUpload {
+  id: string;
+  file_name: string;
+  file_path: string;
+  uploaded_at: string;
+  file_size: number;
+  mime_type: string;
 }
 
 export default function Deposits() {
-  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [deposits, setDeposits] = useState<Deposit[]>([]);
-  const [loading, setLoading] = useState(true);
-  
+  const queryClient = useQueryClient();
+  const [isNewDepositOpen, setIsNewDepositOpen] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
   // Form state
-  const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [assetType, setAssetType] = useState<'crypto' | 'metal'>('crypto');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [proofFile, setProofFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    payment_method: '',
+    amount: '',
+    currency: 'USD',
+    notes: ''
+  });
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchDeposits();
-    }
-  }, [isAuthenticated]);
+  // Fetch user deposits
+  const { data: deposits, isLoading, refetch } = useQuery({
+    queryKey: ['/api/deposits'],
+    queryFn: () => api.get('/deposits'),
+  });
 
-  const fetchDeposits = async () => {
-    try {
-      const response = await fetch('/api/deposits/my-deposits');
-      if (response.ok) {
-        const data = await response.json();
-        setDeposits(data);
-      }
-    } catch (error) {
-      console.error('Error fetching deposits:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload an image file (JPEG, PNG)",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Validate file size (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large", 
-          description: "Please upload an image smaller than 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      setProofFile(file);
-    }
-  };
-
-  const uploadProof = async () => {
-    if (!proofFile) return null;
-    
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('proof', proofFile);
-      
-      const response = await fetch('/api/deposits/upload-proof', {
-        method: 'POST',
-        body: formData,
+  // Create deposit mutation
+  const createDepositMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      return api.post('/deposits', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-      
-      const data = await response.json();
-      return data.proofImageUrl;
-    } catch (error) {
-      console.error('Error uploading proof:', error);
+    },
+    onSuccess: () => {
       toast({
-        title: "Upload failed",
-        description: "Failed to upload proof of payment",
+        title: "Deposit Submitted",
+        description: "Your deposit request has been submitted for review.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/deposits'] });
+      setIsNewDepositOpen(false);
+      resetForm();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to submit deposit request. Please try again.",
         variant: "destructive",
       });
-      return null;
-    } finally {
-      setUploading(false);
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      payment_method: '',
+      amount: '',
+      currency: 'USD',
+      notes: ''
+    });
+    setSelectedFiles([]);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!amount || !paymentMethod) {
+    if (!formData.payment_method || !formData.amount) {
       toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
 
-    setSubmitting(true);
-    try {
-      // Upload proof if provided
-      let proofImageUrl = null;
-      if (proofFile) {
-        proofImageUrl = await uploadProof();
-        if (!proofImageUrl) return; // Upload failed
-      }
-
-      const response = await fetch('/api/deposits/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          currency,
-          assetType,
-          paymentMethod,
-          proofImageUrl
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create deposit');
-      }
-
-      const data = await response.json();
-      
+    if (selectedFiles.length === 0) {
       toast({
-        title: "Deposit request submitted",
-        description: "Your deposit request has been submitted for review",
-      });
-
-      // Reset form
-      setAmount('');
-      setPaymentMethod('');
-      setProofFile(null);
-      
-      // Refresh deposits
-      fetchDeposits();
-    } catch (error) {
-      console.error('Error creating deposit:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit deposit request",
+        title: "Proof Required",
+        description: "Please upload proof of payment before submitting.",
         variant: "destructive",
       });
-    } finally {
-      setSubmitting(false);
+      return;
     }
+
+    const submitData = new FormData();
+    submitData.append('payment_method', formData.payment_method);
+    submitData.append('amount', formData.amount);
+    submitData.append('currency', formData.currency);
+    submitData.append('notes', formData.notes);
+    
+    selectedFiles.forEach((file, index) => {
+      submitData.append(`proof_files`, file);
+    });
+
+    createDepositMutation.mutate(submitData);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
       case 'approved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="w-4 h-4 text-red-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+        return <Clock className="w-4 h-4 text-yellow-500" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="text-yellow-600">Pending</Badge>;
-      case 'approved':
-        return <Badge variant="default" className="bg-green-500">Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
+    const variants = {
+      'pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'approved': 'bg-green-100 text-green-800 border-green-300',
+      'rejected': 'bg-red-100 text-red-800 border-red-300'
+    };
+
+    return (
+      <Badge variant="outline" className={variants[status as keyof typeof variants]}>
+        {getStatusIcon(status)}
+        <span className="ml-1 capitalize">{status}</span>
+      </Badge>
+    );
+  };
+
+  const getPaymentMethodIcon = (method: string) => {
+    switch (method) {
+      case 'binance':
+        return <Coins className="w-5 h-5 text-yellow-500" />;
+      case 'bybit':
+        return <TrendingUp className="w-5 h-5 text-blue-500" />;
+      case 'crypto_com':
+        return <Smartphone className="w-5 h-5 text-indigo-500" />;
+      case 'bank_transfer':
+        return <Building className="w-5 h-5 text-gray-600" />;
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return <CreditCard className="w-5 h-5 text-gray-500" />;
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
-            <p className="text-slate-600 mb-4">Please log in to access the deposits page.</p>
-            <Button>Log In</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const filteredDeposits = deposits?.filter((deposit: Deposit) => {
+    if (statusFilter === 'all') return true;
+    return deposit.status === statusFilter;
+  }) || [];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Deposits</h1>
-        <p className="text-slate-600 dark:text-slate-400">
-          Add funds to your account with proof of payment verification
-        </p>
-      </div>
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <LiveTicker />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-black mb-4">
+                Deposit Funds
+              </h1>
+              <p className="text-xl text-gray-600">
+                Add funds to your account via external crypto platforms
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <Button 
+                onClick={() => refetch()} 
+                variant="outline"
+                className="border-green-500 text-green-600 hover:bg-green-50"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button 
+                onClick={() => setIsNewDepositOpen(true)}
+                className="bg-green-500 hover:bg-green-600"
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                New Deposit
+              </Button>
+            </div>
+          </div>
+        </div>
 
-      <Tabs defaultValue="new-deposit" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="new-deposit" data-testid="tab-new-deposit">New Deposit</TabsTrigger>
-          <TabsTrigger value="history" data-testid="tab-history">Deposit History</TabsTrigger>
-        </TabsList>
+        {/* Supported Platforms Info */}
+        <Card className="border border-gray-200 mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-black">
+              Supported Platforms
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <Coins className="w-8 h-8 text-yellow-500" />
+                <div>
+                  <div className="font-medium text-black">Binance</div>
+                  <div className="text-sm text-gray-600">Major crypto exchange</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <TrendingUp className="w-8 h-8 text-blue-500" />
+                <div>
+                  <div className="font-medium text-black">Bybit</div>
+                  <div className="text-sm text-gray-600">Derivatives platform</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                <Smartphone className="w-8 h-8 text-indigo-500" />
+                <div>
+                  <div className="font-medium text-black">Crypto.com</div>
+                  <div className="text-sm text-gray-600">Mobile-first exchange</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <Building className="w-8 h-8 text-gray-600" />
+                <div>
+                  <div className="font-medium text-black">Bank Transfer</div>
+                  <div className="text-sm text-gray-600">Traditional banking</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="new-deposit">
-          <Card>
+        {/* New Deposit Form */}
+        {isNewDepositOpen && (
+          <Card className="border border-gray-200 mb-6">
             <CardHeader>
-              <CardTitle>Submit New Deposit</CardTitle>
-              <CardDescription>
-                Upload proof of payment to add funds to your account
-              </CardDescription>
+              <CardTitle className="text-xl font-bold text-black">
+                Submit New Deposit Request
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="asset-type">Asset Type</Label>
-                    <Select value={assetType} onValueChange={(value: 'crypto' | 'metal') => setAssetType(value)}>
-                      <SelectTrigger data-testid="select-asset-type">
-                        <SelectValue placeholder="Select asset type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="crypto">Cryptocurrency</SelectItem>
-                        <SelectItem value="metal">Precious Metals</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-method">Payment Method</Label>
-                    <Select value={paymentMethod} onValueChange={setPaymentMethod} required>
-                      <SelectTrigger data-testid="select-payment-method">
+                  <div>
+                    <Label htmlFor="payment_method">Payment Method *</Label>
+                    <Select
+                      value={formData.payment_method}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, payment_method: value }))}
+                    >
+                      <SelectTrigger className="border-gray-300 focus:border-green-500">
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
                       <SelectContent>
@@ -278,170 +299,217 @@ export default function Deposits() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Amount</Label>
+                  <div>
+                    <Label htmlFor="amount">Amount *</Label>
                     <Input
                       id="amount"
                       type="number"
                       step="0.01"
                       placeholder="0.00"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      required
-                      data-testid="input-amount"
+                      value={formData.amount}
+                      onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                      className="border-gray-300 focus:border-green-500"
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="currency">Currency</Label>
-                    <Select value={currency} onValueChange={setCurrency}>
-                      <SelectTrigger data-testid="select-currency">
+                    <Select
+                      value={formData.currency}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+                    >
+                      <SelectTrigger className="border-gray-300 focus:border-green-500">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="USD">USD</SelectItem>
                         <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectItem value="BTC">BTC</SelectItem>
+                        <SelectItem value="ETH">ETH</SelectItem>
+                        <SelectItem value="USDT">USDT</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="proof">Proof of Payment (Optional)</Label>
-                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6">
-                    <div className="text-center">
-                      <Upload className="mx-auto h-12 w-12 text-slate-400" />
-                      <div className="mt-4">
-                        <label htmlFor="proof-upload" className="cursor-pointer">
-                          <span className="mt-2 block text-sm font-medium text-slate-900 dark:text-slate-100">
-                            {proofFile ? proofFile.name : 'Upload proof of payment'}
-                          </span>
-                          <span className="mt-1 block text-xs text-slate-500">
-                            PNG, JPG up to 5MB
-                          </span>
-                        </label>
-                        <input
-                          id="proof-upload"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          data-testid="input-proof-upload"
-                        />
-                      </div>
-                      {proofFile && (
-                        <div className="mt-2 flex items-center justify-center">
-                          <FileCheck className="h-4 w-4 text-green-500 mr-2" />
-                          <span className="text-sm text-green-600">File ready to upload</span>
-                        </div>
-                      )}
+                  <div>
+                    <Label htmlFor="proof_files">Proof of Payment *</Label>
+                    <div className="mt-1">
+                      <Input
+                        id="proof_files"
+                        type="file"
+                        multiple
+                        accept="image/*,.pdf"
+                        onChange={handleFileSelect}
+                        className="border-gray-300 focus:border-green-500"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Upload screenshots or receipts (JPG, PNG, PDF)
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={submitting || uploading}
-                  data-testid="button-submit-deposit"
-                >
-                  {submitting ? 'Submitting...' : uploading ? 'Uploading...' : 'Submit Deposit Request'}
-                </Button>
+                <div>
+                  <Label htmlFor="notes">Additional Notes</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Optional notes about your deposit..."
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    className="border-gray-300 focus:border-green-500"
+                  />
+                </div>
+
+                {selectedFiles.length > 0 && (
+                  <div>
+                    <Label>Selected Files</Label>
+                    <div className="mt-2 space-y-2">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center space-x-2 text-sm text-gray-600">
+                          <FileText className="w-4 h-4" />
+                          <span>{file.name}</span>
+                          <span>({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-3">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => {
+                      setIsNewDepositOpen(false);
+                      resetForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    className="bg-green-500 hover:bg-green-600"
+                    disabled={createDepositMutation.isPending}
+                  >
+                    {createDepositMutation.isPending ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Submit Request
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
-        <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle>Deposit History</CardTitle>
-              <CardDescription>
-                Track your deposit requests and their status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="space-y-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-16 bg-slate-200 dark:bg-slate-700 rounded" />
-                    </div>
-                  ))}
-                </div>
-              ) : deposits.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  No deposits found. Submit your first deposit request above.
-                </div>
-              ) : (
-                <div className="space-y-4" data-testid="deposits-list">
-                  {deposits.map((deposit) => (
-                    <div key={deposit.id} className="border rounded-lg p-4" data-testid={`deposit-${deposit.id}`}>
-                      <div className="flex justify-between items-start mb-2">
+        {/* Deposits List */}
+        <Card className="border border-gray-200">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-bold text-black">
+                Your Deposit History
+              </CardTitle>
+              <div className="flex items-center space-x-3">
+                <Label htmlFor="status-filter">Filter by status:</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40 border-gray-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-12">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-green-500" />
+                <p className="text-gray-600">Loading deposits...</p>
+              </div>
+            ) : filteredDeposits.length === 0 ? (
+              <div className="text-center py-12">
+                <DollarSign className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-xl font-semibold text-black mb-2">No Deposits Found</h3>
+                <p className="text-gray-600 mb-4">
+                  {statusFilter === 'all' 
+                    ? "You haven't made any deposits yet." 
+                    : `No ${statusFilter} deposits found.`}
+                </p>
+                <Button 
+                  onClick={() => setIsNewDepositOpen(true)}
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  Create Your First Deposit
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredDeposits.map((deposit: Deposit) => (
+                  <div key={deposit.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        {getPaymentMethodIcon(deposit.payment_method)}
                         <div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-semibold">{deposit.currency} {deposit.amount}</span>
-                            <Badge variant={deposit.assetType === 'crypto' ? 'default' : 'secondary'}>
-                              {deposit.assetType === 'crypto' ? 'CRYPTO' : 'METAL'}
-                            </Badge>
+                          <div className="font-medium text-black">
+                            {formatCurrency(deposit.amount)} {deposit.currency}
                           </div>
-                          <p className="text-sm text-slate-600 capitalize">
-                            {deposit.paymentMethod.replace('_', ' ')}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(deposit.status)}
-                          {getStatusBadge(deposit.status)}
+                          <div className="text-sm text-gray-600">
+                            via {deposit.payment_method.replace('_', ' ')}
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="text-sm text-slate-500 mb-2">
-                        Submitted {formatDistanceToNow(new Date(deposit.createdAt))} ago
-                        {deposit.approvedAt && (
-                          <span className="ml-2">
-                            • Approved {formatDistanceToNow(new Date(deposit.approvedAt))} ago
-                          </span>
-                        )}
+                      <div className="flex items-center space-x-4">
+                        {getStatusBadge(deposit.status)}
+                        <div className="text-sm text-gray-500">
+                          {new Date(deposit.created_at).toLocaleDateString()}
+                        </div>
                       </div>
-
-                      {deposit.proofImageUrl && (
-                        <div className="mb-2">
-                          <a 
-                            href={deposit.proofImageUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-sm"
-                            data-testid={`proof-link-${deposit.id}`}
-                          >
-                            View Proof of Payment →
-                          </a>
-                        </div>
-                      )}
-
-                      {deposit.rejectionReason && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-2 mt-2">
-                          <p className="text-sm text-red-700 dark:text-red-300">
-                            <strong>Rejection Reason:</strong> {deposit.rejectionReason}
-                          </p>
-                        </div>
-                      )}
-
-                      {deposit.adminNotes && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2 mt-2">
-                          <p className="text-sm text-blue-700 dark:text-blue-300">
-                            <strong>Admin Notes:</strong> {deposit.adminNotes}
-                          </p>
-                        </div>
-                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+
+                    {deposit.admin_notes && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded border">
+                        <div className="flex items-start space-x-2">
+                          <Info className="w-4 h-4 text-blue-500 mt-0.5" />
+                          <div>
+                            <div className="text-sm font-medium text-black">Admin Notes:</div>
+                            <div className="text-sm text-gray-600">{deposit.admin_notes}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {deposit.proof_uploads && deposit.proof_uploads.length > 0 && (
+                      <div className="mt-3">
+                        <div className="text-sm font-medium text-black mb-2">Proof Files:</div>
+                        <div className="flex space-x-2">
+                          {deposit.proof_uploads.map((file: ProofUpload) => (
+                            <div key={file.id} className="flex items-center space-x-1 text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                              <FileText className="w-3 h-3" />
+                              <span>{file.file_name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

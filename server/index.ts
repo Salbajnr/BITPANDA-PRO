@@ -13,8 +13,8 @@ import authRoutes from './auth-routes';
 import alertRoutes from './alert-routes';
 import depositRoutes from './deposit-routes';
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
-import { registerMetalsRoutes } from './metals-routes';
-import { registerProofUploadRoutes } from './proof-upload-routes';
+// Metals routes will be imported through the main routes file
+// Proof upload routes will be added later
 import newsRoutes from './news-routes';
 
 const app = express();
@@ -92,50 +92,6 @@ app.use((req, res, next) => {
     } else {
       serveStatic(app);
     }
-
-    // ALIGNs the API with the portfolio routes
-    app.use('/api', portfolioRoutes);
-
-    // Crypto routes for real-time price data
-    app.use('/api/crypto', cryptoRoutes);
-    app.use('/api/trading', tradingRoutes);
-    app.use('/api/admin', adminRoutes);
-    app.use('/api/auth', authRoutes);
-    // Alert routes
-    app.use('/api/alerts', alertRoutes);
-
-    // News routes
-    app.use('/api/news', newsRoutes);
-
-    app.use('/api/deposits', depositRoutes);
-    app.use('/api/portfolio-analytics', portfolioAnalyticsRoutes);
-    // Register metals and proof upload routes
-    registerMetalsRoutes(app);
-    registerProofUploadRoutes(app);
-
-
-    // Seed database with initial data
-    try {
-      await seedDatabase();
-    } catch (error) {
-      console.warn('⚠️  Database seeding failed (this is normal if already seeded):', error.message);
-    }
-
-    // ALIGNs the API with the portfolio routes
-    app.use('/api', portfolioRoutes);
-
-    // Crypto routes for real-time price data
-    app.use('/api/crypto', cryptoRoutes);
-    app.use('/api/trading', tradingRoutes);
-    app.use('/api/admin', adminRoutes);
-    app.use('/api/auth', authRoutes);
-    app.use('/api/alerts', alertRoutes);
-    app.use('/api/deposits', depositRoutes);
-    app.use('/api/portfolio-analytics', portfolioAnalyticsRoutes);
-    // Register metals and proof upload routes
-    registerMetalsRoutes(app);
-    registerProofUploadRoutes(app);
-
 
     // Seed database with initial data
     try {

@@ -45,6 +45,7 @@ import AdminBalanceManagement from "./pages/AdminBalanceManagement";
 import AdminNewsManagement from './pages/AdminNewsManagement';
 import Academy from "@/pages/Academy";
 import News from './pages/News';
+import DualMarkets from './pages/DualMarkets';
 import { lazy } from 'react';
 
 function AppContent() {
@@ -74,6 +75,7 @@ function AppContent() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/markets" component={Markets} />
+      <Route path="/dual-markets" component={DualMarkets} />
       <Route path="/deposits" component={Deposits} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
@@ -204,7 +206,13 @@ function AppContent() {
 
       <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route path="/admin/balance" component={AdminBalanceManagement} />
-      <Route path="/admin/news-management" element={<AdminNewsManagement />} />
+      <Route path="/admin/news-management" component={() => 
+        user && user.role === 'admin' ? (
+          <AdminNewsManagement />
+        ) : (
+          <Redirect to="/auth-admin" />
+        )
+      } />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/academy" component={Academy} />
       <Route path="/news" component={News} />

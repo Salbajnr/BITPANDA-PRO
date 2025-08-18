@@ -12,6 +12,8 @@ import adminRoutes from './admin-routes';
 import { portfolioRoutes } from './portfolio-routes';
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import alertRoutes from './alert-routes';
+import cryptoRoutes from './crypto-routes';
+import metalsRoutes from './metals-routes';
 import { z } from "zod";
 import { Router } from "express";
 
@@ -73,6 +75,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Trading routes
   app.use('/api/trading', tradingRoutes);
+
+  // Crypto routes
+  app.use('/api/crypto', cryptoRoutes);
+  
+  // Metals routes
+  app.use('/api/metals', metalsRoutes);
 
   // Auth routes
   // Admin auth routes
