@@ -47,6 +47,8 @@ import Academy from "@/pages/Academy";
 import News from './pages/News';
 import DualMarkets from './pages/DualMarkets';
 import { lazy } from 'react';
+import PreciousMetals from "@/pages/PreciousMetals";
+import Commodities from "@/pages/Commodities";
 
 function AppContent() {
   const { user, isLoading, error } = useAuth();
@@ -77,7 +79,8 @@ function AppContent() {
       <Route path="/markets" component={Markets} />
       <Route path="/stocks" component={lazy(() => import("./pages/Stocks"))} />
       <Route path="/etfs" component={lazy(() => import("./pages/Etfs"))} />
-      <Route path="/precious-metals" component={lazy(() => import("./pages/PreciousMetals"))} />
+      <Route path="/precious-metals" element={<PreciousMetals />} />
+            <Route path="/commodities" element={<Commodities />} />
       <Route path="/savings-plans" component={lazy(() => import("./pages/SavingsPlans"))} />
       <Route path="/dual-markets" component={DualMarkets} />
       <Route path="/deposits" component={Deposits} />

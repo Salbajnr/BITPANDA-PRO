@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -195,6 +194,11 @@ export default function Navbar() {
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/precious-metals" className="navbar-link">Precious Metals</Link>
+                  <Link to="/precious-metals" className="navbar-link">Precious Metals</Link>
+                  <Link to="/commodities" className="navbar-link">Commodities</Link>
+                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
           </div>
@@ -304,7 +308,7 @@ export default function Navbar() {
                 </Link>
               </div>
             </div>
-            
+
             <div className="pt-6 border-t border-gray-200">
               <div className="space-y-3">
                 <Button 
