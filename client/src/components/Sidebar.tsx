@@ -14,7 +14,12 @@ import {
   MessageCircle,
   ShieldCheck,
   TrendingUp,
-  Bell
+  Bell,
+  Calculator,
+  Target,
+  Key,
+  Activity,
+  AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -55,21 +60,26 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
   const navigationItems = [
     { href: "/dashboard", label: "Dashboard", icon: LineChart },
     { href: "/analytics", label: "Portfolio Analytics", icon: BarChart3 },
+    { href: "/trading", label: "Trading", icon: TrendingUp },
+    { href: "/advanced-trading", label: "Advanced Trading", icon: Target },
     { href: "/transactions", label: "Transaction History", icon: History },
     { href: "/watchlist", label: "Watchlist", icon: Wallet },
-    { href: "/trading", label: "Trading", icon: TrendingUp },
+    { href: "/risk-management", label: "Risk Management", icon: AlertTriangle },
+    { href: "/tax-reporting", label: "Tax Reporting", icon: Calculator },
+    { href: "/api-management", label: "API Management", icon: Key },
+    { href: "/notifications", label: "Notifications", icon: Bell },
+    { href: "/alerts", label: "Price Alerts", icon: Activity },
     { href: "/news", label: "News", icon: Newspaper },
-    { href: "/kyc", label: "KYC Verification", icon: ShieldCheck },
-    { href: "/support", label: "Live Support", icon: MessageCircle },
     { href: "/settings", label: "Settings", icon: User },
     { href: "/help", label: "Help", icon: Shield },
-    { href: "/alerts", label: "Alerts", icon: Bell },
   ];
 
   const adminItems = [
-    { href: "/admin", label: "Manage Users", icon: Users },
-    { href: "#admin-balances", label: "Simulate Balances", icon: DollarSign },
-    { href: "#admin-analytics", label: "Analytics", icon: BarChart3 },
+    { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
+    { href: "/admin/users", label: "Manage Users", icon: Users },
+    { href: "/admin/news", label: "News Management", icon: Newspaper },
+    { href: "/admin/balances", label: "Balance Management", icon: DollarSign },
+    { href: "/admin/deposits", label: "Deposit Management", icon: Wallet },
   ];
 
   // Placeholder for currentPath and navigate if not defined in the original context

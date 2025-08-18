@@ -52,6 +52,12 @@ import PreciousMetals from "@/pages/PreciousMetals";
 import Commodities from "@/pages/Commodities";
 import InvestmentPlans from './pages/InvestmentPlans';
 import Stocks from "./pages/Stocks";
+import TaxReporting from "./pages/TaxReporting";
+import AdvancedTrading from "./pages/AdvancedTrading";
+import APIManagement from "./pages/APIManagement";
+import RiskManagement from "./pages/RiskManagement";
+import Analytics from "./pages/Analytics";
+import Notifications from "./pages/Notifications";
 
 function AppContent() {
   const { user, isLoading, error } = useAuth();
@@ -229,6 +235,48 @@ function AppContent() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/academy" component={Academy} />
       <Route path="/news" component={News} />
+      <Route path="/tax-reporting" component={() =>
+        user ? (
+          <TaxReporting />
+        ) : (
+          <Redirect to="/auth" />
+        )
+      } />
+      <Route path="/advanced-trading" component={() =>
+        user ? (
+          <AdvancedTrading />
+        ) : (
+          <Redirect to="/auth" />
+        )
+      } />
+      <Route path="/api-management" component={() =>
+        user ? (
+          <APIManagement />
+        ) : (
+          <Redirect to="/auth" />
+        )
+      } />
+      <Route path="/risk-management" component={() =>
+        user ? (
+          <RiskManagement />
+        ) : (
+          <Redirect to="/auth" />
+        )
+      } />
+      <Route path="/analytics" component={() =>
+        user ? (
+          <Analytics />
+        ) : (
+          <Redirect to="/auth" />
+        )
+      } />
+      <Route path="/notifications" component={() =>
+        user ? (
+          <Notifications />
+        ) : (
+          <Redirect to="/auth" />
+        )
+      } />
       <Route component={NotFound} />
     </Switch>
   );

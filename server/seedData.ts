@@ -61,6 +61,7 @@ export async function seedDatabase() {
     for (const holding of sampleHoldings) {
       await storage.upsertHolding({
         portfolioId: demoPortfolio.id,
+        assetType: 'crypto',
         symbol: holding.symbol,
         name: holding.name,
         amount: holding.amount,
@@ -72,6 +73,7 @@ export async function seedDatabase() {
       await storage.createTransaction({
         userId: demoUser.id,
         type: 'buy',
+        assetType: 'crypto',
         symbol: holding.symbol,
         amount: holding.amount,
         price: holding.price,

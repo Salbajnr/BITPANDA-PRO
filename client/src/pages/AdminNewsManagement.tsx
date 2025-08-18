@@ -5,6 +5,83 @@ import Sidebar from '@/components/Sidebar';
 import NewsManagementPanel from '@/components/NewsManagementPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Newspaper, TrendingUp, Users, Eye } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+function NewsStatsSection() {
+  const { data: newsStats } = useQuery({
+    queryKey: ['/api/news/analytics'],
+    queryFn: async () => {
+      const response = await fetch('/api/news/analytics', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch news stats');
+      return response.json();
+    }
+  });
+
+  const stats = {
+    totalArticles: newsStats?.totalArticles || 0,
+    publishedToday: newsStats?.publishedToday || 0,
+    totalViews: newsStats?.totalViews || 0,
+    engagementRate: newsStats?.engagementRate || 0
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Articles</CardTitle>
+          <Newspaper className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.totalArticles}</div>
+          <p className="text-xs text-muted-foreground">
+            All time articles
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Published Today</CardTitle>
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.publishedToday}</div>
+          <p className="text-xs text-muted-foreground">
+            Published today
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Views</CardTitle>
+          <Eye className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
+          <p className="text-xs text-muted-foreground">
+            Total article views
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Engagement</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.engagementRate.toFixed(1)}%</div>
+          <p className="text-xs text-muted-foreground">
+            User engagement rate
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function AdminNewsManagement() {
   return (
@@ -33,59 +110,7 @@ export default function AdminNewsManagement() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Articles</CardTitle>
-                  <Newspaper className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    All time articles
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Published Today</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    Published today
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Views</CardTitle>
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    Total article views
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Engagement</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0%</div>
-                  <p className="text-xs text-muted-foreground">
-                    User engagement rate
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            <NewsStatsSection />
 
             {/* News Management Panel */}
             <NewsManagementPanel />
