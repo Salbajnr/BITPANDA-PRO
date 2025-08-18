@@ -54,7 +54,7 @@ function AppContent() {
   // For migration demo, show the platform immediately without waiting for auth
   // This allows users to see the successful migration result
   const shouldShowApp = true; // Set to true to bypass loading screen
-  
+
   if (isLoading && !shouldShowApp) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -75,6 +75,10 @@ function AppContent() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/markets" component={Markets} />
+      <Route path="/stocks" component={lazy(() => import("./pages/Stocks"))} />
+      <Route path="/etfs" component={lazy(() => import("./pages/Etfs"))} />
+      <Route path="/precious-metals" component={lazy(() => import("./pages/PreciousMetals"))} />
+      <Route path="/savings-plans" component={lazy(() => import("./pages/SavingsPlans"))} />
       <Route path="/dual-markets" component={DualMarkets} />
       <Route path="/deposits" component={Deposits} />
       <Route path="/about" component={About} />
@@ -191,7 +195,6 @@ function AppContent() {
       />
 
       <Route path="/trading" component={Trading} />
-      <Route path="/markets" component={Markets} />
       <Route path="/orders" component={Orders} />
       <Route path="/alerts" component={lazy(() => import("./pages/Alerts"))} />
       <Route path="/security" component={Security} />
@@ -206,7 +209,7 @@ function AppContent() {
 
       <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route path="/admin/balance" component={AdminBalanceManagement} />
-      <Route path="/admin/news-management" component={() => 
+      <Route path="/admin/news-management" component={() =>
         user && user.role === 'admin' ? (
           <AdminNewsManagement />
         ) : (

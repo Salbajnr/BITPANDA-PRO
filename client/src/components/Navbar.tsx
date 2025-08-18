@@ -21,7 +21,7 @@ import {
   TrendingUp, Wallet, Bell, HelpCircle,
   Shield, Users, Database, BarChart3,
   Home, DollarSign, Coins, Award,
-  Search, News, BookOpen, ChevronDown,
+  Search, Newspaper, BookOpen, ChevronDown,
   CreditCard, Smartphone, Globe
 } from "lucide-react";
 
@@ -120,7 +120,7 @@ export default function Navbar() {
                       </Link>
                       <Link href="/news">
                         <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <News className="w-5 h-5 text-blue-500 mt-0.5" />
+                          <Newspaper className="w-5 h-5 text-blue-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">Market News</div>
                             <div className="text-sm text-gray-500">Latest financial news and insights</div>
@@ -273,7 +273,7 @@ export default function Navbar() {
                 </Link>
                 <Link href="/news">
                   <div className="flex items-center space-x-3 py-2 text-gray-700 hover:text-green-600">
-                    <News className="w-5 h-5" />
+                    <Newspaper className="w-5 h-5" />
                     <span>News</span>
                   </div>
                 </Link>
