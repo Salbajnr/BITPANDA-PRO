@@ -198,8 +198,24 @@ export default function Navbar() {
                   <Link href="/investment-plans" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
                     Investment Plans
                   </Link>
-                  <Link to="/precious-metals" className="navbar-link">Precious Metals</Link>
-                  <Link to="/commodities" className="navbar-link">Commodities</Link>
+                  <Link 
+                    to="/commodities" 
+                    className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Commodities
+                  </Link>
+                  <Link 
+                    to="/stocks" 
+                    className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Stocks
+                  </Link>
+                  <Link 
+                    to="/precious-metals" 
+                    className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Precious Metals
+                  </Link>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
@@ -269,6 +285,27 @@ export default function Navbar() {
                     <DollarSign className="w-5 h-5" />
                     <span>Investment Plans</span>
                   </div>
+                </Link>
+                <Link 
+                  to="/commodities" 
+                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Commodities
+                </Link>
+                <Link 
+                  to="/stocks" 
+                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Stocks
+                </Link>
+                <Link 
+                  to="/precious-metals" 
+                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Precious Metals
                 </Link>
               </div>
             </div>

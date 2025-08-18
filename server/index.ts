@@ -13,8 +13,7 @@ import authRoutes from './auth-routes';
 import alertRoutes from './alert-routes';
 import depositRoutes from './deposit-routes';
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
-// Metals routes will be imported through the main routes file
-// Proof upload routes will be added later
+import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
 
 const app = express();
@@ -125,6 +124,8 @@ app.use((req, res, next) => {
 💰 Trading: /api/trading
 👥 Admin: /api/admin
 💎 Crypto Data: /api/crypto
+💍 Precious Metals: /api/metals
+📰 News: /api/news
 📡 WebSocket: ws://0.0.0.0:${port}/ws
 `);
 

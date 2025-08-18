@@ -51,6 +51,7 @@ import { lazy } from 'react';
 import PreciousMetals from "@/pages/PreciousMetals";
 import Commodities from "@/pages/Commodities";
 import InvestmentPlans from './pages/InvestmentPlans';
+import Stocks from "./pages/Stocks";
 
 function AppContent() {
   const { user, isLoading, error } = useAuth();
@@ -79,10 +80,10 @@ function AppContent() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/markets" component={Markets} />
-      <Route path="/stocks" component={lazy(() => import("./pages/Stocks"))} />
+      <Route path="/stocks" element={<Stocks />} />
       <Route path="/etfs" component={lazy(() => import("./pages/Etfs"))} />
       <Route path="/precious-metals" element={<PreciousMetals />} />
-            <Route path="/commodities" element={<Commodities />} />
+      <Route path="/commodities" element={<Commodities />} />
       <Route path="/investment-plans" element={<InvestmentPlans />} />
       <Route path="/dual-markets" component={DualMarkets} />
       <Route path="/deposits" component={Deposits} />

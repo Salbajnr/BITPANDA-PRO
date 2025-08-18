@@ -6,7 +6,7 @@ interface ApiResponse<T = any> {
   error?: string;
 }
 
-class ApiClient {
+export class ApiService {
   private baseURL: string;
 
   constructor(baseURL: string = '/api') {
@@ -18,7 +18,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         throw new Error(`${response.status}: ${errorData.message || 'Request failed'}`);
@@ -48,15 +48,15 @@ class ApiClient {
       const searchParams = new URLSearchParams(params);
       url += `?${searchParams.toString()}`;
     }
-    
+
     return this.request<T>(url, {
       method: 'GET',
     });
   }
 
   async post<T = any>(
-    endpoint: string, 
-    data?: any, 
+    endpoint: string,
+    data?: any,
     options: RequestInit = {}
   ): Promise<T> {
     const config: RequestInit = {

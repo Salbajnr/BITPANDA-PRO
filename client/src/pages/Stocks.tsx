@@ -4,63 +4,144 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   TrendingUp, 
   TrendingDown, 
-  Search, 
-  Star,
-  BarChart3,
+  Search,
   DollarSign,
+  BarChart3,
+  Building2,
+  Globe,
+  Star,
+  RefreshCw,
   Filter,
-  ArrowUpDown
+  ArrowUpRight,
+  ArrowDownRight,
+  Clock,
+  Target,
+  Zap,
+  Shield
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
-const stocks = [
-  { symbol: "AAPL", name: "Apple Inc.", price: 182.52, change: 1.85, sector: "Technology", market: "NASDAQ" },
-  { symbol: "MSFT", name: "Microsoft Corporation", price: 378.85, change: -0.67, sector: "Technology", market: "NASDAQ" },
-  { symbol: "GOOGL", name: "Alphabet Inc.", price: 142.56, change: 2.14, sector: "Technology", market: "NASDAQ" },
-  { symbol: "AMZN", name: "Amazon.com Inc.", price: 145.86, change: -1.23, sector: "Consumer Discretionary", market: "NASDAQ" },
-  { symbol: "TSLA", name: "Tesla Inc.", price: 248.87, change: 3.45, sector: "Automotive", market: "NASDAQ" },
-  { symbol: "NVDA", name: "NVIDIA Corporation", price: 875.28, change: 4.12, sector: "Technology", market: "NASDAQ" },
-  { symbol: "META", name: "Meta Platforms Inc.", price: 485.67, change: -0.89, sector: "Technology", market: "NASDAQ" },
-  { symbol: "JPM", name: "JPMorgan Chase & Co.", price: 179.45, change: 0.56, sector: "Financial Services", market: "NYSE" }
-];
-
-const sectors = ["All", "Technology", "Financial Services", "Healthcare", "Consumer Discretionary", "Automotive"];
+interface Stock {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  marketCap: string;
+  sector: string;
+  exchange: string;
+}
 
 export default function Stocks() {
+  const [stocks, setStocks] = useState<Stock[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSector, setSelectedSector] = useState("All");
-  const [sortBy, setSortBy] = useState("name");
-  const [filteredStocks, setFilteredStocks] = useState(stocks);
+  const [selectedSector, setSelectedSector] = useState("all");
+  const [loading, setLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  // Popular stocks data
+  const popularStocks: Stock[] = [
+    {
+      symbol: "AAPL",
+      name: "Apple Inc.",
+      price: 175.43,
+      change: 2.87,
+      changePercent: 1.67,
+      volume: 52840000,
+      marketCap: "2.7T",
+      sector: "Technology",
+      exchange: "NASDAQ"
+    },
+    {
+      symbol: "MSFT",
+      name: "Microsoft Corporation",
+      price: 338.11,
+      change: -1.23,
+      changePercent: -0.36,
+      volume: 28920000,
+      marketCap: "2.5T",
+      sector: "Technology",
+      exchange: "NASDAQ"
+    },
+    {
+      symbol: "GOOGL",
+      name: "Alphabet Inc.",
+      price: 139.69,
+      change: 3.45,
+      changePercent: 2.53,
+      volume: 35670000,
+      marketCap: "1.8T",
+      sector: "Technology",
+      exchange: "NASDAQ"
+    },
+    {
+      symbol: "TSLA",
+      name: "Tesla, Inc.",
+      price: 248.50,
+      change: -5.25,
+      changePercent: -2.07,
+      volume: 89540000,
+      marketCap: "789B",
+      sector: "Automotive",
+      exchange: "NASDAQ"
+    },
+    {
+      symbol: "NVDA",
+      name: "NVIDIA Corporation",
+      price: 875.28,
+      change: 15.67,
+      changePercent: 1.82,
+      volume: 45230000,
+      marketCap: "2.2T",
+      sector: "Technology",
+      exchange: "NASDAQ"
+    },
+    {
+      symbol: "JPM",
+      name: "JPMorgan Chase & Co.",
+      price: 151.20,
+      change: 0.85,
+      changePercent: 0.57,
+      volume: 12450000,
+      marketCap: "441B",
+      sector: "Financial",
+      exchange: "NYSE"
+    }
+  ];
+
+  const sectors = ["all", "Technology", "Financial", "Healthcare", "Energy", "Automotive", "Consumer"];
 
   useEffect(() => {
-    let filtered = stocks.filter(stock => 
-      stock.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stock.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    setStocks(popularStocks);
+    setLastUpdate(new Date());
+  }, []);
 
-    if (selectedSector !== "All") {
-      filtered = filtered.filter(stock => stock.sector === selectedSector);
-    }
+  const filteredStocks = stocks.filter(stock => {
+    const matchesSearch = stock.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         stock.symbol.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSector = selectedSector === "all" || stock.sector === selectedSector;
+    return matchesSearch && matchesSector;
+  });
 
-    // Sort stocks
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "price":
-          return b.price - a.price;
-        case "change":
-          return b.change - a.change;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredStocks(filtered);
-  }, [searchTerm, selectedSector, sortBy]);
+  const refreshData = () => {
+    setLoading(true);
+    // Simulate price updates
+    setTimeout(() => {
+      setStocks(prev => prev.map(stock => ({
+        ...stock,
+        price: stock.price * (0.98 + Math.random() * 0.04), // ±2% variance
+        change: (Math.random() - 0.5) * 10,
+        changePercent: (Math.random() - 0.5) * 4
+      })));
+      setLastUpdate(new Date());
+      setLoading(false);
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,191 +150,297 @@ export default function Stocks() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Stocks</h1>
-          <p className="text-xl text-gray-600">
-            Invest in fractional shares of your favorite companies from €1
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search stocks..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">Stock Trading</h1>
+              <p className="text-xl text-gray-600">
+                Trade global stocks with real-time prices and zero commission
+              </p>
             </div>
-
-            {/* Sector Filter */}
-            <select 
-              value={selectedSector}
-              onChange={(e) => setSelectedSector(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              {sectors.map(sector => (
-                <option key={sector} value={sector}>{sector}</option>
-              ))}
-            </select>
-
-            {/* Sort */}
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="name">Sort by Name</option>
-              <option value="price">Sort by Price</option>
-              <option value="change">Sort by Change</option>
-            </select>
-
-            <Button className="bg-green-500 hover:bg-green-600 text-white">
-              <Filter className="w-4 h-4 mr-2" />
-              Apply Filters
-            </Button>
+            <div className="text-right">
+              <Button 
+                onClick={refreshData} 
+                variant="outline" 
+                size="sm"
+                disabled={loading}
+                className="mb-2"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <p className="text-xs text-gray-500">
+                Last updated: {lastUpdate.toLocaleTimeString()}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Market Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">S&P 500</p>
-                  <p className="text-2xl font-bold text-gray-900">4,567.23</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center text-green-600">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    <span className="font-medium">+1.2%</span>
-                  </div>
-                </div>
-              </div>
+        {/* Key Features */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="border border-green-200 bg-green-50">
+            <CardContent className="p-4 text-center">
+              <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <h3 className="font-semibold text-green-800 mb-1">Zero Commission</h3>
+              <p className="text-xs text-green-700">No trading fees on stock purchases</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">NASDAQ</p>
-                  <p className="text-2xl font-bold text-gray-900">14,123.89</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center text-red-500">
-                    <TrendingDown className="w-4 h-4 mr-1" />
-                    <span className="font-medium">-0.5%</span>
-                  </div>
-                </div>
-              </div>
+          <Card className="border border-blue-200 bg-blue-50">
+            <CardContent className="p-4 text-center">
+              <Zap className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <h3 className="font-semibold text-blue-800 mb-1">Instant Execution</h3>
+              <p className="text-xs text-blue-700">Real-time trading with instant fills</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Dow Jones</p>
-                  <p className="text-2xl font-bold text-gray-900">35,789.45</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center text-green-600">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    <span className="font-medium">+0.8%</span>
-                  </div>
-                </div>
-              </div>
+          <Card className="border border-purple-200 bg-purple-50">
+            <CardContent className="p-4 text-center">
+              <Globe className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+              <h3 className="font-semibold text-purple-800 mb-1">Global Markets</h3>
+              <p className="text-xs text-purple-700">Access US, European, and Asian stocks</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">VIX</p>
-                  <p className="text-2xl font-bold text-gray-900">18.76</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center text-red-500">
-                    <TrendingDown className="w-4 h-4 mr-1" />
-                    <span className="font-medium">-2.1%</span>
-                  </div>
-                </div>
-              </div>
+          <Card className="border border-orange-200 bg-orange-50">
+            <CardContent className="p-4 text-center">
+              <Shield className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+              <h3 className="font-semibold text-orange-800 mb-1">Regulated</h3>
+              <p className="text-xs text-orange-700">EU-regulated and investor protected</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Stocks Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Available Stocks</h2>
-            <p className="text-gray-600">Start investing from €1 with fractional shares</p>
+        {/* Search and Filters */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search stocks by name or symbol..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={selectedSector}
+                onChange={(e) => setSelectedSector(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              >
+                {sectors.map(sector => (
+                  <option key={sector} value={sector}>
+                    {sector === "all" ? "All Sectors" : sector}
+                  </option>
+                ))}
+              </select>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+              </Button>
+            </div>
           </div>
 
-          <div className="divide-y divide-gray-200">
-            {filteredStocks.map((stock, index) => (
-              <div key={stock.symbol} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-gray-500" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-gray-900 text-lg">{stock.name}</div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm text-gray-500 uppercase font-medium">{stock.symbol}</span>
-                        <Badge variant="secondary" className="text-xs">{stock.sector}</Badge>
-                        <Badge variant="outline" className="text-xs">{stock.market}</Badge>
+          {/* Stock List */}
+          <div className="space-y-4">
+            {filteredStocks.map((stock) => (
+              <Card key={stock.symbol} className="border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-lg">{stock.symbol}</h3>
+                        <p className="text-sm text-gray-600">{stock.name}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant="outline" className="text-xs">{stock.sector}</Badge>
+                          <Badge variant="outline" className="text-xs">{stock.exchange}</Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="text-right">
-                    <div className="font-bold text-gray-900 text-xl">
-                      ${stock.price.toLocaleString()}
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900 text-xl">
+                        ${stock.price.toFixed(2)}
+                      </div>
+                      <div className={`text-sm flex items-center justify-center font-medium ${
+                        stock.changePercent >= 0 ? 'text-green-600' : 'text-red-500'
+                      }`}>
+                        {stock.changePercent >= 0 ? 
+                          <ArrowUpRight className="w-4 h-4 mr-1" /> : 
+                          <ArrowDownRight className="w-4 h-4 mr-1" />
+                        }
+                        {stock.changePercent >= 0 ? '+' : ''}
+                        {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                      </div>
                     </div>
-                    <div className={`text-sm flex items-center justify-end font-medium ${
-                      stock.change >= 0 ? 'text-green-600' : 'text-red-500'
-                    }`}>
-                      {stock.change >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
-                      {stock.change >= 0 ? '+' : ''}{stock.change}%
-                    </div>
-                  </div>
 
-                  <div className="flex items-center space-x-3">
-                    <Button variant="outline" size="sm">
-                      <Star className="w-4 h-4 mr-2" />
-                      Watch
-                    </Button>
-                    <Button className="bg-green-500 hover:bg-green-600 text-white">
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Buy
-                    </Button>
+                    <div className="text-right text-sm text-gray-600">
+                      <div>Vol: {(stock.volume / 1000000).toFixed(1)}M</div>
+                      <div>Cap: {stock.marketCap}</div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+                        Buy
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Star className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <BarChart3 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
 
+        {/* Market Information */}
+        <Tabs defaultValue="market-hours" className="mb-8">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="market-hours">Market Hours</TabsTrigger>
+            <TabsTrigger value="trading-info">Trading Info</TabsTrigger>
+            <TabsTrigger value="getting-started">Getting Started</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="market-hours" className="mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Clock className="w-5 h-5 mr-2" />
+                  Global Market Hours
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">US Markets (EST)</h4>
+                    <p className="text-sm text-gray-600">NYSE & NASDAQ</p>
+                    <p className="text-sm font-medium text-green-600">9:30 AM - 4:00 PM</p>
+                    <Badge className="mt-2 bg-green-100 text-green-800">Open</Badge>
+                  </div>
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">European Markets (CET)</h4>
+                    <p className="text-sm text-gray-600">LSE, Euronext</p>
+                    <p className="text-sm font-medium text-gray-600">8:00 AM - 4:30 PM</p>
+                    <Badge className="mt-2 bg-gray-100 text-gray-800">Closed</Badge>
+                  </div>
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">Asian Markets (JST)</h4>
+                    <p className="text-sm text-gray-600">TSE, HKEX</p>
+                    <p className="text-sm font-medium text-gray-600">9:00 AM - 3:00 PM</p>
+                    <Badge className="mt-2 bg-gray-100 text-gray-800">Closed</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="trading-info" className="mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Trading Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Commission Structure</h4>
+                      <ul className="space-y-1 text-sm text-gray-600">
+                        <li>• US Stocks: €0 commission</li>
+                        <li>• European Stocks: €0 commission</li>
+                        <li>• Minimum order: €1</li>
+                        <li>• No account maintenance fees</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Order Types</h4>
+                      <ul className="space-y-1 text-sm text-gray-600">
+                        <li>• Market orders</li>
+                        <li>• Limit orders</li>
+                        <li>• Stop-loss orders</li>
+                        <li>• Good-till-cancelled (GTC)</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Settlement</h4>
+                      <ul className="space-y-1 text-sm text-gray-600">
+                        <li>• US Stocks: T+2 settlement</li>
+                        <li>• European Stocks: T+2 settlement</li>
+                        <li>• Instant buying power</li>
+                        <li>• Real-time portfolio updates</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Coverage</h4>
+                      <ul className="space-y-1 text-sm text-gray-600">
+                        <li>• 2,000+ US stocks</li>
+                        <li>• 600+ European stocks</li>
+                        <li>• All major indices</li>
+                        <li>• Real-time data included</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="getting-started" className="mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">How to Start Trading Stocks</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-lg font-bold text-blue-600">1</span>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Fund Your Account</h4>
+                    <p className="text-sm text-gray-600">Deposit funds using bank transfer, card, or other methods</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-lg font-bold text-blue-600">2</span>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Research & Select</h4>
+                    <p className="text-sm text-gray-600">Browse stocks, analyze performance, and build your watchlist</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-lg font-bold text-blue-600">3</span>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Start Trading</h4>
+                    <p className="text-sm text-gray-600">Place orders and track your portfolio performance</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
         {/* Call to Action */}
-        <div className="mt-12 bg-green-50 rounded-lg p-8 text-center">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-lg p-8 text-center">
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            Start investing in stocks today
+            Start Trading Stocks Today
           </h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Build your portfolio with fractional shares from the world's biggest companies. 
-            No minimum investment, start from just €1.
+            Join millions of investors who trade commission-free with real-time data and instant execution.
           </p>
-          <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8">
-            Open Investment Account
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8">
+              <Target className="w-5 h-5 mr-2" />
+              Start Trading
+            </Button>
+            <Button size="lg" variant="outline" className="border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white px-8">
+              <BarChart3 className="w-5 h-5 mr-2" />
+              View Markets
+            </Button>
+          </div>
         </div>
       </div>
     </div>
