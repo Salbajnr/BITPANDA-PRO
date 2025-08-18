@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,8 @@ import {
   Wallet,
   Timer,
   Eye,
-  European
+  European,
+  Coins // Added Coins icon for the footer logo
 } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
 import Navbar from "@/components/Navbar";
@@ -131,14 +131,14 @@ export default function Landing() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <LiveTicker />
-      
+
       {/* Hero Section - Following Bitpanda's exact style */}
       <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50 pt-24 pb-20">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 left-0 w-96 h-96 bg-green-500 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-400 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center">
             {/* Trust Badge */}
@@ -146,18 +146,18 @@ export default function Landing() {
               <Shield className="w-4 h-4" />
               <span>🇦🇹 Austria based and European regulated</span>
             </div>
-            
+
             {/* Main Heading - Bitpanda Style */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               BITPANDA PRO -
               <span className="text-green-600 block mt-2">Start investing today</span>
             </h1>
-            
+
             {/* Subtitle - Exact Bitpanda copy */}
             <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-4xl mx-auto leading-relaxed font-medium">
               Trade in minutes from only €1. Your No.1 European broker for stocks, crypto, indices, ETFs and precious metals. Trade 24/7. Fee-free on all deposits.
             </p>
-            
+
             {/* CTA Buttons - Bitpanda Style */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link href="/auth">
@@ -165,7 +165,7 @@ export default function Landing() {
                   Get started
                 </Button>
               </Link>
-              
+
               <Button 
                 variant="outline" 
                 size="lg" 
@@ -191,24 +191,60 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* How it works - Bitpanda style */}
+      {/* How it works Section - Bitpanda Exact Pattern */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How it works</h2>
-            <p className="text-xl text-gray-600">Get started in 3 simple steps</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">How to get started</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Create your account and start trading in just a few minutes
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {steps.map((step, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
-                  {step.number}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              {
+                step: "1",
+                title: "Sign up",
+                description: "Create your free BITPANDA PRO account in under 2 minutes. No paperwork, no waiting.",
+                icon: "👤"
+              },
+              {
+                step: "2", 
+                title: "Verify your identity",
+                description: "Complete our fast identity verification process to secure your account and unlock all features.",
+                icon: "✅"
+              },
+              {
+                step: "3",
+                title: "Start investing",
+                description: "Deposit funds and start trading cryptocurrencies, stocks, ETFs and precious metals.",
+                icon: "🚀"
+              }
+            ].map((step, index) => (
+              <div key={index} className="text-center relative">
+                {/* Connection Line */}
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-green-200 z-0"></div>
+                )}
+
+                <div className="relative z-10">
+                  <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-500 rounded-full text-white relative">
+                    <span className="text-2xl font-bold">{step.step}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">{step.title}</h3>
+                  <p className="text-gray-600 leading-relaxed max-w-sm mx-auto">{step.description}</p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{step.title}</h3>
-                <p className="text-gray-600">{step.description}</p>
               </div>
             ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link href="/auth">
+              <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white font-semibold px-10 py-4 rounded-lg text-lg">
+                Get started now
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -238,7 +274,7 @@ export default function Landing() {
                       <div className="text-sm text-gray-500 uppercase">{crypto.symbol}</div>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     <div className="font-bold text-gray-900 text-xl">
                       €{crypto.price.toLocaleString()}
@@ -250,7 +286,7 @@ export default function Landing() {
                       {crypto.change >= 0 ? '+' : ''}{crypto.change}%
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     <div className="text-sm text-gray-500 mb-1">24h Volume</div>
                     <div className="font-semibold text-gray-900">{crypto.volume}</div>
@@ -333,14 +369,14 @@ export default function Landing() {
           <p className="text-xl text-green-100 mb-10 max-w-2xl mx-auto">
             Join over 2 million users who trust BITPANDA PRO. Start trading from just €1 with no deposit fees.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth">
               <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
                 Get started now
               </Button>
             </Link>
-            
+
             <Button 
               variant="outline" 
               size="lg" 
@@ -352,61 +388,107 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer - European Compliance Focus */}
+      {/* Footer - Bitpanda Exact Pattern */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <h3 className="text-2xl font-bold mb-4 text-green-400">BITPANDA PRO</h3>
-              <p className="text-gray-300 mb-6 max-w-md">
-                Austria based and European regulated cryptocurrency trading platform. Licensed by the Austrian Financial Market Authority (FMA).
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+            {/* Company Info */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-2">
+              <Link href="/">
+                <div className="flex items-center space-x-2 mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                    <Coins className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xl font-bold text-white">BITPANDA PRO</span>
+                </div>
+              </Link>
+              <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
+                BITPANDA PRO is Europe's leading investment platform. Trade cryptocurrencies, stocks, precious metals and ETFs 24/7. 
+                Licensed and regulated in Austria.
               </p>
-              <div className="flex items-center space-x-4 text-sm text-gray-400">
-                <span className="flex items-center">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                <span className="flex items-center bg-gray-800 px-3 py-1 rounded-full">
                   <Shield className="w-4 h-4 mr-2" />
                   🇦🇹 Austria based
                 </span>
-                <span className="flex items-center">
+                <span className="flex items-center bg-gray-800 px-3 py-1 rounded-full">
                   <Award className="w-4 h-4 mr-2" />
                   EU regulated
                 </span>
               </div>
             </div>
-            
+
+            {/* Invest */}
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-green-400">Products</h4>
-              <ul className="space-y-2 text-gray-300">
-                <li><Link href="/trading" className="hover:text-green-400 transition-colors">Cryptocurrencies</Link></li>
-                <li><Link href="/markets" className="hover:text-green-400 transition-colors">Stocks</Link></li>
-                <li><Link href="/portfolio" className="hover:text-green-400 transition-colors">ETFs</Link></li>
-                <li><Link href="/alerts" className="hover:text-green-400 transition-colors">Precious Metals</Link></li>
+              <h4 className="text-lg font-semibold mb-6 text-green-400">Invest</h4>
+              <ul className="space-y-3 text-gray-300">
+                <li><Link href="/markets" className="hover:text-green-400 transition-colors">Cryptocurrencies</Link></li>
+                <li><Link href="/stocks" className="hover:text-green-400 transition-colors">Stocks</Link></li>
+                <li><Link href="/etfs" className="hover:text-green-400 transition-colors">ETFs</Link></li>
+                <li><Link href="/precious-metals" className="hover:text-green-400 transition-colors">Precious Metals</Link></li>
+                <li><Link href="/crypto-indices" className="hover:text-green-400 transition-colors">Crypto Indices</Link></li>
               </ul>
             </div>
-            
+
+            {/* Learn */}
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-green-400">Company</h4>
-              <ul className="space-y-2 text-gray-300">
+              <h4 className="text-lg font-semibold mb-6 text-green-400">Learn</h4>
+              <ul className="space-y-3 text-gray-300">
+                <li><Link href="/academy" className="hover:text-green-400 transition-colors">BITPANDA PRO Academy</Link></li>
+                <li><Link href="/news" className="hover:text-green-400 transition-colors">News</Link></li>
+                <li><Link href="/tutorials" className="hover:text-green-400 transition-colors">Getting Started</Link></li>
+                <li><Link href="/help" className="hover:text-green-400 transition-colors">Help Centre</Link></li>
+                <li><Link href="/api" className="hover:text-green-400 transition-colors">API</Link></li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h4 className="text-lg font-semibold mb-6 text-green-400">Company</h4>
+              <ul className="space-y-3 text-gray-300">
                 <li><Link href="/about" className="hover:text-green-400 transition-colors">About</Link></li>
+                <li><Link href="/careers" className="hover:text-green-400 transition-colors">Careers</Link></li>
+                <li><Link href="/press" className="hover:text-green-400 transition-colors">Press</Link></li>
                 <li><Link href="/security" className="hover:text-green-400 transition-colors">Security</Link></li>
-                <li><Link href="/terms" className="hover:text-green-400 transition-colors">Legal</Link></li>
-                <li><Link href="/privacy" className="hover:text-green-400 transition-colors">Privacy</Link></li>
+                <li><Link href="/contact" className="hover:text-green-400 transition-colors">Contact</Link></li>
               </ul>
             </div>
           </div>
-          
+
+          {/* Bottom Section */}
           <div className="border-t border-gray-800 mt-12 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-400 text-sm">
-                © 2025 BITPANDA PRO. All rights reserved. BITPANDA PRO is licensed by the Austrian Financial Market Authority (FMA).
-              </p>
-              <div className="flex items-center space-x-6 mt-4 md:mt-0">
-                <span className="text-gray-400 text-sm flex items-center">
-                  <Shield className="w-4 h-4 mr-2" />
-                  FMA Licensed
-                </span>
-                <span className="text-gray-400 text-sm flex items-center">
-                  🇪🇺 EU Compliant
-                </span>
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-6 lg:space-y-0">
+              <div>
+                <p className="text-gray-400 text-sm mb-2">
+                  © 2025 BITPANDA PRO Technology GmbH. All rights reserved.
+                </p>
+                <p className="text-gray-500 text-xs max-w-3xl">
+                  BITPANDA PRO is licensed by the Austrian Financial Market Authority (FMA). 
+                  Your deposits are protected up to €100,000 by the Austrian Deposit Guarantee Scheme.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <div className="flex items-center space-x-4 text-xs text-gray-400">
+                  <Link href="/terms" className="hover:text-green-400 transition-colors">Terms of use</Link>
+                  <Link href="/privacy" className="hover:text-green-400 transition-colors">Privacy policy</Link>
+                  <Link href="/imprint" className="hover:text-green-400 transition-colors">Imprint</Link>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <span className="text-xs text-gray-500">Follow us:</span>
+                  <div className="flex space-x-2">
+                    <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">
+                      <span className="text-xs">X</span>
+                    </a>
+                    <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">
+                      <span className="text-xs">YT</span>
+                    </a>
+                    <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">
+                      <span className="text-xs">IG</span>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
