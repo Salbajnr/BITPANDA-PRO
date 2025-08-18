@@ -167,3 +167,96 @@ router.patch('/notifications/:notificationId/read', requireAuth, async (req: Req
 });
 
 export default router;
+import { Router } from 'express';
+import { requireAuth } from './simple-auth';
+import { storage } from './storage';
+import { z } from 'zod';
+
+const router = Router();
+
+const createAlertSchema = z.object({
+  symbol: z.string().min(1),
+  targetPrice: z.number().positive(),
+  condition: z.enum(['above', 'below']),
+  message: z.string().optional()
+});
+
+// Get user's price alerts
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const alerts = await storage.getPriceAlerts(userId);
+    res.json(alerts);
+  } catch (error) {
+    console.error('Error fetching price alerts:', error);
+    res.status(500).json({ message: 'Failed to fetch price alerts' });
+  }
+});
+
+// Create price alert
+router.post('/', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const alertData = createAlertSchema.parse(req.body);
+    
+    const alert = await storage.createPriceAlert({
+      userId,
+      symbol: alertData.symbol.toUpperCase(),
+      targetPrice: alertData.targetPrice.toString(),
+      condition: alertData.condition,
+      message: alertData.message || `${alertData.symbol} ${alertData.condition} $${alertData.targetPrice}`,
+      isActive: true
+    });
+    
+    res.json(alert);
+  } catch (error) {
+    console.error('Error creating price alert:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to create price alert' });
+  }
+});
+
+// Update price alert
+router.patch('/:id', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const alertId = req.params.id;
+    const updates = req.body;
+    
+    // Verify alert belongs to user
+    const alert = await storage.getPriceAlert(alertId);
+    if (!alert || alert.userId !== userId) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+    
+    const updatedAlert = await storage.updatePriceAlert(alertId, updates);
+    res.json(updatedAlert);
+  } catch (error) {
+    console.error('Error updating price alert:', error);
+    res.status(500).json({ message: 'Failed to update price alert' });
+  }
+});
+
+// Delete price alert
+router.delete('/:id', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const alertId = req.params.id;
+    
+    // Verify alert belongs to user
+    const alert = await storage.getPriceAlert(alertId);
+    if (!alert || alert.userId !== userId) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+    
+    await storage.deletePriceAlert(alertId);
+    res.json({ message: 'Alert deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting price alert:', error);
+    res.status(500).json({ message: 'Failed to delete price alert' });
+  }
+});
+
+export default router;

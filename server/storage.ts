@@ -994,6 +994,84 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  // Price Alerts methods - re-added for consistency and type safety
+  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    try {
+      const db = this.ensureDb();
+      const alerts = await db.select()
+        .from(priceAlerts)
+        .where(eq(priceAlerts.userId, userId))
+        .orderBy(desc(priceAlerts.createdAt));
+      return alerts;
+    } catch (error) {
+      console.error("Error getting price alerts:", error);
+      throw error;
+    }
+  }
+
+  async getPriceAlert(id: string): Promise<PriceAlert | undefined> {
+    try {
+      const db = this.ensureDb();
+      const [alert] = await db.select()
+        .from(priceAlerts)
+        .where(eq(priceAlerts.id, id));
+      return alert;
+    } catch (error) {
+      console.error("Error getting price alert:", error);
+      throw error;
+    }
+  }
+
+  async createPriceAlert(alertData: InsertPriceAlert): Promise<PriceAlert> {
+    const db = this.ensureDb();
+    const [alert] = await db.insert(priceAlerts).values(alertData).returning();
+    return alert;
+  }
+
+  async updatePriceAlert(id: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert> {
+    try {
+      const db = this.ensureDb();
+      const [alert] = await db.update(priceAlerts)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(priceAlerts.id, id))
+        .returning();
+      return alert;
+    } catch (error) {
+      console.error("Error updating price alert:", error);
+      throw error;
+    }
+  }
+
+  async deletePriceAlert(id: string): Promise<void> {
+    try {
+      const db = this.ensureDb();
+      await db.delete(priceAlerts)
+        .where(eq(priceAlerts.id, id));
+    } catch (error) {
+      console.error("Error deleting price alert:", error);
+      throw error;
+    }
+  }
+
+  // Portfolio Analytics
+  async getHoldingsWithPrices(portfolioId: string): Promise<Holding[]> {
+    const db = this.ensureDb();
+    return await db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
+  }
+
+  async getUserTransactions(userId: string): Promise<Transaction[]> {
+    try {
+      const db = this.ensureDb();
+      return await db.select()
+        .from(transactions)
+        .where(eq(transactions.userId, userId))
+        .orderBy(desc(transactions.createdAt));
+    } catch (error) {
+      console.error("Error fetching user transactions:", error);
+      return [];
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

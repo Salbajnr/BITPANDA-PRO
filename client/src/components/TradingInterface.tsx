@@ -1,393 +1,244 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, TrendingDown, DollarSign, Percent, Calculator, Activity, AlertTriangle, Target, Shield, X } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CryptoPrice, CryptoApiService } from "../services/cryptoApi";
-import { useRealTimePrice } from "../hooks/useRealTimePrice";
 
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { TrendingUp, TrendingDown, DollarSign, Calculator, Target, AlertTriangle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { CryptoApiService } from '@/services/cryptoApi';
 
 interface TradingInterfaceProps {
-  crypto: CryptoPrice;
-  onClose: () => void;
+  selectedSymbol?: string;
+  onTradeComplete?: () => void;
 }
 
-function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
-  const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop_loss' | 'take_profit'>('market');
+export default function TradingInterface({ selectedSymbol, onTradeComplete }: TradingInterfaceProps) {
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  const [amount, setAmount] = useState("");
-  const [limitPrice, setLimitPrice] = useState(""); // Renamed from 'price' for clarity with limit orders
-  const [stopLoss, setStopLoss] = useState("");
-  const [takeProfit, setTakeProfit] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [useStopLoss, setUseStopLoss] = useState(false);
-  const [useTakeProfit, setUseTakeProfit] = useState(false);
-  const [slippage, setSlippage] = useState('0.5');
+  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+  const [amount, setAmount] = useState('');
+  const [price, setPrice] = useState('');
+  const [symbol, setSymbol] = useState(selectedSymbol || 'BTC');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { getPrice, getPriceChange, isConnected } = useRealTimePrice([crypto.id]);
-  const currentPrice = getPrice(crypto.id) || crypto.current_price;
-  const priceChange = getPriceChange(crypto.id) || crypto.price_change_percentage_24h;
+  // Get current price
+  const { data: currentPrice, isLoading: priceLoading } = useQuery({
+    queryKey: ['crypto-price', symbol.toLowerCase()],
+    queryFn: () => CryptoApiService.getPrice(symbol.toLowerCase()),
+    refetchInterval: 5000,
+  });
 
+  // Get user portfolio
+  const { data: portfolio } = useQuery({
+    queryKey: ['portfolio'],
+    queryFn: () => api.get('/api/portfolio').then(res => res.data),
+  });
+
+  // Execute trade mutation
   const tradeMutation = useMutation({
-    mutationFn: async (tradeData: {
-      type: 'buy' | 'sell';
-      symbol: string;
-      name: string;
-      amount: string;
-      price: string;
-      orderType: string;
-      stopLoss?: string;
-      takeProfit?: string;
-      slippage?: string;
-    }) => {
-      const response = await fetch('/api/trading/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tradeData),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Trade execution failed');
-      }
-
-      return response.json();
-    },
-    onSuccess: (data, variables) => {
+    mutationFn: (tradeData: any) => api.post('/api/trade', tradeData),
+    onSuccess: () => {
       toast({
-        title: "Trade Executed Successfully",
-        description: `${variables.type === 'buy' ? 'Bought' : 'Sold'} ${variables.amount} ${variables.symbol.toUpperCase()}`,
+        title: 'Trade Executed',
+        description: `Successfully ${tradeType === 'buy' ? 'bought' : 'sold'} ${amount} ${symbol}`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-      setAmount("");
-      setLimitPrice("");
-      setStopLoss("");
-      setTakeProfit("");
-      setUseStopLoss(false);
-      setUseTakeProfit(false);
+      setAmount('');
+      setPrice('');
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      queryClient.invalidateQueries({ queryKey: ['holdings'] });
+      onTradeComplete?.();
     },
     onError: (error: any) => {
       toast({
-        title: "Trade Failed",
-        description: error.message || "Failed to execute trade",
-        variant: "destructive",
+        title: 'Trade Failed',
+        description: error.response?.data?.message || 'Failed to execute trade',
+        variant: 'destructive',
       });
     },
   });
 
-  const tradePrice = orderType === "market" ? currentPrice : parseFloat(limitPrice || "0");
-  const estimatedTotal = parseFloat(amount || "0") * tradePrice;
-  const isPositiveChange = priceChange >= 0;
-
-  // Auto-update limit price when switching to limit order
   useEffect(() => {
-    if (orderType === "limit" && !limitPrice) {
-      setLimitPrice(currentPrice.toString());
+    if (currentPrice && orderType === 'market') {
+      setPrice(currentPrice.price.toString());
     }
-  }, [orderType, currentPrice, limitPrice]);
+  }, [currentPrice, orderType]);
 
-  const handleTrade = (type: 'buy' | 'sell') => {
-    if (!amount || parseFloat(amount) <= 0) {
+  const handleTrade = () => {
+    if (!amount || !price || !symbol) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount",
-        variant: "destructive",
+        title: 'Invalid Input',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
       });
       return;
     }
 
-    if (orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)) {
-      toast({
-        title: "Invalid Price",
-        description: "Please enter a valid limit price",
-        variant: "destructive",
-      });
-      return;
-    }
+    const tradeAmount = parseFloat(amount);
+    const tradePrice = parseFloat(price);
+    const total = tradeAmount * tradePrice;
 
-    if (orderType === "stop_loss" && (!stopLoss || parseFloat(stopLoss) <= 0)) {
+    if (tradeType === 'buy' && portfolio && total > parseFloat(portfolio.availableCash)) {
       toast({
-        title: "Invalid Stop Loss Price",
-        description: "Please enter a valid stop loss price",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (orderType === "take_profit" && (!takeProfit || parseFloat(takeProfit) <= 0)) {
-      toast({
-        title: "Invalid Take Profit Price",
-        description: "Please enter a valid take profit price",
-        variant: "destructive",
+        title: 'Insufficient Funds',
+        description: 'You do not have enough cash for this trade',
+        variant: 'destructive',
       });
       return;
     }
 
     tradeMutation.mutate({
-      type,
-      symbol: crypto.symbol,
-      name: crypto.name,
-      amount,
-      price: orderType === "market" ? currentPrice.toString() : limitPrice,
+      type: tradeType,
+      symbol: symbol.toUpperCase(),
+      amount: tradeAmount.toString(),
+      price: tradePrice.toString(),
+      total: total.toString(),
       orderType,
-      stopLoss: useStopLoss ? stopLoss : undefined,
-      takeProfit: useTakeProfit ? takeProfit : undefined,
-      slippage,
     });
   };
 
-  const formatPrice = (price: number) => {
-    if (price < 0.01) return price.toFixed(6);
-    if (price < 1) return price.toFixed(4);
-    return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
-  const displayPrice = orderType === "market" ? currentPrice : parseFloat(limitPrice || "0");
-  const displayTotal = parseFloat(amount || "0") * displayPrice;
-
+  const totalValue = amount && price ? (parseFloat(amount) * parseFloat(price)).toFixed(2) : '0.00';
+  const availableCash = portfolio?.availableCash ? parseFloat(portfolio.availableCash) : 0;
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <img
-            src={crypto.image}
-            alt={crypto.name}
-            className="h-8 w-8 rounded-full"
-          />
-          <div>
-            <CardTitle className="text-white">{crypto.name}</CardTitle>
-            <p className="text-sm text-gray-400 uppercase">{crypto.symbol}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <p className="text-lg font-bold text-white">
-              ${formatPrice(currentPrice)}
-              {isConnected && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  LIVE
-                </Badge>
-              )}
-            </p>
-            <div className={`flex items-center text-sm ${
-              isPositiveChange ? 'text-green-400' : 'text-red-400'
-            }`}>
-              {isPositiveChange ? (
-                <TrendingUp className="h-4 w-4 mr-1" />
-              ) : (
-                <TrendingDown className="h-4 w-4 mr-1" />
-              )}
-              {isPositiveChange ? '+' : ''}{priceChange.toFixed(2)}%
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-            data-testid="button-close-trading"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Target className="h-5 w-5" />
+          Trading Interface
+        </CardTitle>
       </CardHeader>
-
-      <CardContent className="space-y-6">
-        <Tabs value={tradeType} onValueChange={(value: 'buy' | 'sell') => setTradeType(value)}>
-          <TabsList className="grid w-full grid-cols-2 bg-gray-800">
-            <TabsTrigger value="buy" className="data-[state=active]:bg-green-600" data-testid="button-buy-tab">
-              Buy
-            </TabsTrigger>
-            <TabsTrigger value="sell" className="data-[state=active]:bg-red-600" data-testid="button-sell-tab">
-              Sell
-            </TabsTrigger>
+      <CardContent className="space-y-4">
+        <Tabs value={tradeType} onValueChange={(value) => setTradeType(value as 'buy' | 'sell')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="buy" className="text-green-600">Buy</TabsTrigger>
+            <TabsTrigger value="sell" className="text-red-600">Sell</TabsTrigger>
           </TabsList>
 
-          <TabsContent value={tradeType} className="space-y-4 mt-4">
-            {/* Order Form Section */}
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="orderType">Order Type</Label>
-                <Select value={orderType} onValueChange={(value: any) => setOrderType(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select order type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="market">🚀 Market Order</SelectItem>
-                    <SelectItem value="limit">🎯 Limit Order</SelectItem>
-                    <SelectItem value="stop_loss">🛡️ Stop Loss</SelectItem>
-                    <SelectItem value="take_profit">💰 Take Profit</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="amount">Amount ({crypto.symbol.toUpperCase()})</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
-                    data-testid="input-trade-amount"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="price">
-                    {orderType === 'market' ? 'Current Price' :
-                     orderType === 'limit' ? 'Limit Price' :
-                     orderType === 'stop_loss' ? 'Stop Price' : 'Target Price'} (USD)
-                  </Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    placeholder="0.00"
-                    value={orderType === 'market' ? formatPrice(currentPrice) : limitPrice}
-                    onChange={(e) => setLimitPrice(e.target.value)}
-                    disabled={orderType === 'market'}
-                    className="bg-gray-800 border-gray-700 text-white disabled:opacity-50"
-                    data-testid={orderType === 'limit' ? "input-limit-price" : "input-price"}
-                  />
-                </div>
-              </div>
-
-              {/* Advanced Options */}
-              <div className="border rounded-lg p-4 space-y-3 bg-slate-50 dark:bg-slate-800">
-                <h4 className="font-medium text-sm">Advanced Options</h4>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Shield className="h-4 w-4 text-red-500" />
-                    <Label htmlFor="useStopLoss" className="text-sm">Stop Loss</Label>
-                  </div>
-                  <Switch
-                    id="useStopLoss"
-                    checked={useStopLoss}
-                    onCheckedChange={setUseStopLoss}
-                  />
-                </div>
-
-                {useStopLoss && (
-                  <Input
-                    type="number"
-                    placeholder="Stop loss price"
-                    value={stopLoss}
-                    onChange={(e) => setStopLoss(e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
-                  />
-                )}
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Target className="h-4 w-4 text-green-500" />
-                    <Label htmlFor="useTakeProfit" className="text-sm">Take Profit</Label>
-                  </div>
-                  <Switch
-                    id="useTakeProfit"
-                    checked={useTakeProfit}
-                    onCheckedChange={setUseTakeProfit}
-                  />
-                </div>
-
-                {useTakeProfit && (
-                  <Input
-                    type="number"
-                    placeholder="Take profit price"
-                    value={takeProfit}
-                    onChange={(e) => setTakeProfit(e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
-                  />
-                )}
-
-                <div>
-                  <Label htmlFor="slippage" className="text-sm">Slippage Tolerance (%)</Label>
-                  <Select value={slippage} onValueChange={setSlippage}>
-                    <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0.1">0.1%</SelectItem>
-                      <SelectItem value="0.5">0.5%</SelectItem>
-                      <SelectItem value="1.0">1.0%</SelectItem>
-                      <SelectItem value="3.0">3.0%</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="total">Total (USD)</Label>
-                <Input
-                  id="total"
-                  type="number"
-                  placeholder="0.00"
-                  value={displayTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  readOnly
-                  className="bg-gray-800 border-gray-700 text-white opacity-50 cursor-not-allowed"
-                />
-              </div>
-
-              {/* Order Preview */}
-              <div className="border rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
-                <h5 className="font-medium text-sm mb-2">Order Preview</h5>
-                <div className="text-xs space-y-1">
-                  <div className="flex justify-between">
-                    <span>Order Type:</span>
-                    <span className="font-medium">{orderType.replace('_', ' ').toUpperCase()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Estimated Total:</span>
-                    <span className="font-medium">${displayTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                  {useStopLoss && (
-                    <div className="flex justify-between text-red-600">
-                      <span>Stop Loss:</span>
-                      <span>${parseFloat(stopLoss || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
-                  )}
-                  {useTakeProfit && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Take Profit:</span>
-                      <span>${parseFloat(takeProfit || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Button
-                onClick={() => handleTrade(tradeType)}
-                disabled={tradeMutation.isPending || !amount || (orderType === 'limit' && !limitPrice) || (orderType === 'stop_loss' && !stopLoss) || (orderType === 'take_profit' && !takeProfit) }
-                className={`w-full ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
-                data-testid={tradeType === 'buy' ? "button-execute-buy" : "button-execute-sell"}
-              >
-                {tradeMutation.isPending ? (
-                  <Activity className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <DollarSign className="h-4 w-4 mr-2" />
-                )}
-                {tradeMutation.isPending ? 'Processing...' : `${tradeType.toUpperCase()} ${crypto.symbol.toUpperCase()}`}
-              </Button>
+          <TabsContent value={tradeType} className="space-y-4">
+            {/* Symbol Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="symbol">Cryptocurrency</Label>
+              <Select value={symbol} onValueChange={setSymbol}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cryptocurrency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                  <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                  <SelectItem value="ADA">Cardano (ADA)</SelectItem>
+                  <SelectItem value="DOT">Polkadot (DOT)</SelectItem>
+                  <SelectItem value="SOL">Solana (SOL)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Order Type */}
+            <div className="space-y-2">
+              <Label htmlFor="orderType">Order Type</Label>
+              <Select value={orderType} onValueChange={(value) => setOrderType(value as 'market' | 'limit')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="market">Market Order</SelectItem>
+                  <SelectItem value="limit">Limit Order</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Current Price Display */}
+            {currentPrice && (
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <span className="text-sm text-muted-foreground">Current Price:</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">${currentPrice.price.toFixed(2)}</span>
+                  <Badge variant={currentPrice.change_24h >= 0 ? 'default' : 'destructive'}>
+                    {currentPrice.change_24h >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {Math.abs(currentPrice.change_24h).toFixed(2)}%
+                  </Badge>
+                </div>
+              </div>
+            )}
+
+            {/* Amount Input */}
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount ({symbol})</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                step="0.00000001"
+                min="0"
+              />
+            </div>
+
+            {/* Price Input */}
+            <div className="space-y-2">
+              <Label htmlFor="price">Price (USD)</Label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="0.00"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                disabled={orderType === 'market'}
+                step="0.01"
+                min="0"
+              />
+            </div>
+
+            <Separator />
+
+            {/* Trade Summary */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Value:</span>
+                <span className="font-semibold">${totalValue}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Available Cash:</span>
+                <span className="font-semibold">${availableCash.toFixed(2)}</span>
+              </div>
+              {tradeType === 'buy' && parseFloat(totalValue) > availableCash && (
+                <div className="flex items-center gap-2 text-red-500 text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  Insufficient funds
+                </div>
+              )}
+            </div>
+
+            {/* Execute Trade Button */}
+            <Button
+              onClick={handleTrade}
+              disabled={
+                tradeMutation.isPending ||
+                !amount ||
+                !price ||
+                (tradeType === 'buy' && parseFloat(totalValue) > availableCash)
+              }
+              className={`w-full ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+            >
+              {tradeMutation.isPending ? (
+                'Processing...'
+              ) : (
+                <>
+                  <Calculator className="h-4 w-4 mr-2" />
+                  {tradeType === 'buy' ? 'Buy' : 'Sell'} {symbol}
+                </>
+              )}
+            </Button>
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   );
 }
-
-export default TradingInterface;

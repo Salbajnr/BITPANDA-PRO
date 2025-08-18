@@ -75,14 +75,18 @@ export class CryptoApiService {
 
       if (!response.ok) {
         console.warn(`CoinGecko API failed: ${response.status}, using fallback data`);
-        return this.getFallbackCryptoData();
+        const fallbackData = this.getFallbackCryptoData();
+        this.setCachedData(cacheKey, fallbackData);
+        return fallbackData;
       }
 
       const data = await response.json();
       
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(data) || data.length === 0) {
         console.warn('Invalid API response format, using fallback data');
-        return this.getFallbackCryptoData();
+        const fallbackData = this.getFallbackCryptoData();
+        this.setCachedData(cacheKey, fallbackData);
+        return fallbackData;
       }
 
       const cryptos = data.map((coin: any) => ({
@@ -107,7 +111,9 @@ export class CryptoApiService {
       return cryptos;
     } catch (error) {
       console.error('Error fetching top cryptos:', error);
-      return this.getFallbackCryptoData();
+      const fallbackData = this.getFallbackCryptoData();
+      this.setCachedData(cacheKey, fallbackData);
+      return fallbackData;
     }
   }
 

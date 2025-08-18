@@ -220,3 +220,194 @@ router.get('/analytics', async (req, res) => {
 });
 
 export default router;
+import { Router } from 'express';
+import { requireAuth } from './simple-auth';
+import { storage } from './storage';
+import { cryptoService } from './crypto-service';
+
+const router = Router();
+
+// Get portfolio overview with analytics
+router.get('/overview', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    
+    // Get portfolio
+    const portfolio = await storage.getPortfolio(userId);
+    if (!portfolio) {
+      return res.status(404).json({ message: 'Portfolio not found' });
+    }
+
+    // Get holdings with current prices
+    const holdings = await storage.getHoldingsWithPrices(portfolio.id);
+    
+    // Calculate total portfolio value
+    let totalValue = 0;
+    let totalCost = 0;
+    
+    const holdingsWithMetrics = await Promise.all(holdings.map(async (holding) => {
+      const currentPrice = await cryptoService.getPrice(holding.symbol.toLowerCase());
+      const currentValue = parseFloat(holding.amount) * (currentPrice?.price || 0);
+      const totalCostForHolding = parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice);
+      const profitLoss = currentValue - totalCostForHolding;
+      const profitLossPercentage = totalCostForHolding > 0 ? (profitLoss / totalCostForHolding) * 100 : 0;
+      
+      totalValue += currentValue;
+      totalCost += totalCostForHolding;
+      
+      return {
+        ...holding,
+        currentPrice: currentPrice?.price || 0,
+        currentValue,
+        totalCost: totalCostForHolding,
+        profitLoss,
+        profitLossPercentage,
+        allocation: 0 // Will be calculated after totalValue is known
+      };
+    }));
+
+    // Calculate allocation percentages
+    const holdingsWithAllocation = holdingsWithMetrics.map(holding => ({
+      ...holding,
+      allocation: totalValue > 0 ? (holding.currentValue / totalValue) * 100 : 0
+    }));
+
+    const totalProfitLoss = totalValue - totalCost;
+    const totalProfitLossPercentage = totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0;
+
+    res.json({
+      portfolio,
+      holdings: holdingsWithAllocation,
+      analytics: {
+        totalValue,
+        totalCost,
+        totalProfitLoss,
+        totalProfitLossPercentage,
+        availableCash: parseFloat(portfolio.availableCash),
+        totalAssets: holdingsWithAllocation.length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching portfolio analytics:', error);
+    res.status(500).json({ message: 'Failed to fetch portfolio analytics' });
+  }
+});
+
+// Get portfolio performance history
+router.get('/performance', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { period = '30d' } = req.query;
+    
+    // Get portfolio transactions for performance calculation
+    const transactions = await storage.getUserTransactions(userId);
+    
+    // Generate mock performance data based on transactions
+    const performanceData = generatePerformanceData(transactions, period as string);
+    
+    res.json({
+      period,
+      data: performanceData,
+      metrics: {
+        totalReturn: calculateTotalReturn(performanceData),
+        volatility: calculateVolatility(performanceData),
+        sharpeRatio: calculateSharpeRatio(performanceData)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching portfolio performance:', error);
+    res.status(500).json({ message: 'Failed to fetch portfolio performance' });
+  }
+});
+
+// Get asset allocation
+router.get('/allocation', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    
+    const portfolio = await storage.getPortfolio(userId);
+    if (!portfolio) {
+      return res.status(404).json({ message: 'Portfolio not found' });
+    }
+
+    const holdings = await storage.getHoldingsWithPrices(portfolio.id);
+    
+    let totalValue = 0;
+    const allocationData = await Promise.all(holdings.map(async (holding) => {
+      const currentPrice = await cryptoService.getPrice(holding.symbol.toLowerCase());
+      const value = parseFloat(holding.amount) * (currentPrice?.price || 0);
+      totalValue += value;
+      
+      return {
+        symbol: holding.symbol,
+        name: holding.name,
+        value,
+        amount: parseFloat(holding.amount)
+      };
+    }));
+
+    const allocationWithPercentages = allocationData.map(item => ({
+      ...item,
+      percentage: totalValue > 0 ? (item.value / totalValue) * 100 : 0
+    }));
+
+    res.json({
+      totalValue,
+      allocation: allocationWithPercentages,
+      cash: {
+        amount: parseFloat(portfolio.availableCash),
+        percentage: totalValue > 0 ? (parseFloat(portfolio.availableCash) / (totalValue + parseFloat(portfolio.availableCash))) * 100 : 0
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching asset allocation:', error);
+    res.status(500).json({ message: 'Failed to fetch asset allocation' });
+  }
+});
+
+// Helper functions
+function generatePerformanceData(transactions: any[], period: string) {
+  const days = period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365;
+  const data = [];
+  const now = new Date();
+  
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    
+    // Simulate portfolio value based on market trends
+    const baseValue = 10000 + (Math.sin(i / 10) * 1000) + (Math.random() * 500 - 250);
+    
+    data.push({
+      date: date.toISOString().split('T')[0],
+      value: Math.max(baseValue, 5000), // Minimum value
+      change: Math.random() * 10 - 5 // Random daily change
+    });
+  }
+  
+  return data;
+}
+
+function calculateTotalReturn(data: any[]) {
+  if (data.length < 2) return 0;
+  const initial = data[0].value;
+  const final = data[data.length - 1].value;
+  return ((final - initial) / initial) * 100;
+}
+
+function calculateVolatility(data: any[]) {
+  if (data.length < 2) return 0;
+  const returns = data.slice(1).map((d, i) => (d.value - data[i].value) / data[i].value);
+  const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+  const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+  return Math.sqrt(variance) * 100;
+}
+
+function calculateSharpeRatio(data: any[]) {
+  const totalReturn = calculateTotalReturn(data);
+  const volatility = calculateVolatility(data);
+  const riskFreeRate = 2; // Assume 2% risk-free rate
+  return volatility > 0 ? (totalReturn - riskFreeRate) / volatility : 0;
+}
+
+export default router;

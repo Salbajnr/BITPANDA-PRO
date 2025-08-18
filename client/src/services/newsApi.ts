@@ -197,3 +197,98 @@ class NewsApiService {
 
 export const newsApi = new NewsApiService();
 export default newsApi;
+export interface NewsArticle {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  imageUrl?: string;
+  publishedAt: string;
+  source: string;
+  category: 'crypto' | 'market' | 'analysis' | 'technology';
+  isPinned: boolean;
+}
+
+export class NewsApiService {
+  private static readonly BASE_URL = '/api/news';
+
+  static async getNews(limit: number = 10): Promise<NewsArticle[]> {
+    try {
+      const response = await fetch(`${this.BASE_URL}?limit=${limit}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch news');
+      }
+
+      const news = await response.json();
+      return news;
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      return this.getFallbackNews();
+    }
+  }
+
+  static async createNews(article: Omit<NewsArticle, 'id' | 'publishedAt'>): Promise<NewsArticle> {
+    const response = await fetch(`${this.BASE_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(article),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create news article');
+    }
+
+    return response.json();
+  }
+
+  static async deleteNews(id: string): Promise<void> {
+    const response = await fetch(`${this.BASE_URL}/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete news article');
+    }
+  }
+
+  private static getFallbackNews(): NewsArticle[] {
+    return [
+      {
+        id: '1',
+        title: 'Bitcoin Reaches New All-Time High',
+        description: 'Bitcoin surpasses previous records as institutional adoption continues to grow.',
+        content: 'Bitcoin has reached a new all-time high today, driven by increased institutional adoption and growing mainstream acceptance.',
+        imageUrl: '',
+        publishedAt: new Date().toISOString(),
+        source: 'BitPanda News',
+        category: 'crypto',
+        isPinned: false
+      },
+      {
+        id: '2',
+        title: 'Ethereum 2.0 Staking Rewards Update',
+        description: 'Latest updates on Ethereum staking rewards and network improvements.',
+        content: 'Ethereum 2.0 continues to show strong performance with improved staking rewards and network efficiency.',
+        imageUrl: '',
+        publishedAt: new Date(Date.now() - 3600000).toISOString(),
+        source: 'BitPanda Research',
+        category: 'crypto',
+        isPinned: false
+      },
+      {
+        id: '3',
+        title: 'Market Analysis: Crypto Trends for 2024',
+        description: 'Comprehensive analysis of cryptocurrency market trends and predictions.',
+        content: 'Our research team provides insights into the expected cryptocurrency market trends for the remainder of 2024.',
+        imageUrl: '',
+        publishedAt: new Date(Date.now() - 7200000).toISOString(),
+        source: 'BitPanda Analytics',
+        category: 'analysis',
+        isPinned: true
+      }
+    ];
+  }
+}
