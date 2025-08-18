@@ -37,10 +37,20 @@ export default function Markets() {
   // Fetch real cryptocurrency data
   const { data: cryptoData, isLoading, error } = useQuery({
     queryKey: ['market-data', activeTab],
-    queryFn: () => CryptoApiService.getTopCryptos(100),
-    refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 10000, // Consider data fresh for 10 seconds
+    queryFn: async () => {
+      try {
+        return await CryptoApiService.getTopCryptos(100);
+      } catch (error) {
+        console.error('Failed to fetch crypto data:', error);
+        // Return empty array instead of throwing
+        return [];
+      }
+    },
+    refetchInterval: 60000, // Refetch every 60 seconds
+    staleTime: 30000, // Consider data fresh for 30 seconds
     enabled: true,
+    retry: 2,
+    retryDelay: 2000,
   });
 
   // Fetch user's watchlist

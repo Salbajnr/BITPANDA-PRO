@@ -114,6 +114,10 @@
     "profile": "Profile",
     "twoFactor": "Two-Factor Authentication",
     "changePassword": "Change Password",
-    "apiKeys": "API Keys"
+    "apiKeys": "API Keys",
+    "general": "General Settings",
+    "account": "Account Settings",
+    "preferences": "Preferences",
+    "advanced": "Advanced Settings"
   }
 }

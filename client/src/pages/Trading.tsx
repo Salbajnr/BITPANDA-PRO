@@ -66,8 +66,18 @@ export default function Trading() {
   // Fetch portfolio data
   const { data: portfolio } = useQuery({
     queryKey: ['portfolio'],
-    queryFn: () => api.get('/api/portfolio'),
+    queryFn: async () => {
+      try {
+        return await api.get('/api/portfolio');
+      } catch (error) {
+        console.error('Failed to fetch portfolio:', error);
+        return null;
+      }
+    },
     enabled: !!user,
+    retry: 1,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchOnWindowFocus: false,
   });
 
   // Trading mutation

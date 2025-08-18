@@ -62,37 +62,51 @@ export class CryptoApiService {
 
     try {
       const response = await fetch(
-        `${this.BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`
+        `${this.BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin',
+        }
       );
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        console.warn(`CoinGecko API failed: ${response.status}, using fallback data`);
+        return this.getFallbackCryptoData();
       }
 
       const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        console.warn('Invalid API response format, using fallback data');
+        return this.getFallbackCryptoData();
+      }
+
       const cryptos = data.map((coin: any) => ({
-        id: coin.id,
-        symbol: coin.symbol,
-        name: coin.name,
-        image: coin.image,
-        current_price: coin.current_price,
-        market_cap: coin.market_cap,
-        market_cap_rank: coin.market_cap_rank,
-        price_change_percentage_24h: coin.price_change_percentage_24h,
-        total_volume: coin.total_volume,
-        high_24h: coin.high_24h,
-        low_24h: coin.low_24h,
-        circulating_supply: coin.circulating_supply,
-        ath: coin.ath, // Added from original interface
-        ath_change_percentage: coin.ath_change_percentage, // Added from original interface
-        last_updated: new Date().toISOString(), // Added from original interface
+        id: coin.id || 'unknown',
+        symbol: coin.symbol || 'unknown',
+        name: coin.name || 'Unknown',
+        image: coin.image || '',
+        current_price: coin.current_price || 0,
+        market_cap: coin.market_cap || 0,
+        market_cap_rank: coin.market_cap_rank || 0,
+        price_change_percentage_24h: coin.price_change_percentage_24h || 0,
+        total_volume: coin.total_volume || 0,
+        high_24h: coin.high_24h || 0,
+        low_24h: coin.low_24h || 0,
+        circulating_supply: coin.circulating_supply || 0,
+        ath: coin.ath || 0,
+        ath_change_percentage: coin.ath_change_percentage || 0,
+        last_updated: new Date().toISOString(),
       }));
 
       this.setCachedData(cacheKey, cryptos);
       return cryptos;
     } catch (error) {
       console.error('Error fetching top cryptos:', error);
-      // Return fallback data if API fails
       return this.getFallbackCryptoData();
     }
   }
