@@ -39,6 +39,9 @@ import Careers from './pages/Careers';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import UserAgreement from './pages/UserAgreement';
+import Contact from './pages/Contact';
+import Help from './pages/Help';
+import Features from './pages/Features';
 import Deposit from "./pages/Deposit";
 import DepositHistory from "./pages/DepositHistory";
 import AdminDepositManagement from "./pages/AdminDepositManagement";
@@ -209,6 +212,9 @@ function AppContent() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/user-agreement" element={<UserAgreement />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/features" element={<Features />} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/deposit-history" component={DepositHistory} />
 
