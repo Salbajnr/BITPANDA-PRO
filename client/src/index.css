@@ -31,7 +31,7 @@
     --chart-5: 340 75% 55%;
     --success: 142 71% 45%;
     --danger: 0 84% 60%;
-    
+
     /* Brand Colors */
     --brand-orange: 39 100% 59%;
     --brand-bitcoin: 24 95% 53%;
@@ -39,13 +39,13 @@
     --brand-darker: 210 24% 8%;
     --brand-gray: 215 20% 65%;
     --brand-light-gray: 210 20% 85%;
-    
+
     /* Status Colors */
     --status-success: 142 71% 45%;
     --status-warning: 45 93% 47%;
     --status-danger: 0 62.8% 30.6%;
     --status-info: 210 100% 56%;
-    
+
     /* Surface Colors */
     --surface-elevated: 217.2 32.6% 17.5%;
     --surface-overlay: 11 15% 8%;
@@ -89,16 +89,166 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Animation classes */
 .fade-in {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: all 0.6s ease-out;
 }
 
 .fade-in.visible {
   opacity: 1;
   transform: translateY(0);
 }
+
+.slide-in-from-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: all 0.8s ease-out;
+}
+
+.slide-in-from-right {
+  opacity: 0;
+  transform: translateX(30px);
+  transition: all 0.8s ease-out;
+}
+
+.animate-in {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced landing page animations */
+.slide-in-from-bottom {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.slide-in-from-top {
+  opacity: 0;
+  transform: translateY(-50px);
+  transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Gradient animations */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow effects */
+.glow-orange {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Text gradient animations */
+.gradient-text-animate {
+  background: linear-gradient(-45deg, #f97316, #eab308, #f59e0b, #f97316);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
+}
+
+/* Backdrop blur fallback */
+@supports not (backdrop-filter: blur(10px)) {
+  .backdrop-blur-sm {
+    background-color: rgba(15, 23, 42, 0.8);
+  }
+  .backdrop-blur-xl {
+    background-color: rgba(15, 23, 42, 0.9);
+  }
+}
+
 
 .animate-scroll {
   animation: ticker 40s linear infinite;
@@ -293,11 +443,11 @@
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .section-spacing {
     padding: 2rem 0;
   }
-  
+
   .section-spacing-large {
     padding: 3rem 0;
   }
