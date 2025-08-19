@@ -59,41 +59,35 @@ export default function Navbar() {
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 mb-3">Cryptocurrencies</h4>
                         <NavigationMenuLink asChild>
-                          <Link href="/markets" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                            <TrendingUp className="w-5 h-5 text-green-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-gray-900">Crypto Trading</div>
-                              <div className="text-sm text-gray-500">Trade Bitcoin, Ethereum and 350+ cryptocurrencies</div>
-                            </div>
-                          </Link>
+                          <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                            <Link to="/markets" className="w-full h-full flex items-center justify-center">
+                              Markets
+                            </Link>
+                          </span>
                         </NavigationMenuLink>
                         <NavigationMenuLink asChild>
-                          <Link href="/dual-markets" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                            <Coins className="w-5 h-5 text-yellow-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-gray-900">Crypto Indices</div>
-                              <div className="text-sm text-gray-500">Diversified crypto portfolios</div>
-                            </div>
-                          </Link>
+                          <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                            <Link to="/dual-markets" className="w-full h-full flex items-center justify-center">
+                              Crypto Indices
+                            </Link>
+                          </span>
                         </NavigationMenuLink>
                       </div>
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 mb-3">Traditional Assets</h4>
                         <NavigationMenuLink asChild>
-                          <Link href="/stocks" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                            <BarChart3 className="w-5 h-5 text-blue-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-gray-900">Stocks</div>
-                              <div className="text-sm text-gray-500">Invest in fractional shares</div>
-                            </div>
-                          </Link>
+                          <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                            <Link to="/stocks" className="w-full h-full flex items-center justify-center">
+                              Stocks
+                            </Link>
+                          </span>
                         </NavigationMenuLink>
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => navigate('/etfs')}>
-                          <BarChart3 className="w-5 h-5 text-purple-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">ETFs</div>
-                            <div className="text-sm text-gray-500">Exchange-traded funds</div>
-                          </div>
+                        <NavigationMenuLink asChild>
+                          <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                            <Link to="/etfs" className="w-full h-full flex items-center justify-center">
+                              ETFs
+                            </Link>
+                          </span>
                         </NavigationMenuLink>
                       </div>
                     </div>
@@ -108,31 +102,37 @@ export default function Navbar() {
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[400px]">
                       <NavigationMenuLink asChild>
-                        <Link href="/academy" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <BookOpen className="w-5 h-5 text-green-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">BITPANDA PRO Academy</div>
-                            <div className="text-sm text-gray-500">Learn about crypto and investing</div>
-                          </div>
-                        </Link>
+                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                          <Link to="/academy" className="w-full h-full flex items-center justify-center">
+                            <BookOpen className="w-5 h-5 text-green-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-900">BITPANDA PRO Academy</div>
+                              <div className="text-sm text-gray-500">Learn about crypto and investing</div>
+                            </div>
+                          </Link>
+                        </span>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
-                        <Link href="/news" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <Newspaper className="w-5 h-5 text-blue-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">Market News</div>
-                            <div className="text-sm text-gray-500">Latest financial news and insights</div>
-                          </div>
-                        </Link>
+                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                          <Link to="/news" className="w-full h-full flex items-center justify-center">
+                            <Newspaper className="w-5 h-5 text-blue-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-900">Market News</div>
+                              <div className="text-sm text-gray-500">Latest financial news and insights</div>
+                            </div>
+                          </Link>
+                        </span>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
-                        <Link href="/tutorials" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <Users className="w-5 h-5 text-purple-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">Getting Started</div>
-                            <div className="text-sm text-gray-500">Step-by-step tutorials</div>
-                          </div>
-                        </Link>
+                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                          <Link to="/tutorials" className="w-full h-full flex items-center justify-center">
+                            <Users className="w-5 h-5 text-purple-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-900">Getting Started</div>
+                              <div className="text-sm text-gray-500">Step-by-step tutorials</div>
+                            </div>
+                          </Link>
+                        </span>
                       </NavigationMenuLink>
                     </div>
                   </NavigationMenuContent>
@@ -146,40 +146,48 @@ export default function Navbar() {
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[350px]">
                       <NavigationMenuLink asChild>
-                        <Link href="/about" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <Home className="w-5 h-5 text-blue-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">About BITPANDA PRO</div>
-                            <div className="text-sm text-gray-500">Our mission and values</div>
-                          </div>
-                        </Link>
+                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                          <Link to="/about-us" className="w-full h-full flex items-center justify-center">
+                            <Home className="w-5 h-5 text-blue-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-900">About Us</div>
+                              <div className="text-sm text-gray-500">Learn more about our mission and team</div>
+                            </div>
+                          </Link>
+                        </span>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
-                        <Link href="/careers" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <Users className="w-5 h-5 text-green-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">Careers</div>
-                            <div className="text-sm text-gray-500">Join our team</div>
-                          </div>
-                        </Link>
+                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                          <Link to="/careers" className="w-full h-full flex items-center justify-center">
+                            <Users className="w-5 h-5 text-green-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-900">Careers</div>
+                              <div className="text-sm text-gray-500">Join our team and build the future</div>
+                            </div>
+                          </Link>
+                        </span>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
-                        <Link href="/security" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <Shield className="w-5 h-5 text-red-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">Security</div>
-                            <div className="text-sm text-gray-500">Your assets are safe</div>
-                          </div>
-                        </Link>
+                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                          <Link to="/press" className="w-full h-full flex items-center justify-center">
+                            <Shield className="w-5 h-5 text-red-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-900">Press</div>
+                              <div className="text-sm text-gray-500">Latest news and press releases</div>
+                            </div>
+                          </Link>
+                        </span>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
-                        <Link href="/help" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                          <HelpCircle className="w-5 h-5 text-purple-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">Help Centre</div>
-                            <div className="text-sm text-gray-500">Support and FAQ</div>
-                          </div>
-                        </Link>
+                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
+                          <Link to="/help-center" className="w-full h-full flex items-center justify-center">
+                            <HelpCircle className="w-5 h-5 text-purple-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-900">Help Center</div>
+                              <div className="text-sm text-gray-500">Find answers to common questions</div>
+                            </div>
+                          </Link>
+                        </span>
                       </NavigationMenuLink>
                     </div>
                   </NavigationMenuContent>
@@ -194,11 +202,11 @@ export default function Navbar() {
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link href="/investment-plans" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
+                  <Link href="/investment-plans">
+                    <NavigationMenuLink className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
                       Investment Plans
-                    </Link>
-                  </NavigationMenuLink>
+                    </NavigationMenuLink>
+                  </Link>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
