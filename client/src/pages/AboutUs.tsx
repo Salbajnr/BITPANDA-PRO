@@ -2,70 +2,92 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Shield, Users, Globe, Award, TrendingUp, Lock, Zap, Heart, CheckCircle } from 'lucide-react';
+import { Users, Award, Globe, Shield, TrendingUp, Heart, Target, Zap } from 'lucide-react';
 
 const AboutUs = () => {
-  const stats = [
-    { label: "Team Members", value: "700+", icon: <Users className="h-6 w-6" /> },
-    { label: "Nationalities", value: "50+", icon: <Globe className="h-6 w-6" /> },
-    { label: "Active Users", value: "7M+", icon: <TrendingUp className="h-6 w-6" /> },
-    { label: "Years Experience", value: "8+", icon: <Award className="h-6 w-6" /> }
+  const teamMembers = [
+    {
+      name: "Alexander Pangerl",
+      role: "CEO & Co-Founder",
+      image: "/api/placeholder/150/150",
+      description: "Visionary leader with 15+ years in fintech and blockchain technology."
+    },
+    {
+      name: "Paul Klanschek",
+      role: "CTO & Co-Founder", 
+      image: "/api/placeholder/150/150",
+      description: "Technical architect behind our innovative trading platform and security infrastructure."
+    },
+    {
+      name: "Sarah Mueller",
+      role: "Head of Compliance",
+      image: "/api/placeholder/150/150",
+      description: "Regulatory expert ensuring BITPANDA PRO meets highest European standards."
+    },
+    {
+      name: "Michael Rodriguez",
+      role: "Head of Product",
+      image: "/api/placeholder/150/150",
+      description: "Product strategist focused on delivering exceptional user experiences."
+    }
   ];
 
-  const founders = [
+  const milestones = [
     {
-      name: "Eric Demuth",
-      position: "CEO & Co-Founder",
-      image: "/client/src/assets/IMG_5624.jpeg",
-      bio: "Visionary leader with extensive experience in fintech and digital transformation.",
-      twitter: "@eric_demuth"
+      year: "2014",
+      title: "Company Founded",
+      description: "BITPANDA was established in Vienna with a vision to democratize investing."
     },
     {
-      name: "Paul Klanschek", 
-      position: "CEO & Co-Founder",
-      image: "/client/src/assets/IMG_5625.jpeg",
-      bio: "Technology expert driving innovation in cryptocurrency and blockchain solutions.",
-      twitter: "@TwinWinNerD"
+      year: "2019",
+      title: "BITPANDA PRO Launch",
+      description: "Launched professional trading platform for advanced users and institutions."
     },
     {
-      name: "Christian Trummer",
-      position: "Chief Scientist",
-      image: "/client/src/assets/IMG_5626.jpeg", 
-      bio: "Research leader advancing the scientific foundations of digital asset trading.",
-      twitter: "@christiant5r"
+      year: "2021",
+      title: "Series B Funding",
+      description: "Raised €170M to expand across Europe and enhance platform capabilities."
+    },
+    {
+      year: "2023",
+      title: "1M+ Users",
+      description: "Reached over 1 million verified users across European markets."
+    },
+    {
+      year: "2024",
+      title: "Advanced Features",
+      description: "Introduced AI-powered analytics and institutional-grade trading tools."
     }
   ];
 
   const values = [
     {
-      icon: <Shield className="h-8 w-8 text-blue-500" />,
+      icon: <Shield className="h-8 w-8" />,
       title: "Security First",
-      description: "We implement the highest security standards to protect your assets and personal information with state-of-the-art technology."
+      description: "Bank-grade security with multi-layer protection for your digital assets."
     },
     {
-      icon: <Zap className="h-8 w-8 text-green-500" />,
+      icon: <Globe className="h-8 w-8" />,
+      title: "European Excellence",
+      description: "Fully regulated and compliant with European financial standards."
+    },
+    {
+      icon: <Heart className="h-8 w-8" />,
+      title: "User-Centric",
+      description: "Everything we build is designed with our users' needs at the center."
+    },
+    {
+      icon: <Zap className="h-8 w-8" />,
       title: "Innovation",
-      description: "Constantly evolving our platform with cutting-edge technology and pioneering new solutions in digital finance."
-    },
-    {
-      icon: <Heart className="h-8 w-8 text-red-500" />,
-      title: "Customer Focus", 
-      description: "Your success is our success. We're committed to providing exceptional support and user-centric solutions."
-    },
-    {
-      icon: <Lock className="h-8 w-8 text-purple-500" />,
-      title: "Transparency",
-      description: "Open communication and honest practices in everything we do, building trust through accountability."
+      description: "Continuously pushing boundaries in digital asset trading technology."
     }
   ];
 
-  const features = [
-    "Buy, sell or swap 3,000+ digital assets like crypto, stocks, precious metals, ETFs and crypto indices",
-    "Automate regular investments with savings plans",
-    "Invest in any asset on BitpandaPro from €1",
-    "Wide range of payment and payout providers",
-    "Use EUR, CHF, GBP, USD, PLN, DKK, SEK, HUF or CZK to pay or cash out",
-    "Fully regulated and compliant with European Union financial regulations"
+  const stats = [
+    { number: "1M+", label: "Active Users", icon: <Users className="h-6 w-6" /> },
+    { number: "€50B+", label: "Trading Volume", icon: <TrendingUp className="h-6 w-6" /> },
+    { number: "27", label: "European Countries", icon: <Globe className="h-6 w-6" /> },
+    { number: "99.9%", label: "Uptime", icon: <Award className="h-6 w-6" /> }
   ];
 
   return (
@@ -74,166 +96,173 @@ const AboutUs = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Investing. Now available to everyone.
+            About BITPANDA PRO
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-8">
-            At BitpandaPro, we see investing differently. Today's financial system is complex, exclusive and expensive - making it hard for the typical person to start investing. So, we're building a platform without digital walls and complex barriers. A platform that empowers you to see new possibilities for your money - and helps make them a reality.
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
+            We're on a mission to democratize investing and make digital assets accessible to everyone. 
+            Founded in Vienna, Austria, BITPANDA PRO has grown to become Europe's leading digital 
+            asset trading platform, serving over 1 million users across 27 countries.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Button size="lg" className="mr-4">Join Our Community</Button>
-            <Button size="lg" variant="outline">Learn More</Button>
-          </div>
-        </div>
-
-        {/* Founders Section */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-12">Our Founders</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {founders.map((founder, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
-                    <img 
-                      src={founder.image} 
-                      alt={founder.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to initials if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.parentElement.innerHTML = `<span class="text-white text-2xl font-bold">${founder.name.split(' ').map(n => n[0]).join('')}</span>`;
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">{founder.position}</span>
-                  <h3 className="font-semibold text-lg mb-1">{founder.name}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{founder.bio}</p>
-                  <a href={`https://twitter.com/${founder.twitter.replace('@', '')}`} 
-                     className="text-blue-500 hover:text-blue-600 text-sm font-medium">
-                    {founder.twitter}
-                  </a>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
 
         {/* Stats Section */}
-        <div className="grid md:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
           {stats.map((stat, index) => (
-            <Card key={index} className="text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+            <Card key={index} className="text-center hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
-                <div className="flex justify-center mb-4 text-blue-500">
+                <div className="flex justify-center mb-4 text-blue-600">
                   {stat.icon}
                 </div>
-                <h3 className="text-3xl font-bold mb-2 text-blue-600">{stat.value}</h3>
-                <p className="text-gray-600 dark:text-gray-300">{stat.label}</p>
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  {stat.label}
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Who We Are Section */}
-        <Card className="mb-16">
-          <CardHeader>
-            <CardTitle className="text-3xl text-center">Who We Are</CardTitle>
-          </CardHeader>
-          <CardContent className="prose dark:prose-invert max-w-4xl mx-auto">
-            <div className="space-y-6 text-lg leading-relaxed">
-              <p>
-                BitpandaPro was founded in 2014 in Vienna, Austria with the aim of making investing accessible for everyone. Our goal since day one was to reimagine what it means to invest, by making simple, easy-to-use financial products for everyone.
+        {/* Mission & Vision */}
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Target className="h-6 w-6 text-blue-600" />
+                Our Mission
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                To democratize investing by providing everyone with easy, secure, and cost-effective 
+                access to digital assets. We believe that financial innovation should benefit everyone, 
+                not just institutions, and we're committed to building products that empower individual 
+                investors to take control of their financial future.
               </p>
-              <p>
-                Now, with more than 700 team members and 7 million users, we're one of the most successful fintechs in Europe. With a PSD2 payment service provider licence and E-Money licence, state-of-the-art security and streamlined user experience, we make it possible for both first-time investors and seasoned experts to invest in what they believe in.
-              </p>
-              <p>
-                Our user-friendly, trade-everything platform empowers you to invest in the stocks, cryptocurrencies, metals, commodities and crypto indices you want — with any amount of money.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Call to Action */}
-        <Card className="mb-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-          <CardContent className="p-12 text-center">
-            <h2 className="text-3xl font-bold mb-6">We're changing the way the world views investing</h2>
-            <p className="text-xl mb-8 max-w-3xl mx-auto">
-              BitpandaPro is backed by a team of world-class experts and the best technology talent. To stay at the forefront of innovation, we're always working on strengthening our position as Europe's leading retail investment platform.
-            </p>
-            <Button size="lg" variant="secondary">
-              Join Our Team
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* What We Do Section */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-6">What We Do</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 text-center mb-12 max-w-4xl mx-auto">
-            Our user-friendly, trade-everything platform empowers you to invest in the stocks, cryptocurrencies and metals you want, with any amount of money.
-          </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <Card key={index} className="p-6">
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
-                  <p className="text-gray-700 dark:text-gray-300">{feature}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Button size="lg" className="bg-green-600 hover:bg-green-700">
-              Start Investing Today
-            </Button>
-          </div>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Award className="h-6 w-6 text-purple-600" />
+                Our Vision
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                To become the most trusted and innovative digital asset platform in Europe, 
+                setting the standard for security, compliance, and user experience. We envision 
+                a future where digital assets are seamlessly integrated into everyday financial 
+                services, enabling new forms of value creation and economic participation.
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Values Section */}
+        {/* Company Values */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-12">Our Values</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
-              <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow">
-                <CardContent className="p-0">
-                  <div className="flex justify-center mb-4">
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex justify-center mb-4 text-blue-600">
                     {value.icon}
                   </div>
-                  <h3 className="font-semibold text-lg mb-3">{value.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300">{value.description}</p>
+                  <h3 className="text-xl font-semibold mb-3">{value.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    {value.description}
+                  </p>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
 
-        {/* Mission Statement */}
-        <Card className="bg-gradient-to-r from-green-500 to-blue-600 text-white mb-16">
-          <CardContent className="p-12 text-center">
-            <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
-            <p className="text-xl mb-8 max-w-3xl mx-auto">
-              To empower individuals worldwide with professional-grade trading tools, educational resources, and secure infrastructure needed to participate in the global financial markets with confidence.
-            </p>
-            <Button size="lg" variant="secondary">
-              Start Trading Today
-            </Button>
+        {/* Company Timeline */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-12">Our Journey</h2>
+          <div className="space-y-8">
+            {milestones.map((milestone, index) => (
+              <div key={index} className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    {milestone.year}
+                  </div>
+                </div>
+                <Card className="flex-1 hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold mb-2">{milestone.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{milestone.description}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Leadership Team */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-12">Leadership Team</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {teamMembers.map((member, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold">
+                    {member.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1">{member.name}</h3>
+                  <p className="text-blue-600 font-medium mb-3">{member.role}</p>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    {member.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Regulatory Compliance */}
+        <Card className="mb-16 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-800">
+          <CardContent className="p-8">
+            <div className="flex items-start gap-6">
+              <Shield className="h-12 w-12 text-green-600 flex-shrink-0" />
+              <div>
+                <h2 className="text-2xl font-bold mb-4">Regulatory Excellence</h2>
+                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                  BITPANDA PRO is fully licensed and regulated by the Austrian Financial Market Authority (FMA) 
+                  and operates under strict European Union financial regulations including MiFID II and GDPR.
+                </p>
+                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
+                  <li>• Licensed Investment Firm under Austrian law</li>
+                  <li>• Full compliance with MiFID II regulations</li>
+                  <li>• GDPR compliant data protection</li>
+                  <li>• Regular audits by independent third parties</li>
+                  <li>• Member of Austrian investor compensation scheme</li>
+                </ul>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Regulatory Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Regulatory Compliance</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <Shield className="h-12 w-12 text-green-500" />
+        {/* Contact CTA */}
+        <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">Want to Learn More?</h2>
+            <p className="text-xl mb-6 opacity-90">
+              Get in touch with our team to learn more about BITPANDA PRO 
+              and how we're revolutionizing digital asset trading.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="secondary" size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+                Contact Sales
+              </Button>
+              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
+                View Careers
+              </Button>
             </div>
-            <p className="text-lg mb-4">
-              BitpandaPro GmbH is a registered digital assets service provider with the Austrian Financial Market Authority (FMA).
-            </p>
-            <p className="text-gray-600 dark:text-gray-300">
-              Licensed and supervised by the Austrian Financial Market Authority (FMA) under FM-GwG and with the French Autorité des marchés financiers (AMF) under PACTE law. The BitpandaPro Payments GmbH holds a PSD2 licence.
-            </p>
           </CardContent>
         </Card>
       </div>
