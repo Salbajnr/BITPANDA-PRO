@@ -278,14 +278,14 @@ const Contact = () => {
                           <MessageSquare className="h-5 w-5 text-green-600" />
                           <span>Live Chat</span>
                         </div>
-                        <Badge className="bg-green-100 text-green-800">< 5 min</Badge>
+                        <Badge className="bg-green-100 text-green-800">&lt; 5 min</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div className="flex items-center gap-2">
                           <Mail className="h-5 w-5 text-blue-600" />
                           <span>Email</span>
                         </div>
-                        <Badge className="bg-blue-100 text-blue-800">< 24 hours</Badge>
+                        <Badge className="bg-blue-100 text-blue-800">&lt; 24 hours</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                         <div className="flex items-center gap-2">
