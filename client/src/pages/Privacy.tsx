@@ -1,86 +1,65 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Shield, Lock, Eye, UserCheck, FileText, Globe } from 'lucide-react';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Separator } from '../components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Shield, Eye, Cookie, Database, Lock, Globe, UserCheck, AlertTriangle } from 'lucide-react';
 
 const Privacy = () => {
-  const sections = [
+  const [cookiePreferences, setCookiePreferences] = useState({
+    necessary: true,
+    analytics: false,
+    marketing: false,
+    functional: false
+  });
+
+  const privacySections = [
     {
-      id: "information-collection",
-      title: "Information We Collect",
-      icon: <FileText className="h-6 w-6" />,
-      content: [
-        "Personal identification information (name, email, phone number)",
-        "Financial information (bank account details, transaction history)",
-        "Identity verification documents (passport, driver's license)",
-        "Device and usage information (IP address, browser type, activity logs)",
-        "Communication records (support tickets, chat logs)"
-      ]
+      id: 'collection',
+      title: 'Information We Collect',
+      icon: <Database className="h-5 w-5" />,
+      content: `We collect information you provide directly (account registration, profile information), information collected automatically (usage data, device information), and information from third parties (authentication providers, market data providers).`
     },
     {
-      id: "information-use",
-      title: "How We Use Your Information",
-      icon: <UserCheck className="h-6 w-6" />,
-      content: [
-        "Provide and maintain our trading services",
-        "Process transactions and verify your identity",
-        "Comply with legal and regulatory requirements",
-        "Improve our platform and user experience",
-        "Communicate with you about your account and services",
-        "Detect and prevent fraud and security threats"
-      ]
+      id: 'usage',
+      title: 'How We Use Your Information',
+      icon: <Eye className="h-5 w-5" />,
+      content: `We use your information to provide and maintain our services, personalize your experience, communicate with you, ensure platform security, comply with legal obligations, and improve our services.`
     },
     {
-      id: "information-sharing",
-      title: "Information Sharing",
-      icon: <Globe className="h-6 w-6" />,
-      content: [
-        "We do not sell your personal information to third parties",
-        "We may share information with regulatory authorities as required",
-        "Service providers who help us operate our platform",
-        "Legal authorities when required by law or court order",
-        "Business partners for joint services (with your consent)"
-      ]
+      id: 'sharing',
+      title: 'Information Sharing',
+      icon: <Globe className="h-5 w-5" />,
+      content: `We do not sell your personal information. We may share information with service providers, for legal compliance, business transfers, or with your consent. All sharing is governed by strict data protection agreements.`
     },
     {
-      id: "data-security",
-      title: "Data Security",
-      icon: <Lock className="h-6 w-6" />,
-      content: [
-        "End-to-end encryption for all data transmission",
-        "Multi-factor authentication for account access",
-        "Regular security audits and penetration testing",
-        "Secure data centers with 24/7 monitoring",
-        "Employee background checks and training",
-        "Incident response procedures for data breaches"
-      ]
+      id: 'security',
+      title: 'Data Security',
+      icon: <Lock className="h-5 w-5" />,
+      content: `We implement industry-standard security measures including encryption, secure servers, regular security audits, access controls, and incident response procedures to protect your information.`
     },
     {
-      id: "your-rights",
-      title: "Your Privacy Rights",
-      icon: <Eye className="h-6 w-6" />,
-      content: [
-        "Access your personal data and obtain copies",
-        "Correct inaccurate or incomplete information",
-        "Request deletion of your data (subject to legal requirements)",
-        "Object to processing of your personal data",
-        "Data portability to transfer your data",
-        "Withdraw consent for optional data processing"
-      ]
+      id: 'retention',
+      title: 'Data Retention',
+      icon: <Database className="h-5 w-5" />,
+      content: `We retain your information for as long as necessary to provide services, comply with legal obligations, resolve disputes, and enforce agreements. You can request deletion of your data subject to legal requirements.`
     },
     {
-      id: "cookies",
-      title: "Cookies and Tracking",
-      icon: <Shield className="h-6 w-6" />,
-      content: [
-        "Essential cookies for platform functionality",
-        "Analytics cookies to improve user experience",
-        "Security cookies for fraud prevention",
-        "Preference cookies to remember your settings",
-        "You can manage cookie preferences in your browser",
-        "Some features may not work if cookies are disabled"
-      ]
+      id: 'rights',
+      title: 'Your Privacy Rights',
+      icon: <UserCheck className="h-5 w-5" />,
+      content: `Under GDPR and other privacy laws, you have rights to access, correct, delete, port, and restrict processing of your data. You can also object to processing and withdraw consent where applicable.`
     }
+  ];
+
+  const gdprRights = [
+    { title: 'Right to Access', description: 'Request copies of your personal data' },
+    { title: 'Right to Rectification', description: 'Request correction of inaccurate data' },
+    { title: 'Right to Erasure', description: 'Request deletion of your data' },
+    { title: 'Right to Restrict Processing', description: 'Limit how we use your data' },
+    { title: 'Right to Data Portability', description: 'Receive your data in a portable format' },
+    { title: 'Right to Object', description: 'Object to certain data processing activities' }
   ];
 
   return (
@@ -91,170 +70,191 @@ const Privacy = () => {
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Privacy Policy
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Your privacy is important to us. This policy explains how BITPANDA PRO collects, 
-            uses, and protects your personal information.
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-4">
+            Last updated: {new Date().toLocaleDateString()}
           </p>
-          <p className="text-sm text-gray-500 mt-4">Last updated: January 2024</p>
-        </div>
-
-        {/* Introduction */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <div className="flex items-start gap-4">
-              <Shield className="h-8 w-8 text-blue-500 mt-1" />
-              <div>
-                <h2 className="text-2xl font-semibold mb-4">Our Commitment to Privacy</h2>
-                <div className="prose dark:prose-invert max-w-none">
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
-                    At BITPANDA PRO, we are committed to protecting your privacy and ensuring the security 
-                    of your personal information. This Privacy Policy describes how we collect, use, 
-                    disclose, and safeguard your information when you use our platform and services.
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
-                    We operate under strict European data protection regulations, including the General 
-                    Data Protection Regulation (GDPR), and maintain the highest standards of data privacy 
-                    and security.
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    By using our services, you agree to the collection and use of information in accordance 
-                    with this policy. If you do not agree with this policy, please do not use our services.
-                  </p>
-                </div>
+          <div className="max-w-3xl mx-auto text-gray-600 dark:text-gray-300">
+            <p className="mb-4">
+              Your privacy is important to us. This Privacy Policy explains how BITPANDA PRO 
+              collects, uses, and protects your information.
+            </p>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                <Shield className="h-5 w-5" />
+                <span className="font-semibold">GDPR Compliant</span>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Privacy Sections */}
-        <div className="space-y-6 mb-12">
-          {sections.map((section) => (
-            <Card key={section.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  {section.icon}
-                  {section.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {section.content.map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-gray-600 dark:text-gray-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Data Retention */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Data Retention</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose dark:prose-invert max-w-none">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                We retain your personal information only for as long as necessary to fulfill the purposes 
-                outlined in this Privacy Policy, unless a longer retention period is required or permitted by law.
+              <p className="text-blue-700 dark:text-blue-300 mt-2">
+                We comply with the General Data Protection Regulation (GDPR) and other applicable privacy laws.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Privacy Content */}
+        <div className="max-w-6xl mx-auto">
+          <Tabs defaultValue="policy" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="policy">Privacy Policy</TabsTrigger>
+              <TabsTrigger value="gdpr">GDPR Rights</TabsTrigger>
+              <TabsTrigger value="cookies">Cookie Settings</TabsTrigger>
+            </TabsList>
+
+            {/* Privacy Policy Tab */}
+            <TabsContent value="policy">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-6 w-6" />
+                    Privacy Policy Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[600px] pr-4">
+                    <div className="space-y-8">
+                      {privacySections.map((section, index) => (
+                        <div key={section.id}>
+                          <div className="flex items-center gap-3 mb-4">
+                            {section.icon}
+                            <h2 className="text-xl font-semibold">{section.title}</h2>
+                          </div>
+                          <div className="text-gray-700 dark:text-gray-300 leading-relaxed pl-8">
+                            {section.content.split(', ').map((item, idx) => (
+                              <p key={idx} className="mb-2">• {item}</p>
+                            ))}
+                          </div>
+                          {index < privacySections.length - 1 && (
+                            <Separator className="mt-6" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* GDPR Rights Tab */}
+            <TabsContent value="gdpr">
               <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold mb-2">Account Information</h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Retained while your account is active and for 7 years after closure for regulatory compliance.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Transaction Records</h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Kept for 7 years as required by financial regulations and anti-money laundering laws.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Communication Logs</h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Retained for 3 years for customer service and compliance purposes.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Marketing Data</h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Deleted immediately upon withdrawal of consent or account closure.
-                  </p>
-                </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <UserCheck className="h-6 w-6" />
+                      Your GDPR Rights
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {gdprRights.map((right, index) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <h3 className="font-semibold mb-2">{right.title}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{right.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Exercise Your Rights</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-300">
+                      To exercise any of your privacy rights, please contact us using the methods below:
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Email</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">privacy@bitpandapro.com</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Data Protection Officer</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">dpo@bitpandapro.com</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Response Time</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Within 30 days of request</p>
+                        </div>
+                      </div>
+                    </div>
+                    <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      Submit Privacy Request
+                    </button>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </TabsContent>
 
-        {/* International Transfers */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>International Data Transfers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Your information may be transferred to and processed in countries other than your country of residence. 
-              We ensure appropriate safeguards are in place to protect your data:
-            </p>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                <span className="text-gray-600 dark:text-gray-300">
-                  Standard Contractual Clauses approved by the European Commission
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                <span className="text-gray-600 dark:text-gray-300">
-                  Transfers only to countries with adequate data protection levels
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                <span className="text-gray-600 dark:text-gray-300">
-                  Regular compliance audits of international partners
-                </span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
+            {/* Cookie Settings Tab */}
+            <TabsContent value="cookies">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Cookie className="h-6 w-6" />
+                    Cookie Preferences
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+                        <AlertTriangle className="h-5 w-5" />
+                        <span className="font-semibold">Cookie Notice</span>
+                      </div>
+                      <p className="text-yellow-700 dark:text-yellow-300 mt-2">
+                        We use cookies to enhance your experience and improve our services. You can manage your preferences below.
+                      </p>
+                    </div>
 
-        {/* Contact Information */}
-        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Questions About Privacy?</h2>
-            <p className="mb-6">
-              If you have any questions about this Privacy Policy or our data practices, 
-              please don't hesitate to contact our Data Protection Officer.
-            </p>
-            <div className="space-y-2">
-              <p><strong>Email:</strong> privacy@bitpanda-pro.com</p>
-              <p><strong>Address:</strong> BITPANDA PRO, Wiedner Hauptstraße 94, 1050 Vienna, Austria</p>
-              <p><strong>Phone:</strong> +43 1 234 5678</p>
-            </div>
-          </CardContent>
-        </Card>
+                    <div className="space-y-4">
+                      {[
+                        { key: 'necessary', title: 'Necessary Cookies', description: 'Required for basic site functionality', required: true },
+                        { key: 'functional', title: 'Functional Cookies', description: 'Remember your preferences and settings' },
+                        { key: 'analytics', title: 'Analytics Cookies', description: 'Help us understand how you use our site' },
+                        { key: 'marketing', title: 'Marketing Cookies', description: 'Used to deliver relevant advertisements' }
+                      ].map((cookie) => (
+                        <div key={cookie.key} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <h3 className="font-semibold">{cookie.title}</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">{cookie.description}</p>
+                          </div>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={cookiePreferences[cookie.key]}
+                              disabled={cookie.required}
+                              onChange={(e) => setCookiePreferences(prev => ({
+                                ...prev,
+                                [cookie.key]: e.target.checked
+                              }))}
+                              className="mr-2"
+                            />
+                            {cookie.required && <span className="text-xs text-gray-500">(Required)</span>}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
 
-        {/* Changes to Policy */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Changes to This Privacy Policy</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 dark:text-gray-300">
-              We may update this Privacy Policy from time to time to reflect changes in our practices 
-              or for other operational, legal, or regulatory reasons. We will notify you of any material 
-              changes by posting the new Privacy Policy on this page and updating the "Last updated" date. 
-              We encourage you to review this Privacy Policy periodically to stay informed about how we 
-              protect your information.
-            </p>
-          </CardContent>
-        </Card>
+                    <div className="flex gap-4">
+                      <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Save Preferences
+                      </button>
+                      <button className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        Accept All
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

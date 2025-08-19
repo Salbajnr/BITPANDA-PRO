@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  User, Settings, LogOut, Menu, X, 
+  User, Settings, LogOut, Menu, X,
   TrendingUp, Wallet, Bell, HelpCircle,
   Shield, Users, Database, BarChart3,
   Home, DollarSign, Coins, Award,
@@ -27,6 +27,7 @@ import {
 export default function Navbar() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [, navigate] = useLocation();
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
@@ -87,15 +88,14 @@ export default function Navbar() {
                             </div>
                           </NavigationMenuLink>
                         </Link>
-                        <Link href="/etfs">
-                          <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
-                            <Database className="w-5 h-5 text-purple-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-gray-900">ETFs</div>
-                              <div className="text-sm text-gray-500">Exchange-traded funds</div>
-                            </div>
-                          </NavigationMenuLink>
-                        </Link>
+                        <NavigationMenuLink asChild>
+                          <button
+                            onClick={() => navigate('/etfs')}
+                            className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer border-none"
+                          >
+                            ETFs
+                          </button>
+                        </NavigationMenuLink>
                       </div>
                     </div>
                   </NavigationMenuContent>
@@ -198,20 +198,20 @@ export default function Navbar() {
                   <Link href="/investment-plans" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
                     Investment Plans
                   </Link>
-                  <Link 
-                    to="/commodities" 
+                  <Link
+                    to="/commodities"
                     className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     Commodities
                   </Link>
-                  <Link 
-                    to="/stocks" 
+                  <Link
+                    to="/stocks"
                     className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     Stocks
                   </Link>
-                  <Link 
-                    to="/precious-metals" 
+                  <Link
+                    to="/precious-metals"
                     className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     Precious Metals
@@ -223,14 +223,14 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-gray-700 hover:text-green-600 font-medium"
             >
               Log in
             </Button>
-            <Button 
+            <Button
               className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6"
             >
               Sign up
@@ -286,22 +286,22 @@ export default function Navbar() {
                     <span>Investment Plans</span>
                   </div>
                 </Link>
-                <Link 
-                  to="/commodities" 
+                <Link
+                  to="/commodities"
                   className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Commodities
                 </Link>
-                <Link 
-                  to="/stocks" 
+                <Link
+                  to="/stocks"
                   className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Stocks
                 </Link>
-                <Link 
-                  to="/precious-metals" 
+                <Link
+                  to="/precious-metals"
                   className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -356,8 +356,8 @@ export default function Navbar() {
 
             <div className="pt-6 border-t border-gray-200">
               <div className="space-y-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full border-gray-300 text-gray-700 hover:border-green-500 hover:text-green-600"
                 >
                   Log in
