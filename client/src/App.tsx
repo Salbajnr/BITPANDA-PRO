@@ -63,6 +63,7 @@ import CryptoIndices from "./pages/CryptoIndices";
 import ApiDocumentation from "./pages/ApiDocumentation";
 import Press from "./pages/Press";
 import Imprint from "./pages/Imprint";
+import SavingsPlans from "./pages/SavingsPlans";
 
 
 function AppContent() {
@@ -232,6 +233,7 @@ function AppContent() {
       <Route path="/api" component={ApiDocumentation} />
       <Route path="/press" component={Press} />
       <Route path="/imprint" component={Imprint} />
+      <Route path="/savings-plans" component={SavingsPlans} />
 
       <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route path="/admin/balance" component={AdminBalanceManagement} />
