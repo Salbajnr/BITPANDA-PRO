@@ -58,6 +58,12 @@ import APIManagement from "./pages/APIManagement";
 import RiskManagement from "./pages/RiskManagement";
 import Analytics from "./pages/Analytics";
 import Notifications from "./pages/Notifications";
+import Etfs from "./pages/Etfs";
+import CryptoIndices from "./pages/CryptoIndices";
+import ApiDocumentation from "./pages/ApiDocumentation";
+import Press from "./pages/Press";
+import Imprint from "./pages/Imprint";
+
 
 function AppContent() {
   const { user, isLoading, error } = useAuth();
@@ -87,7 +93,7 @@ function AppContent() {
       <Route path="/" component={Landing} />
       <Route path="/markets" component={Markets} />
       <Route path="/stocks" element={<Stocks />} />
-      <Route path="/etfs" component={lazy(() => import("./pages/Etfs"))} />
+      <Route path="/etfs" component={Etfs} />
       <Route path="/precious-metals" element={<PreciousMetals />} />
       <Route path="/commodities" element={<Commodities />} />
       <Route path="/investment-plans" element={<InvestmentPlans />} />
@@ -222,6 +228,10 @@ function AppContent() {
       <Route path="/features" element={<Features />} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/deposit-history" component={DepositHistory} />
+      <Route path="/crypto-indices" component={CryptoIndices} />
+      <Route path="/api" component={ApiDocumentation} />
+      <Route path="/press" component={Press} />
+      <Route path="/imprint" component={Imprint} />
 
       <Route path="/admin/deposits" component={AdminDepositManagement} />
       <Route path="/admin/balance" component={AdminBalanceManagement} />
