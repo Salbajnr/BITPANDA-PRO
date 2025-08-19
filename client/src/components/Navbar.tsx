@@ -58,36 +58,36 @@ export default function Navbar() {
                     <div className="grid gap-3 p-6 w-[500px] lg:w-[600px] lg:grid-cols-2">
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 mb-3">Cryptocurrencies</h4>
-                        <Link href="/markets">
-                          <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                        <NavigationMenuLink asChild>
+                          <Link href="/markets" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                             <TrendingUp className="w-5 h-5 text-green-500 mt-0.5" />
                             <div>
                               <div className="font-medium text-gray-900">Crypto Trading</div>
                               <div className="text-sm text-gray-500">Trade Bitcoin, Ethereum and 350+ cryptocurrencies</div>
                             </div>
-                          </NavigationMenuLink>
-                        </Link>
-                        <Link href="/dual-markets">
-                          <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                          </Link>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink asChild>
+                          <Link href="/dual-markets" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                             <Coins className="w-5 h-5 text-yellow-500 mt-0.5" />
                             <div>
                               <div className="font-medium text-gray-900">Crypto Indices</div>
                               <div className="text-sm text-gray-500">Diversified crypto portfolios</div>
                             </div>
-                          </NavigationMenuLink>
-                        </Link>
+                          </Link>
+                        </NavigationMenuLink>
                       </div>
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 mb-3">Traditional Assets</h4>
-                        <Link href="/stocks">
-                          <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                        <NavigationMenuLink asChild>
+                          <Link href="/stocks" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                             <BarChart3 className="w-5 h-5 text-blue-500 mt-0.5" />
                             <div>
                               <div className="font-medium text-gray-900">Stocks</div>
                               <div className="text-sm text-gray-500">Invest in fractional shares</div>
                             </div>
-                          </NavigationMenuLink>
-                        </Link>
+                          </Link>
+                        </NavigationMenuLink>
                         <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => navigate('/etfs')}>
                           <BarChart3 className="w-5 h-5 text-purple-500 mt-0.5" />
                           <div>
@@ -107,33 +107,33 @@ export default function Navbar() {
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[400px]">
-                      <Link href="/academy">
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                      <NavigationMenuLink asChild>
+                        <Link href="/academy" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                           <BookOpen className="w-5 h-5 text-green-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">BITPANDA PRO Academy</div>
                             <div className="text-sm text-gray-500">Learn about crypto and investing</div>
                           </div>
-                        </NavigationMenuLink>
-                      </Link>
-                      <Link href="/news">
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link href="/news" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                           <Newspaper className="w-5 h-5 text-blue-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">Market News</div>
                             <div className="text-sm text-gray-500">Latest financial news and insights</div>
                           </div>
-                        </NavigationMenuLink>
-                      </Link>
-                      <Link href="/tutorials">
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link href="/tutorials" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                           <Users className="w-5 h-5 text-purple-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">Getting Started</div>
                             <div className="text-sm text-gray-500">Step-by-step tutorials</div>
                           </div>
-                        </NavigationMenuLink>
-                      </Link>
+                        </Link>
+                      </NavigationMenuLink>
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -145,42 +145,42 @@ export default function Navbar() {
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[350px]">
-                      <Link href="/about">
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                      <NavigationMenuLink asChild>
+                        <Link href="/about" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                           <Home className="w-5 h-5 text-blue-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">About BITPANDA PRO</div>
                             <div className="text-sm text-gray-500">Our mission and values</div>
                           </div>
-                        </NavigationMenuLink>
-                      </Link>
-                      <Link href="/careers">
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link href="/careers" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                           <Users className="w-5 h-5 text-green-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">Careers</div>
                             <div className="text-sm text-gray-500">Join our team</div>
                           </div>
-                        </NavigationMenuLink>
-                      </Link>
-                      <Link href="/security">
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link href="/security" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                           <Shield className="w-5 h-5 text-red-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">Security</div>
                             <div className="text-sm text-gray-500">Your assets are safe</div>
                           </div>
-                        </NavigationMenuLink>
-                      </Link>
-                      <Link href="/help">
-                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                        </Link>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink asChild>
+                        <Link href="/help" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                           <HelpCircle className="w-5 h-5 text-purple-500 mt-0.5" />
                           <div>
                             <div className="font-medium text-gray-900">Help Centre</div>
                             <div className="text-sm text-gray-500">Support and FAQ</div>
                           </div>
-                        </NavigationMenuLink>
-                      </Link>
+                        </Link>
+                      </NavigationMenuLink>
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
