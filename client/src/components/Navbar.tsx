@@ -88,13 +88,12 @@ export default function Navbar() {
                             </div>
                           </NavigationMenuLink>
                         </Link>
-                        <NavigationMenuLink asChild>
-                          <button
-                            onClick={() => navigate('/etfs')}
-                            className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer border-none"
-                          >
-                            ETFs
-                          </button>
+                        <NavigationMenuLink className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => navigate('/etfs')}>
+                          <BarChart3 className="w-5 h-5 text-purple-500 mt-0.5" />
+                          <div>
+                            <div className="font-medium text-gray-900">ETFs</div>
+                            <div className="text-sm text-gray-500">Exchange-traded funds</div>
+                          </div>
                         </NavigationMenuLink>
                       </div>
                     </div>
@@ -195,27 +194,11 @@ export default function Navbar() {
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link href="/investment-plans" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
-                    Investment Plans
-                  </Link>
-                  <Link
-                    to="/commodities"
-                    className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Commodities
-                  </Link>
-                  <Link
-                    to="/stocks"
-                    className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Stocks
-                  </Link>
-                  <Link
-                    to="/precious-metals"
-                    className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Precious Metals
-                  </Link>
+                  <NavigationMenuLink asChild>
+                    <Link href="/investment-plans" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
+                      Investment Plans
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
