@@ -79,26 +79,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Metals routes
   app.use('/api/metals', metalsRoutes);
 
-  // Auth routes
-  // Admin auth routes
-  app.post('/api/auth-admin/login', checkDbConnection, async (req: Request, res: Response) => {
+  // ADMIN AUTH ROUTES - Separate endpoints for admin users
+  app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
 
       // Find user by email or username
       const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
       if (!user || !user.password) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid admin credentials" });
       }
 
       // Verify password
       const isValid = await verifyPassword(password, user.password);
       if (!isValid) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid admin credentials" });
       }
 
       if (!user.isActive) {
-        return res.status(401).json({ message: "Account is disabled" });
+        return res.status(401).json({ message: "Admin account is disabled" });
       }
 
       // Check if user is admin
@@ -108,14 +107,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Set session
       (req.session as any).userId = user.id;
+      (req.session as any).userRole = 'admin';
 
       // Get portfolio
       let portfolio = await storage.getPortfolio(user.id);
       if (!portfolio) {
         portfolio = await storage.createPortfolio({
           userId: user.id,
-          totalValue: '0.00',
-          availableCash: '0.00',
+          totalValue: '100000.00',
+          availableCash: '100000.00',
         });
       }
 
@@ -195,28 +195,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/login', checkDbConnection, async (req: Request, res: Response) => {
+  // REGULAR USER AUTH ROUTES - Separate endpoints for regular users
+  app.post('/api/user/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
 
       // Find user by email or username
       const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
       if (!user || !user.password) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid user credentials" });
       }
 
       // Verify password
       const isValid = await verifyPassword(password, user.password);
       if (!isValid) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid user credentials" });
       }
 
       if (!user.isActive) {
-        return res.status(401).json({ message: "Account is disabled" });
+        return res.status(401).json({ message: "User account is disabled" });
+      }
+
+      // Ensure user is not admin (admins should use admin login)
+      if (user.role === 'admin') {
+        return res.status(403).json({ message: "Please use admin login" });
       }
 
       // Set session
       (req.session as any).userId = user.id;
+      (req.session as any).userRole = 'user';
 
       // Get portfolio
       let portfolio = await storage.getPortfolio(user.id);
@@ -248,18 +255,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/logout', (req, res) => {
+  // Separate logout endpoints
+  app.post('/api/admin/auth/logout', (req, res) => {
     req.session?.destroy((err) => {
       if (err) {
-        return res.status(500).json({ message: "Logout failed" });
+        return res.status(500).json({ message: "Admin logout failed" });
       }
-      res.json({ message: "Logged out successfully" });
+      res.json({ message: "Admin logged out successfully" });
     });
   });
 
-  app.get('/api/auth/user', requireAuth, async (req, res) => {
+  app.post('/api/user/auth/logout', (req, res) => {
+    req.session?.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "User logout failed" });
+      }
+      res.json({ message: "User logged out successfully" });
+    });
+  });
+
+  // Separate authentication status endpoints
+  app.get('/api/admin/auth/user', requireAuth, requireAdmin, async (req, res) => {
     try {
       const user = req.user!;
+      const fullUser = await storage.getUser(user.id);
+      if (!fullUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+
+      let portfolio = await storage.getPortfolio(user.id);
+      if (!portfolio) {
+        portfolio = await storage.createPortfolio({
+          userId: user.id,
+          totalValue: '100000.00',
+          availableCash: '100000.00',
+        });
+      }
+
+      res.json({ ...fullUser, portfolio });
+    } catch (error) {
+      console.error("Admin user fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch admin user" });
+    }
+  });
+
+  app.get('/api/user/auth/user', requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Ensure user is not admin
+      if (user.role === 'admin') {
+        return res.status(403).json({ message: "Use admin endpoints for admin users" });
+      }
+
       const fullUser = await storage.getUser(user.id);
       if (!fullUser) {
         return res.status(404).json({ message: "User not found" });
@@ -269,15 +317,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!portfolio) {
         portfolio = await storage.createPortfolio({
           userId: user.id,
-          totalValue: '0.00',
-          availableCash: '0.00',
+          totalValue: '15000.00',
+          availableCash: '5000.00',
         });
       }
 
       res.json({ ...fullUser, portfolio });
     } catch (error) {
-      console.error("Error fetching user:", error);
+      console.error("User fetch error:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // User registration endpoint
+  app.post('/api/user/auth/register', checkDbConnection, async (req: Request, res: Response) => {
+    try {
+      const userData = registerSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
+      if (existingUser) {
+        return res.status(400).json({
+          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken'
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+
+      // Create user
+      const user = await storage.createUser({
+        username: userData.username,
+        email: userData.email,
+        password: hashedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: 'user',
+        isActive: true,
+      });
+
+      // Create portfolio
+      const portfolio = await storage.createPortfolio({
+        userId: user.id,
+        totalValue: '15000.00',
+        availableCash: '5000.00',
+      });
+
+      // Set session
+      (req.session as any).userId = user.id;
+      (req.session as any).userRole = 'user';
+
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role
+        },
+        portfolio
+      });
+    } catch (error) {
+      console.error("User registration error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "User registration failed" });
     }
   });
 

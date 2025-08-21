@@ -8,7 +8,11 @@ This project is a cryptocurrency simulation platform named "BITPANDA PRO," desig
 - Fixed CORS configuration to support credentials with specific origin instead of wildcard
 - Consolidated authentication system to use main application files with bcrypt password hashing
 - Fixed API request parameters in frontend to properly handle method, URL, and data
-- Authentication now fully functional with working session management and role-based access
+- **IMPLEMENTED SEPARATE AUTHENTICATION ROUTES:** Admin and regular users now have completely separate authentication endpoints
+  - Admin routes: `/api/admin/auth/login`, `/api/admin/auth/user`, `/api/admin/auth/logout`
+  - User routes: `/api/user/auth/login`, `/api/user/auth/user`, `/api/user/auth/logout`, `/api/user/auth/register`
+  - Frontend updated with separate login tabs for admin and user authentication
+  - Enhanced security by preventing role confusion and ensuring proper access control
 
 # User Preferences
 

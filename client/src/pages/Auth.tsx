@@ -28,7 +28,8 @@ interface RegisterData {
 export default function Auth() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-  const [loginForm, setLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
+  const [userLoginForm, setUserLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
+  const [adminLoginForm, setAdminLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
   const [registerForm, setRegisterForm] = useState<RegisterData>({ 
     username: "", 
     email: "", 
@@ -47,23 +48,45 @@ export default function Auth() {
     return null;
   }
 
-  const loginMutation = useMutation({
+  const userLoginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
-      const res = await apiRequest("POST", "/api/auth/login", data);
+      const res = await apiRequest("POST", "/api/user/auth/login", data);
       return res;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/auth/user"] });
       toast({
-        title: "Login successful",
+        title: "User login successful",
         description: `Welcome back, ${data.user.firstName}!`,
       });
-      setLocation(data.user.role === 'admin' ? '/admin' : '/dashboard');
+      setLocation('/dashboard');
     },
     onError: (error: any) => {
       toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials",
+        title: "User login failed",
+        description: error.message || "Invalid user credentials",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const adminLoginMutation = useMutation({
+    mutationFn: async (data: LoginData) => {
+      const res = await apiRequest("POST", "/api/admin/auth/login", data);
+      return res;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/auth/user"] });
+      toast({
+        title: "Admin login successful",
+        description: `Welcome back, Admin ${data.user.firstName}!`,
+      });
+      setLocation('/admin');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Admin login failed",
+        description: error.message || "Invalid admin credentials",
         variant: "destructive",
       });
     },
@@ -71,11 +94,11 @@ export default function Auth() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      const res = await apiRequest("POST", "/api/auth/register", data);
+      const res = await apiRequest("POST", "/api/user/auth/register", data);
       return res;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/auth/user"] });
       toast({
         title: "Registration successful",
         description: `Welcome to BITPANDA PRO, ${data.user.firstName}!`,
@@ -91,9 +114,30 @@ export default function Auth() {
     },
   });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleUserLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate(loginForm);
+    if (!userLoginForm.emailOrUsername || !userLoginForm.password) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    userLoginMutation.mutate(userLoginForm);
+  };
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminLoginForm.emailOrUsername || !adminLoginForm.password) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    adminLoginMutation.mutate(adminLoginForm);
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -115,24 +159,25 @@ export default function Auth() {
             <CardDescription>Sign in to your account or create a new one</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
+            <Tabs defaultValue="user-login" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="user-login">User Login</TabsTrigger>
+                <TabsTrigger value="admin-login">Admin Login</TabsTrigger>
                 <TabsTrigger value="register">Sign Up</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
+              <TabsContent value="user-login">
+                <form onSubmit={handleUserLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="emailOrUsername">Email or Username</Label>
+                    <Label htmlFor="user-emailOrUsername">Email or Username</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="emailOrUsername"
+                        id="user-emailOrUsername"
                         type="text"
                         placeholder="Enter your email or username"
-                        value={loginForm.emailOrUsername}
-                        onChange={(e) => setLoginForm({ ...loginForm, emailOrUsername: e.target.value })}
+                        value={userLoginForm.emailOrUsername}
+                        onChange={(e) => setUserLoginForm({ ...userLoginForm, emailOrUsername: e.target.value })}
                         className="pl-10"
                         required
                       />
@@ -140,15 +185,15 @@ export default function Auth() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="user-password">Password</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="login-password"
+                        id="user-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        value={loginForm.password}
-                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                        value={userLoginForm.password}
+                        onChange={(e) => setUserLoginForm({ ...userLoginForm, password: e.target.value })}
                         className="pl-10 pr-10"
                         required
                       />
@@ -164,10 +209,61 @@ export default function Auth() {
 
                   <Button 
                     type="submit" 
-                    className="w-full btn-3d bg-green-600 hover:bg-green-700" 
-                    disabled={loginMutation.isPending}
+                    className="w-full btn-3d bg-blue-600 hover:bg-blue-700" 
+                    disabled={userLoginMutation.isPending}
                   >
-                    {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                    {userLoginMutation.isPending ? "Signing in..." : "User Sign In"}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="admin-login">
+                <form onSubmit={handleAdminLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-emailOrUsername">Admin Email or Username</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="admin-emailOrUsername"
+                        type="text"
+                        placeholder="Enter admin email or username"
+                        value={adminLoginForm.emailOrUsername}
+                        onChange={(e) => setAdminLoginForm({ ...adminLoginForm, emailOrUsername: e.target.value })}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-password">Admin Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="admin-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter admin password"
+                        value={adminLoginForm.password}
+                        onChange={(e) => setAdminLoginForm({ ...adminLoginForm, password: e.target.value })}
+                        className="pl-10 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full btn-3d bg-red-600 hover:bg-red-700" 
+                    disabled={adminLoginMutation.isPending}
+                  >
+                    {adminLoginMutation.isPending ? "Signing in..." : "Admin Sign In"}
                   </Button>
                 </form>
               </TabsContent>
