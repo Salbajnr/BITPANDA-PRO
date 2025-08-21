@@ -2,6 +2,14 @@
 
 This project is a cryptocurrency simulation platform named "BITPANDA PRO," designed to offer a realistic trading experience with full admin control over simulated balances. It supports two user roles—Admin and Normal User—each with distinct authentication and access controls. The platform aims to mimic a live crypto trading environment so accurately that users cannot differentiate between real and simulated operations, focusing on providing a comprehensive, simulated trading ecosystem.
 
+## Recent Changes (August 21, 2025)
+- Successfully migrated from Replit Agent environment to standard Replit environment
+- Cleaned up redundant authentication files (simple-auth-new.ts, auth-storage.ts, auth-schema.ts)
+- Fixed CORS configuration to support credentials with specific origin instead of wildcard
+- Consolidated authentication system to use main application files with bcrypt password hashing
+- Fixed API request parameters in frontend to properly handle method, URL, and data
+- Authentication now fully functional with working session management and role-based access
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
