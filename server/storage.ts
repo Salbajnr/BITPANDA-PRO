@@ -148,12 +148,21 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByEmailOrUsername(email: string, username: string): Promise<User | undefined> {
+  async getUserByEmailOrUsername(emailOrUsername: string, username?: string): Promise<User | undefined> {
     const db = this.ensureDb();
+    // If we have both parameters (legacy call), use both
+    if (username) {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(or(eq(users.email, emailOrUsername), eq(users.username, username)));
+      return user;
+    }
+    // If we have only one parameter, check if it's email or username
     const [user] = await db
       .select()
       .from(users)
-      .where(or(eq(users.email, email), eq(users.username, username)));
+      .where(or(eq(users.email, emailOrUsername), eq(users.username, emailOrUsername)));
     return user;
   }
 
