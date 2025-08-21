@@ -22,6 +22,7 @@ import Security from "./pages/Security";
 import Orders from "./pages/Orders";
 import NotFound from "@/pages/not-found";
 import Auth from "@/pages/Auth";
+import AdminLogin from "@/pages/AdminLogin";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -32,6 +33,7 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/auth" component={Auth} />
+          <Route path="/admin" component={AdminLogin} />
         </>
       ) : (
         <>

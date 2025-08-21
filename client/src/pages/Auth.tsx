@@ -29,7 +29,7 @@ export default function Auth() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [userLoginForm, setUserLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
-  const [adminLoginForm, setAdminLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
+  
   const [registerForm, setRegisterForm] = useState<RegisterData>({ 
     username: "", 
     email: "", 
@@ -70,27 +70,7 @@ export default function Auth() {
     },
   });
 
-  const adminLoginMutation = useMutation({
-    mutationFn: async (data: LoginData) => {
-      const res = await apiRequest("POST", "/api/admin/auth/login", data);
-      return res;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/auth/user"] });
-      toast({
-        title: "Admin login successful",
-        description: `Welcome back, Admin ${data.user.firstName}!`,
-      });
-      setLocation('/admin');
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Admin login failed",
-        description: error.message || "Invalid admin credentials",
-        variant: "destructive",
-      });
-    },
-  });
+  
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
@@ -127,18 +107,7 @@ export default function Auth() {
     userLoginMutation.mutate(userLoginForm);
   };
 
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adminLoginForm.emailOrUsername || !adminLoginForm.password) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    adminLoginMutation.mutate(adminLoginForm);
-  };
+  
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,9 +129,8 @@ export default function Auth() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="user-login" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
-                <TabsTrigger value="user-login">User Login</TabsTrigger>
-                <TabsTrigger value="admin-login">Admin Login</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="user-login">Login</TabsTrigger>
                 <TabsTrigger value="register">Sign Up</TabsTrigger>
               </TabsList>
 
@@ -217,56 +185,7 @@ export default function Auth() {
                 </form>
               </TabsContent>
 
-              <TabsContent value="admin-login">
-                <form onSubmit={handleAdminLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-emailOrUsername">Admin Email or Username</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="admin-emailOrUsername"
-                        type="text"
-                        placeholder="Enter admin email or username"
-                        value={adminLoginForm.emailOrUsername}
-                        onChange={(e) => setAdminLoginForm({ ...adminLoginForm, emailOrUsername: e.target.value })}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-password">Admin Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="admin-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter admin password"
-                        value={adminLoginForm.password}
-                        onChange={(e) => setAdminLoginForm({ ...adminLoginForm, password: e.target.value })}
-                        className="pl-10 pr-10"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full btn-3d bg-red-600 hover:bg-red-700" 
-                    disabled={adminLoginMutation.isPending}
-                  >
-                    {adminLoginMutation.isPending ? "Signing in..." : "Admin Sign In"}
-                  </Button>
-                </form>
-              </TabsContent>
+              
 
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
