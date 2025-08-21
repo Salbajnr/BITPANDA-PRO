@@ -160,7 +160,7 @@ export default function Landing() {
             {/* CTA Buttons - Bitpanda Style */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link href="/auth">
-                <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
+                <Button size="lg" className="btn-3d bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
                   Get started
                 </Button>
               </Link>
@@ -168,7 +168,7 @@ export default function Landing() {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-12 py-4 rounded-lg text-lg h-14 font-semibold transition-all duration-200"
+                className="btn-3d border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-12 py-4 rounded-lg text-lg h-14 font-semibold transition-all duration-200"
               >
                 Learn more
               </Button>
@@ -177,8 +177,10 @@ export default function Landing() {
             {/* Trust Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {trustIndicators.map((indicator, index) => (
-                <div key={index} className="flex items-center justify-center space-x-3 solid-card p-4 transition-all duration-200 hover:scale-105">
-                  <span className="text-2xl">{indicator.badge}</span>
+                <div key={index} className="flex items-center justify-center space-x-3 solid-card p-4 transition-all duration-200 hover:scale-105 gradient-3d">
+                  <div className="icon-3d w-12 h-12 flex items-center justify-center bg-green-100 dark:bg-green-900/30">
+                    <span className="text-2xl">{indicator.badge}</span>
+                  </div>
                   <div className="text-left">
                     <div className="font-semibold text-card-foreground text-sm">{indicator.title}</div>
                     <div className="text-xs text-muted-foreground">{indicator.description}</div>
@@ -312,33 +314,51 @@ export default function Landing() {
               {
                 title: "Spot Trading",
                 description: "Buy and sell cryptocurrencies instantly at current market prices with zero fees on maker orders",
-                icon: "₿",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                  </svg>
+                ),
                 features: ["200+ Trading Pairs", "Advanced Charts", "Order Book", "Price Alerts"]
               },
               {
                 title: "Margin Trading",
                 description: "Amplify your trading potential with up to 10x leverage on major cryptocurrencies",
-                icon: "📈",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+                    <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                  </svg>
+                ),
                 features: ["Up to 10x Leverage", "Risk Management", "Stop Loss Orders", "Liquidation Protection"]
               },
               {
                 title: "DCA Strategy", 
                 description: "Automate your investments with dollar-cost averaging across multiple cryptocurrencies",
-                icon: "🔄",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+                    <path d="M12 4V1L8 5h3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9h2c0 3.86 3.14 7 7 7s7-3.14 7-7-3.14-7-7-7z"/>
+                    <path d="M9 13v6l4-4H10z"/>
+                  </svg>
+                ),
                 features: ["Automated Investing", "Custom Schedules", "Portfolio Balancing", "Tax Optimization"]
               },
               {
                 title: "Staking Rewards",
                 description: "Earn passive income by staking your cryptocurrencies with competitive APY rates",
-                icon: "💎",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ),
                 features: ["Up to 12% APY", "Flexible Terms", "Auto-Compound", "25+ Stakeable Coins"]
               }
             ].map((feature, index) => (
-              <Card key={index} className="solid-card hover:border-blue-300 transition-all duration-300 group">
+              <Card key={index} className="solid-card hover:border-blue-300 transition-all duration-300 group gradient-3d">
                 <CardContent className="p-6">
                   <div className="text-center mb-4">
-                    <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 dark:bg-blue-900/30 rounded-xl group-hover:scale-110 transition-transform duration-200">
-                      <span className="text-2xl">{feature.icon}</span>
+                    <div className="inline-flex items-center justify-center w-16 h-16 mb-4 icon-3d text-blue-600 dark:text-blue-400">
+                      {feature.icon}
                     </div>
                     <h3 className="text-xl font-bold text-card-foreground mb-2">{feature.title}</h3>
                     <p className="text-muted-foreground text-sm mb-4">{feature.description}</p>
@@ -369,18 +389,60 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            <div className="solid-card p-8 group hover:border-yellow-300 transition-all duration-300">
+            <div className="solid-card p-8 group hover:border-yellow-300 transition-all duration-300 gradient-3d">
               <h3 className="text-2xl font-bold text-card-foreground mb-6">Physical Metals Portfolio</h3>
               <div className="space-y-6">
                 {[
-                  { metal: "Gold (XAU)", price: "€1,945.50", change: "+0.8%", symbol: "🥇" },
-                  { metal: "Silver (XAG)", price: "€22.85", change: "+1.2%", symbol: "🥈" },
-                  { metal: "Platinum (XPT)", price: "€915.30", change: "-0.3%", symbol: "⚪" },
-                  { metal: "Palladium (XPD)", price: "€1,235.80", change: "+2.1%", symbol: "🔘" }
+                  { 
+                    metal: "Gold (XAU)", 
+                    price: "€1,945.50", 
+                    change: "+0.8%", 
+                    symbol: (
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-yellow-600">
+                        <circle cx="12" cy="8" r="6" fill="#FFD700"/>
+                        <path d="M12 14c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" fill="#B8860B"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    metal: "Silver (XAG)", 
+                    price: "€22.85", 
+                    change: "+1.2%", 
+                    symbol: (
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-gray-400">
+                        <circle cx="12" cy="8" r="6" fill="#C0C0C0"/>
+                        <path d="M12 14c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" fill="#A8A8A8"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    metal: "Platinum (XPT)", 
+                    price: "€915.30", 
+                    change: "-0.3%", 
+                    symbol: (
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-gray-300">
+                        <circle cx="12" cy="8" r="6" fill="#E5E4E2"/>
+                        <path d="M12 14c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" fill="#D3D3D3"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    metal: "Palladium (XPD)", 
+                    price: "€1,235.80", 
+                    change: "+2.1%", 
+                    symbol: (
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-slate-400">
+                        <circle cx="12" cy="8" r="6" fill="#CED0CE"/>
+                        <path d="M12 14c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" fill="#B8B8B8"/>
+                      </svg>
+                    )
+                  }
                 ].map((metal, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg solid-card">
                     <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{metal.symbol}</span>
+                      <div className="icon-3d w-12 h-12 flex items-center justify-center">
+                        {metal.symbol}
+                      </div>
                       <div>
                         <div className="font-semibold text-card-foreground">{metal.metal}</div>
                         <div className="text-sm text-muted-foreground">Per troy ounce</div>
@@ -397,7 +459,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="solid-card p-8 group hover:border-yellow-300 transition-all duration-300">
+            <div className="solid-card p-8 group hover:border-yellow-300 transition-all duration-300 gradient-3d">
               <h3 className="text-2xl font-bold text-card-foreground mb-6">Metals Saving Plans</h3>
               <div className="space-y-4">
                 <div className="p-4 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-lg">
@@ -657,28 +719,42 @@ export default function Landing() {
               {
                 title: "Real-Time Data",
                 description: "Live market data from major exchanges worldwide with millisecond latency",
-                icon: "📊",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                  </svg>
+                ),
                 stats: "99.9% Uptime",
                 color: "from-blue-500 to-cyan-500"
               },
               {
                 title: "AI-Powered Insights",
                 description: "Machine learning algorithms analyze market trends and predict price movements",
-                icon: "🤖",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2.75c1.24 0 2.25 1.01 2.25 2.25S13.24 11.25 12 11.25 9.75 10.24 9.75 9S10.76 6.75 12 6.75zM17 17H7v-1.5c0-1.33 2.67-2 4-2h2c1.33 0 4 .67 4 2V17z"/>
+                    <circle cx="12" cy="9" r="2"/>
+                    <path d="M6 15h2v2H6zm10 0h2v2h-2z"/>
+                  </svg>
+                ),
                 stats: "85% Accuracy",
                 color: "from-purple-500 to-indigo-500"
               },
               {
                 title: "Portfolio Analytics",
                 description: "Comprehensive portfolio tracking with risk assessment and optimization suggestions",
-                icon: "📈",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                  </svg>
+                ),
                 stats: "20+ Metrics",
                 color: "from-green-500 to-teal-500"
               }
             ].map((feature, index) => (
-              <Card key={index} className="solid-card hover:border-purple-300 transition-all duration-300 group">
+              <Card key={index} className="solid-card hover:border-purple-300 transition-all duration-300 group gradient-3d">
                 <CardContent className="p-8 text-center">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 bg-gradient-to-r ${feature.color} rounded-xl text-white text-2xl shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 bg-gradient-to-r ${feature.color} icon-3d text-white shadow-lg`}>
                     {feature.icon}
                   </div>
                   <h3 className="text-xl font-bold text-card-foreground mb-3">{feature.title}</h3>
@@ -704,8 +780,15 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="solid-card p-8 group hover:border-emerald-300 transition-all duration-300">
-              <h3 className="text-2xl font-bold text-card-foreground mb-6">📚 BITPANDA PRO Academy</h3>
+            <div className="solid-card p-8 group hover:border-emerald-300 transition-all duration-300 gradient-3d">
+              <div className="flex items-center mb-6">
+                <div className="icon-3d w-12 h-12 flex items-center justify-center mr-4 bg-emerald-100 dark:bg-emerald-900/30">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-emerald-600">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 2.75c1.24 0 2.25 1.01 2.25 2.25S12.24 10.25 11 10.25 8.75 9.24 8.75 8S9.76 5.75 11 5.75zm-4.5 8.5c0-1.5 3-2.25 4.5-2.25s4.5.75 4.5 2.25V15H6.5v-2.75z"/>
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-card-foreground">BITPANDA PRO Academy</h3>
+              </div>
               <div className="space-y-4">
                 {[
                   { title: "Crypto Fundamentals", progress: 85, level: "Beginner" },
@@ -730,8 +813,15 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="solid-card p-8 group hover:border-emerald-300 transition-all duration-300">
-              <h3 className="text-2xl font-bold text-card-foreground mb-6">📰 Market Research</h3>
+            <div className="solid-card p-8 group hover:border-emerald-300 transition-all duration-300 gradient-3d">
+              <div className="flex items-center mb-6">
+                <div className="icon-3d w-12 h-12 flex items-center justify-center mr-4 bg-blue-100 dark:bg-blue-900/30">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-600">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 16H5V6h2v2h2V6h6v2h2V6h2v12z"/>
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-card-foreground">Market Research</h3>
+              </div>
               <div className="space-y-4">
                 {[
                   {

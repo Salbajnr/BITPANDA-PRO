@@ -226,7 +226,7 @@ export default function Navbar() {
               Log in
             </Button>
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6"
+              className="btn-3d bg-green-500 hover:bg-green-600 text-white font-semibold px-6"
             >
               Sign up
             </Button>
