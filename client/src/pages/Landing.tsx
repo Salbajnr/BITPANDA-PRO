@@ -297,6 +297,137 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Crypto Trading Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Advanced Crypto Trading</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Trade over 200 cryptocurrencies with professional tools, real-time analytics, and institutional-grade security
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                title: "Spot Trading",
+                description: "Buy and sell cryptocurrencies instantly at current market prices with zero fees on maker orders",
+                icon: "₿",
+                features: ["200+ Trading Pairs", "Advanced Charts", "Order Book", "Price Alerts"]
+              },
+              {
+                title: "Margin Trading",
+                description: "Amplify your trading potential with up to 10x leverage on major cryptocurrencies",
+                icon: "📈",
+                features: ["Up to 10x Leverage", "Risk Management", "Stop Loss Orders", "Liquidation Protection"]
+              },
+              {
+                title: "DCA Strategy", 
+                description: "Automate your investments with dollar-cost averaging across multiple cryptocurrencies",
+                icon: "🔄",
+                features: ["Automated Investing", "Custom Schedules", "Portfolio Balancing", "Tax Optimization"]
+              },
+              {
+                title: "Staking Rewards",
+                description: "Earn passive income by staking your cryptocurrencies with competitive APY rates",
+                icon: "💎",
+                features: ["Up to 12% APY", "Flexible Terms", "Auto-Compound", "25+ Stakeable Coins"]
+              }
+            ].map((feature, index) => (
+              <Card key={index} className="solid-card hover:border-blue-300 transition-all duration-300 group">
+                <CardContent className="p-6">
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 dark:bg-blue-900/30 rounded-xl group-hover:scale-110 transition-transform duration-200">
+                      <span className="text-2xl">{feature.icon}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-card-foreground mb-2">{feature.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-4">{feature.description}</p>
+                  </div>
+                  <ul className="space-y-2">
+                    {feature.features.map((feat, idx) => (
+                      <li key={idx} className="flex items-center text-sm text-muted-foreground">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                        {feat}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Precious Metals Section */}
+      <section className="py-20 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Precious Metals Trading & Saving</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Diversify your portfolio with physical precious metals. Buy, save, and trade gold, silver, platinum, and palladium with secure storage
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+            <div className="solid-card p-8 group hover:border-yellow-300 transition-all duration-300">
+              <h3 className="text-2xl font-bold text-card-foreground mb-6">Physical Metals Portfolio</h3>
+              <div className="space-y-6">
+                {[
+                  { metal: "Gold (XAU)", price: "€1,945.50", change: "+0.8%", symbol: "🥇" },
+                  { metal: "Silver (XAG)", price: "€22.85", change: "+1.2%", symbol: "🥈" },
+                  { metal: "Platinum (XPT)", price: "€915.30", change: "-0.3%", symbol: "⚪" },
+                  { metal: "Palladium (XPD)", price: "€1,235.80", change: "+2.1%", symbol: "🔘" }
+                ].map((metal, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{metal.symbol}</span>
+                      <div>
+                        <div className="font-semibold text-card-foreground">{metal.metal}</div>
+                        <div className="text-sm text-muted-foreground">Per troy ounce</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-card-foreground">{metal.price}</div>
+                      <div className={`text-sm font-medium ${metal.change.startsWith('+') ? 'text-green-600' : 'text-red-500'}`}>
+                        {metal.change}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="solid-card p-8 group hover:border-yellow-300 transition-all duration-300">
+              <h3 className="text-2xl font-bold text-card-foreground mb-6">Metals Saving Plans</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-lg">
+                  <h4 className="font-bold text-card-foreground mb-2">Gold Savings Plan</h4>
+                  <p className="text-sm text-muted-foreground mb-3">Automatically invest in gold from €25/month</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">Storage fee: 0.5% p.a.</span>
+                    <Badge className="bg-yellow-200 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-400">Popular</Badge>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {[
+                    "✓ Physical gold stored in Swiss vaults",
+                    "✓ Fully allocated and segregated storage", 
+                    "✓ Insurance coverage up to €100M",
+                    "✓ Option to take physical delivery",
+                    "✓ No minimum investment period"
+                  ].map((feature, idx) => (
+                    <div key={idx} className="flex items-center text-sm text-muted-foreground">
+                      <span className="mr-2">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section - Bitpanda style */}
       <section className="py-20 bg-muted/30 dark:bg-muted/10 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -507,6 +638,140 @@ export default function Landing() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Market Insights & Analytics Section */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Advanced Market Analytics</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Professional-grade tools and insights to make informed investment decisions
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {[
+              {
+                title: "Real-Time Data",
+                description: "Live market data from major exchanges worldwide with millisecond latency",
+                icon: "📊",
+                stats: "99.9% Uptime",
+                color: "from-blue-500 to-cyan-500"
+              },
+              {
+                title: "AI-Powered Insights",
+                description: "Machine learning algorithms analyze market trends and predict price movements",
+                icon: "🤖",
+                stats: "85% Accuracy",
+                color: "from-purple-500 to-indigo-500"
+              },
+              {
+                title: "Portfolio Analytics",
+                description: "Comprehensive portfolio tracking with risk assessment and optimization suggestions",
+                icon: "📈",
+                stats: "20+ Metrics",
+                color: "from-green-500 to-teal-500"
+              }
+            ].map((feature, index) => (
+              <Card key={index} className="solid-card hover:border-purple-300 transition-all duration-300 group">
+                <CardContent className="p-8 text-center">
+                  <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 bg-gradient-to-r ${feature.color} rounded-xl text-white text-2xl shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-card-foreground mb-3">{feature.title}</h3>
+                  <p className="text-muted-foreground mb-4">{feature.description}</p>
+                  <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-700">
+                    {feature.stats}
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Educational Content Section */}
+      <section className="py-20 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Learn & Grow Your Wealth</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Access premium educational content, market research, and expert analysis to enhance your investment knowledge
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="solid-card p-8 group hover:border-emerald-300 transition-all duration-300">
+              <h3 className="text-2xl font-bold text-card-foreground mb-6">📚 BITPANDA PRO Academy</h3>
+              <div className="space-y-4">
+                {[
+                  { title: "Crypto Fundamentals", progress: 85, level: "Beginner" },
+                  { title: "Technical Analysis", progress: 60, level: "Intermediate" },
+                  { title: "DeFi & Yield Farming", progress: 40, level: "Advanced" },
+                  { title: "Risk Management", progress: 90, level: "Essential" }
+                ].map((course, idx) => (
+                  <div key={idx} className="p-4 bg-muted/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-semibold text-card-foreground">{course.title}</h4>
+                      <Badge variant="outline" className="text-xs">{course.level}</Badge>
+                    </div>
+                    <div className="w-full bg-muted/50 rounded-full h-2">
+                      <div 
+                        className="bg-emerald-500 h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${course.progress}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">{course.progress}% Complete</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="solid-card p-8 group hover:border-emerald-300 transition-all duration-300">
+              <h3 className="text-2xl font-bold text-card-foreground mb-6">📰 Market Research</h3>
+              <div className="space-y-4">
+                {[
+                  {
+                    title: "Bitcoin Halving Impact Analysis",
+                    date: "Today",
+                    category: "Cryptocurrency",
+                    readTime: "8 min read"
+                  },
+                  {
+                    title: "Gold vs Bitcoin: Digital vs Traditional Store of Value",
+                    date: "Yesterday",
+                    category: "Precious Metals",
+                    readTime: "12 min read"
+                  },
+                  {
+                    title: "European Crypto Regulations Update 2024",
+                    date: "2 days ago",
+                    category: "Regulatory",
+                    readTime: "6 min read"
+                  },
+                  {
+                    title: "Q4 Market Outlook: Crypto & Precious Metals",
+                    date: "1 week ago",
+                    category: "Analysis",
+                    readTime: "15 min read"
+                  }
+                ].map((article, idx) => (
+                  <div key={idx} className="p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                    <h4 className="font-semibold text-card-foreground mb-2 line-clamp-2">{article.title}</h4>
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="text-xs">{article.category}</Badge>
+                        <span>{article.date}</span>
+                      </div>
+                      <span>{article.readTime}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>

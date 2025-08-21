@@ -31,7 +31,7 @@ export default function Navbar() {
   const [, navigate] = useLocation();
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50 shadow-sm transition-colors">
+    <nav className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50 shadow-lg transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Bitpanda Style */}
@@ -54,13 +54,13 @@ export default function Navbar() {
               <NavigationMenuList className="space-x-6">
                 {/* Invest Dropdown */}
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-700 hover:text-green-600 font-medium bg-transparent">
+                  <NavigationMenuTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent">
                     Invest
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[500px] lg:w-[600px] lg:grid-cols-2">
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Cryptocurrencies</h4>
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Cryptocurrencies</h4>
                         <NavigationMenuLink asChild>
                           <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
                             <Link to="/markets" className="w-full h-full flex items-center justify-center">
@@ -77,7 +77,7 @@ export default function Navbar() {
                         </NavigationMenuLink>
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Traditional Assets</h4>
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Traditional Assets</h4>
                         <NavigationMenuLink asChild>
                           <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
                             <Link to="/stocks" className="w-full h-full flex items-center justify-center">
@@ -99,7 +99,7 @@ export default function Navbar() {
 
                 {/* Learn Dropdown */}
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-700 hover:text-green-600 font-medium bg-transparent">
+                  <NavigationMenuTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent">
                     Learn
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -109,8 +109,8 @@ export default function Navbar() {
                           <Link to="/academy" className="w-full h-full flex items-center justify-center">
                             <BookOpen className="w-5 h-5 text-green-500 mt-0.5" />
                             <div>
-                              <div className="font-medium text-gray-900">BITPANDA PRO Academy</div>
-                              <div className="text-sm text-gray-500">Learn about crypto and investing</div>
+                              <div className="font-medium text-card-foreground">BITPANDA PRO Academy</div>
+                              <div className="text-sm text-muted-foreground">Learn about crypto and investing</div>
                             </div>
                           </Link>
                         </span>
@@ -120,8 +120,8 @@ export default function Navbar() {
                           <Link to="/news" className="w-full h-full flex items-center justify-center">
                             <Newspaper className="w-5 h-5 text-blue-500 mt-0.5" />
                             <div>
-                              <div className="font-medium text-gray-900">Market News</div>
-                              <div className="text-sm text-gray-500">Latest financial news and insights</div>
+                              <div className="font-medium text-card-foreground">Market News</div>
+                              <div className="text-sm text-muted-foreground">Latest financial news and insights</div>
                             </div>
                           </Link>
                         </span>
@@ -131,8 +131,8 @@ export default function Navbar() {
                           <Link to="/tutorials" className="w-full h-full flex items-center justify-center">
                             <Users className="w-5 h-5 text-purple-500 mt-0.5" />
                             <div>
-                              <div className="font-medium text-gray-900">Getting Started</div>
-                              <div className="text-sm text-gray-500">Step-by-step tutorials</div>
+                              <div className="font-medium text-card-foreground">Getting Started</div>
+                              <div className="text-sm text-muted-foreground">Step-by-step tutorials</div>
                             </div>
                           </Link>
                         </span>
@@ -143,7 +143,7 @@ export default function Navbar() {
 
                 {/* Company Dropdown */}
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-700 hover:text-green-600 font-medium bg-transparent">
+                  <NavigationMenuTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent">
                     Company
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -153,8 +153,8 @@ export default function Navbar() {
                           <Link to="/about-us" className="w-full h-full flex items-center justify-center">
                             <Home className="w-5 h-5 text-blue-500 mt-0.5" />
                             <div>
-                              <div className="font-medium text-gray-900">About Us</div>
-                              <div className="text-sm text-gray-500">Learn more about our mission and team</div>
+                              <div className="font-medium text-card-foreground">About Us</div>
+                              <div className="text-sm text-muted-foreground">Learn more about our mission and team</div>
                             </div>
                           </Link>
                         </span>
@@ -164,8 +164,8 @@ export default function Navbar() {
                           <Link to="/careers" className="w-full h-full flex items-center justify-center">
                             <Users className="w-5 h-5 text-green-500 mt-0.5" />
                             <div>
-                              <div className="font-medium text-gray-900">Careers</div>
-                              <div className="text-sm text-gray-500">Join our team and build the future</div>
+                              <div className="font-medium text-card-foreground">Careers</div>
+                              <div className="text-sm text-muted-foreground">Join our team and build the future</div>
                             </div>
                           </Link>
                         </span>
@@ -175,8 +175,8 @@ export default function Navbar() {
                           <Link to="/press" className="w-full h-full flex items-center justify-center">
                             <Shield className="w-5 h-5 text-red-500 mt-0.5" />
                             <div>
-                              <div className="font-medium text-gray-900">Press</div>
-                              <div className="text-sm text-gray-500">Latest news and press releases</div>
+                              <div className="font-medium text-card-foreground">Press</div>
+                              <div className="text-sm text-muted-foreground">Latest news and press releases</div>
                             </div>
                           </Link>
                         </span>
@@ -186,8 +186,8 @@ export default function Navbar() {
                           <Link to="/help-center" className="w-full h-full flex items-center justify-center">
                             <HelpCircle className="w-5 h-5 text-purple-500 mt-0.5" />
                             <div>
-                              <div className="font-medium text-gray-900">Help Center</div>
-                              <div className="text-sm text-gray-500">Find answers to common questions</div>
+                              <div className="font-medium text-card-foreground">Help Center</div>
+                              <div className="text-sm text-muted-foreground">Find answers to common questions</div>
                             </div>
                           </Link>
                         </span>
@@ -198,16 +198,16 @@ export default function Navbar() {
 
                 {/* Simple Link */}
                 <NavigationMenuItem>
-                  <Link href="/deposits">
-                    <NavigationMenuLink className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
-                      Pro
+                  <Link href="/precious-metals">
+                    <NavigationMenuLink className="text-foreground hover:text-green-600 dark:hover:text-green-400 px-3 py-2 rounded-md text-sm font-medium">
+                      Metals
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link href="/investment-plans">
-                    <NavigationMenuLink className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">
-                      Investment Plans
+                  <Link href="/trading">
+                    <NavigationMenuLink className="text-foreground hover:text-green-600 dark:hover:text-green-400 px-3 py-2 rounded-md text-sm font-medium">
+                      Trading
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
