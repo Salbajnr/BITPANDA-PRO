@@ -3,8 +3,8 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcrypt";
-import { storage } from "./auth-storage";
-import { User } from "@shared/auth-schema";
+import { storage } from "./storage";
+import { User } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 
 declare global {
@@ -55,14 +55,23 @@ export function setupAuth(app: Express) {
       async (emailOrUsername, password, done) => {
         try {
           const user = await storage.getUserByEmailOrUsername(emailOrUsername);
-          if (!user || !(await comparePasswords(password, user.password))) {
+          
+          if (!user) {
             return done(null, false, { message: "Invalid credentials" });
           }
+          
+          const isValidPassword = await comparePasswords(password, user.password);
+          
+          if (!isValidPassword) {
+            return done(null, false, { message: "Invalid credentials" });
+          }
+          
           if (!user.isActive) {
             return done(null, false, { message: "Account is deactivated" });
           }
           return done(null, user);
         } catch (error) {
+          console.error('Authentication error:', error);
           return done(error);
         }
       }
@@ -84,8 +93,10 @@ export function setupAuth(app: Express) {
     try {
       const { username, email, password, firstName, lastName, phone } = req.body;
 
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmailOrUsername(email, username);
+      // Check if user already exists  
+      const existingUserByEmail = await storage.getUserByEmail(email);
+      const existingUserByUsername = await storage.getUserByEmailOrUsername(username);
+      const existingUser = existingUserByEmail || existingUserByUsername;
       if (existingUser) {
         return res.status(400).json({ 
           message: existingUser.email === email ? "Email already exists" : "Username already exists"
@@ -100,11 +111,8 @@ export function setupAuth(app: Express) {
         password: hashedPassword,
         firstName,
         lastName,
-        phone: phone || null,
         role: "user",
         isActive: true,
-        emailVerified: false,
-        phoneVerified: false,
       });
 
       // Auto-login after registration
