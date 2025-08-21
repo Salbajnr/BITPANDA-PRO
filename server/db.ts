@@ -1,8 +1,7 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
-import * as schema from "@shared/schema";
+import * as schema from "@shared/auth-schema";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -26,26 +25,7 @@ export const pool = databaseUrl
     })
   : null;
 
-let client: postgres.Sql;
-let db: ReturnType<typeof drizzle>;
-
-try {
-  client = postgres(process.env.DATABASE_URL!, {
-    ssl: { rejectUnauthorized: false },
-    max: 10,
-    idle_timeout: 20,
-    connect_timeout: 10,
-  });
-
-  db = drizzle(client, { schema });
-
-  console.log('✅ Database connection established');
-} catch (error) {
-  console.error('❌ Database connection failed:', error);
-  throw error;
-}
-
-export { db, client };
+export const db = drizzle({ client: pool!, schema });
 
 // Test the connection
 if (pool) {

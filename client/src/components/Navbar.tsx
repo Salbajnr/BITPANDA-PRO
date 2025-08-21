@@ -218,18 +218,12 @@ export default function Navbar() {
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-4">
             <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-foreground hover:text-green-600 font-medium"
-            >
-              Log in
-            </Button>
-            <Button
-              className="btn-3d bg-green-500 hover:bg-green-600 text-white font-semibold px-6"
+            <a
+              href="/api/login"
+              className="btn-3d bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg inline-block"
             >
               Sign up
-            </Button>
+            </a>
           </div>
 
           {/* Mobile menu button */}
