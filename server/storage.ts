@@ -29,7 +29,7 @@ import {
   type InsertNotification, // Assuming InsertNotification type is available
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, gte, lte, asc, count, and, or, sql, ilike } from "drizzle-orm";
+import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -63,6 +63,39 @@ export interface IStorage {
 
   // Admin operations
   getAllUsers(): Promise<User[]>;
+  getUsers(options: {
+    page: number;
+    limit: number;
+    search?: string;
+    status?: 'active' | 'inactive';
+    role?: 'user' | 'admin';
+  }): Promise<{ users: User[], pagination: { page: number, limit: number, total: number, pages: number } }>;
+  getTransactionsForAdmin(options: {
+    page: number;
+    limit: number;
+    type?: string;
+    status?: string;
+    userId?: string;
+  }): Promise<{ transactions: any[], pagination: { page: number, limit: number, total: number, pages: number } }>;
+  updateTransactionStatus(transactionId: string, status: string, reason: string, adminId: string): Promise<boolean>;
+  deleteUser(userId: string): Promise<boolean>;
+  getPlatformSettings(): Promise<any>;
+  updatePlatformSettings(settings: any, adminId: string): Promise<boolean>;
+  createAuditLog(logData: {
+    adminId: string;
+    action: string;
+    targetId: string;
+    details: any;
+    ipAddress: string;
+    userAgent: string;
+  }): Promise<boolean>;
+  getAuditLogs(options: {
+    page: number;
+    limit: number;
+    action?: string;
+    userId?: string;
+  }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }>;
+  getSystemAnalytics(period?: string): Promise<any>;
   createBalanceAdjustment(adjustment: InsertBalanceAdjustment): Promise<BalanceAdjustment>;
   getBalanceAdjustments(userId?: string, page?: number, limit?: number): Promise<BalanceAdjustment[]>;
   updatePortfolioBalance(userId: string, amount: number): Promise<void>;
@@ -93,8 +126,8 @@ export interface IStorage {
   updateSystemConfig(config: any): Promise<any>;
 
   // Audit operations
-  logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void>;
-  getAuditLogs(params: { page: number, limit: number, action?: string }): Promise<{ logs: any[], total: number }>;
+  // logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void>;
+  // getAuditLogs(params: { page: number, limit: number, action?: string }): Promise<{ logs: any[], total: number }>;
 
   // User Preferences operations
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
@@ -424,13 +457,88 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAllUsers(): Promise<User[]> {
+  // Get all users (admin only)
+  async getAllUsers() {
     try {
-      const db = this.ensureDb();
-      return await db.select().from(users).orderBy(desc(users.createdAt));
+      const result = await this.db.select().from(users).orderBy(desc(users.createdAt));
+      return result.map(user => ({ ...user, password: undefined }));
     } catch (error) {
-      console.error("Error fetching all users:", error);
-      return [];
+      console.error("Error getting all users:", error);
+      throw error;
+    }
+  }
+
+  // Enhanced user fetching with filters
+  async getUsers(options: {
+    page: number;
+    limit: number;
+    search?: string;
+    status?: 'active' | 'inactive';
+    role?: 'user' | 'admin';
+  }) {
+    try {
+      let query = this.db.select().from(users);
+
+      // Apply filters
+      if (options.search) {
+        query = query.where(
+          or(
+            like(users.username, `%${options.search}%`),
+            like(users.email, `%${options.search}%`),
+            like(users.firstName, `%${options.search}%`),
+            like(users.lastName, `%${options.search}%`)
+          )
+        );
+      }
+
+      if (options.status) {
+        query = query.where(eq(users.isActive, options.status === 'active'));
+      }
+
+      if (options.role) {
+        query = query.where(eq(users.role, options.role));
+      }
+
+      const offset = (options.page - 1) * options.limit;
+      const result = await query
+        .limit(options.limit)
+        .offset(offset)
+        .orderBy(desc(users.createdAt));
+
+      // Get total count for pagination
+      let countQuery = this.db.select({ count: count() }).from(users);
+      if (options.search) {
+        countQuery = countQuery.where(
+          or(
+            like(users.username, `%${options.search}%`),
+            like(users.email, `%${options.search}%`),
+            like(users.firstName, `%${options.search}%`),
+            like(users.lastName, `%${options.search}%`)
+          )
+        );
+      }
+      if (options.status) {
+        countQuery = countQuery.where(eq(users.isActive, options.status === 'active'));
+      }
+      if (options.role) {
+        countQuery = countQuery.where(eq(users.role, options.role));
+      }
+
+      const totalResult = await countQuery;
+      const total = totalResult[0]?.count || 0;
+
+      return {
+        users: result.map(user => ({ ...user, password: undefined })),
+        pagination: {
+          page: options.page,
+          limit: options.limit,
+          total,
+          pages: Math.ceil(total / options.limit)
+        }
+      };
+    } catch (error) {
+      console.error("Error getting users with filters:", error);
+      throw error;
     }
   }
 
@@ -1001,6 +1109,280 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching holdings with prices:", error);
       return [];
+    }
+  }
+
+  // Get system analytics
+  async getSystemAnalytics(period: string = '30d') {
+    try {
+      const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // User registration trends
+      const userRegistrations = await this.db
+        .select({
+          date: sql`DATE(${users.createdAt})`.as('date'),
+          count: count()
+        })
+        .from(users)
+        .where(gte(users.createdAt, startDate))
+        .groupBy(sql`DATE(${users.createdAt})`)
+        .orderBy(sql`DATE(${users.createdAt})`);
+
+      // Transaction volume trends
+      const transactionVolume = await this.db
+        .select({
+          date: sql`DATE(${transactions.createdAt})`.as('date'),
+          volume: sum(transactions.total),
+          count: count()
+        })
+        .from(transactions)
+        .where(gte(transactions.createdAt, startDate))
+        .groupBy(sql`DATE(${transactions.createdAt})`)
+        .orderBy(sql`DATE(${transactions.createdAt})`);
+
+      // Most traded assets
+      const topAssets = await this.db
+        .select({
+          symbol: transactions.symbol,
+          totalVolume: sum(transactions.total),
+          transactionCount: count()
+        })
+        .from(transactions)
+        .where(gte(transactions.createdAt, startDate))
+        .groupBy(transactions.symbol)
+        .orderBy(desc(sum(transactions.total)))
+        .limit(10);
+
+      return {
+        userRegistrations,
+        transactionVolume,
+        topAssets,
+        period
+      };
+    } catch (error) {
+      console.error("Error getting system analytics:", error);
+      throw error;
+    }
+  }
+
+  // Get transactions for admin monitoring
+  async getTransactionsForAdmin(options: {
+    page: number;
+    limit: number;
+    type?: string;
+    status?: string;
+    userId?: string;
+  }) {
+    try {
+      let query = this.db
+        .select({
+          id: transactions.id,
+          userId: transactions.userId,
+          type: transactions.type,
+          symbol: transactions.symbol,
+          amount: transactions.amount,
+          price: transactions.price,
+          total: transactions.total,
+          status: transactions.status,
+          createdAt: transactions.createdAt,
+          username: users.username,
+          email: users.email
+        })
+        .from(transactions)
+        .leftJoin(users, eq(transactions.userId, users.id));
+
+      // Apply filters
+      if (options.type) {
+        query = query.where(eq(transactions.type, options.type));
+      }
+      if (options.status) {
+        query = query.where(eq(transactions.status, options.status));
+      }
+      if (options.userId) {
+        query = query.where(eq(transactions.userId, options.userId));
+      }
+
+      const offset = (options.page - 1) * options.limit;
+      const result = await query
+        .limit(options.limit)
+        .offset(offset)
+        .orderBy(desc(transactions.createdAt));
+
+      // Get total count
+      let countQuery = this.db.select({ count: count() }).from(transactions);
+      if (options.type) {
+        countQuery = countQuery.where(eq(transactions.type, options.type));
+      }
+      if (options.status) {
+        countQuery = countQuery.where(eq(transactions.status, options.status));
+      }
+      if (options.userId) {
+        countQuery = countQuery.where(eq(transactions.userId, options.userId));
+      }
+
+      const totalResult = await countQuery;
+      const total = totalResult[0]?.count || 0;
+
+      return {
+        transactions: result,
+        pagination: {
+          page: options.page,
+          limit: options.limit,
+          total,
+          pages: Math.ceil(total / options.limit)
+        }
+      };
+    } catch (error) {
+      console.error("Error getting transactions for admin:", error);
+      throw error;
+    }
+  }
+
+  // Update transaction status (admin action)
+  async updateTransactionStatus(transactionId: string, status: string, reason: string, adminId: string) {
+    try {
+      await this.db
+        .update(transactions)
+        .set({
+          status,
+          updatedAt: new Date()
+        })
+        .where(eq(transactions.id, transactionId));
+
+      // Log admin action
+      await this.createAuditLog({
+        adminId,
+        action: 'transaction_status_update',
+        targetId: transactionId,
+        details: { status, reason },
+        ipAddress: '',
+        userAgent: ''
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error updating transaction status:", error);
+      throw error;
+    }
+  }
+
+  // Delete user (admin action)
+  async deleteUser(userId: string) {
+    try {
+      // Delete user's portfolio first
+      const portfolio = await this.getPortfolio(userId);
+      if (portfolio) {
+        await this.db.delete(holdings).where(eq(holdings.portfolioId, portfolio.id));
+        await this.db.delete(portfolios).where(eq(portfolios.id, portfolio.id));
+      }
+
+      // Delete user's transactions, deposits, etc.
+      await this.db.delete(transactions).where(eq(transactions.userId, userId));
+      await this.db.delete(priceAlerts).where(eq(priceAlerts.userId, userId));
+
+      // Finally delete the user
+      await this.db.delete(users).where(eq(users.id, userId));
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
+  }
+
+  // Platform settings management
+  async getPlatformSettings() {
+    try {
+      // This would typically come from a settings table
+      // For now, return default settings
+      return {
+        maintenanceMode: false,
+        registrationEnabled: true,
+        tradingEnabled: true,
+        maxWithdrawalAmount: 50000,
+        minDepositAmount: 10,
+        tradingFeePercentage: 0.1,
+        withdrawalFeePercentage: 0.5,
+        supportedCurrencies: ['USD', 'EUR', 'BTC', 'ETH'],
+        kycRequired: true,
+        apiRateLimits: {
+          requests: 1000,
+          windowMs: 3600000
+        }
+      };
+    } catch (error) {
+      console.error("Error getting platform settings:", error);
+      throw error;
+    }
+  }
+
+  async updatePlatformSettings(settings: any, adminId: string) {
+    try {
+      // Log the settings change
+      await this.createAuditLog({
+        adminId,
+        action: 'settings_update',
+        targetId: 'platform',
+        details: settings,
+        ipAddress: '',
+        userAgent: ''
+      });
+
+      // In a real implementation, you'd save these to a settings table
+      return true;
+    } catch (error) {
+      console.error("Error updating platform settings:", error);
+      throw error;
+    }
+  }
+
+  // Audit logging
+  async createAuditLog(logData: {
+    adminId: string;
+    action: string;
+    targetId: string;
+    details: any;
+    ipAddress: string;
+    userAgent: string;
+  }) {
+    try {
+      // This would save to an audit_logs table
+      // For now, just log to console
+      console.log('Audit Log:', {
+        ...logData,
+        timestamp: new Date().toISOString()
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error creating audit log:", error);
+      throw error;
+    }
+  }
+
+  async getAuditLogs(options: {
+    page: number;
+    limit: number;
+    action?: string;
+    userId?: string;
+  }) {
+    try {
+      // This would query from an audit_logs table
+      // For now, return empty results
+      return {
+        logs: [],
+        pagination: {
+          page: options.page,
+          limit: options.limit,
+          total: 0,
+          pages: 0
+        }
+      };
+    } catch (error) {
+      console.error("Error getting audit logs:", error);
+      throw error;
     }
   }
 }

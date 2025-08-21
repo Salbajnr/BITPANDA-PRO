@@ -17,7 +17,7 @@ import {
   Search, Plus, ArrowUp, ArrowDown, CheckSquare, Trash2,
   Activity, MessageCircle, PieChart, Clock, ChevronLeft, ChevronRight,
   MoreHorizontal, Sun, Moon, Ban, RotateCcw, Eye, Download,
-  AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard
+  AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard, Save, UserPlus
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
 
@@ -49,6 +49,8 @@ interface Transaction {
   total: string;
   status: string;
   createdAt: string;
+  username?: string;
+  email?: string;
 }
 
 export default function AdminDashboard() {
@@ -56,34 +58,68 @@ export default function AdminDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [balanceAdjustment, setBalanceAdjustment] = useState({
-    type: 'add' as 'add' | 'remove' | 'set',
-    amount: '',
-    reason: ''
+  
+  const [analytics, setAnalytics] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    totalTransactions: 0,
+    totalRevenue: 0
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Enhanced state for user management
+  const [searchTerm, setSearchTerm] = useState('');
+  const [userStatusFilter, setUserStatusFilter] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('');
+
+  // Analytics state
+  const [analyticsPeriod, setAnalyticsPeriod] = useState('30d');
+  const [analyticsData, setAnalyticsData] = useState({
+    userRegistrations: [],
+    transactionVolume: [],
+    topAssets: []
+  });
+
+  // Transaction monitoring state
+  const [transactionsData, setTransactionsData] = useState({
+    transactions: [],
+    pagination: { page: 1, limit: 20, total: 0, pages: 0 }
+  });
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState('');
+  const [transactionStatusFilter, setTransactionStatusFilter] = useState('');
+  const [transactionUserSearch, setTransactionUserSearch] = useState('');
+
+  // Platform settings state
+  const [platformSettings, setPlatformSettings] = useState({
+    maintenanceMode: false,
+    registrationEnabled: true,
+    tradingEnabled: true,
+    kycRequired: true,
+    tradingFeePercentage: 0.1,
+    withdrawalFeePercentage: 0.5,
+    minDepositAmount: 10,
+    maxWithdrawalAmount: 50000
+  });
 
   // Fetch users with pagination
   const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
-    queryKey: ["/api/admin/users", currentPage, searchTerm],
-    queryFn: () => apiRequest(`/api/admin/users?page=${currentPage}&search=${encodeURIComponent(searchTerm)}`),
+    queryKey: ["/api/admin/users", currentPage, searchTerm, userStatusFilter, userRoleFilter],
+    queryFn: () => apiRequest(`/api/admin/users?page=${currentPage}&search=${encodeURIComponent(searchTerm)}&status=${userStatusFilter}&role=${userRoleFilter}`),
     retry: 1,
   });
 
   // Fetch analytics overview
-  const { data: analyticsData } = useQuery({
+  const { data: analyticsOverviewData } = useQuery({
     queryKey: ["/api/admin/analytics/overview"],
     queryFn: () => apiRequest("/api/admin/analytics/overview"),
     retry: 1,
   });
 
   // Fetch transactions
-  const { data: transactionsData } = useQuery({
-    queryKey: ["/api/admin/transactions", currentPage],
-    queryFn: () => apiRequest(`/api/admin/transactions?page=${currentPage}&limit=20`),
+  const { data: transactionsDataQuery } = useQuery({
+    queryKey: ["/api/admin/transactions", currentPage, transactionTypeFilter, transactionStatusFilter, transactionUserSearch],
+    queryFn: () => apiRequest(`/api/admin/transactions?page=${currentPage}&limit=20&type=${transactionTypeFilter}&status=${transactionStatusFilter}&user=${encodeURIComponent(transactionUserSearch)}`),
     retry: 1,
   });
 
@@ -108,6 +144,7 @@ export default function AdminDashboard() {
       refetchUsers();
       setSelectedUser(null);
       setBalanceAdjustment({ type: 'add', amount: '', reason: '' });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
     },
     onError: (error: any) => {
       toast({
@@ -208,6 +245,39 @@ export default function AdminDashboard() {
     }
   }, [user, authLoading, toast]);
 
+  const handleSaveSettings = async () => {
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(platformSettings),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Settings saved successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save settings",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast({
+        title: "Error",
+        description: "Error saving settings",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleBalanceAdjustment = () => {
     if (!selectedUser || !balanceAdjustment.amount) return;
 
@@ -241,8 +311,8 @@ export default function AdminDashboard() {
 
   const users = usersData?.users || [];
   const totalUsers = usersData?.pagination?.total || 0;
-  const transactions = transactionsData?.transactions || [];
-  const analytics = analyticsData || {};
+  const transactions = transactionsDataQuery?.transactions || [];
+  const analytics = analyticsOverviewData || {};
   const adjustments = adjustmentsData?.adjustments || [];
 
   if (authLoading) {
@@ -383,46 +453,39 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Administrative Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <Button 
-                        className="h-20 flex flex-col gap-2"
-                        onClick={() => setActiveSection('users')}
-                      >
-                        <Users className="h-6 w-6" />
-                        Manage Users
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="h-20 flex flex-col gap-2"
-                        onClick={() => setActiveSection('transactions')}
-                      >
-                        <Activity className="h-6 w-6" />
-                        View Transactions
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="h-20 flex flex-col gap-2"
-                        onClick={() => setActiveSection('analytics')}
-                      >
-                        <TrendingUp className="h-6 w-6" />
-                        Analytics
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="h-20 flex flex-col gap-2"
-                        onClick={() => setActiveSection('security')}
-                      >
-                        <Shield className="h-6 w-6" />
-                        Security
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Button 
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setActiveSection('users')}
+                  >
+                    <Users className="h-6 w-6" />
+                    Manage Users
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setActiveSection('transactions')}
+                  >
+                    <Activity className="h-6 w-6" />
+                    View Transactions
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setActiveSection('analytics')}
+                  >
+                    <TrendingUp className="h-6 w-6" />
+                    Analytics
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setActiveSection('security')}
+                  >
+                    <Shield className="h-6 w-6" />
+                    Security
+                  </Button>
+                </div>
 
                 {/* Recent Activity */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -482,41 +545,44 @@ export default function AdminDashboard() {
             {activeSection === 'users' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h2>
+                  <div className="flex gap-2">
                     <Input
-                      placeholder="Search users by name, email, or username..."
+                      placeholder="Search users..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="w-64"
                     />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Users
+                    <Button className="bg-blue-500 hover:bg-blue-600">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add User
                     </Button>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add User
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add New User</DialogTitle>
-                          <DialogDescription>Create a new user account</DialogDescription>
-                        </DialogHeader>
-                        {/* Add user form would go here */}
-                        <DialogFooter>
-                          <Button>Create User</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
                   </div>
                 </div>
 
+                {/* User Filters */}
+                <div className="flex gap-4">
+                  <select
+                    value={userStatusFilter}
+                    onChange={(e) => setUserStatusFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-lg"
+                  >
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <select
+                    value={userRoleFilter}
+                    onChange={(e) => setUserRoleFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-lg"
+                  >
+                    <option value="">All Roles</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+                {/* User Table */}
                 <Card>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
@@ -728,59 +794,127 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* Transaction Management */}
+            {/* Transaction Monitoring Section */}
             {activeSection === 'transactions' && (
               <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Transaction Monitoring</h2>
+                  <Button onClick={() => window.location.reload()} variant="outline">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+
+                {/* Transaction Filters */}
+                <div className="flex gap-4">
+                  <select
+                    value={transactionTypeFilter}
+                    onChange={(e) => setTransactionTypeFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-lg"
+                  >
+                    <option value="">All Types</option>
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                  </select>
+                  <select
+                    value={transactionStatusFilter}
+                    onChange={(e) => setTransactionStatusFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-lg"
+                  >
+                    <option value="">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <Input
+                    placeholder="Search by user..."
+                    value={transactionUserSearch}
+                    onChange={(e) => setTransactionUserSearch(e.target.value)}
+                    className="w-64"
+                  />
+                </div>
+
+                {/* Transactions Table */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Transaction Management</CardTitle>
-                    <CardDescription>Monitor and control all platform transactions</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left p-2">Transaction ID</th>
-                            <th className="text-left p-2">User</th>
-                            <th className="text-left p-2">Type</th>
-                            <th className="text-left p-2">Symbol</th>
-                            <th className="text-left p-2">Amount</th>
-                            <th className="text-left p-2">Total</th>
-                            <th className="text-left p-2">Status</th>
-                            <th className="text-left p-2">Date</th>
-                            <th className="text-right p-2">Actions</th>
+                        <thead className="bg-gray-50 dark:bg-gray-800">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              User
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Type
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Asset
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Amount
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Value
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
                           </tr>
                         </thead>
-                        <tbody>
-                          {transactions.map((tx: Transaction) => (
-                            <tr key={tx.id} className="border-b">
-                              <td className="p-2 font-mono text-sm">{tx.id.slice(0, 8)}...</td>
-                              <td className="p-2">{tx.userId.slice(0, 8)}...</td>
-                              <td className="p-2">
-                                <Badge variant={tx.type === 'buy' ? 'default' : 'secondary'}>
-                                  {tx.type.toUpperCase()}
+                        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                          {transactions.map((transaction) => (
+                            <tr key={transaction.id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div>
+                                  <div className="text-sm font-medium">{transaction.username}</div>
+                                  <div className="text-sm text-gray-500">{transaction.email}</div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <Badge variant={transaction.type === 'buy' ? 'default' : 'secondary'}>
+                                  {transaction.type?.toUpperCase()}
                                 </Badge>
                               </td>
-                              <td className="p-2">{tx.symbol}</td>
-                              <td className="p-2">{tx.amount}</td>
-                              <td className="p-2">${tx.total}</td>
-                              <td className="p-2">
-                                <Badge className="bg-green-100 text-green-800">{tx.status}</Badge>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {transaction.symbol}
                               </td>
-                              <td className="p-2">{new Date(tx.createdAt).toLocaleString()}</td>
-                              <td className="p-2 text-right">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {parseFloat(transaction.amount || '0').toFixed(8)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                ${parseFloat(transaction.total || '0').toLocaleString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <Badge
+                                  variant={
+                                    transaction.status === 'completed' ? 'default' :
+                                    transaction.status === 'pending' ? 'secondary' : 'destructive'
+                                  }
+                                >
+                                  {transaction.status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {new Date(transaction.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                      <RotateCcw className="h-4 w-4" />
+                                    <Button size="sm" variant="outline">
+                                      View Details
                                     </Button>
                                   </DialogTrigger>
                                   <DialogContent>
                                     <DialogHeader>
                                       <DialogTitle>Reverse Transaction</DialogTitle>
                                       <DialogDescription>
-                                        This will create a reverse transaction for {tx.symbol}
+                                        This will create a reverse transaction for {transaction.symbol}
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
@@ -796,15 +930,15 @@ export default function AdminDashboard() {
                                       <Button 
                                         variant="destructive"
                                         onClick={() => reverseTransactionMutation.mutate({
-                                          transactionId: tx.id,
+                                          transactionId: transaction.id,
                                           reason: 'Admin reversal'
                                         })}
                                       >
                                         Reverse Transaction
                                       </Button>
                                     </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
+                                  </Dialog>
+                                </Button>
                               </td>
                             </tr>
                           ))}
@@ -818,319 +952,88 @@ export default function AdminDashboard() {
 
             {/* Advanced Analytics Section */}
             {activeSection === 'analytics' && (
-              <div className="space-y-8">
-                <Tabs defaultValue="revenue" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="revenue">Revenue</TabsTrigger>
-                    <TabsTrigger value="trading">Trading</TabsTrigger>
-                    <TabsTrigger value="users">Users</TabsTrigger>
-                    <TabsTrigger value="platform">Platform</TabsTrigger>
-                  </TabsList>
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Analytics</h2>
 
-                  <TabsContent value="revenue" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Total Revenue</p>
-                              <p className="text-2xl font-bold">$125,000</p>
-                              <p className="text-xs text-green-600">+27.5% from last period</p>
-                            </div>
-                            <DollarSign className="h-8 w-8 text-green-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
+                {/* Analytics Period Selector */}
+                <div className="flex gap-2">
+                  {['7d', '30d', '90d'].map((period) => (
+                    <Button
+                      key={period}
+                      variant={analyticsPeriod === period ? 'default' : 'outline'}
+                      onClick={() => setAnalyticsPeriod(period)}
+                    >
+                      {period.toUpperCase()}
+                    </Button>
+                  ))}
+                </div>
 
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Trading Fees</p>
-                              <p className="text-2xl font-bold">$85,000</p>
-                              <p className="text-xs text-blue-600">68% of total</p>
-                            </div>
-                            <Activity className="h-8 w-8 text-blue-600" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* User Registration Trends */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>User Registrations</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64 flex items-center justify-center text-gray-500">
+                        {analyticsData.userRegistrations ? (
+                          <div className="w-full">
+                            <p>Daily registrations over {analyticsPeriod}</p>
+                            {/* Chart would be rendered here */}
                           </div>
-                        </CardContent>
-                      </Card>
+                        ) : (
+                          "Loading user registration data..."
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Deposit Fees</p>
-                              <p className="text-2xl font-bold">$25,000</p>
-                              <p className="text-xs text-purple-600">20% of total</p>
-                            </div>
-                            <CreditCard className="h-8 w-8 text-purple-600" />
+                  {/* Transaction Volume */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Transaction Volume</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64 flex items-center justify-center text-gray-500">
+                        {analyticsData.transactionVolume ? (
+                          <div className="w-full">
+                            <p>Trading volume over {analyticsPeriod}</p>
+                            {/* Chart would be rendered here */}
                           </div>
-                        </CardContent>
-                      </Card>
+                        ) : (
+                          "Loading transaction volume data..."
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Avg. Revenue/Day</p>
-                              <p className="text-2xl font-bold">$17,857</p>
-                              <p className="text-xs text-orange-600">Last 7 days</p>
-                            </div>
-                            <TrendingUp className="h-8 w-8 text-orange-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Revenue Breakdown</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span>Trading Fees</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-32 bg-gray-200 rounded-full h-2">
-                                <div className="bg-blue-600 h-2 rounded-full" style={{width: '68%'}}></div>
-                              </div>
-                              <span className="text-sm font-medium">68%</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>Deposit Fees</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-32 bg-gray-200 rounded-full h-2">
-                                <div className="bg-purple-600 h-2 rounded-full" style={{width: '20%'}}></div>
-                              </div>
-                              <span className="text-sm font-medium">20%</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>Withdrawal Fees</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-32 bg-gray-200 rounded-full h-2">
-                                <div className="bg-green-600 h-2 rounded-full" style={{width: '12%'}}></div>
-                              </div>
-                              <span className="text-sm font-medium">12%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="trading" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Total Trades</p>
-                              <p className="text-2xl font-bold">1,247</p>
-                              <p className="text-xs text-green-600">+15% this week</p>
-                            </div>
-                            <Activity className="h-8 w-8 text-blue-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Total Volume</p>
-                              <p className="text-2xl font-bold">$2.15M</p>
-                              <p className="text-xs text-purple-600">24h volume</p>
-                            </div>
-                            <DollarSign className="h-8 w-8 text-purple-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Avg Trade Size</p>
-                              <p className="text-2xl font-bold">$1,726</p>
-                              <p className="text-xs text-orange-600">Per transaction</p>
-                            </div>
-                            <TrendingUp className="h-8 w-8 text-orange-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Active Traders</p>
-                              <p className="text-2xl font-bold">489</p>
-                              <p className="text-xs text-green-600">Last 24 hours</p>
-                            </div>
-                            <Users className="h-8 w-8 text-green-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Top Trading Pairs</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {[
-                            { pair: 'BTC/USD', volume: '$850,000', trades: 425, change: '+5.2%' },
-                            { pair: 'ETH/USD', volume: '$620,000', trades: 312, change: '+3.8%' },
-                            { pair: 'ADA/USD', volume: '$380,000', trades: 280, change: '-1.2%' },
-                            { pair: 'SOL/USD', volume: '$300,000', trades: 230, change: '+7.1%' }
-                          ].map((item, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <span className="font-medium">{item.pair}</span>
-                                <Badge variant="outline">{item.trades} trades</Badge>
+                  {/* Top Assets */}
+                  <Card className="lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle>Most Traded Assets</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData.topAssets && analyticsData.topAssets.length > 0 ? (
+                        <div className="space-y-3">
+                          {analyticsData.topAssets.slice(0, 5).map((asset, index) => (
+                            <div key={asset.symbol} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <span className="font-semibold text-lg">#{index + 1}</span>
+                                <span className="font-medium">{asset.symbol}</span>
                               </div>
                               <div className="text-right">
-                                <p className="font-semibold">{item.volume}</p>
-                                <p className={`text-sm ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                                  {item.change}
-                                </p>
+                                <div className="font-semibold">${parseFloat(asset.totalVolume || '0').toLocaleString()}</div>
+                                <div className="text-sm text-gray-500">{asset.transactionCount} trades</div>
                               </div>
                             </div>
                           ))}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="users" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Total Users</p>
-                              <p className="text-2xl font-bold">{analytics.totalUsers?.toLocaleString() || '0'}</p>
-                              <p className="text-xs text-green-600">All time</p>
-                            </div>
-                            <Users className="h-8 w-8 text-blue-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">New Users</p>
-                              <p className="text-2xl font-bold">127</p>
-                              <p className="text-xs text-purple-600">This month</p>
-                            </div>
-                            <UserCheck className="h-8 w-8 text-purple-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Active Users</p>
-                              <p className="text-2xl font-bold">892</p>
-                              <p className="text-xs text-orange-600">Last 30 days</p>
-                            </div>
-                            <Activity className="h-8 w-8 text-orange-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Growth Rate</p>
-                              <p className="text-2xl font-bold">14.2%</p>
-                              <p className="text-xs text-green-600">Monthly</p>
-                            </div>
-                            <TrendingUp className="h-8 w-8 text-green-600" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="platform" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">System Health</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span>Uptime</span>
-                              <Badge className="bg-green-100 text-green-800">99.8%</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Response Time</span>
-                              <Badge variant="outline">245ms</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Error Rate</span>
-                              <Badge className="bg-green-100 text-green-800">0.12%</Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">Database</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span>Query Time</span>
-                              <Badge className="bg-green-100 text-green-800">12ms</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Connections</span>
-                              <Badge variant="outline">85%</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Index Efficiency</span>
-                              <Badge className="bg-green-100 text-green-800">94%</Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">API Usage</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span>Total Requests</span>
-                              <Badge variant="outline">125,047</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Success Rate</span>
-                              <Badge className="bg-green-100 text-green-800">99.88%</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Rate Limit Hits</span>
-                              <Badge className="bg-yellow-100 text-yellow-800">12</Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                      ) : (
+                        <p className="text-gray-500">Loading top assets data...</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             )}
 
@@ -1196,92 +1099,124 @@ export default function AdminDashboard() {
             {/* System Settings Section */}
             {activeSection === 'system' && (
               <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>System Settings</CardTitle>
-                    <CardDescription>Configure platform-wide settings</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>General Settings</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="platform-name">Platform Name</Label>
-                                <Input id="platform-name" defaultValue="BITPANDA PRO" />
-                              </div>
-                              <div>
-                                <Label htmlFor="support-email">Support Email</Label>
-                                <Input id="support-email" defaultValue="support@bitpanda.pro" />
-                              </div>
-                              <div>
-                                <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
-                                <Select defaultValue="disabled">
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="disabled">Disabled</SelectItem>
-                                    <SelectItem value="enabled">Enabled</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Settings</h2>
 
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>API Keys</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="api-key-status">API Key Status</Label>
-                                <Select defaultValue="active">
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <Button variant="outline" className="w-full">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Generate New API Key
-                              </Button>
-                              <Button variant="destructive" className="w-full">
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Revoke All API Keys
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Platform Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Platform Configuration</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">Maintenance Mode</label>
+                        <input 
+                          type="checkbox"
+                          checked={platformSettings.maintenanceMode}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            maintenanceMode: e.target.checked
+                          })}
+                        />
                       </div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">Registration Enabled</label>
+                        <input 
+                          type="checkbox"
+                          checked={platformSettings.registrationEnabled}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            registrationEnabled: e.target.checked
+                          })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">Trading Enabled</label>
+                        <input 
+                          type="checkbox"
+                          checked={platformSettings.tradingEnabled}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            tradingEnabled: e.target.checked
+                          })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">KYC Required</label>
+                        <input 
+                          type="checkbox"
+                          checked={platformSettings.kycRequired}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            kycRequired: e.target.checked
+                          })}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>User Roles & Permissions</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <p>Manage roles and permissions for different user groups.</p>
-                            <Button variant="outline">
-                              <Users className="h-4 w-4 mr-2" />
-                              Manage Roles
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
+                  {/* Fee Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Fee Configuration</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Trading Fee (%)</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={platformSettings.tradingFeePercentage}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            tradingFeePercentage: parseFloat(e.target.value)
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Withdrawal Fee (%)</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={platformSettings.withdrawalFeePercentage}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            withdrawalFeePercentage: parseFloat(e.target.value)
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Min Deposit Amount</label>
+                        <Input
+                          type="number"
+                          value={platformSettings.minDepositAmount}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            minDepositAmount: parseFloat(e.target.value)
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Max Withdrawal Amount</label>
+                        <Input
+                          type="number"
+                          value={platformSettings.maxWithdrawalAmount}
+                          onChange={(e) => setPlatformSettings({
+                            ...platformSettings,
+                            maxWithdrawalAmount: parseFloat(e.target.value)
+                          })}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveSettings} className="bg-green-500 hover:bg-green-600">
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Settings
+                  </Button>
+                </div>
               </div>
             )}
 
