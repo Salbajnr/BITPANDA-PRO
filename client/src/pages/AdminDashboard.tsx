@@ -641,48 +641,47 @@ export default function AdminDashboard() {
                                     <Lock className="h-4 w-4" />
                                   </Button>
 
-                                  {user.isActive ? (
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm">
-                                          <Ban className="h-4 w-4" />
-                                        </Button>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                        <DialogHeader>
-                                          <DialogTitle>Suspend User</DialogTitle>
-                                          <DialogDescription>
-                                            Suspend {user.firstName} {user.lastName}?
-                                          </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4">
-                                          <div>
-                                            <Label htmlFor="suspension-reason">Reason for suspension</Label>
-                                            <Textarea 
-                                              id="suspension-reason"
-                                              placeholder="Reason for suspension..." 
-                                            />
-                                          </div>
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="sm">
+                                        <Ban className="h-4 w-4" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Suspend User</DialogTitle>
+                                        <DialogDescription>
+                                          Suspend {user.firstName} {user.lastName}?
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <div>
+                                          <Label htmlFor="suspension-reason">Reason for suspension</Label>
+                                          <Textarea 
+                                            id="suspension-reason"
+                                            placeholder="Reason for suspension..." 
+                                          />
                                         </div>
-                                        <DialogFooter>
-                                          <Button 
-                                            variant="destructive"
-                                            onClick={() => handleSuspendUser(user, 'Admin suspension')}
-                                          >
-                                            Suspend User
-                                          </Button>
-                                        </DialogFooter>
-                                      </DialogContent>
-                                    </Dialog>
-                                  ) : (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => reactivateUserMutation.mutate(user.id)}
-                                    >
-                                      <UserCheck className="h-4 w-4" />
-                                    </Button>
-                                  )}
+                                      </div>
+                                      <DialogFooter>
+                                        <Button 
+                                          variant="destructive"
+                                          onClick={() => handleSuspendUser(user, 'Admin suspension')}
+                                        >
+                                          Suspend User
+                                        </Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => reactivateUserMutation.mutate(user.id)}
+                                    className="text-green-600 hover:text-green-700"
+                                  >
+                                    <UserCheck className="h-4 w-4" />
+                                  </Button>
 
                                   <Button
                                     variant="outline"
@@ -817,11 +816,480 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* Other sections placeholder */}
-            {!['dashboard', 'users', 'transactions'].includes(activeSection) && (
+            {/* Advanced Analytics Section */}
+            {activeSection === 'analytics' && (
+              <div className="space-y-8">
+                <Tabs defaultValue="revenue" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="revenue">Revenue</TabsTrigger>
+                    <TabsTrigger value="trading">Trading</TabsTrigger>
+                    <TabsTrigger value="users">Users</TabsTrigger>
+                    <TabsTrigger value="platform">Platform</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="revenue" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Total Revenue</p>
+                              <p className="text-2xl font-bold">$125,000</p>
+                              <p className="text-xs text-green-600">+27.5% from last period</p>
+                            </div>
+                            <DollarSign className="h-8 w-8 text-green-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Trading Fees</p>
+                              <p className="text-2xl font-bold">$85,000</p>
+                              <p className="text-xs text-blue-600">68% of total</p>
+                            </div>
+                            <Activity className="h-8 w-8 text-blue-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Deposit Fees</p>
+                              <p className="text-2xl font-bold">$25,000</p>
+                              <p className="text-xs text-purple-600">20% of total</p>
+                            </div>
+                            <CreditCard className="h-8 w-8 text-purple-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Avg. Revenue/Day</p>
+                              <p className="text-2xl font-bold">$17,857</p>
+                              <p className="text-xs text-orange-600">Last 7 days</p>
+                            </div>
+                            <TrendingUp className="h-8 w-8 text-orange-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Revenue Breakdown</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span>Trading Fees</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-32 bg-gray-200 rounded-full h-2">
+                                <div className="bg-blue-600 h-2 rounded-full" style={{width: '68%'}}></div>
+                              </div>
+                              <span className="text-sm font-medium">68%</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span>Deposit Fees</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-32 bg-gray-200 rounded-full h-2">
+                                <div className="bg-purple-600 h-2 rounded-full" style={{width: '20%'}}></div>
+                              </div>
+                              <span className="text-sm font-medium">20%</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span>Withdrawal Fees</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-32 bg-gray-200 rounded-full h-2">
+                                <div className="bg-green-600 h-2 rounded-full" style={{width: '12%'}}></div>
+                              </div>
+                              <span className="text-sm font-medium">12%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="trading" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Total Trades</p>
+                              <p className="text-2xl font-bold">1,247</p>
+                              <p className="text-xs text-green-600">+15% this week</p>
+                            </div>
+                            <Activity className="h-8 w-8 text-blue-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Total Volume</p>
+                              <p className="text-2xl font-bold">$2.15M</p>
+                              <p className="text-xs text-purple-600">24h volume</p>
+                            </div>
+                            <DollarSign className="h-8 w-8 text-purple-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Avg Trade Size</p>
+                              <p className="text-2xl font-bold">$1,726</p>
+                              <p className="text-xs text-orange-600">Per transaction</p>
+                            </div>
+                            <TrendingUp className="h-8 w-8 text-orange-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Active Traders</p>
+                              <p className="text-2xl font-bold">489</p>
+                              <p className="text-xs text-green-600">Last 24 hours</p>
+                            </div>
+                            <Users className="h-8 w-8 text-green-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Top Trading Pairs</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {[
+                            { pair: 'BTC/USD', volume: '$850,000', trades: 425, change: '+5.2%' },
+                            { pair: 'ETH/USD', volume: '$620,000', trades: 312, change: '+3.8%' },
+                            { pair: 'ADA/USD', volume: '$380,000', trades: 280, change: '-1.2%' },
+                            { pair: 'SOL/USD', volume: '$300,000', trades: 230, change: '+7.1%' }
+                          ].map((item, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="font-medium">{item.pair}</span>
+                                <Badge variant="outline">{item.trades} trades</Badge>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">{item.volume}</p>
+                                <p className={`text-sm ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                                  {item.change}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="users" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Total Users</p>
+                              <p className="text-2xl font-bold">{analytics.totalUsers?.toLocaleString() || '0'}</p>
+                              <p className="text-xs text-green-600">All time</p>
+                            </div>
+                            <Users className="h-8 w-8 text-blue-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">New Users</p>
+                              <p className="text-2xl font-bold">127</p>
+                              <p className="text-xs text-purple-600">This month</p>
+                            </div>
+                            <UserCheck className="h-8 w-8 text-purple-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Active Users</p>
+                              <p className="text-2xl font-bold">892</p>
+                              <p className="text-xs text-orange-600">Last 30 days</p>
+                            </div>
+                            <Activity className="h-8 w-8 text-orange-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Growth Rate</p>
+                              <p className="text-2xl font-bold">14.2%</p>
+                              <p className="text-xs text-green-600">Monthly</p>
+                            </div>
+                            <TrendingUp className="h-8 w-8 text-green-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="platform" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">System Health</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span>Uptime</span>
+                              <Badge className="bg-green-100 text-green-800">99.8%</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Response Time</span>
+                              <Badge variant="outline">245ms</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Error Rate</span>
+                              <Badge className="bg-green-100 text-green-800">0.12%</Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Database</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span>Query Time</span>
+                              <Badge className="bg-green-100 text-green-800">12ms</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Connections</span>
+                              <Badge variant="outline">85%</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Index Efficiency</span>
+                              <Badge className="bg-green-100 text-green-800">94%</Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">API Usage</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span>Total Requests</span>
+                              <Badge variant="outline">125,047</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Success Rate</span>
+                              <Badge className="bg-green-100 text-green-800">99.88%</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Rate Limit Hits</span>
+                              <Badge className="bg-yellow-100 text-yellow-800">12</Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            )}
+
+            {/* Security Center Section */}
+            {activeSection === 'security' && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Security Center</CardTitle>
+                    <CardDescription>Monitor security events and manage access</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Login Activity</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span>Successful Logins (24h)</span>
+                              <Badge className="bg-green-100 text-green-800">1,256</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Failed Logins (24h)</span>
+                              <Badge className="bg-red-100 text-red-800">15</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Suspicious Activity</span>
+                              <Badge className="bg-yellow-100 text-yellow-800">3</Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Account Actions</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span>Password Resets</span>
+                              <Badge variant="outline">5</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Email Verifications</span>
+                              <Badge variant="outline">120</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Account Lockouts</span>
+                              <Badge className="bg-red-100 text-red-800">2</Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* System Settings Section */}
+            {activeSection === 'system' && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>System Settings</CardTitle>
+                    <CardDescription>Configure platform-wide settings</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>General Settings</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div>
+                                <Label htmlFor="platform-name">Platform Name</Label>
+                                <Input id="platform-name" defaultValue="BITPANDA PRO" />
+                              </div>
+                              <div>
+                                <Label htmlFor="support-email">Support Email</Label>
+                                <Input id="support-email" defaultValue="support@bitpanda.pro" />
+                              </div>
+                              <div>
+                                <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
+                                <Select defaultValue="disabled">
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="disabled">Disabled</SelectItem>
+                                    <SelectItem value="enabled">Enabled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>API Keys</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div>
+                                <Label htmlFor="api-key-status">API Key Status</Label>
+                                <Select defaultValue="active">
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <Button variant="outline" className="w-full">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Generate New API Key
+                              </Button>
+                              <Button variant="destructive" className="w-full">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Revoke All API Keys
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>User Roles & Permissions</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <p>Manage roles and permissions for different user groups.</p>
+                            <Button variant="outline">
+                              <Users className="h-4 w-4 mr-2" />
+                              Manage Roles
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Default/Placeholder Section */}
+            {!['dashboard', 'users', 'transactions', 'analytics', 'security', 'system'].includes(activeSection) && (
               <Card>
                 <CardHeader>
-                  <CardTitle>{sidebarItems.find(item => item.id === activeSection)?.label}</CardTitle>
+                  <CardTitle>{sidebarItems.find(item => item.id === activeSection)?.label || 'Section'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12">
