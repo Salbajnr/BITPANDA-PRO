@@ -8,8 +8,7 @@ packages = ["kubectl"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npm", "run", "start"]
-build = ["npm", "run", "build"]
+run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 5000
@@ -194,4 +193,4 @@ task = "shell.exec"
 args = "npm run dev"
 
 [agent]
-integrations = ["javascript_log_in_with_replit==1.0.0", "javascript_websocket==1.0.0", "javascript_sendgrid==1.0.0", "javascript_database==1.0.0"]
+integrations = ["javascript_websocket==1.0.0", "javascript_database==1.0.0", "javascript_sendgrid==1.0.0", "javascript_auth_all_persistance==1.0.0", "javascript_log_in_with_replit==1.0.0"]

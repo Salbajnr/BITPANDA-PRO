@@ -1,52 +1,68 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ApiService } from "@/lib/api";
-import { Leaf, Mail, Lock, User, UserPlus, LogIn } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
+import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 
-interface AuthProps {
-  isAdmin?: boolean;
+interface LoginData {
+  emailOrUsername: string;
+  password: string;
 }
 
-export default function Auth({ isAdmin = false }: AuthProps) {
-  const [activeTab, setActiveTab] = useState("login");
-  const [loginData, setLoginData] = useState({
-    emailOrUsername: "",
-    password: "",
-  });
+interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+}
 
-  const [registerData, setRegisterData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
+export default function Auth() {
+  const [, setLocation] = useLocation();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginForm, setLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
+  const [registerForm, setRegisterForm] = useState<RegisterData>({ 
+    username: "", 
+    email: "", 
+    password: "", 
+    firstName: "", 
+    lastName: "", 
+    phone: "" 
   });
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Redirect if already logged in
+  if (user) {
+    setLocation(user.role === 'admin' ? '/admin' : '/dashboard');
+    return null;
+  }
 
   const loginMutation = useMutation({
-    mutationFn: (data: typeof loginData) => {
-      const endpoint = isAdmin ? '/api/auth-admin/login' : '/api/auth/login';
-      return ApiService.post(endpoint, data);
+    mutationFn: async (data: LoginData) => {
+      const res = await apiRequest("POST", "/api/auth/login", data);
+      return res;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Login Successful",
-        description: isAdmin ? "Welcome to Admin Panel!" : "Welcome back!",
+        title: "Login successful",
+        description: `Welcome back, ${data.user.firstName}!`,
       });
+      setLocation(data.user.role === 'admin' ? '/admin' : '/dashboard');
     },
     onError: (error: any) => {
       toast({
-        title: "Login Failed",
+        title: "Login failed",
         description: error.message || "Invalid credentials",
         variant: "destructive",
       });
@@ -54,18 +70,22 @@ export default function Auth({ isAdmin = false }: AuthProps) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: (data: typeof registerData) => ApiService.post('/api/auth/register', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    mutationFn: async (data: RegisterData) => {
+      const res = await apiRequest("POST", "/api/auth/register", data);
+      return res;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Registration Successful",
-        description: "Welcome to BITPANDA PRO!",
+        title: "Registration successful",
+        description: `Welcome to BITPANDA PRO, ${data.user.firstName}!`,
       });
+      setLocation('/dashboard');
     },
     onError: (error: any) => {
       toast({
-        title: "Registration Failed",
-        description: error.message || "Failed to create account",
+        title: "Registration failed",
+        description: error.message || "Registration failed",
         variant: "destructive",
       });
     },
@@ -73,73 +93,46 @@ export default function Auth({ isAdmin = false }: AuthProps) {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate(loginData);
+    loginMutation.mutate(loginForm);
   };
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    registerMutation.mutate(registerData);
+    registerMutation.mutate(registerForm);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-green-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-background to-green-50 dark:from-green-950/20 dark:via-background dark:to-green-950/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-green-600 flex items-center justify-center mr-3">
-              <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-8 h-8 rounded-full" />
-            </div>
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">
-              BITPANDA PRO {isAdmin && 'Admin'}
-            </span>
-          </div>
-          <p className="text-slate-600 dark:text-slate-400">
-            {isAdmin
-              ? "Admin access to the cryptocurrency trading simulation platform"
-              : "Your gateway to cryptocurrency trading simulation"
-            }
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">BITPANDA PRO</h1>
+          <p className="text-muted-foreground">Your gateway to crypto trading</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {!isAdmin && (
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
-          )}
-          {isAdmin && (
-            <TabsList className="grid w-full grid-cols-1">
-              <TabsTrigger value="login">Admin Login</TabsTrigger>
-            </TabsList>
-          )}
+        <Card className="solid-card">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Welcome</CardTitle>
+            <CardDescription>Sign in to your account or create a new one</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="register">Sign Up</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="login">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <LogIn className="mr-2 h-5 w-5" />
-                  {isAdmin ? 'Admin Sign In' : 'Sign In'}
-                </CardTitle>
-                <CardDescription>
-                  {isAdmin
-                    ? 'Enter your admin credentials to access the control panel'
-                    : 'Enter your credentials to access your account'
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+              <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="emailOrUsername">Email or Username</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="emailOrUsername"
                         type="text"
-                        placeholder="Enter email or username"
-                        value={loginData.emailOrUsername}
-                        onChange={(e) => setLoginData({ ...loginData, emailOrUsername: e.target.value })}
+                        placeholder="Enter your email or username"
+                        value={loginForm.emailOrUsername}
+                        onChange={(e) => setLoginForm({ ...loginForm, emailOrUsername: e.target.value })}
                         className="pl-10"
                         required
                       />
@@ -147,88 +140,65 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="loginPassword">Password</Label>
+                    <Label htmlFor="login-password">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="loginPassword"
-                        type="password"
-                        placeholder="Enter password"
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                        className="pl-10"
+                        id="login-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={loginForm.password}
+                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                        className="pl-10 pr-10"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700"
+                  <Button 
+                    type="submit" 
+                    className="w-full btn-3d bg-green-600 hover:bg-green-700" 
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
+              </TabsContent>
 
-                {!isAdmin && (
-                  <div className="mt-4 space-y-2">
-                    <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-                      <Link href="/forgot-password">
-                        <span className="text-primary hover:underline cursor-pointer">
-                          Forgot your password?
-                        </span>
-                      </Link>
-                    </p>
-                    <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-                      Don't have an account?{" "}
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab("register")}
-                        className="text-primary hover:underline"
-                      >
-                        Sign up
-                      </button>
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {!isAdmin && <TabsContent value="register">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <UserPlus className="mr-2 h-5 w-5" />
-                  Create Account
-                </CardTitle>
-                <CardDescription>
-                  Join us and start your trading journey
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+              <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        type="text"
-                        placeholder="John"
-                        value={registerData.firstName}
-                        onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
-                        required
-                      />
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="firstName"
+                          type="text"
+                          placeholder="John"
+                          value={registerForm.firstName}
+                          onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input
                         id="lastName"
                         type="text"
                         placeholder="Doe"
-                        value={registerData.lastName}
-                        onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
+                        value={registerForm.lastName}
+                        onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
                         required
                       />
                     </div>
@@ -237,13 +207,13 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                   <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="username"
                         type="text"
-                        placeholder="Choose a username"
-                        value={registerData.username}
-                        onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+                        placeholder="johndoe"
+                        value={registerForm.username}
+                        onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
                         className="pl-10"
                         required
                       />
@@ -253,13 +223,13 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="email"
                         type="email"
                         placeholder="john@example.com"
-                        value={registerData.email}
-                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                        value={registerForm.email}
+                        onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                         className="pl-10"
                         required
                       />
@@ -267,34 +237,56 @@ export default function Auth({ isAdmin = false }: AuthProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="registerPassword">Password</Label>
+                    <Label htmlFor="phone">Phone (Optional)</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="registerPassword"
-                        type="password"
-                        placeholder="Create a password (min. 6 characters)"
-                        value={registerData.password}
-                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                        id="phone"
+                        type="tel"
+                        placeholder="+1 (555) 123-4567"
+                        value={registerForm.phone}
+                        onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
                         className="pl-10"
-                        minLength={6}
-                        required
                       />
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700"
+                  <div className="space-y-2">
+                    <Label htmlFor="register-password">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="register-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Create a strong password"
+                        value={registerForm.password}
+                        onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                        className="pl-10 pr-10"
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full btn-3d bg-green-600 hover:bg-green-700" 
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>
-              </CardContent>
-            </Card>
-          </TabsContent>}
-        </Tabs>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

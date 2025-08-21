@@ -21,6 +21,7 @@ import Help from "@/pages/Help";
 import Security from "./pages/Security";
 import Orders from "./pages/Orders";
 import NotFound from "@/pages/not-found";
+import Auth from "@/pages/Auth";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,7 +29,10 @@ function Router() {
   return (
     <Switch>
       {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/auth" component={Auth} />
+        </>
       ) : (
         <>
           <Route path="/" component={Dashboard} />

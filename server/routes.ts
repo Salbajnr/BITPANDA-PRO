@@ -41,26 +41,9 @@ const loginSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup Replit Auth first
-  try {
-    const { setupAuth, isAuthenticated } = await import("./replit-auth");
-    await setupAuth(app);
-    
-    // Add auth endpoints
-    app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-      try {
-        const { storage: authStorage } = await import("./auth-storage");
-        const userId = req.user.claims.sub;
-        const user = await authStorage.getUser(userId);
-        res.json(user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        res.status(500).json({ message: "Failed to fetch user" });
-      }
-    });
-  } catch (error) {
-    console.warn("Replit Auth setup failed, falling back to simple auth:", error);
-  }
+  // Setup simple email/password authentication
+  const { setupAuth } = await import("./simple-auth-new");
+  setupAuth(app);
 
   // Health check endpoint
   app.get('/health', (req, res) => {
@@ -81,14 +64,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
-  // Session middleware (fallback for simple auth)
-  app.use(createSessionMiddleware());
-
-  // Load user middleware (fallback for simple auth)
-  app.use(loadUser);
-
-  // Authentication routes (fallback for simple auth)
-  app.use('/api/auth', authRoutes);
+  // Legacy session middleware (still used by some routes)
+  // app.use(createSessionMiddleware());
+  // app.use(loadUser);
 
   // Portfolio routes (enhanced with real-time pricing)
   app.use('/api/portfolio', portfolioRoutes);

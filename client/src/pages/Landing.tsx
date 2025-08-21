@@ -159,11 +159,11 @@ export default function Landing() {
 
             {/* CTA Buttons - Bitpanda Style */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <a href="/api/login">
+              <Link href="/auth">
                 <Button size="lg" className="btn-3d bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
                   Get started
                 </Button>
-              </a>
+              </Link>
 
               <Button 
                 variant="outline" 
