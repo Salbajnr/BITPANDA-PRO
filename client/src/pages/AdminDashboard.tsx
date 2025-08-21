@@ -72,6 +72,15 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Selected user and balance adjustment state
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [balanceAdjustment, setBalanceAdjustment] = useState({
+    type: 'add',
+    amount: '',
+    reason: ''
+  });
 
   // Analytics state
   const [analyticsPeriod, setAnalyticsPeriod] = useState('30d');
@@ -309,7 +318,7 @@ export default function AdminDashboard() {
     { id: 'system', label: 'System Settings', icon: Settings },
   ];
 
-  const users = usersData?.users || [];
+  const usersList = usersData?.users || [];
   const totalUsers = usersData?.pagination?.total || 0;
   const transactions = transactionsDataQuery?.transactions || [];
   const analytics = analyticsOverviewData || {};
@@ -598,7 +607,7 @@ export default function AdminDashboard() {
                           </tr>
                         </thead>
                         <tbody>
-                          {users.map((user: User) => (
+                          {usersList.map((user: User) => (
                             <tr key={user.id} className="border-t border-slate-200 dark:border-slate-700">
                               <td className="p-4">
                                 <div className="flex items-center space-x-3">
@@ -768,7 +777,7 @@ export default function AdminDashboard() {
                     {/* Pagination */}
                     <div className="flex items-center justify-between p-4 border-t">
                       <div className="text-sm text-slate-500">
-                        Showing {users.length} of {totalUsers} users
+                        Showing {usersList.length} of {totalUsers} users
                       </div>
                       <div className="flex space-x-2">
                         <Button
@@ -783,7 +792,7 @@ export default function AdminDashboard() {
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(prev => prev + 1)}
-                          disabled={users.length < 20}
+                          disabled={usersList.length < 20}
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Button>

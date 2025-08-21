@@ -21,23 +21,42 @@ export const pool = databaseUrl
       connectionString: databaseUrl,
       ssl: {
         rejectUnauthorized: false
-      }
+      },
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+      connectionTimeoutMillis: 2000, // Connection timeout
     })
   : null;
 
 export const db = drizzle({ client: pool!, schema });
 
-// Test the connection
+// Enhanced connection testing with retry logic
 if (pool) {
-  pool.connect()
-    .then(client => {
-      console.log("✅ Database connected successfully");
-      client.release();
-    })
-    .catch(err => {
-      console.error("❌ Database connection failed:", err.message);
-      console.error("🔧 Please check your DATABASE_URL and network connection");
-    });
+  const testConnection = async (retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const client = await pool.connect();
+        console.log("✅ Database connected successfully");
+        client.release();
+        
+        // Test a simple query
+        await db.execute(schema.sql`SELECT 1`);
+        console.log("✅ Database query test successful");
+        return;
+      } catch (err: any) {
+        console.error(`❌ Database connection attempt ${i + 1} failed:`, err.message);
+        if (i === retries - 1) {
+          console.error("🔧 Please check your DATABASE_URL and network connection");
+          console.error("⚠️  Database operations will be limited until connection is restored");
+        } else {
+          console.log(`🔄 Retrying connection in 2 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+    }
+  };
+
+  testConnection();
 } else {
   console.warn("⚠️ Running without database connection - some features will be limited");
 }

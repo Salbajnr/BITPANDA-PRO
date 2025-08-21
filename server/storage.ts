@@ -394,13 +394,28 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAllTransactions(params: { page: number, limit: number, userId?: string, type?: string }): Promise<{ transactions: Transaction[], total: number }> {
+  async getAllTransactions(params: { page: number, limit: number, userId?: string, type?: string }): Promise<{ transactions: any[], total: number }> {
     try {
       const { page, limit, userId, type } = params;
       const offset = (page - 1) * limit;
 
       const db = this.ensureDb();
-      let query = db.select().from(transactions);
+      let query = db.select({
+        id: transactions.id,
+        userId: transactions.userId,
+        type: transactions.type,
+        symbol: transactions.symbol,
+        amount: transactions.amount,
+        price: transactions.price,
+        total: transactions.total,
+        status: transactions.status,
+        createdAt: transactions.createdAt,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName
+      }).from(transactions).leftJoin(users, eq(transactions.userId, users.id));
+
       let countQuery = db.select({ count: sql`count(*)` }).from(transactions);
 
       const conditions = [];

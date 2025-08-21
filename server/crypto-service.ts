@@ -20,45 +20,120 @@ interface CoinGeckoResponse {
 type CryptoSymbol = 'BTC' | 'ETH' | 'BNB' | 'ADA' | 'SOL' | 'XRP' | 'DOT' | 'DOGE' | 'AVAX' | 'MATIC' | 'LINK' | 'UNI' | 'LTC' | 'ALGO' | 'VET' | 'ICP' | 'FIL' | 'TRX' | 'ETC' | 'XLM';
 
 class CryptoService {
+  private baseUrl = 'https://api.coingecko.com/api/v3';
   private cache = new Map<string, { data: any; timestamp: number }>();
-  private readonly CACHE_TTL = 30000; // 30 seconds
-  private readonly API_BASE = 'https://api.coingecko.com/api/v3';
-  
-  // Popular cryptocurrencies with their CoinGecko IDs
-  private readonly CRYPTO_IDS: Record<CryptoSymbol, string> = {
-    'BTC': 'bitcoin',
-    'ETH': 'ethereum',
-    'BNB': 'binancecoin',
-    'ADA': 'cardano',
-    'SOL': 'solana',
-    'XRP': 'ripple',
-    'DOT': 'polkadot',
-    'DOGE': 'dogecoin',
-    'AVAX': 'avalanche-2',
-    'MATIC': 'matic-network',
-    'LINK': 'chainlink',
-    'UNI': 'uniswap',
-    'LTC': 'litecoin',
-    'ALGO': 'algorand',
-    'VET': 'vechain',
-    'ICP': 'internet-computer',
-    'FIL': 'filecoin',
-    'TRX': 'tron',
-    'ETC': 'ethereum-classic',
-    'XLM': 'stellar'
-  };
+  private cacheTimeout = 30000; // 30 seconds
+  private rateLimitDelay = 1000; // 1 second between requests
+  private lastRequestTime = 0;
+
+  private isValidCacheEntry(entry: { data: any; timestamp: number }): boolean {
+    return Date.now() - entry.timestamp < this.cacheTimeout;
+  }
+
+  private async rateLimitedFetch(url: string): Promise<Response> {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+
+    if (timeSinceLastRequest < this.rateLimitDelay) {
+      await new Promise(resolve => setTimeout(resolve, this.rateLimitDelay - timeSinceLastRequest));
+    }
+
+    this.lastRequestTime = Date.now();
+    return fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'BitpandaPro/1.0'
+      }
+    });
+  }
+
+  async getMarketData(symbols?: string[], limit: number = 50): Promise<any[]> {
+    const cacheKey = `market-${symbols?.join(',') || 'all'}-${limit}`;
+    const cachedData = this.cache.get(cacheKey);
+
+    if (cachedData && this.isValidCacheEntry(cachedData)) {
+      return cachedData.data;
+    }
+
+    try {
+      let url = `${this.baseUrl}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=1h,24h,7d`;
+
+      if (symbols && symbols.length > 0) {
+        const coinIds = symbols.map(s => s.toLowerCase()).join(',');
+        url += `&ids=${coinIds}`;
+      }
+
+      const response = await this.rateLimitedFetch(url);
+
+      if (response.status === 429) {
+        console.warn('Rate limited by CoinGecko, using cached data or fallback');
+        return this.getFallbackData(limit);
+      }
+
+      if (!response.ok) {
+        throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Transform data to match our expected format
+      const transformedData = data.map((coin: any) => ({
+        id: coin.id,
+        symbol: coin.symbol.toUpperCase(),
+        name: coin.name,
+        current_price: coin.current_price,
+        market_cap: coin.market_cap,
+        market_cap_rank: coin.market_cap_rank,
+        fully_diluted_valuation: coin.fully_diluted_valuation,
+        total_volume: coin.total_volume,
+        high_24h: coin.high_24h,
+        low_24h: coin.low_24h,
+        price_change_24h: coin.price_change_24h,
+        price_change_percentage_24h: coin.price_change_percentage_24h,
+        price_change_percentage_1h_in_currency: coin.price_change_percentage_1h_in_currency,
+        price_change_percentage_7d_in_currency: coin.price_change_percentage_7d_in_currency,
+        market_cap_change_24h: coin.market_cap_change_24h,
+        market_cap_change_percentage_24h: coin.market_cap_change_percentage_24h,
+        circulating_supply: coin.circulating_supply,
+        total_supply: coin.total_supply,
+        max_supply: coin.max_supply,
+        ath: coin.ath,
+        ath_change_percentage: coin.ath_change_percentage,
+        ath_date: coin.ath_date,
+        atl: coin.atl,
+        atl_change_percentage: coin.atl_change_percentage,
+        atl_date: coin.atl_date,
+        roi: coin.roi,
+        last_updated: coin.last_updated,
+        image: coin.image
+      }));
+
+      this.cache.set(cacheKey, { data: transformedData, timestamp: Date.now() });
+      return transformedData;
+    } catch (error) {
+      console.error('Error fetching crypto market data:', error);
+
+      // Return fallback data if API fails
+      return this.getFallbackData(limit);
+    }
+  }
 
   async getPrice(symbol: string): Promise<CryptoPrice | null> {
     const cached = this.cache.get(symbol);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+    if (cached && this.isValidCacheEntry(cached)) {
       return cached.data;
     }
 
     try {
       const coinId = this.CRYPTO_IDS[symbol.toUpperCase() as CryptoSymbol] || symbol.toLowerCase();
-      const response = await fetch(
-        `${this.API_BASE}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
+      const response = await this.rateLimitedFetch(
+        `${this.baseUrl}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
       );
+
+      if (response.status === 429) {
+        console.warn(`Rate limited for ${symbol}, using cached data or fallback`);
+        return this.getFallbackPrice(symbol);
+      }
 
       if (!response.ok) {
         throw new Error(`API responded with ${response.status}`);
@@ -100,15 +175,20 @@ class CryptoService {
   async getTopCryptos(limit: number = 20): Promise<CryptoPrice[]> {
     const cacheKey = `top_${limit}`;
     const cached = this.cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+    if (cached && this.isValidCacheEntry(cached)) {
       return cached.data;
     }
 
     try {
       const coinIds = Object.values(this.CRYPTO_IDS).slice(0, limit).join(',');
-      const response = await fetch(
-        `${this.API_BASE}/simple/price?ids=${coinIds}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
+      const response = await this.rateLimitedFetch(
+        `${this.baseUrl}/simple/price?ids=${coinIds}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
       );
+
+      if (response.status === 429) {
+        console.warn('Rate limited fetching top cryptos, using fallback');
+        return this.getFallbackTopCryptos(limit);
+      }
 
       if (!response.ok) {
         throw new Error(`API responded with ${response.status}`);
@@ -145,40 +225,40 @@ class CryptoService {
   }
 
   // Get comprehensive market data
-  async getMarketData(): Promise<any[]> {
-    const cacheKey = 'market_data';
-    const cached = this.cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-      return cached.data;
-    }
+  // async getMarketData(): Promise<any[]> { // This method is now integrated above
+  //   const cacheKey = 'market_data';
+  //   const cached = this.cache.get(cacheKey);
+  //   if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+  //     return cached.data;
+  //   }
 
-    try {
-      const response = await fetch(
-        `${this.API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
-      }
-      
-      const data = await response.json();
-      if (data && Array.isArray(data)) {
-        this.cache.set(cacheKey, { data, timestamp: Date.now() });
-        return data;
-      }
-      
-      throw new Error('Invalid data received from API');
-    } catch (error) {
-      console.error('Error fetching market data:', error);
-      return this.getFallbackMarketData();
-    }
-  }
+  //   try {
+  //     const response = await fetch(
+  //       `${this.API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d`
+  //     );
+
+  //     if (!response.ok) {
+  //       throw new Error(`API responded with ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     if (data && Array.isArray(data)) {
+  //       this.cache.set(cacheKey, { data, timestamp: Date.now() });
+  //       return data;
+  //     }
+
+  //     throw new Error('Invalid data received from API');
+  //   } catch (error) {
+  //     console.error('Error fetching market data:', error);
+  //     return this.getFallbackMarketData();
+  //   }
+  // }
 
   // Get price history for charting
   async getPriceHistory(symbol: string, period: string = '24h'): Promise<any[]> {
     const cacheKey = `history_${symbol}_${period}`;
     const cached = this.cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+    if (cached && this.isValidCacheEntry(cached)) {
       return cached.data;
     }
 
@@ -189,28 +269,33 @@ class CryptoService {
       if (period === '1y') days = '365';
 
       const coinId = this.CRYPTO_IDS[symbol.toUpperCase() as CryptoSymbol] || symbol.toLowerCase();
-      const response = await fetch(
-        `${this.API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${days === '1' ? 'hourly' : 'daily'}`
+      const response = await this.rateLimitedFetch(
+        `${this.baseUrl}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${days === '1' ? 'hourly' : 'daily'}`
       );
-      
+
+      if (response.status === 429) {
+        console.warn(`Rate limited for ${symbol} history, using fallback`);
+        return this.getFallbackPriceHistory(symbol);
+      }
+
       if (!response.ok) {
         throw new Error(`API responded with ${response.status}`);
       }
-      
+
       const data = await response.json();
       if (data.prices && Array.isArray(data.prices)) {
         const formattedData = data.prices.map(([timestamp, price]: [number, number]) => ({
-          timestamp: new Date(timestamp).toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+          timestamp: new Date(timestamp).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
           }),
           price: parseFloat(price.toFixed(2))
         }));
-        
+
         this.cache.set(cacheKey, { data: formattedData, timestamp: Date.now() });
         return formattedData;
       }
-      
+
       throw new Error('Invalid price history data');
     } catch (error) {
       console.error('Error fetching price history:', error);
@@ -222,17 +307,22 @@ class CryptoService {
   async getTrendingCryptos(): Promise<any[]> {
     const cacheKey = 'trending';
     const cached = this.cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+    if (cached && this.isValidCacheEntry(cached)) {
       return cached.data;
     }
 
     try {
-      const response = await fetch(`${this.API_BASE}/search/trending`);
-      
+      const response = await this.rateLimitedFetch(`${this.baseUrl}/search/trending`);
+
+      if (response.status === 429) {
+        console.warn('Rate limited for trending, using fallback');
+        return this.getFallbackTrendingData();
+      }
+
       if (!response.ok) {
         throw new Error(`API responded with ${response.status}`);
       }
-      
+
       const data = await response.json();
       if (data.coins && Array.isArray(data.coins)) {
         const trending = data.coins.map((coin: any) => ({
@@ -242,11 +332,11 @@ class CryptoService {
           market_cap_rank: coin.item.market_cap_rank,
           small: coin.item.small
         }));
-        
+
         this.cache.set(cacheKey, { data: trending, timestamp: Date.now() });
         return trending;
       }
-      
+
       throw new Error('Invalid trending data');
     } catch (error) {
       console.error('Error fetching trending data:', error);
@@ -269,7 +359,7 @@ class CryptoService {
     };
 
     const basePrice = fallbackPrices[symbol.toUpperCase()] || Math.random() * 1000 + 100;
-    
+
     return {
       symbol: symbol.toUpperCase(),
       name: this.getCryptoName(symbol),
@@ -328,20 +418,20 @@ class CryptoService {
   private getFallbackPriceHistory(symbol: string): any[] {
     const basePrice = symbol.toLowerCase() === 'btc' ? 45000 : symbol.toLowerCase() === 'eth' ? 2800 : 420;
     const data = [];
-    
+
     for (let i = 23; i >= 0; i--) {
       const variance = (Math.random() - 0.5) * 0.05; // ±2.5% variance
       const price = basePrice * (1 + variance);
-      
+
       data.push({
-        timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
         }),
         price: parseFloat(price.toFixed(2))
       });
     }
-    
+
     return data;
   }
 
@@ -431,6 +521,14 @@ class CryptoService {
 
   getCacheSize(): number {
     return this.cache.size;
+  }
+
+  private getFallbackData(limit: number): any[] {
+    // This fallback should mirror the structure of getMarketData
+    console.log(`Using fallback data for limit: ${limit}`);
+    // Return a subset of getFallbackMarketData if limit is smaller, or mock data
+    const mockData = this.getFallbackMarketData();
+    return mockData.slice(0, limit);
   }
 }
 
