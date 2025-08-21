@@ -26,7 +26,6 @@ import {
   Wallet,
   Timer,
   Eye,
-  European,
   Coins // Added Coins icon for the footer logo
 } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
@@ -384,6 +383,202 @@ export default function Landing() {
             >
               Learn more
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Asset Categories Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">500+ Assets to choose from</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Diversify your portfolio with cryptocurrencies, stocks, ETFs, precious metals and more
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: "₿",
+                title: "Cryptocurrencies",
+                description: "Bitcoin, Ethereum, and 100+ digital assets",
+                count: "100+ assets",
+                color: "from-orange-500 to-yellow-500"
+              },
+              {
+                icon: "📈",
+                title: "Stocks",
+                description: "Leading global companies and growth stocks",
+                count: "200+ stocks",
+                color: "from-blue-500 to-purple-500"
+              },
+              {
+                icon: "📊",
+                title: "ETFs",
+                description: "Diversified funds and sector ETFs",
+                count: "150+ ETFs",
+                color: "from-green-500 to-teal-500"
+              },
+              {
+                icon: "🥇",
+                title: "Precious Metals",
+                description: "Gold, Silver, Platinum and Palladium",
+                count: "4 metals",
+                color: "from-yellow-500 to-orange-500"
+              }
+            ].map((category, index) => (
+              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-xl group">
+                <CardContent className="p-8 text-center">
+                  <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 bg-gradient-to-r ${category.color} rounded-xl text-white text-2xl font-bold`}>
+                    {category.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{category.title}</h3>
+                  <p className="text-gray-600 mb-4 leading-relaxed">{category.description}</p>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 font-medium">
+                    {category.count}
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security & Trust Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Security you can trust</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Your security is our priority. BITPANDA PRO is regulated and uses industry-leading security measures
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Shield,
+                title: "EU Regulated",
+                description: "Licensed by the Austrian Financial Market Authority (FMA) and compliant with EU regulations.",
+                badge: "🇦🇹 Austria"
+              },
+              {
+                icon: Lock,
+                title: "Bank-Grade Security",
+                description: "Advanced encryption, multi-factor authentication, and cold storage for digital assets.",
+                badge: "256-bit SSL"
+              },
+              {
+                icon: Award,
+                title: "Deposit Protection",
+                description: "Your deposits are protected up to €100,000 by the Austrian Deposit Guarantee Scheme.",
+                badge: "€100k protected"
+              },
+              {
+                icon: Eye,
+                title: "Transparent Fees",
+                description: "No hidden costs. Clear, competitive pricing on all trades and transactions.",
+                badge: "0% deposit fees"
+              },
+              {
+                icon: Users,
+                title: "Trusted by Millions",
+                description: "Over 2 million active users trust BITPANDA PRO with their investments.",
+                badge: "2M+ users"
+              },
+              {
+                icon: Timer,
+                title: "24/7 Support",
+                description: "Round-the-clock customer support to help you with any questions or issues.",
+                badge: "Always available"
+              }
+            ].map((feature, index) => (
+              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg bg-white">
+                <CardContent className="p-8 text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-100 rounded-xl">
+                    <feature.icon className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 mb-4 leading-relaxed">{feature.description}</p>
+                  <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
+                    {feature.badge}
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Awards & Recognition Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Award-winning platform</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Recognized by industry leaders and trusted by investors across Europe
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { award: "Best Crypto Platform", year: "2024", org: "FinTech Awards" },
+              { award: "Most Trusted Broker", year: "2024", org: "Investment Weekly" },
+              { award: "Best User Experience", year: "2023", org: "Digital Finance" },
+              { award: "Top Security Rating", year: "2023", org: "CryptoCompare" }
+            ].map((award, index) => (
+              <div key={index} className="text-center p-6 rounded-xl bg-gray-50 border border-gray-200">
+                <Award className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <h4 className="font-bold text-gray-900 mb-2">{award.award}</h4>
+                <p className="text-sm text-gray-600">{award.org} {award.year}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-green-600 via-green-500 to-green-600 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to start investing?</h2>
+          <p className="text-xl mb-8 text-green-100 max-w-2xl mx-auto">
+            Join over 2 million investors who trust BITPANDA PRO. Start with just €1 and build your portfolio today.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link href="/auth">
+              <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
+                Get started now
+              </Button>
+            </Link>
+
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-2 border-white text-white hover:bg-white hover:text-green-600 px-12 py-4 rounded-lg text-lg h-14 font-semibold transition-all duration-200"
+            >
+              Learn more
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-green-100">
+            <span className="flex items-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Free to join
+            </span>
+            <span className="flex items-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Start from €1
+            </span>
+            <span className="flex items-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              0% deposit fees
+            </span>
+            <span className="flex items-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              EU regulated
+            </span>
           </div>
         </div>
       </section>

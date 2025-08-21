@@ -25,8 +25,8 @@ export default function LiveTicker() {
 
   // Combine and prepare ticker data
   const tickerItems: TickerItem[] = [
-    ...(cryptoData?.slice(0, 10) || []),
-    ...(metalsData?.slice(0, 3) || [])
+    ...(Array.isArray(cryptoData) ? cryptoData.slice(0, 10) : []),
+    ...(Array.isArray(metalsData) ? metalsData.slice(0, 3) : [])
   ];
 
   // Auto-scroll through ticker items
@@ -51,23 +51,24 @@ export default function LiveTicker() {
   }
 
   return (
-    <div className="bg-black text-white py-2 overflow-hidden border-b border-gray-800">
-      <div className="animate-marquee whitespace-nowrap flex items-center">
-        {tickerItems.concat(tickerItems).map((item, index) => (
-          <span key={index} className="mx-8 inline-flex items-center space-x-2">
-            <span className="font-medium">{item.symbol}</span>
-            <span className="text-green-400">
-              ${item.current_price?.toLocaleString() || '0'}
+    <div className="bg-black text-white py-3 overflow-hidden border-b border-gray-800">
+      <div className="animate-scroll-left whitespace-nowrap flex items-center">
+        {/* Duplicate the ticker items for seamless loop */}
+        {[...tickerItems, ...tickerItems, ...tickerItems].map((item, index) => (
+          <span key={index} className="mx-8 inline-flex items-center space-x-2 text-sm">
+            <span className="font-semibold text-gray-100">{item.symbol}</span>
+            <span className="text-white font-medium">
+              ${typeof item.current_price === 'number' ? item.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
             </span>
             <span 
-              className={`text-sm ${
+              className={`text-xs font-medium ${
                 (item.price_change_percentage_24h || 0) >= 0 
                   ? 'text-green-400' 
                   : 'text-red-400'
               }`}
             >
-              {(item.price_change_percentage_24h || 0) >= 0 ? '+' : ''}
-              {item.price_change_percentage_24h?.toFixed(2) || '0.00'}%
+              {(item.price_change_percentage_24h || 0) >= 0 ? '▲' : '▼'}
+              {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
             </span>
           </span>
         ))}

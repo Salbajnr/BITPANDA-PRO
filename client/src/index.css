@@ -98,6 +98,11 @@
   100% { transform: translateX(-100%); }
 }
 
+@keyframes scroll-left {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
@@ -115,6 +120,10 @@
 
 .animate-scroll {
   animation: ticker 40s linear infinite;
+}
+
+.animate-scroll-left {
+  animation: scroll-left 60s linear infinite;
 }
 
 .particle {
