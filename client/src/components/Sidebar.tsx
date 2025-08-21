@@ -25,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 // Dummy SidebarMenuButton component for demonstration purposes
 // In a real app, this would likely be imported from a UI library
-const SidebarMenuButton = ({ children, isActive, onClick }) => (
+const SidebarMenuButton = ({ children, isActive, onClick }: { children: React.ReactNode; isActive: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
     className={cn(
@@ -40,7 +40,7 @@ const SidebarMenuButton = ({ children, isActive, onClick }) => (
 );
 
 // Dummy navigate function for demonstration purposes
-const navigate = (path) => console.log(`Navigating to ${path}`);
+const navigate = (path: string) => console.log(`Navigating to ${path}`);
 
 
 interface SidebarProps {

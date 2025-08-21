@@ -37,9 +37,11 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center space-x-2 cursor-pointer">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                  <Coins className="w-5 h-5 text-white" />
-                </div>
+                <img 
+                  src="/src/assets/bitpanda-logo.svg" 
+                  alt="BITPANDA PRO" 
+                  className="w-8 h-8"
+                />
                 <span className="text-xl font-bold text-gray-900">BITPANDA PRO</span>
               </div>
             </Link>
