@@ -41,9 +41,9 @@ const loginSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup simple email/password authentication
-  const { setupAuth } = await import("./simple-auth-new");
-  setupAuth(app);
+  // Setup session middleware
+  app.use(createSessionMiddleware());
+  app.use(loadUser);
 
   // Health check endpoint
   app.get('/health', (req, res) => {
@@ -64,9 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
-  // Legacy session middleware (still used by some routes)
-  // app.use(createSessionMiddleware());
-  // app.use(loadUser);
+
 
   // Portfolio routes (enhanced with real-time pricing)
   app.use('/api/portfolio', portfolioRoutes);
