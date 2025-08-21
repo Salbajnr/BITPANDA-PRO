@@ -127,12 +127,12 @@ export default function Landing() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background transition-colors">
       <Navbar />
       <LiveTicker />
 
       {/* Hero Section - Following Bitpanda's exact style */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50 pt-24 pb-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-background to-green-50 dark:from-green-950/20 dark:via-background dark:to-green-950/20 pt-24 pb-20 transition-colors">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 left-0 w-96 h-96 bg-green-500 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-400 rounded-full blur-3xl"></div>
@@ -147,13 +147,13 @@ export default function Landing() {
             </div>
 
             {/* Main Heading - Bitpanda Style */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
               BITPANDA PRO -
-              <span className="text-green-600 block mt-2">Start investing today</span>
+              <span className="text-green-600 dark:text-green-400 block mt-2">Start investing today</span>
             </h1>
 
             {/* Subtitle - Exact Bitpanda copy */}
-            <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-4xl mx-auto leading-relaxed font-medium">
+            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed font-medium">
               Trade in minutes from only €1. Your No.1 European broker for stocks, crypto, indices, ETFs and precious metals. Trade 24/7. Fee-free on all deposits.
             </p>
 
@@ -177,11 +177,11 @@ export default function Landing() {
             {/* Trust Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {trustIndicators.map((indicator, index) => (
-                <div key={index} className="flex items-center justify-center space-x-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div key={index} className="flex items-center justify-center space-x-3 solid-card p-4 transition-all duration-200 hover:scale-105">
                   <span className="text-2xl">{indicator.badge}</span>
                   <div className="text-left">
-                    <div className="font-semibold text-gray-900 text-sm">{indicator.title}</div>
-                    <div className="text-xs text-gray-600">{indicator.description}</div>
+                    <div className="font-semibold text-card-foreground text-sm">{indicator.title}</div>
+                    <div className="text-xs text-muted-foreground">{indicator.description}</div>
                   </div>
                 </div>
               ))}
@@ -191,11 +191,11 @@ export default function Landing() {
       </section>
 
       {/* How it works Section - Bitpanda Exact Pattern */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted/30 dark:bg-muted/10 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How to get started</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-foreground mb-4">How to get started</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Create your account and start trading in just a few minutes
             </p>
           </div>
@@ -249,19 +249,19 @@ export default function Landing() {
       </section>
 
       {/* Live Market Data */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Live prices</h2>
-            <p className="text-xl text-gray-600">Real-time market data for top cryptocurrencies</p>
+            <h2 className="text-4xl font-bold text-foreground mb-4">Live prices</h2>
+            <p className="text-xl text-muted-foreground">Real-time market data for top cryptocurrencies</p>
           </div>
 
           <div className="grid gap-4 max-w-5xl mx-auto">
             {topCryptos.map((crypto, index) => (
-              <Card key={crypto.symbol} className="border border-gray-200 hover:border-green-300 transition-all duration-200 hover:shadow-md">
+              <Card key={crypto.symbol} className="solid-card hover:border-green-300 transition-all duration-200 group">
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-muted flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                       <img 
                         src={getCryptoLogo(crypto.symbol)} 
                         alt={crypto.name}
@@ -269,17 +269,17 @@ export default function Landing() {
                       />
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 text-lg">{crypto.name}</div>
-                      <div className="text-sm text-gray-500 uppercase">{crypto.symbol}</div>
+                      <div className="font-bold text-card-foreground text-lg">{crypto.name}</div>
+                      <div className="text-sm text-muted-foreground uppercase">{crypto.symbol}</div>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <div className="font-bold text-gray-900 text-xl">
+                    <div className="font-bold text-card-foreground text-xl">
                       €{crypto.price.toLocaleString()}
                     </div>
                     <div className={`text-sm flex items-center justify-end font-medium ${
-                      crypto.change >= 0 ? 'text-green-600' : 'text-red-500'
+                      crypto.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
                     }`}>
                       {crypto.change >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
                       {crypto.change >= 0 ? '+' : ''}{crypto.change}%
@@ -287,8 +287,8 @@ export default function Landing() {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-sm text-gray-500 mb-1">24h Volume</div>
-                    <div className="font-semibold text-gray-900">{crypto.volume}</div>
+                    <div className="text-sm text-muted-foreground mb-1">24h Volume</div>
+                    <div className="font-semibold text-card-foreground">{crypto.volume}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -298,26 +298,26 @@ export default function Landing() {
       </section>
 
       {/* Features Section - Bitpanda style */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted/30 dark:bg-muted/10 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why choose BITPANDA PRO</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Why choose BITPANDA PRO</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Europe's leading investment platform combining traditional and digital assets
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg bg-white">
+              <Card key={index} className="solid-card hover:border-green-300 transition-all duration-300 group">
                 <CardHeader className="text-center pb-4">
-                  <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-lg">
-                    <feature.icon className="w-8 h-8 text-green-600" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-green-100 dark:bg-green-900/30 rounded-xl group-hover:scale-110 transition-transform duration-200">
+                    <feature.icon className="w-8 h-8 text-green-600 dark:text-green-400" />
                   </div>
-                  <CardTitle className="text-xl font-bold text-gray-900 mb-2">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl font-bold text-card-foreground mb-2">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center pt-0">
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -388,11 +388,11 @@ export default function Landing() {
       </section>
 
       {/* Asset Categories Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">500+ Assets to choose from</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-foreground mb-4">500+ Assets to choose from</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Diversify your portfolio with cryptocurrencies, stocks, ETFs, precious metals and more
             </p>
           </div>
@@ -428,14 +428,14 @@ export default function Landing() {
                 color: "from-yellow-500 to-orange-500"
               }
             ].map((category, index) => (
-              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-xl group">
+              <Card key={index} className="solid-card hover:border-green-300 transition-all duration-300 group">
                 <CardContent className="p-8 text-center">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 bg-gradient-to-r ${category.color} rounded-xl text-white text-2xl font-bold`}>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 bg-gradient-to-r ${category.color} rounded-xl text-white text-2xl font-bold group-hover:scale-110 transition-transform duration-200 shadow-lg`}>
                     {category.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{category.title}</h3>
-                  <p className="text-gray-600 mb-4 leading-relaxed">{category.description}</p>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 font-medium">
+                  <h3 className="text-xl font-bold text-card-foreground mb-3">{category.title}</h3>
+                  <p className="text-muted-foreground mb-4 leading-relaxed">{category.description}</p>
+                  <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 font-medium border border-green-200 dark:border-green-700">
                     {category.count}
                   </Badge>
                 </CardContent>
@@ -446,11 +446,11 @@ export default function Landing() {
       </section>
 
       {/* Security & Trust Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted/30 dark:bg-muted/10 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Security you can trust</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Security you can trust</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Your security is our priority. BITPANDA PRO is regulated and uses industry-leading security measures
             </p>
           </div>
@@ -494,14 +494,14 @@ export default function Landing() {
                 badge: "Always available"
               }
             ].map((feature, index) => (
-              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg bg-white">
+              <Card key={index} className="solid-card hover:border-green-300 transition-all duration-300 group">
                 <CardContent className="p-8 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-100 rounded-xl">
-                    <feature.icon className="w-8 h-8 text-green-600" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-100 dark:bg-green-900/30 rounded-xl group-hover:scale-110 transition-transform duration-200">
+                    <feature.icon className="w-8 h-8 text-green-600 dark:text-green-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 mb-4 leading-relaxed">{feature.description}</p>
-                  <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
+                  <h3 className="text-xl font-bold text-card-foreground mb-3">{feature.title}</h3>
+                  <p className="text-muted-foreground mb-4 leading-relaxed">{feature.description}</p>
+                  <Badge variant="outline" className="border-green-200 dark:border-green-700 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20">
                     {feature.badge}
                   </Badge>
                 </CardContent>
@@ -512,11 +512,11 @@ export default function Landing() {
       </section>
 
       {/* Awards & Recognition Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Award-winning platform</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Award-winning platform</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Recognized by industry leaders and trusted by investors across Europe
             </p>
           </div>
@@ -528,10 +528,10 @@ export default function Landing() {
               { award: "Best User Experience", year: "2023", org: "Digital Finance" },
               { award: "Top Security Rating", year: "2023", org: "CryptoCompare" }
             ].map((award, index) => (
-              <div key={index} className="text-center p-6 rounded-xl bg-gray-50 border border-gray-200">
-                <Award className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <h4 className="font-bold text-gray-900 mb-2">{award.award}</h4>
-                <p className="text-sm text-gray-600">{award.org} {award.year}</p>
+              <div key={index} className="text-center p-6 solid-card hover:scale-105 transition-all duration-200 group">
+                <Award className="w-12 h-12 text-green-600 dark:text-green-400 mx-auto mb-4 group-hover:scale-110 transition-transform duration-200" />
+                <h4 className="font-bold text-card-foreground mb-2">{award.award}</h4>
+                <p className="text-sm text-muted-foreground">{award.org} {award.year}</p>
               </div>
             ))}
           </div>
@@ -584,7 +584,7 @@ export default function Landing() {
       </section>
 
       {/* Footer - Bitpanda Exact Pattern */}
-      <footer className="bg-gray-900 text-white py-16">
+      <footer className="bg-gray-900 dark:bg-gray-950 text-white py-16 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             {/* Company Info */}

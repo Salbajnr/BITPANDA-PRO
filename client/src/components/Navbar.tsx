@@ -23,6 +23,7 @@ import {
   Search, Newspaper, BookOpen, ChevronDown,
   CreditCard, Smartphone, Globe
 } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -30,7 +31,7 @@ export default function Navbar() {
   const [, navigate] = useLocation();
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-background border-b border-border sticky top-0 z-50 shadow-sm transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Bitpanda Style */}
@@ -42,7 +43,7 @@ export default function Navbar() {
                   alt="BITPANDA PRO" 
                   className="w-8 h-8"
                 />
-                <span className="text-xl font-bold text-gray-900">BITPANDA PRO</span>
+                <span className="text-xl font-bold text-foreground">BITPANDA PRO</span>
               </div>
             </Link>
           </div>
@@ -216,10 +217,11 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-4">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-700 hover:text-green-600 font-medium"
+              className="text-foreground hover:text-green-600 font-medium"
             >
               Log in
             </Button>
