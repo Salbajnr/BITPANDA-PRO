@@ -20,6 +20,7 @@ export class ApiService {
     const url = `${this.baseURL}${endpoint}`;
 
     const config: RequestInit = {
+      credentials: 'include', // Include cookies for session auth
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,

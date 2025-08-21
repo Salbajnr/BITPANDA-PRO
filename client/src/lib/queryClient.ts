@@ -42,22 +42,34 @@ export const queryClient = new QueryClient({
   },
 });
 
-export const apiRequest = async (url: string, options: RequestInit = {}) => {
-  const response = await fetch(url, {
+export const apiRequest = async (method: string, url: string, data?: any) => {
+  const options: RequestInit = {
+    method,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
     },
-    ...options,
-  });
+  };
+
+  if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+    options.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(url, options);
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Don't redirect automatically for API requests
-      throw new Error('Unauthorized');
+      throw new Error('401: Unauthorized');
     }
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const errorText = await response.text();
+    let errorMessage;
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.message || `HTTP error! status: ${response.status}`;
+    } catch {
+      errorMessage = `HTTP error! status: ${response.status}`;
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
