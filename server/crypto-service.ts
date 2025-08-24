@@ -1,3 +1,5 @@
+import config from './config';
+
 interface CryptoPrice {
   symbol: string;
   name: string;
@@ -17,14 +19,37 @@ interface CoinGeckoResponse {
   };
 }
 
-type CryptoSymbol = 'BTC' | 'ETH' | 'BNB' | 'ADA' | 'SOL' | 'XRP' | 'DOT' | 'DOGE' | 'AVAX' | 'MATIC' | 'LINK' | 'UNI' | 'LTC' | 'ALGO' | 'VET' | 'ICP' | 'FIL' | 'TRX' | 'ETC' | 'XLM';
-
 class CryptoService {
-  private baseUrl = 'https://api.coingecko.com/api/v3';
+  private baseUrl = config.coinGeckoBaseUrl;
   private cache = new Map<string, { data: any; timestamp: number }>();
-  private cacheTimeout = 30000; // 30 seconds
-  private rateLimitDelay = 1000; // 1 second between requests
+  private cacheTimeout = config.cacheTimeout;
+  private rateLimitDelay = 1100; // 1.1 second between requests for free tier
   private lastRequestTime = 0;
+  private apiKey = config.coinGeckoApiKey;
+
+  // Map symbols to CoinGecko IDs
+  private CRYPTO_IDS: Record<string, string> = {
+    'BTC': 'bitcoin',
+    'ETH': 'ethereum',
+    'BNB': 'binancecoin',
+    'ADA': 'cardano',
+    'SOL': 'solana',
+    'XRP': 'ripple',
+    'DOT': 'polkadot',
+    'DOGE': 'dogecoin',
+    'AVAX': 'avalanche-2',
+    'MATIC': 'matic-network',
+    'LINK': 'chainlink',
+    'UNI': 'uniswap',
+    'LTC': 'litecoin',
+    'ALGO': 'algorand',
+    'VET': 'vechain',
+    'ICP': 'internet-computer',
+    'FIL': 'filecoin',
+    'TRX': 'tron',
+    'ETC': 'ethereum-classic',
+    'XLM': 'stellar'
+  };
 
   private isValidCacheEntry(entry: { data: any; timestamp: number }): boolean {
     return Date.now() - entry.timestamp < this.cacheTimeout;
@@ -39,12 +64,18 @@ class CryptoService {
     }
 
     this.lastRequestTime = Date.now();
-    return fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'BitpandaPro/1.0'
-      }
-    });
+    
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'User-Agent': 'BitpandaPro/1.0'
+    };
+    
+    // Add API key if available (Pro tier)
+    if (this.apiKey) {
+      headers['x-cg-pro-api-key'] = this.apiKey;
+    }
+    
+    return fetch(url, { headers });
   }
 
   async getMarketData(symbols?: string[], limit: number = 50): Promise<any[]> {
@@ -119,24 +150,27 @@ class CryptoService {
   }
 
   async getPrice(symbol: string): Promise<CryptoPrice | null> {
-    const cached = this.cache.get(symbol);
+    const cacheKey = `price_${symbol.toLowerCase()}`;
+    const cached = this.cache.get(cacheKey);
     if (cached && this.isValidCacheEntry(cached)) {
       return cached.data;
     }
 
     try {
-      const coinId = this.CRYPTO_IDS[symbol.toUpperCase() as CryptoSymbol] || symbol.toLowerCase();
+      const coinId = this.CRYPTO_IDS[symbol.toUpperCase()] || symbol.toLowerCase();
       const response = await this.rateLimitedFetch(
         `${this.baseUrl}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
       );
 
       if (response.status === 429) {
         console.warn(`Rate limited for ${symbol}, using cached data or fallback`);
-        return this.getFallbackPrice(symbol);
+        const fallback = this.getFallbackPrice(symbol);
+        return fallback;
       }
 
       if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
+        console.error(`CoinGecko API error for ${symbol}: ${response.status} ${response.statusText}`);
+        return this.getFallbackPrice(symbol);
       }
 
       const data: CoinGeckoResponse = await response.json();
@@ -157,7 +191,7 @@ class CryptoService {
         last_updated: new Date().toISOString()
       };
 
-      this.cache.set(symbol, { data: cryptoPrice, timestamp: Date.now() });
+      this.cache.set(cacheKey, { data: cryptoPrice, timestamp: Date.now() });
       return cryptoPrice;
     } catch (error) {
       console.error(`Error fetching price for ${symbol}:`, error);
@@ -180,9 +214,9 @@ class CryptoService {
     }
 
     try {
-      const coinIds = Object.values(this.CRYPTO_IDS).slice(0, limit).join(',');
+      // Use the markets endpoint for better data
       const response = await this.rateLimitedFetch(
-        `${this.baseUrl}/simple/price?ids=${coinIds}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
+        `${this.baseUrl}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`
       );
 
       if (response.status === 429) {
@@ -191,33 +225,29 @@ class CryptoService {
       }
 
       if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
+        console.error(`CoinGecko markets API error: ${response.status} ${response.statusText}`);
+        return this.getFallbackTopCryptos(limit);
       }
 
-      const data: CoinGeckoResponse = await response.json();
-      const topCryptos: CryptoPrice[] = [];
-
-      for (const [symbol, coinId] of Object.entries(this.CRYPTO_IDS)) {
-        const priceData = data[coinId];
-        if (priceData) {
-          topCryptos.push({
-            symbol,
-            name: this.getCryptoName(symbol),
-            price: priceData.usd,
-            change_24h: priceData.usd_24h_change || 0,
-            volume_24h: priceData.usd_24h_vol || 0,
-            market_cap: priceData.usd_market_cap || 0,
-            last_updated: new Date().toISOString()
-          });
-        }
+      const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        console.error('Invalid data format from markets API');
+        return this.getFallbackTopCryptos(limit);
       }
 
-      // Sort by market cap descending
-      topCryptos.sort((a, b) => b.market_cap - a.market_cap);
-      const result = topCryptos.slice(0, limit);
+      const topCryptos: CryptoPrice[] = data.map((coin: any) => ({
+        symbol: coin.symbol.toUpperCase(),
+        name: coin.name,
+        price: coin.current_price || 0,
+        change_24h: coin.price_change_percentage_24h || 0,
+        volume_24h: coin.total_volume || 0,
+        market_cap: coin.market_cap || 0,
+        last_updated: new Date().toISOString()
+      }));
 
-      this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
-      return result;
+      this.cache.set(cacheKey, { data: topCryptos, timestamp: Date.now() });
+      return topCryptos;
     } catch (error) {
       console.error('Error fetching top cryptos:', error);
       return this.getFallbackTopCryptos(limit);

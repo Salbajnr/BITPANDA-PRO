@@ -727,13 +727,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   price: priceData.usd,
                   change_24h: priceData.usd_24h_change || 0,
                   volume_24h: priceData.usd_24h_vol || 0,
+                  market_cap: priceData.usd_market_cap || 0,
                   timestamp: Date.now()
                 }));
               }
             }
           }
 
-          // Start sending periodic price updates (every 10 seconds for real API)
+          // Start sending periodic price updates (every 30 seconds for free API tier)
           const interval = setInterval(async () => {
             if (ws.readyState === ws.OPEN) {
               try {
@@ -750,27 +751,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         price: priceData.usd,
                         change_24h: priceData.usd_24h_change || 0,
                         volume_24h: priceData.usd_24h_vol || 0,
+                        market_cap: priceData.usd_market_cap || 0,
                         timestamp: Date.now()
                       }));
                     }
                   }
                 } else {
-                  // Fallback to simulated data if API fails
+                  // Use our crypto service as fallback
+                  const { cryptoService } = await import('./crypto-service');
                   for (const symbol of message.symbols) {
-                    const basePrice = symbol === 'bitcoin' ? 45000 :
-                                    symbol === 'ethereum' ? 2500 :
-                                    Math.random() * 1000 + 100;
-
-                    const priceUpdate = {
-                      type: 'price_update',
-                      symbol: symbol,
-                      price: basePrice * (0.98 + Math.random() * 0.04),
-                      change_24h: (Math.random() - 0.5) * 10,
-                      volume_24h: Math.random() * 1000000000,
-                      timestamp: Date.now()
-                    };
-
-                    ws.send(JSON.stringify(priceUpdate));
+                    try {
+                      const symbolKey = symbol.replace('bitcoin', 'BTC').replace('ethereum', 'ETH').toUpperCase();
+                      const priceData = await cryptoService.getPrice(symbolKey);
+                      
+                      if (priceData) {
+                        ws.send(JSON.stringify({
+                          type: 'price_update',
+                          symbol: symbol,
+                          price: priceData.price,
+                          change_24h: priceData.change_24h,
+                          volume_24h: priceData.volume_24h,
+                          market_cap: priceData.market_cap,
+                          timestamp: Date.now()
+                        }));
+                      }
+                    } catch (error) {
+                      console.error(`Error fetching price for ${symbol}:`, error);
+                    }
                   }
                 }
               } catch (error) {
@@ -782,7 +789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               clearInterval(interval);
               clientSubscriptions.delete(clientId);
             }
-          }, 10000); // 10 seconds for real API calls
+          }, 30000); // 30 seconds for free API calls
 
           // Store subscription
           clientSubscriptions.set(clientId, { interval, symbols: message.symbols });

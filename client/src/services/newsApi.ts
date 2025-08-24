@@ -22,15 +22,30 @@ export interface NewsResponse {
 }
 
 class NewsApiService {
-  private readonly NEWS_API_KEY = 'demo'; // In production, use environment variable
+  private readonly NEWS_API_KEY = process.env.NEWS_API_KEY || 'demo';
   private readonly BASE_URL = 'https://newsapi.org/v2';
+  private readonly BACKEND_URL = '/api/news';
   private readonly CRYPTO_NEWS_SOURCES = [
     'crypto-coins-news',
-    'the-verge',
-    'techcrunch',
-    'ars-technica',
-    'wired'
+    'coindesk',
+    'cointelegraph'
   ];
+  
+  // Cache for API responses
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private readonly CACHE_DURATION = 300000; // 5 minutes
+
+  private getCachedData(key: string) {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+      return cached.data;
+    }
+    return null;
+  }
+
+  private setCachedData(key: string, data: any) {
+    this.cache.set(key, { data, timestamp: Date.now() });
+  }
 
   // Fallback news data for when API is unavailable
   private fallbackNews: NewsArticle[] = [
@@ -109,43 +124,189 @@ class NewsApiService {
   ];
 
   async getCryptoNews(category?: string, limit: number = 20): Promise<NewsResponse> {
+    const cacheKey = `news-${category || 'all'}-${limit}`;
+    const cached = this.getCachedData(cacheKey);
+    
+    if (cached) {
+      return cached;
+    }
+
     try {
-      // In a real implementation, you would use actual API calls
-      // For demo purposes, we'll use fallback data with some randomization
+      // Try backend API first
+      const backendResponse = await fetch(`${this.BACKEND_URL}?limit=${limit}`);
       
-      let articles = [...this.fallbackNews];
-      
-      // Filter by category if specified
-      if (category && category !== 'all') {
-        articles = articles.filter(article => 
-          article.category === category || 
-          (article.coins && article.coins.includes(category))
-        );
+      if (backendResponse.ok) {
+        const backendData = await backendResponse.json();
+        const response = {
+          articles: backendData,
+          totalResults: backendData.length,
+          status: 'ok'
+        };
+        this.setCachedData(cacheKey, response);
+        return response;
       }
 
-      // Add some randomization to simulate fresh content
-      articles = articles.map(article => ({
-        ...article,
-        publishedAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString()
-      }));
+      // Try real NewsAPI if we have a valid key
+      if (this.NEWS_API_KEY && this.NEWS_API_KEY !== 'demo') {
+        const newsApiResponse = await this.fetchFromNewsAPI(category, limit);
+        if (newsApiResponse) {
+          this.setCachedData(cacheKey, newsApiResponse);
+          return newsApiResponse;
+        }
+      }
 
-      // Sort by published date (newest first)
-      articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+      // Try CryptoPanic API as alternative
+      const cryptoPanicResponse = await this.fetchFromCryptoPanic(limit);
+      if (cryptoPanicResponse) {
+        this.setCachedData(cacheKey, cryptoPanicResponse);
+        return cryptoPanicResponse;
+      }
 
-      return {
-        articles: articles.slice(0, limit),
-        totalResults: articles.length,
-        status: 'ok'
-      };
+      // Fallback to mock data
+      return this.getFallbackNewsResponse(category, limit);
 
     } catch (error) {
       console.error('Error fetching crypto news:', error);
-      return {
-        articles: this.fallbackNews.slice(0, limit),
-        totalResults: this.fallbackNews.length,
-        status: 'error'
-      };
+      return this.getFallbackNewsResponse(category, limit);
     }
+  }
+
+  private async fetchFromNewsAPI(category?: string, limit: number = 20): Promise<NewsResponse | null> {
+    try {
+      const query = category && category !== 'all' ? category : 'cryptocurrency';
+      const url = `${this.BASE_URL}/everything?q=${query}&sortBy=publishedAt&pageSize=${limit}&apiKey=${this.NEWS_API_KEY}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`NewsAPI error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      const articles = data.articles.map((article: any) => ({
+        id: article.url,
+        title: article.title,
+        description: article.description,
+        url: article.url,
+        urlToImage: article.urlToImage,
+        publishedAt: article.publishedAt,
+        source: article.source,
+        category: this.categorizeArticle(article.title, article.description),
+        sentiment: this.analyzeSentiment(article.title, article.description),
+        coins: this.extractCoins(article.title, article.description)
+      }));
+
+      return {
+        articles,
+        totalResults: data.totalResults,
+        status: 'ok'
+      };
+    } catch (error) {
+      console.error('NewsAPI fetch failed:', error);
+      return null;
+    }
+  }
+
+  private async fetchFromCryptoPanic(limit: number = 20): Promise<NewsResponse | null> {
+    try {
+      // CryptoPanic provides free crypto news API
+      const response = await fetch(`https://cryptopanic.com/api/v1/posts/?auth_token=free&kind=news&page=1`);
+      
+      if (!response.ok) {
+        throw new Error(`CryptoPanic error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      const articles = data.results.slice(0, limit).map((post: any) => ({
+        id: post.id.toString(),
+        title: post.title,
+        description: post.title, // CryptoPanic doesn't provide descriptions
+        url: post.url,
+        urlToImage: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        publishedAt: post.published_at,
+        source: { id: 'cryptopanic', name: 'CryptoPanic' },
+        category: 'cryptocurrency',
+        sentiment: post.votes?.positive > post.votes?.negative ? 'positive' : 'negative',
+        coins: post.currencies?.map((c: any) => c.code.toLowerCase()) || []
+      }));
+
+      return {
+        articles,
+        totalResults: data.count,
+        status: 'ok'
+      };
+    } catch (error) {
+      console.error('CryptoPanic fetch failed:', error);
+      return null;
+    }
+  }
+
+  private getFallbackNewsResponse(category?: string, limit: number = 20): NewsResponse {
+    let articles = [...this.fallbackNews];
+    
+    // Filter by category if specified
+    if (category && category !== 'all') {
+      articles = articles.filter(article => 
+        article.category === category || 
+        (article.coins && article.coins.includes(category))
+      );
+    }
+
+    // Add some randomization to simulate fresh content
+    articles = articles.map(article => ({
+      ...article,
+      publishedAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString()
+    }));
+
+    // Sort by published date (newest first)
+    articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
+    return {
+      articles: articles.slice(0, limit),
+      totalResults: articles.length,
+      status: 'ok'
+    };
+  }
+
+  private categorizeArticle(title: string, description: string): string {
+    const text = `${title} ${description}`.toLowerCase();
+    
+    if (text.includes('bitcoin') || text.includes('btc')) return 'bitcoin';
+    if (text.includes('ethereum') || text.includes('eth')) return 'ethereum';
+    if (text.includes('defi') || text.includes('decentralized')) return 'defi';
+    if (text.includes('nft') || text.includes('non-fungible')) return 'nft';
+    if (text.includes('regulation') || text.includes('sec')) return 'regulation';
+    if (text.includes('blockchain')) return 'blockchain';
+    
+    return 'cryptocurrency';
+  }
+
+  private analyzeSentiment(title: string, description: string): 'positive' | 'negative' | 'neutral' {
+    const text = `${title} ${description}`.toLowerCase();
+    
+    const positiveWords = ['rise', 'surge', 'bull', 'gain', 'profit', 'success', 'breakthrough'];
+    const negativeWords = ['fall', 'crash', 'bear', 'loss', 'decline', 'risk', 'hack'];
+    
+    const positiveCount = positiveWords.filter(word => text.includes(word)).length;
+    const negativeCount = negativeWords.filter(word => text.includes(word)).length;
+    
+    if (positiveCount > negativeCount) return 'positive';
+    if (negativeCount > positiveCount) return 'negative';
+    return 'neutral';
+  }
+
+  private extractCoins(title: string, description: string): string[] {
+    const text = `${title} ${description}`.toLowerCase();
+    const coins = [];
+    
+    if (text.includes('bitcoin') || text.includes('btc')) coins.push('bitcoin');
+    if (text.includes('ethereum') || text.includes('eth')) coins.push('ethereum');
+    if (text.includes('cardano') || text.includes('ada')) coins.push('cardano');
+    if (text.includes('solana') || text.includes('sol')) coins.push('solana');
+    
+    return coins;
   }
 
   async getNewsById(id: string): Promise<NewsArticle | null> {

@@ -61,12 +61,45 @@ export class CryptoApiService {
     }
 
     try {
+      // Try our backend API first
+      const backendResponse = await fetch(`/api/crypto/top/${limit}`);
+      
+      if (backendResponse.ok) {
+        const backendData = await backendResponse.json();
+        const mappedData = backendData.map((crypto: any) => ({
+          id: crypto.symbol.toLowerCase(),
+          symbol: crypto.symbol.toLowerCase(),
+          name: crypto.name,
+          image: `https://assets.coingecko.com/coins/images/1/large/${crypto.symbol.toLowerCase()}.png`,
+          current_price: crypto.price,
+          market_cap: crypto.market_cap,
+          market_cap_rank: 0,
+          price_change_percentage_24h: crypto.change_24h,
+          total_volume: crypto.volume_24h,
+          high_24h: crypto.price * 1.05,
+          low_24h: crypto.price * 0.95,
+          circulating_supply: 0,
+          ath: crypto.price * 2,
+          ath_change_percentage: -50,
+          last_updated: crypto.last_updated,
+        }));
+        
+        this.setCachedData(cacheKey, mappedData);
+        return mappedData;
+      }
+
+      // Fallback to direct CoinGecko API
       const response = await fetch(
-        `${this.BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`
+        `${this.BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          }
+        }
       );
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        throw new Error(`CoinGecko API request failed: ${response.status}`);
       }
 
       const data = await response.json();
@@ -75,24 +108,24 @@ export class CryptoApiService {
         symbol: coin.symbol,
         name: coin.name,
         image: coin.image,
-        current_price: coin.current_price,
-        market_cap: coin.market_cap,
-        market_cap_rank: coin.market_cap_rank,
-        price_change_percentage_24h: coin.price_change_percentage_24h,
-        total_volume: coin.total_volume,
-        high_24h: coin.high_24h,
-        low_24h: coin.low_24h,
-        circulating_supply: coin.circulating_supply,
-        ath: coin.ath, // Added from original interface
-        ath_change_percentage: coin.ath_change_percentage, // Added from original interface
-        last_updated: new Date().toISOString(), // Added from original interface
+        current_price: coin.current_price || 0,
+        market_cap: coin.market_cap || 0,
+        market_cap_rank: coin.market_cap_rank || 0,
+        price_change_percentage_24h: coin.price_change_percentage_24h || 0,
+        total_volume: coin.total_volume || 0,
+        high_24h: coin.high_24h || coin.current_price,
+        low_24h: coin.low_24h || coin.current_price,
+        circulating_supply: coin.circulating_supply || 0,
+        ath: coin.ath || coin.current_price,
+        ath_change_percentage: coin.ath_change_percentage || 0,
+        last_updated: coin.last_updated || new Date().toISOString(),
       }));
 
       this.setCachedData(cacheKey, cryptos);
       return cryptos;
     } catch (error) {
       console.error('Error fetching top cryptos:', error);
-      // Return fallback data if API fails
+      // Return fallback data if both APIs fail
       return this.getFallbackCryptoData();
     }
   }
