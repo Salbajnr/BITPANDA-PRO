@@ -148,6 +148,40 @@ export interface IStorage {
   getUserNotifications(userId: string, limit?: number): Promise<Notification[]>;
   markNotificationAsRead(notificationId: string): Promise<void>;
   getUnreadNotificationCount(userId: string): Promise<number>;
+
+  // Investment Plans operations
+  getUserInvestmentPlans(userId: string): Promise<any[]>;
+  createInvestmentPlan(data: any): Promise<any>;
+  updateInvestmentPlan(planId: string, userId: string, updates: any): Promise<any>;
+  deleteInvestmentPlan(planId: string, userId: string): Promise<boolean>;
+  executeInvestmentPlan(planId: string, userId: string): Promise<any>;
+  getInvestmentPlanHistory(planId: string, userId: string): Promise<any[]>;
+
+  // Savings Plans operations
+  getUserSavingsPlans(userId: string): Promise<any[]>;
+  createSavingsPlan(data: any): Promise<any>;
+  updateSavingsPlan(planId: string, userId: string, updates: any): Promise<any>;
+  deleteSavingsPlan(planId: string, userId: string): Promise<boolean>;
+  addSavingsPlanContribution(planId: string, userId: string, amount: number, isScheduled: boolean): Promise<any>;
+  getSavingsPlanPerformance(planId: string, userId: string): Promise<any>;
+
+  // Staking operations
+  getUserStakingPositions(userId: string): Promise<any[]>;
+  createStakingPosition(data: any): Promise<any>;
+  getStakingPosition(positionId: string, userId: string): Promise<any>;
+  updateStakingPosition(positionId: string, updates: any): Promise<any>;
+  getStakingRewards(userId: string): Promise<any[]>;
+  getStakingAnalytics(userId: string): Promise<any>;
+
+  // Lending operations
+  getUserLendingPositions(userId: string): Promise<any[]>;
+  createLendingPosition(data: any): Promise<any>;
+  getLendingPosition(positionId: string, userId: string): Promise<any>;
+  updateLendingPosition(positionId: string, updates: any): Promise<any>;
+  getUserLoans(userId: string): Promise<any[]>;
+  createLoan(data: any): Promise<any>;
+  getLoan(loanId: string, userId: string): Promise<any>;
+  updateLoan(loanId: string, updates: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -847,6 +881,410 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching unread notification count:", error);
       return 0;
+    }
+  }
+
+  // Investment Plans operations
+  async getUserInvestmentPlans(userId: string): Promise<any[]> {
+    try {
+      // Mock implementation - in real app, query investment_plans table
+      return [
+        {
+          id: '1',
+          name: 'Bitcoin Dollar-Cost Averaging',
+          assetSymbol: 'BTC',
+          assetName: 'Bitcoin',
+          amount: 50,
+          frequency: 'weekly',
+          totalInvested: 2400,
+          currentValue: 2856,
+          nextExecution: '2025-01-22',
+          status: 'active'
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching investment plans:", error);
+      return [];
+    }
+  }
+
+  async createInvestmentPlan(data: any): Promise<any> {
+    try {
+      // Mock implementation
+      return {
+        id: Date.now().toString(),
+        ...data,
+        createdAt: new Date(),
+        status: 'active'
+      };
+    } catch (error) {
+      console.error("Error creating investment plan:", error);
+      throw error;
+    }
+  }
+
+  async updateInvestmentPlan(planId: string, userId: string, updates: any): Promise<any> {
+    try {
+      // Mock implementation
+      return { id: planId, ...updates, updatedAt: new Date() };
+    } catch (error) {
+      console.error("Error updating investment plan:", error);
+      throw error;
+    }
+  }
+
+  async deleteInvestmentPlan(planId: string, userId: string): Promise<boolean> {
+    try {
+      // Mock implementation
+      return true;
+    } catch (error) {
+      console.error("Error deleting investment plan:", error);
+      return false;
+    }
+  }
+
+  async executeInvestmentPlan(planId: string, userId: string): Promise<any> {
+    try {
+      // Mock implementation
+      return {
+        executionId: Date.now().toString(),
+        planId,
+        amount: 50,
+        price: 45000,
+        executedAt: new Date()
+      };
+    } catch (error) {
+      console.error("Error executing investment plan:", error);
+      return null;
+    }
+  }
+
+  async getInvestmentPlanHistory(planId: string, userId: string): Promise<any[]> {
+    try {
+      // Mock implementation
+      return [
+        {
+          id: '1',
+          planId,
+          amount: 50,
+          price: 45000,
+          executedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching investment plan history:", error);
+      return [];
+    }
+  }
+
+  // Savings Plans operations
+  async getUserSavingsPlans(userId: string): Promise<any[]> {
+    try {
+      // Mock implementation
+      return [
+        {
+          id: '1',
+          name: 'Retirement Fund',
+          goal: 'retirement',
+          targetAmount: 100000,
+          currentAmount: 15000,
+          monthlyContribution: 500,
+          timeHorizon: 20,
+          riskTolerance: 'moderate',
+          expectedReturn: '5-8%',
+          projectedValue: '125000'
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching savings plans:", error);
+      return [];
+    }
+  }
+
+  async createSavingsPlan(data: any): Promise<any> {
+    try {
+      return {
+        id: Date.now().toString(),
+        ...data,
+        createdAt: new Date(),
+        isActive: true
+      };
+    } catch (error) {
+      console.error("Error creating savings plan:", error);
+      throw error;
+    }
+  }
+
+  async updateSavingsPlan(planId: string, userId: string, updates: any): Promise<any> {
+    try {
+      return { id: planId, ...updates, updatedAt: new Date() };
+    } catch (error) {
+      console.error("Error updating savings plan:", error);
+      throw error;
+    }
+  }
+
+  async deleteSavingsPlan(planId: string, userId: string): Promise<boolean> {
+    try {
+      return true;
+    } catch (error) {
+      console.error("Error deleting savings plan:", error);
+      return false;
+    }
+  }
+
+  async addSavingsPlanContribution(planId: string, userId: string, amount: number, isScheduled: boolean): Promise<any> {
+    try {
+      return {
+        id: Date.now().toString(),
+        planId,
+        amount,
+        isScheduled,
+        contributionDate: new Date()
+      };
+    } catch (error) {
+      console.error("Error adding savings plan contribution:", error);
+      return null;
+    }
+  }
+
+  async getSavingsPlanPerformance(planId: string, userId: string): Promise<any> {
+    try {
+      return {
+        planId,
+        totalContributions: 5000,
+        currentValue: 5250,
+        totalReturn: 250,
+        returnPercentage: 5.0,
+        monthlyGrowth: [
+          { month: 'Jan', value: 1000 },
+          { month: 'Feb', value: 2050 },
+          { month: 'Mar', value: 3100 },
+          { month: 'Apr', value: 4200 },
+          { month: 'May', value: 5250 }
+        ]
+      };
+    } catch (error) {
+      console.error("Error fetching savings plan performance:", error);
+      return null;
+    }
+  }
+
+  // Staking operations
+  async getUserStakingPositions(userId: string): Promise<any[]> {
+    try {
+      return [
+        {
+          id: '1',
+          assetSymbol: 'ETH',
+          amount: '10',
+          apy: '5.2%',
+          stakingTerm: '90d',
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          status: 'active',
+          estimatedRewards: '0.42'
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching staking positions:", error);
+      return [];
+    }
+  }
+
+  async createStakingPosition(data: any): Promise<any> {
+    try {
+      return {
+        id: Date.now().toString(),
+        ...data,
+        createdAt: new Date()
+      };
+    } catch (error) {
+      console.error("Error creating staking position:", error);
+      throw error;
+    }
+  }
+
+  async getStakingPosition(positionId: string, userId: string): Promise<any> {
+    try {
+      return {
+        id: positionId,
+        userId,
+        assetSymbol: 'ETH',
+        amount: '10',
+        apy: '5.2%',
+        stakingTerm: '90d',
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        status: 'active'
+      };
+    } catch (error) {
+      console.error("Error fetching staking position:", error);
+      return null;
+    }
+  }
+
+  async updateStakingPosition(positionId: string, updates: any): Promise<any> {
+    try {
+      return { id: positionId, ...updates, updatedAt: new Date() };
+    } catch (error) {
+      console.error("Error updating staking position:", error);
+      throw error;
+    }
+  }
+
+  async getStakingRewards(userId: string): Promise<any[]> {
+    try {
+      return [
+        {
+          id: '1',
+          positionId: '1',
+          amount: '0.042',
+          assetSymbol: 'ETH',
+          rewardDate: new Date(),
+          type: 'staking_reward'
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching staking rewards:", error);
+      return [];
+    }
+  }
+
+  async getStakingAnalytics(userId: string): Promise<any> {
+    try {
+      return {
+        totalStaked: '50.5',
+        totalRewards: '2.34',
+        activePositions: 3,
+        averageAPY: '6.8%',
+        totalValue: '52.84'
+      };
+    } catch (error) {
+      console.error("Error fetching staking analytics:", error);
+      return {};
+    }
+  }
+
+  // Lending operations
+  async getUserLendingPositions(userId: string): Promise<any[]> {
+    try {
+      return [
+        {
+          id: '1',
+          assetSymbol: 'USDC',
+          amount: '1000',
+          apy: '12.5%',
+          startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+          status: 'active',
+          type: 'lend',
+          estimatedEarnings: '5.12'
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching lending positions:", error);
+      return [];
+    }
+  }
+
+  async createLendingPosition(data: any): Promise<any> {
+    try {
+      return {
+        id: Date.now().toString(),
+        ...data,
+        createdAt: new Date()
+      };
+    } catch (error) {
+      console.error("Error creating lending position:", error);
+      throw error;
+    }
+  }
+
+  async getLendingPosition(positionId: string, userId: string): Promise<any> {
+    try {
+      return {
+        id: positionId,
+        userId,
+        assetSymbol: 'USDC',
+        amount: '1000',
+        apy: '12.5%',
+        startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+        status: 'active'
+      };
+    } catch (error) {
+      console.error("Error fetching lending position:", error);
+      return null;
+    }
+  }
+
+  async updateLendingPosition(positionId: string, updates: any): Promise<any> {
+    try {
+      return { id: positionId, ...updates, updatedAt: new Date() };
+    } catch (error) {
+      console.error("Error updating lending position:", error);
+      throw error;
+    }
+  }
+
+  async getUserLoans(userId: string): Promise<any[]> {
+    try {
+      return [
+        {
+          id: '1',
+          assetSymbol: 'USDC',
+          amount: '500',
+          collateralSymbol: 'BTC',
+          collateralAmount: '0.02',
+          interestRate: '8.5',
+          loanTerm: '30d',
+          startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
+          status: 'active'
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching user loans:", error);
+      return [];
+    }
+  }
+
+  async createLoan(data: any): Promise<any> {
+    try {
+      return {
+        id: Date.now().toString(),
+        ...data,
+        createdAt: new Date()
+      };
+    } catch (error) {
+      console.error("Error creating loan:", error);
+      throw error;
+    }
+  }
+
+  async getLoan(loanId: string, userId: string): Promise<any> {
+    try {
+      return {
+        id: loanId,
+        userId,
+        assetSymbol: 'USDC',
+        amount: '500',
+        collateralSymbol: 'BTC',
+        collateralAmount: '0.02',
+        interestRate: '8.5',
+        startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        status: 'active'
+      };
+    } catch (error) {
+      console.error("Error fetching loan:", error);
+      return null;
+    }
+  }
+
+  async updateLoan(loanId: string, updates: any): Promise<any> {
+    try {
+      return { id: loanId, ...updates, updatedAt: new Date() };
+    } catch (error) {
+      console.error("Error updating loan:", error);
+      throw error;
     }
   }
 

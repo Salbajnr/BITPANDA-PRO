@@ -91,6 +91,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const lendingRoutes = (await import('./lending-routes')).default;
   app.use('/api/lending', lendingRoutes);
 
+  // Investment Plans routes
+  const investmentPlansRoutes = (await import('./investment-plans-routes')).default;
+  app.use('/api/investment-plans', investmentPlansRoutes);
+
+  // Savings Plans routes
+  const savingsPlansRoutes = (await import('./savings-plans-routes')).default;
+  app.use('/api/savings-plans', savingsPlansRoutes);
+
   // ADMIN AUTH ROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {

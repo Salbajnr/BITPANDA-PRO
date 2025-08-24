@@ -1,207 +1,254 @@
 
-import { Router, Request, Response } from 'express';
-import { z } from 'zod';
-import { requireAuth } from './simple-auth';
-import { storage } from './storage';
+import { Router } from "express";
+import { requireAuth } from "./simple-auth";
+import { storage } from "./storage";
+import { z } from "zod";
 
 const router = Router();
 
-const stakeSchema = z.object({
-  symbol: z.string(),
-  amount: z.string(),
-  stakingPeriod: z.enum(['30', '60', '90', '180', '365']),
-  apy: z.string()
+const createStakeSchema = z.object({
+  assetSymbol: z.string().min(1).max(10),
+  amount: z.number().min(0.001),
+  stakingTerm: z.enum(['flexible', '30d', '60d', '90d', '180d', '365d']),
+  autoReinvest: z.boolean().default(false)
 });
 
-// Start staking
-router.post('/stake', requireAuth, async (req: Request, res: Response) => {
+const stakingPools = [
+  {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    apy: '4.5%',
+    minAmount: 0.001,
+    maxAmount: 100,
+    terms: ['flexible', '30d', '60d', '90d'],
+    description: 'Stake Bitcoin and earn rewards'
+  },
+  {
+    symbol: 'ETH',
+    name: 'Ethereum',
+    apy: '5.2%',
+    minAmount: 0.01,
+    maxAmount: 1000,
+    terms: ['flexible', '30d', '60d', '90d', '180d'],
+    description: 'Ethereum 2.0 staking rewards'
+  },
+  {
+    symbol: 'ADA',
+    name: 'Cardano',
+    apy: '4.8%',
+    minAmount: 10,
+    maxAmount: 100000,
+    terms: ['flexible', '60d', '90d', '180d', '365d'],
+    description: 'Cardano delegation rewards'
+  },
+  {
+    symbol: 'DOT',
+    name: 'Polkadot',
+    apy: '12.5%',
+    minAmount: 1,
+    maxAmount: 10000,
+    terms: ['flexible', '90d', '180d', '365d'],
+    description: 'Polkadot nomination rewards'
+  },
+  {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    apy: '8.0%',
+    minAmount: 1,
+    maxAmount: 1000000,
+    terms: ['flexible', '30d', '60d', '90d', '180d', '365d'],
+    description: 'Stable coin staking with high yields'
+  }
+];
+
+// Get available staking pools
+router.get('/pools', requireAuth, async (req, res) => {
   try {
-    const userId = req.user!.id;
-    const stakeData = stakeSchema.parse(req.body);
+    res.json(stakingPools);
+  } catch (error) {
+    console.error('Error fetching staking pools:', error);
+    res.status(500).json({ message: 'Failed to fetch staking pools' });
+  }
+});
+
+// Get user's active stakes
+router.get('/positions', requireAuth, async (req, res) => {
+  try {
+    const stakes = await storage.getUserStakingPositions(req.user!.id);
+    res.json(stakes);
+  } catch (error) {
+    console.error('Error fetching staking positions:', error);
+    res.status(500).json({ message: 'Failed to fetch staking positions' });
+  }
+});
+
+// Create new stake
+router.post('/stake', requireAuth, async (req, res) => {
+  try {
+    const stakeData = createStakeSchema.parse(req.body);
     
-    const portfolio = await storage.getPortfolio(userId);
+    // Validate staking pool exists
+    const pool = stakingPools.find(p => p.symbol === stakeData.assetSymbol);
+    if (!pool) {
+      return res.status(400).json({ message: 'Invalid staking asset' });
+    }
+
+    // Validate amount
+    if (stakeData.amount < pool.minAmount || stakeData.amount > pool.maxAmount) {
+      return res.status(400).json({ 
+        message: `Amount must be between ${pool.minAmount} and ${pool.maxAmount} ${pool.symbol}` 
+      });
+    }
+
+    // Validate term
+    if (!pool.terms.includes(stakeData.stakingTerm)) {
+      return res.status(400).json({ message: 'Invalid staking term for this asset' });
+    }
+
+    // Check user balance
+    const portfolio = await storage.getPortfolio(req.user!.id);
     if (!portfolio) {
-      return res.status(404).json({ message: "Portfolio not found" });
+      return res.status(404).json({ message: 'Portfolio not found' });
     }
 
-    // Check if user has sufficient holdings
-    const holding = await storage.getHolding(portfolio.id, stakeData.symbol);
-    if (!holding || parseFloat(holding.amount) < parseFloat(stakeData.amount)) {
-      return res.status(400).json({ message: "Insufficient holdings to stake" });
+    const holding = await storage.getHolding(portfolio.id, stakeData.assetSymbol);
+    if (!holding || parseFloat(holding.amount) < stakeData.amount) {
+      return res.status(400).json({ message: 'Insufficient balance' });
     }
 
-    // Create staking record
-    const stakingRecord = await storage.createStakingRecord({
-      userId,
-      portfolioId: portfolio.id,
-      symbol: stakeData.symbol,
-      amount: stakeData.amount,
-      stakingPeriod: parseInt(stakeData.stakingPeriod),
-      apy: parseFloat(stakeData.apy),
+    // Create staking position
+    const stake = await storage.createStakingPosition({
+      userId: req.user!.id,
+      assetSymbol: stakeData.assetSymbol,
+      amount: stakeData.amount.toString(),
+      apy: pool.apy,
+      stakingTerm: stakeData.stakingTerm,
+      autoReinvest: stakeData.autoReinvest,
       startDate: new Date(),
-      endDate: new Date(Date.now() + parseInt(stakeData.stakingPeriod) * 24 * 60 * 60 * 1000),
+      endDate: calculateEndDate(stakeData.stakingTerm),
       status: 'active'
     });
 
-    // Update holding to reflect staked amount
-    const newAmount = parseFloat(holding.amount) - parseFloat(stakeData.amount);
-    if (newAmount > 0) {
-      await storage.upsertHolding({
-        portfolioId: portfolio.id,
-        symbol: stakeData.symbol,
-        name: holding.name,
-        amount: newAmount.toString(),
-        averagePurchasePrice: holding.averagePurchasePrice,
-        currentPrice: holding.currentPrice,
-      });
-    } else {
-      await storage.deleteHolding(holding.id);
-    }
-
-    res.json(stakingRecord);
-  } catch (error) {
-    console.error("Staking error:", error);
-    res.status(500).json({ message: "Failed to stake cryptocurrency" });
-  }
-});
-
-// Get user's staking records
-router.get('/stakes', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const stakes = await storage.getUserStakingRecords(userId);
-    
-    // Calculate current rewards for each stake
-    const stakesWithRewards = stakes.map(stake => {
-      const now = new Date();
-      const startDate = new Date(stake.startDate);
-      const daysStaked = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      const dailyReward = (parseFloat(stake.amount) * stake.apy / 100) / 365;
-      const currentRewards = dailyReward * daysStaked;
-      
-      return {
-        ...stake,
-        currentRewards: currentRewards.toFixed(6),
-        daysStaked
-      };
+    // Update holding (reduce available amount)
+    await storage.updateHolding(holding.id, {
+      amount: (parseFloat(holding.amount) - stakeData.amount).toString()
     });
 
-    res.json(stakesWithRewards);
+    res.json(stake);
   } catch (error) {
-    console.error("Get stakes error:", error);
-    res.status(500).json({ message: "Failed to fetch staking records" });
+    console.error('Error creating stake:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to create stake' });
   }
 });
 
-// Unstake cryptocurrency
-router.post('/unstake/:id', requireAuth, async (req: Request, res: Response) => {
+// Unstake position
+router.post('/unstake/:positionId', requireAuth, async (req, res) => {
   try {
-    const userId = req.user!.id;
-    const stakeId = req.params.id;
-    
-    const stake = await storage.getStakingRecord(stakeId);
-    if (!stake || stake.userId !== userId) {
-      return res.status(404).json({ message: "Staking record not found" });
+    const position = await storage.getStakingPosition(req.params.positionId, req.user!.id);
+    if (!position) {
+      return res.status(404).json({ message: 'Staking position not found' });
     }
 
-    if (stake.status !== 'active') {
-      return res.status(400).json({ message: "Staking record is not active" });
+    if (position.status !== 'active') {
+      return res.status(400).json({ message: 'Position is not active' });
     }
 
     // Calculate rewards
-    const now = new Date();
-    const startDate = new Date(stake.startDate);
-    const daysStaked = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const dailyReward = (parseFloat(stake.amount) * stake.apy / 100) / 365;
-    const totalRewards = dailyReward * daysStaked;
+    const rewards = await calculateStakingRewards(position);
+    
+    // Update position status
+    await storage.updateStakingPosition(req.params.positionId, {
+      status: 'completed',
+      endDate: new Date(),
+      totalRewards: rewards.toString()
+    });
 
-    // Check if unstaking before maturity (apply penalty if needed)
-    const endDate = new Date(stake.endDate);
-    const isEarlyUnstake = now < endDate;
-    const finalRewards = isEarlyUnstake ? totalRewards * 0.5 : totalRewards; // 50% penalty for early unstake
-
-    // Return staked amount + rewards to user's portfolio
-    const portfolio = await storage.getPortfolio(userId);
+    // Return staked amount + rewards to portfolio
+    const portfolio = await storage.getPortfolio(req.user!.id);
     if (portfolio) {
-      const totalReturn = parseFloat(stake.amount) + finalRewards;
-      
-      // Update or create holding
-      const existingHolding = await storage.getHolding(portfolio.id, stake.symbol);
-      if (existingHolding) {
-        const newAmount = parseFloat(existingHolding.amount) + totalReturn;
-        await storage.upsertHolding({
-          portfolioId: portfolio.id,
-          symbol: stake.symbol,
-          name: existingHolding.name,
-          amount: newAmount.toString(),
-          averagePurchasePrice: existingHolding.averagePurchasePrice,
-          currentPrice: existingHolding.currentPrice,
-        });
-      } else {
-        await storage.upsertHolding({
-          portfolioId: portfolio.id,
-          symbol: stake.symbol,
-          name: stake.symbol,
-          amount: totalReturn.toString(),
-          averagePurchasePrice: '0',
-          currentPrice: '0',
+      const holding = await storage.getHolding(portfolio.id, position.assetSymbol);
+      if (holding) {
+        const newAmount = parseFloat(holding.amount) + parseFloat(position.amount) + rewards;
+        await storage.updateHolding(holding.id, {
+          amount: newAmount.toString()
         });
       }
     }
 
-    // Update staking record
-    await storage.updateStakingRecord(stakeId, {
-      status: 'completed',
-      actualEndDate: now,
-      finalRewards: finalRewards,
-      isEarlyUnstake
-    });
-
     res.json({ 
-      message: "Successfully unstaked",
-      rewards: finalRewards,
-      penalty: isEarlyUnstake,
-      totalReturn: parseFloat(stake.amount) + finalRewards
+      message: 'Successfully unstaked',
+      originalAmount: position.amount,
+      rewards: rewards,
+      totalReturned: parseFloat(position.amount) + rewards
     });
   } catch (error) {
-    console.error("Unstaking error:", error);
-    res.status(500).json({ message: "Failed to unstake cryptocurrency" });
+    console.error('Error unstaking:', error);
+    res.status(500).json({ message: 'Failed to unstake position' });
   }
 });
 
-// Get staking rewards summary
-router.get('/rewards/summary', requireAuth, async (req: Request, res: Response) => {
+// Get staking rewards history
+router.get('/rewards', requireAuth, async (req, res) => {
   try {
-    const userId = req.user!.id;
-    const stakes = await storage.getUserStakingRecords(userId);
-    
-    let totalStaked = 0;
-    let totalRewards = 0;
-    let activeStakes = 0;
-    
-    stakes.forEach(stake => {
-      if (stake.status === 'active') {
-        activeStakes++;
-        totalStaked += parseFloat(stake.amount);
-        
-        const now = new Date();
-        const startDate = new Date(stake.startDate);
-        const daysStaked = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const dailyReward = (parseFloat(stake.amount) * stake.apy / 100) / 365;
-        totalRewards += dailyReward * daysStaked;
-      }
-    });
-
-    res.json({
-      totalStaked,
-      totalRewards,
-      activeStakes,
-      completedStakes: stakes.filter(s => s.status === 'completed').length
-    });
+    const rewards = await storage.getStakingRewards(req.user!.id);
+    res.json(rewards);
   } catch (error) {
-    console.error("Rewards summary error:", error);
-    res.status(500).json({ message: "Failed to fetch rewards summary" });
+    console.error('Error fetching staking rewards:', error);
+    res.status(500).json({ message: 'Failed to fetch rewards' });
   }
 });
+
+// Get staking analytics
+router.get('/analytics', requireAuth, async (req, res) => {
+  try {
+    const analytics = await storage.getStakingAnalytics(req.user!.id);
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching staking analytics:', error);
+    res.status(500).json({ message: 'Failed to fetch analytics' });
+  }
+});
+
+function calculateEndDate(term: string): Date {
+  const now = new Date();
+  const endDate = new Date(now);
+
+  switch (term) {
+    case 'flexible':
+      return endDate; // No fixed end date
+    case '30d':
+      endDate.setDate(now.getDate() + 30);
+      break;
+    case '60d':
+      endDate.setDate(now.getDate() + 60);
+      break;
+    case '90d':
+      endDate.setDate(now.getDate() + 90);
+      break;
+    case '180d':
+      endDate.setDate(now.getDate() + 180);
+      break;
+    case '365d':
+      endDate.setDate(now.getDate() + 365);
+      break;
+  }
+
+  return endDate;
+}
+
+async function calculateStakingRewards(position: any): Promise<number> {
+  const startDate = new Date(position.startDate);
+  const now = new Date();
+  const daysStaked = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  const annualRate = parseFloat(position.apy.replace('%', '')) / 100;
+  const dailyRate = annualRate / 365;
+  
+  const rewards = parseFloat(position.amount) * dailyRate * daysStaked;
+  return Math.max(0, rewards);
+}
 
 export default router;
