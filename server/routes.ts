@@ -14,6 +14,7 @@ import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import alertRoutes from './alert-routes';
 import cryptoRoutes from './crypto-routes';
 import metalsRoutes from './metals-routes';
+import newsRoutes from './news-routes';
 import { z } from "zod";
 import { Router } from "express";
 
@@ -78,6 +79,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Metals routes
   app.use('/api/metals', metalsRoutes);
+
+  // News routes
+  app.use('/api/news', newsRoutes);
 
   // ADMIN AUTH ROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {

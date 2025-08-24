@@ -22,16 +22,11 @@ export interface NewsResponse {
 }
 
 class NewsApiService {
-  private readonly NEWS_API_KEY = process.env.NEWS_API_KEY || 'demo';
-  private readonly BASE_URL = 'https://newsapi.org/v2';
   private readonly BACKEND_URL = '/api/news';
-  private readonly CRYPTO_NEWS_SOURCES = [
-    'crypto-coins-news',
-    'coindesk',
-    'cointelegraph'
-  ];
+  private readonly NEWS_API_BASE = 'https://newsapi.org/v2';
+  private readonly CRYPTOPANIC_BASE = 'https://cryptopanic.com/api/v1';
+  private readonly NEWS_API_KEY = process.env.NEWS_API_KEY || 'demo';
   
-  // Cache for API responses
   private cache = new Map<string, { data: any; timestamp: number }>();
   private readonly CACHE_DURATION = 300000; // 5 minutes
 
@@ -47,82 +42,6 @@ class NewsApiService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-  // Fallback news data for when API is unavailable
-  private fallbackNews: NewsArticle[] = [
-    {
-      id: '1',
-      title: 'Bitcoin Reaches New Monthly High Amid Institutional Interest',
-      description: 'Bitcoin price surges as major institutions continue to show increased interest in cryptocurrency investments, with several ETF approvals pending.',
-      url: '#',
-      urlToImage: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
-      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      source: { id: 'crypto-news', name: 'Crypto News' },
-      category: 'bitcoin',
-      sentiment: 'positive',
-      coins: ['bitcoin']
-    },
-    {
-      id: '2',
-      title: 'Ethereum 2.0 Staking Rewards Show Strong Performance',
-      description: 'Ethereum staking continues to show robust returns as the network processes record transaction volumes.',
-      url: '#',
-      urlToImage: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400',
-      publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      source: { id: 'eth-daily', name: 'ETH Daily' },
-      category: 'ethereum',
-      sentiment: 'positive',
-      coins: ['ethereum']
-    },
-    {
-      id: '3',
-      title: 'Regulatory Clarity Brings New Opportunities for DeFi',
-      description: 'Recent regulatory developments provide clearer guidelines for decentralized finance protocols and their operations.',
-      url: '#',
-      urlToImage: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400',
-      publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      source: { id: 'defi-pulse', name: 'DeFi Pulse' },
-      category: 'defi',
-      sentiment: 'positive',
-      coins: ['ethereum', 'chainlink', 'polygon']
-    },
-    {
-      id: '4',
-      title: 'Altcoin Season Shows Signs of Momentum Building',
-      description: 'Alternative cryptocurrencies are showing increased trading volume and price momentum as market sentiment improves.',
-      url: '#',
-      urlToImage: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
-      publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-      source: { id: 'altcoin-buzz', name: 'Altcoin Buzz' },
-      category: 'altcoins',
-      sentiment: 'positive',
-      coins: ['solana', 'cardano', 'polygon']
-    },
-    {
-      id: '5',
-      title: 'Blockchain Technology Adoption Accelerates in Enterprise',
-      description: 'Major corporations are increasingly adopting blockchain solutions for supply chain management and digital identity verification.',
-      url: '#',
-      urlToImage: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400',
-      publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      source: { id: 'blockchain-news', name: 'Blockchain News' },
-      category: 'blockchain',
-      sentiment: 'positive',
-      coins: ['ethereum', 'chainlink']
-    },
-    {
-      id: '6',
-      title: 'Market Analysis: Crypto Markets Show Resilience',
-      description: 'Technical analysis indicates strong support levels across major cryptocurrencies despite recent market volatility.',
-      url: '#',
-      urlToImage: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400',
-      publishedAt: new Date(Date.now() - 16 * 60 * 60 * 1000).toISOString(),
-      source: { id: 'crypto-analysis', name: 'Crypto Analysis' },
-      category: 'market-analysis',
-      sentiment: 'neutral',
-      coins: ['bitcoin', 'ethereum']
-    }
-  ];
-
   async getCryptoNews(category?: string, limit: number = 20): Promise<NewsResponse> {
     const cacheKey = `news-${category || 'all'}-${limit}`;
     const cached = this.getCachedData(cacheKey);
@@ -133,15 +52,37 @@ class NewsApiService {
 
     try {
       // Try backend API first
-      const backendResponse = await fetch(`${this.BACKEND_URL}?limit=${limit}`);
+      const backendResponse = await fetch(`${this.BACKEND_URL}?limit=${limit}${category ? `&category=${category}` : ''}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
       if (backendResponse.ok) {
         const backendData = await backendResponse.json();
+        
+        // Transform backend data to match our interface
+        const articles = Array.isArray(backendData) ? backendData : backendData.articles || [];
+        const transformedArticles = articles.map((article: any) => ({
+          id: article.id || article.url || Math.random().toString(),
+          title: article.title,
+          description: article.description || article.summary,
+          url: article.url,
+          urlToImage: article.urlToImage || article.imageUrl,
+          publishedAt: article.publishedAt || article.createdAt,
+          source: article.source || { id: 'backend', name: 'Crypto News' },
+          category: article.category || 'cryptocurrency',
+          sentiment: article.sentiment,
+          coins: article.coins
+        }));
+
         const response = {
-          articles: backendData,
-          totalResults: backendData.length,
+          articles: transformedArticles,
+          totalResults: transformedArticles.length,
           status: 'ok'
         };
+        
         this.setCachedData(cacheKey, response);
         return response;
       }
@@ -174,12 +115,13 @@ class NewsApiService {
   private async fetchFromNewsAPI(category?: string, limit: number = 20): Promise<NewsResponse | null> {
     try {
       const query = category && category !== 'all' ? category : 'cryptocurrency';
-      const url = `${this.BASE_URL}/everything?q=${query}&sortBy=publishedAt&pageSize=${limit}&apiKey=${this.NEWS_API_KEY}`;
+      const url = `${this.NEWS_API_BASE}/everything?q=${query}&sortBy=publishedAt&pageSize=${limit}&apiKey=${this.NEWS_API_KEY}`;
       
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error(`NewsAPI error: ${response.status}`);
+        console.warn(`NewsAPI error: ${response.status}`);
+        return null;
       }
       
       const data = await response.json();
@@ -210,11 +152,11 @@ class NewsApiService {
 
   private async fetchFromCryptoPanic(limit: number = 20): Promise<NewsResponse | null> {
     try {
-      // CryptoPanic provides free crypto news API
-      const response = await fetch(`https://cryptopanic.com/api/v1/posts/?auth_token=free&kind=news&page=1`);
+      const response = await fetch(`${this.CRYPTOPANIC_BASE}/posts/?auth_token=free&kind=news&page=1`);
       
       if (!response.ok) {
-        throw new Error(`CryptoPanic error: ${response.status}`);
+        console.warn(`CryptoPanic error: ${response.status}`);
+        return null;
       }
       
       const data = await response.json();
@@ -222,7 +164,7 @@ class NewsApiService {
       const articles = data.results.slice(0, limit).map((post: any) => ({
         id: post.id.toString(),
         title: post.title,
-        description: post.title, // CryptoPanic doesn't provide descriptions
+        description: post.title,
         url: post.url,
         urlToImage: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
         publishedAt: post.published_at,
@@ -244,9 +186,83 @@ class NewsApiService {
   }
 
   private getFallbackNewsResponse(category?: string, limit: number = 20): NewsResponse {
-    let articles = [...this.fallbackNews];
+    const fallbackNews: NewsArticle[] = [
+      {
+        id: '1',
+        title: 'Bitcoin Reaches New Monthly High Amid Institutional Interest',
+        description: 'Bitcoin price surges as major institutions continue to show increased interest in cryptocurrency investments, with several ETF approvals pending.',
+        url: '#',
+        urlToImage: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        source: { id: 'crypto-news', name: 'Crypto News' },
+        category: 'bitcoin',
+        sentiment: 'positive',
+        coins: ['bitcoin']
+      },
+      {
+        id: '2',
+        title: 'Ethereum 2.0 Staking Rewards Show Strong Performance',
+        description: 'Ethereum staking continues to show robust returns as the network processes record transaction volumes.',
+        url: '#',
+        urlToImage: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400',
+        publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        source: { id: 'eth-daily', name: 'ETH Daily' },
+        category: 'ethereum',
+        sentiment: 'positive',
+        coins: ['ethereum']
+      },
+      {
+        id: '3',
+        title: 'Regulatory Clarity Brings New Opportunities for DeFi',
+        description: 'Recent regulatory developments provide clearer guidelines for decentralized finance protocols and their operations.',
+        url: '#',
+        urlToImage: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400',
+        publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        source: { id: 'defi-pulse', name: 'DeFi Pulse' },
+        category: 'defi',
+        sentiment: 'positive',
+        coins: ['ethereum', 'chainlink', 'polygon']
+      },
+      {
+        id: '4',
+        title: 'Altcoin Season Shows Signs of Momentum Building',
+        description: 'Alternative cryptocurrencies are showing increased trading volume and price momentum as market sentiment improves.',
+        url: '#',
+        urlToImage: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
+        publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+        source: { id: 'altcoin-buzz', name: 'Altcoin Buzz' },
+        category: 'altcoins',
+        sentiment: 'positive',
+        coins: ['solana', 'cardano', 'polygon']
+      },
+      {
+        id: '5',
+        title: 'Blockchain Technology Adoption Accelerates in Enterprise',
+        description: 'Major corporations are increasingly adopting blockchain solutions for supply chain management and digital identity verification.',
+        url: '#',
+        urlToImage: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400',
+        publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        source: { id: 'blockchain-news', name: 'Blockchain News' },
+        category: 'blockchain',
+        sentiment: 'positive',
+        coins: ['ethereum', 'chainlink']
+      },
+      {
+        id: '6',
+        title: 'Market Analysis: Crypto Markets Show Resilience',
+        description: 'Technical analysis indicates strong support levels across major cryptocurrencies despite recent market volatility.',
+        url: '#',
+        urlToImage: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400',
+        publishedAt: new Date(Date.now() - 16 * 60 * 60 * 1000).toISOString(),
+        source: { id: 'crypto-analysis', name: 'Crypto Analysis' },
+        category: 'market-analysis',
+        sentiment: 'neutral',
+        coins: ['bitcoin', 'ethereum']
+      }
+    ];
+
+    let articles = [...fallbackNews];
     
-    // Filter by category if specified
     if (category && category !== 'all') {
       articles = articles.filter(article => 
         article.category === category || 
@@ -254,13 +270,11 @@ class NewsApiService {
       );
     }
 
-    // Add some randomization to simulate fresh content
     articles = articles.map(article => ({
       ...article,
       publishedAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString()
     }));
 
-    // Sort by published date (newest first)
     articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
     return {
@@ -286,8 +300,8 @@ class NewsApiService {
   private analyzeSentiment(title: string, description: string): 'positive' | 'negative' | 'neutral' {
     const text = `${title} ${description}`.toLowerCase();
     
-    const positiveWords = ['rise', 'surge', 'bull', 'gain', 'profit', 'success', 'breakthrough'];
-    const negativeWords = ['fall', 'crash', 'bear', 'loss', 'decline', 'risk', 'hack'];
+    const positiveWords = ['rise', 'surge', 'bull', 'gain', 'profit', 'success', 'breakthrough', 'rally', 'boom'];
+    const negativeWords = ['fall', 'crash', 'bear', 'loss', 'decline', 'risk', 'hack', 'drop', 'plunge'];
     
     const positiveCount = positiveWords.filter(word => text.includes(word)).length;
     const negativeCount = negativeWords.filter(word => text.includes(word)).length;
@@ -305,14 +319,27 @@ class NewsApiService {
     if (text.includes('ethereum') || text.includes('eth')) coins.push('ethereum');
     if (text.includes('cardano') || text.includes('ada')) coins.push('cardano');
     if (text.includes('solana') || text.includes('sol')) coins.push('solana');
+    if (text.includes('chainlink') || text.includes('link')) coins.push('chainlink');
+    if (text.includes('polygon') || text.includes('matic')) coins.push('polygon');
     
     return coins;
   }
 
   async getNewsById(id: string): Promise<NewsArticle | null> {
     try {
-      const article = this.fallbackNews.find(article => article.id === id);
-      return article || null;
+      const response = await fetch(`${this.BACKEND_URL}/${id}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      }
+
+      return null;
     } catch (error) {
       console.error('Error fetching news article:', error);
       return null;
@@ -321,14 +348,30 @@ class NewsApiService {
 
   async searchNews(query: string, limit: number = 10): Promise<NewsResponse> {
     try {
-      const articles = this.fallbackNews.filter(article =>
+      const response = await fetch(`${this.BACKEND_URL}/search?query=${encodeURIComponent(query)}&limit=${limit}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          articles: data.articles || data,
+          totalResults: data.totalResults || data.length,
+          status: 'ok'
+        };
+      }
+
+      const fallbackArticles = this.getFallbackNewsResponse('all', 20).articles.filter(article =>
         article.title.toLowerCase().includes(query.toLowerCase()) ||
         article.description.toLowerCase().includes(query.toLowerCase())
       );
 
       return {
-        articles: articles.slice(0, limit),
-        totalResults: articles.length,
+        articles: fallbackArticles.slice(0, limit),
+        totalResults: fallbackArticles.length,
         status: 'ok'
       };
     } catch (error) {

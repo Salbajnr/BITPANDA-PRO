@@ -1,3 +1,5 @@
+
+const BACKEND_API_BASE = '/api/crypto';
 const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3';
 
 export interface CryptoPrice {
@@ -16,7 +18,7 @@ export interface CryptoPrice {
   last_updated: string;
   ath: number;
   ath_change_percentage: number;
-  circulating_supply?: number; // Added for consistency with getTopCryptos mapping
+  circulating_supply?: number;
 }
 
 export interface CryptoTicker {
@@ -24,7 +26,7 @@ export interface CryptoTicker {
   price: number;
   change_24h: number;
   volume_24h: number;
-  market_cap: number; // Added for consistency with getPrice method
+  market_cap: number;
   timestamp: number;
 }
 
@@ -36,7 +38,6 @@ export interface MarketData {
 }
 
 export class CryptoApiService {
-  private static readonly BASE_URL = 'https://api.coingecko.com/api/v3';
   private static cache = new Map<string, { data: any; timestamp: number }>();
   private static readonly CACHE_DURATION = 30000; // 30 seconds cache
 
@@ -61,27 +62,32 @@ export class CryptoApiService {
     }
 
     try {
-      // Try our backend API first
-      const backendResponse = await fetch(`/api/crypto/top/${limit}`);
+      // Try backend API first
+      const backendResponse = await fetch(`${BACKEND_API_BASE}/top/${limit}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
       if (backendResponse.ok) {
         const backendData = await backendResponse.json();
         const mappedData = backendData.map((crypto: any) => ({
-          id: crypto.symbol.toLowerCase(),
+          id: crypto.id || crypto.symbol.toLowerCase(),
           symbol: crypto.symbol.toLowerCase(),
           name: crypto.name,
-          image: `https://assets.coingecko.com/coins/images/1/large/${crypto.symbol.toLowerCase()}.png`,
-          current_price: crypto.price,
+          image: crypto.image || `https://assets.coingecko.com/coins/images/1/large/${crypto.symbol.toLowerCase()}.png`,
+          current_price: crypto.current_price || crypto.price,
           market_cap: crypto.market_cap,
-          market_cap_rank: 0,
-          price_change_percentage_24h: crypto.change_24h,
-          total_volume: crypto.volume_24h,
-          high_24h: crypto.price * 1.05,
-          low_24h: crypto.price * 0.95,
-          circulating_supply: 0,
-          ath: crypto.price * 2,
-          ath_change_percentage: -50,
-          last_updated: crypto.last_updated,
+          market_cap_rank: crypto.market_cap_rank || 0,
+          price_change_percentage_24h: crypto.price_change_percentage_24h || crypto.change_24h,
+          total_volume: crypto.total_volume || crypto.volume_24h,
+          high_24h: crypto.high_24h || crypto.price * 1.05,
+          low_24h: crypto.low_24h || crypto.price * 0.95,
+          circulating_supply: crypto.circulating_supply || 0,
+          ath: crypto.ath || crypto.price * 2,
+          ath_change_percentage: crypto.ath_change_percentage || -50,
+          last_updated: crypto.last_updated || new Date().toISOString(),
         }));
         
         this.setCachedData(cacheKey, mappedData);
@@ -90,7 +96,7 @@ export class CryptoApiService {
 
       // Fallback to direct CoinGecko API
       const response = await fetch(
-        `${this.BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`,
+        `${COINGECKO_API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`,
         {
           headers: {
             'Accept': 'application/json',
@@ -125,16 +131,45 @@ export class CryptoApiService {
       return cryptos;
     } catch (error) {
       console.error('Error fetching top cryptos:', error);
-      // Return fallback data if both APIs fail
       return this.getFallbackCryptoData();
     }
   }
 
-  // Fetch single cryptocurrency price with additional data
   static async getPrice(coinId: string): Promise<CryptoTicker> {
+    const cacheKey = `price-${coinId}`;
+    const cached = this.getCachedData(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     try {
+      // Try backend API first
+      const backendResponse = await fetch(`${BACKEND_API_BASE}/price/${coinId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+        const ticker = {
+          symbol: data.symbol || coinId,
+          price: data.price || data.current_price,
+          change_24h: data.change_24h || data.price_change_percentage_24h || 0,
+          volume_24h: data.volume_24h || data.total_volume || 0,
+          market_cap: data.market_cap || 0,
+          timestamp: Date.now()
+        };
+        
+        this.setCachedData(cacheKey, ticker);
+        return ticker;
+      }
+
+      // Fallback to CoinGecko
       const response = await fetch(
-        `${this.BASE_URL}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
+        `${COINGECKO_API_BASE}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
       );
 
       if (!response.ok) {
@@ -148,7 +183,7 @@ export class CryptoApiService {
         throw new Error(`No data found for ${coinId}`);
       }
 
-      return {
+      const ticker = {
         symbol: coinId,
         price: coinData.usd,
         change_24h: coinData.usd_24h_change || 0,
@@ -156,10 +191,12 @@ export class CryptoApiService {
         market_cap: coinData.usd_market_cap || 0,
         timestamp: Date.now()
       };
+
+      this.setCachedData(cacheKey, ticker);
+      return ticker;
     } catch (error) {
       console.error(`Error fetching price for ${coinId}:`, error);
 
-      // Return fallback data instead of throwing
       return {
         symbol: coinId,
         price: this.getMockPrice(coinId),
@@ -171,11 +208,26 @@ export class CryptoApiService {
     }
   }
 
-  // Fetch multiple cryptocurrency prices with additional data
   static async getMultiplePrices(coinIds: string[]): Promise<Record<string, any>> {
     try {
+      // Try backend API first
+      const backendResponse = await fetch(`${BACKEND_API_BASE}/prices`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ symbols: coinIds })
+      });
+
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+        return data;
+      }
+
+      // Fallback to CoinGecko
       const response = await fetch(
-        `${this.BASE_URL}/simple/price?ids=${coinIds.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true&include_24hr_high=true&include_24hr_low=true`
+        `${COINGECKO_API_BASE}/simple/price?ids=${coinIds.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true&include_24hr_high=true&include_24hr_low=true`
       );
 
       if (!response.ok) {
@@ -187,7 +239,6 @@ export class CryptoApiService {
     } catch (error) {
       console.error('Error fetching multiple prices:', error);
 
-      // Return mock data for fallback
       const mockData: Record<string, any> = {};
       coinIds.forEach(coinId => {
         mockData[coinId] = {
@@ -212,8 +263,23 @@ export class CryptoApiService {
     }
 
     try {
+      // Try backend API first
+      const backendResponse = await fetch(`${BACKEND_API_BASE}/details/${coinId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+        this.setCachedData(cacheKey, data);
+        return data;
+      }
+
+      // Fallback to CoinGecko
       const response = await fetch(
-        `${this.BASE_URL}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
+        `${COINGECKO_API_BASE}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
       );
 
       if (!response.ok) {
@@ -238,7 +304,22 @@ export class CryptoApiService {
     }
 
     try {
-      const response = await fetch(`${this.BASE_URL}/global`);
+      // Try backend API first
+      const backendResponse = await fetch(`${BACKEND_API_BASE}/market-data`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+        this.setCachedData(cacheKey, data);
+        return data;
+      }
+
+      // Fallback to CoinGecko
+      const response = await fetch(`${COINGECKO_API_BASE}/global`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -258,7 +339,21 @@ export class CryptoApiService {
     if (!query || query.length < 2) return [];
 
     try {
-      const response = await fetch(`${this.BASE_URL}/search?query=${encodeURIComponent(query)}`);
+      // Try backend API first
+      const backendResponse = await fetch(`${BACKEND_API_BASE}/search?query=${encodeURIComponent(query)}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+        return data;
+      }
+
+      // Fallback to CoinGecko
+      const response = await fetch(`${COINGECKO_API_BASE}/search?query=${encodeURIComponent(query)}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -269,6 +364,64 @@ export class CryptoApiService {
     } catch (error) {
       console.error('Search failed:', error);
       return [];
+    }
+  }
+
+  static async getPriceHistory(coinId: string, period: string = '24h'): Promise<any[]> {
+    const cacheKey = `history-${coinId}-${period}`;
+    const cached = this.getCachedData(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      // Try backend API first
+      const backendResponse = await fetch(`${BACKEND_API_BASE}/history/${coinId}?period=${period}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+        this.setCachedData(cacheKey, data);
+        return data;
+      }
+
+      // Fallback to CoinGecko
+      let days = '1';
+      if (period === '7d') days = '7';
+      if (period === '30d') days = '30';
+      if (period === '1y') days = '365';
+
+      const response = await fetch(
+        `${COINGECKO_API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${days === '1' ? 'hourly' : 'daily'}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`API responded with ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.prices && Array.isArray(data.prices)) {
+        const formattedData = data.prices.map(([timestamp, price]: [number, number]) => ({
+          timestamp: new Date(timestamp).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          price: parseFloat(price.toFixed(2))
+        }));
+
+        this.setCachedData(cacheKey, formattedData);
+        return formattedData;
+      }
+
+      throw new Error('Invalid price history data');
+    } catch (error) {
+      console.error(`Error fetching price history for ${coinId}:`, error);
+      return this.getFallbackPriceHistory(coinId);
     }
   }
 
@@ -326,7 +479,26 @@ export class CryptoApiService {
     ];
   }
 
-  // Mock price for fallback data
+  private static getFallbackPriceHistory(coinId: string): any[] {
+    const basePrice = this.getMockPrice(coinId);
+    const data = [];
+
+    for (let i = 23; i >= 0; i--) {
+      const variance = (Math.random() - 0.5) * 0.05;
+      const price = basePrice * (1 + variance);
+
+      data.push({
+        timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        price: parseFloat(price.toFixed(2))
+      });
+    }
+
+    return data;
+  }
+
   private static getMockPrice(coinId: string): number {
     switch (coinId.toLowerCase()) {
       case 'bitcoin': return 45000;
@@ -336,34 +508,45 @@ export class CryptoApiService {
     }
   }
 
-  // WebSocket connection for real-time price updates
   static createPriceSocket(symbols: string[], onUpdate: (data: CryptoTicker) => void): WebSocket | null {
     if (typeof window === 'undefined') return null;
 
     try {
-      // Note: This would require a WebSocket endpoint for live prices
-      // For now, we'll simulate with periodic API calls
-      const interval = setInterval(async () => {
-        for (const symbol of symbols) {
-          const price = await this.getPrice(symbol); // Use getPrice instead of getCryptoPrice
-          if (price.price > 0) {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('WebSocket connected for crypto prices');
+        ws.send(JSON.stringify({
+          type: 'subscribe',
+          symbols: symbols
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'price_update') {
             onUpdate({
-              symbol: symbol.toUpperCase(),
-              price: price.price,
-              change_24h: price.change_24h,
-              volume_24h: price.volume_24h,
-              market_cap: price.market_cap,
-              timestamp: Date.now()
+              symbol: data.symbol,
+              price: data.price,
+              change_24h: data.change_24h,
+              volume_24h: data.volume_24h,
+              market_cap: data.market_cap,
+              timestamp: data.timestamp
             });
           }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-      }, 5000); // Update every 5 seconds
+      };
 
-      // Return a mock WebSocket-like object
-      return {
-        close: () => clearInterval(interval),
-        readyState: 1
-      } as any;
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      return ws;
     } catch (error) {
       console.error('Failed to create price socket:', error);
       return null;
