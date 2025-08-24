@@ -83,6 +83,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // News routes
   app.use('/api/news', newsRoutes);
 
+  // Staking routes
+  const stakingRoutes = (await import('./staking-routes')).default;
+  app.use('/api/staking', stakingRoutes);
+
+  // Lending routes  
+  const lendingRoutes = (await import('./lending-routes')).default;
+  app.use('/api/lending', lendingRoutes);
+
   // ADMIN AUTH ROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
