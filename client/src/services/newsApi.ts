@@ -25,7 +25,7 @@ class NewsApiService {
   private readonly BACKEND_URL = '/api/news';
   private readonly NEWS_API_BASE = 'https://newsapi.org/v2';
   private readonly CRYPTOPANIC_BASE = 'https://cryptopanic.com/api/v1';
-  private readonly NEWS_API_KEY = process.env.NEWS_API_KEY || 'demo';
+  private readonly NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY || 'demo';
   
   private cache = new Map<string, { data: any; timestamp: number }>();
   private readonly CACHE_DURATION = 300000; // 5 minutes

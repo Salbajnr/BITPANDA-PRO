@@ -113,38 +113,31 @@ export default function AdminDashboard() {
 
   // Fetch users with pagination
   const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
-    queryKey: ["/api/admin/users", currentPage, searchTerm, userStatusFilter, userRoleFilter],
-    queryFn: () => apiRequest(`/api/admin/users?page=${currentPage}&search=${encodeURIComponent(searchTerm)}&status=${userStatusFilter}&role=${userRoleFilter}`),
+    queryKey: [`/api/admin/users?page=${currentPage}&search=${encodeURIComponent(searchTerm)}&status=${userStatusFilter}&role=${userRoleFilter}`],
     retry: 1,
   });
 
   // Fetch analytics overview
   const { data: analyticsOverviewData } = useQuery({
     queryKey: ["/api/admin/analytics/overview"],
-    queryFn: () => apiRequest("/api/admin/analytics/overview"),
     retry: 1,
   });
 
   // Fetch transactions
   const { data: transactionsDataQuery } = useQuery({
-    queryKey: ["/api/admin/transactions", currentPage, transactionTypeFilter, transactionStatusFilter, transactionUserSearch],
-    queryFn: () => apiRequest(`/api/admin/transactions?page=${currentPage}&limit=20&type=${transactionTypeFilter}&status=${transactionStatusFilter}&user=${encodeURIComponent(transactionUserSearch)}`),
+    queryKey: [`/api/admin/transactions?page=${currentPage}&limit=20&type=${transactionTypeFilter}&status=${transactionStatusFilter}&user=${encodeURIComponent(transactionUserSearch)}`],
     retry: 1,
   });
 
   // Fetch balance adjustments
   const { data: adjustmentsData } = useQuery({
     queryKey: ["/api/admin/balance-adjustments"],
-    queryFn: () => apiRequest("/api/admin/balance-adjustments"),
     retry: 1,
   });
 
   // Balance adjustment mutation
   const adjustBalanceMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/admin/balance-adjustment", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/balance-adjustment", data),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -167,10 +160,7 @@ export default function AdminDashboard() {
   // User suspension mutation
   const suspendUserMutation = useMutation({
     mutationFn: ({ userId, reason }: { userId: string, reason: string }) => 
-      apiRequest(`/api/admin/users/${userId}/suspend`, {
-        method: "POST",
-        body: JSON.stringify({ reason }),
-      }),
+      apiRequest("POST", `/api/admin/users/${userId}/suspend`, { reason }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -183,9 +173,7 @@ export default function AdminDashboard() {
   // User reactivation mutation
   const reactivateUserMutation = useMutation({
     mutationFn: (userId: string) => 
-      apiRequest(`/api/admin/users/${userId}/reactivate`, {
-        method: "POST",
-      }),
+      apiRequest("POST", `/api/admin/users/${userId}/reactivate`),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -198,9 +186,7 @@ export default function AdminDashboard() {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: (userId: string) => 
-      apiRequest(`/api/admin/users/${userId}`, {
-        method: "DELETE",
-      }),
+      apiRequest("DELETE", `/api/admin/users/${userId}`),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -213,9 +199,7 @@ export default function AdminDashboard() {
   // Force logout mutation
   const forceLogoutMutation = useMutation({
     mutationFn: (userId: string) => 
-      apiRequest(`/api/admin/security/force-logout/${userId}`, {
-        method: "POST",
-      }),
+      apiRequest("POST", `/api/admin/security/force-logout/${userId}`),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -227,10 +211,7 @@ export default function AdminDashboard() {
   // Reverse transaction mutation
   const reverseTransactionMutation = useMutation({
     mutationFn: ({ transactionId, reason }: { transactionId: string, reason: string }) => 
-      apiRequest(`/api/admin/transactions/${transactionId}/reverse`, {
-        method: "POST",
-        body: JSON.stringify({ reason }),
-      }),
+      apiRequest("POST", `/api/admin/transactions/${transactionId}/reverse`, { reason }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -318,11 +299,11 @@ export default function AdminDashboard() {
     { id: 'system', label: 'System Settings', icon: Settings },
   ];
 
-  const usersList = usersData?.users || [];
-  const totalUsers = usersData?.pagination?.total || 0;
-  const transactions = transactionsDataQuery?.transactions || [];
-  const analytics = analyticsOverviewData || {};
-  const adjustments = adjustmentsData?.adjustments || [];
+  const usersList = (usersData as any)?.users || [];
+  const totalUsers = (usersData as any)?.pagination?.total || 0;
+  const transactions = (transactionsDataQuery as any)?.transactions || [];
+  const analyticsOverview = analyticsOverviewData || {};
+  const adjustments = (adjustmentsData as any)?.adjustments || [];
 
   if (authLoading) {
     return (
@@ -417,7 +398,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-blue-100">Total Users</p>
-                          <p className="text-3xl font-bold">{analytics.totalUsers?.toLocaleString() || '0'}</p>
+                          <p className="text-3xl font-bold">{(analyticsOverview as any)?.totalUsers?.toLocaleString() || '0'}</p>
                         </div>
                         <Users className="h-12 w-12 text-blue-200" />
                       </div>
@@ -429,7 +410,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-green-100">Total Volume</p>
-                          <p className="text-3xl font-bold">${(analytics.totalVolume / 1000000)?.toFixed(1) || '0'}M</p>
+                          <p className="text-3xl font-bold">${((analyticsOverview as any)?.totalVolume / 1000000)?.toFixed(1) || '0'}M</p>
                         </div>
                         <TrendingUp className="h-12 w-12 text-green-200" />
                       </div>
@@ -441,7 +422,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-purple-100">Transactions</p>
-                          <p className="text-3xl font-bold">{analytics.totalTransactions?.toLocaleString() || '0'}</p>
+                          <p className="text-3xl font-bold">{(analyticsOverview as any)?.totalTransactions?.toLocaleString() || '0'}</p>
                         </div>
                         <Activity className="h-12 w-12 text-purple-200" />
                       </div>
@@ -453,7 +434,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-orange-100">Deposits</p>
-                          <p className="text-3xl font-bold">{analytics.totalDeposits?.toLocaleString() || '0'}</p>
+                          <p className="text-3xl font-bold">{(analyticsOverview as any)?.totalDeposits?.toLocaleString() || '0'}</p>
                         </div>
                         <DollarSign className="h-12 w-12 text-orange-200" />
                       </div>
@@ -877,7 +858,7 @@ export default function AdminDashboard() {
                           </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                          {transactions.map((transaction) => (
+                          {transactions.map((transaction: Transaction) => (
                             <tr key={transaction.id}>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div>
@@ -946,8 +927,8 @@ export default function AdminDashboard() {
                                         Reverse Transaction
                                       </Button>
                                     </DialogFooter>
-                                  </Dialog>
-                                </Button>
+                                  </DialogContent>
+                                </Dialog>
                               </td>
                             </tr>
                           ))}
@@ -1024,7 +1005,7 @@ export default function AdminDashboard() {
                     <CardContent>
                       {analyticsData.topAssets && analyticsData.topAssets.length > 0 ? (
                         <div className="space-y-3">
-                          {analyticsData.topAssets.slice(0, 5).map((asset, index) => (
+                          {analyticsData.topAssets.slice(0, 5).map((asset: any, index) => (
                             <div key={asset.symbol} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                               <div className="flex items-center space-x-3">
                                 <span className="font-semibold text-lg">#{index + 1}</span>
