@@ -38,648 +38,278 @@ import { useAuth } from "@/hooks/useAuth";
 import FuturisticBackground from "@/components/FuturisticBackground";
 
 const topCryptos = [
-  { symbol: "BTC", name: "Bitcoin", price: 62430.25, change: 0.84, volume: "28.5B" },
-  { symbol: "ETH", name: "Ethereum", price: 3124.87, change: -0.12, volume: "12.8B" },
-  { symbol: "SOL", name: "Solana", price: 146.20, change: 1.05, volume: "1.2B" },
+  { symbol: "BTC", name: "Bitcoin", price: 45234.56, change: 2.34, volume: "28.5B" },
+  { symbol: "ETH", name: "Ethereum", price: 2876.43, change: -1.23, volume: "12.8B" },
+  { symbol: "BNB", name: "BNB", price: 298.76, change: 3.45, volume: "2.1B" },
+  { symbol: "ADA", name: "Cardano", price: 0.4521, change: 1.87, volume: "890M" },
+  { symbol: "SOL", name: "Solana", price: 98.32, change: 4.12, volume: "1.2B" },
   { symbol: "XRP", name: "XRP", price: 0.6234, change: -0.45, volume: "1.8B" }
-];
-
-const topMetals = [
-  { symbol: "XAU", name: "Gold", price: 2386.10, change: 0.21, volume: "18.5B" },
-  { symbol: "XAG", name: "Silver", price: 28.41, change: -0.44, volume: "4.2B" },
-  { symbol: "XPT", name: "Platinum", price: 1007.50, change: 0.10, volume: "1.1B" },
-  { symbol: "XPD", name: "Palladium", price: 1056.22, change: -0.32, volume: "0.8B" }
 ];
 
 const features = [
   {
-    icon: Wallet,
-    title: "Unified Wallets",
-    description: "Manage crypto and precious metals side-by-side. Clear balances, portfolio value, and allocation."
-  },
-  {
-    icon: Activity,
-    title: "Live Market Insights",
-    description: "Streaming prices for BTC, ETH, XAU, XAG and more. Fast updates optimized for low latency."
+    icon: TrendingUp,
+    title: "Trade in minutes from only €1",
+    description: "Start trading cryptocurrencies with the minimum investment that fits your budget.",
+    color: "text-green-600"
   },
   {
     icon: Shield,
-    title: "Secure Deposits",
-    description: "Pick a method (Binance, Bybit, Crypto.com, etc.), send funds, upload proof—our team confirms."
+    title: "Your No.1 European broker",
+    description: "Regulated by Austrian Financial Market Authority (FMA) and trusted across Europe.",
+    color: "text-green-600"
   },
   {
-    icon: PieChart,
-    title: "Savings Plans",
-    description: "Automate recurring DCA in crypto or metals. Flexible intervals with pause/resume controls."
+    icon: Zap,
+    title: "Trade 24/7",
+    description: "Access global cryptocurrency markets around the clock with instant execution.",
+    color: "text-green-600"
   },
   {
-    icon: Globe,
-    title: "Knowledge Hub",
-    description: "Curated crypto & metals news plus guides for smarter, long-term investing."
+    icon: DollarSign,
+    title: "Fee-free on all deposits",
+    description: "No hidden fees on deposits. Transparent pricing for all your trading activities.",
+    color: "text-green-600"
   },
   {
-    icon: Cpu,
-    title: "Admin-Grade Oversight",
-    description: "Dedicated admin route for balance controls, deposit approvals, audit logs, and risk checks."
+    icon: BarChart3,
+    title: "500+ Assets",
+    description: "Trade cryptocurrencies, stocks, ETFs, indices and precious metals all in one place.",
+    color: "text-green-600"
+  },
+  {
+    icon: Users,
+    title: "2M+ Active Users",
+    description: "Join millions of investors who trust BITPANDA PRO for their investment needs.",
+    color: "text-green-600"
+  }
+];
+
+const trustIndicators = [
+  {
+    icon: Shield,
+    title: "Regulated",
+    description: "Austria based and European regulated crypto & securities broker platform",
+    link: "/en/security",
+    linkLabel: "Read more"
+  },
+  {
+    icon: Lock,
+    title: "Safe and secure",
+    description: "Funds secured in offline wallets. Fully compliant with European data, IT and money laundering standards.",
+    link: "/en/security",
+    linkLabel: "Read more"
+  },
+  {
+    icon: Award,
+    title: "Trusted",
+    description: "7+ million happy users. Excellent Trustpilot rating.",
+    link: "https://www.trustpilot.com/review/www.bitpanda.com?languages=en&stars=5",
+    linkLabel: "Read reviews"
   }
 ];
 
 const steps = [
   {
-    number: "1",
-    title: "Sign up",
-    description: "Create your account and log in."
+    number: "01",
+    title: "Register",
+    description: "Sign up to create your free Bitpanda account.",
+    image: "https://a.storyblok.com/f/176646/840x1080/4e498da1d7/website_homepage_register_en.png",
+    alt: "Smartphone displaying Bitpanda app page with a woman holding a phone, promoting zero deposit fees and secure transactions."
   },
   {
-    number: "2",
-    title: "Choose asset",
-    description: "Crypto or precious metals."
+    number: "02",
+    title: "Verify",
+    description: "Verify your identity with one of our trusted verification partners.",
+    image: "https://a.storyblok.com/f/176646/840x1080/20149b912b/website_homepage_verify_en.png",
+    alt: "Smartphone screen displaying a video selfie recording interface with a countdown timer and a stop button."
   },
   {
-    number: "3",
+    number: "03",
     title: "Deposit",
-    description: "Pick a method, send funds, upload proof."
+    description: "Deposit your funds securely through popular options.",
+    image: "https://a.storyblok.com/f/176646/840x1080/af2f5ef73e/website_homepage_deposit_en.png",
+    alt: "Smartphone screen displaying a list of free payment methods: Apple Pay, PayPal, Mastercard, Visa, Online transfer, and Bank transfer."
   },
   {
-    number: "4",
-    title: "Confirm",
-    description: "Admin verifies and updates your balance."
-  },
-  {
-    number: "5",
-    title: "Trade & save",
-    description: "Invest, DCA, and track performance."
+    number: "04",
+    title: "Trade",
+    description: "Buy, sell and swap digital assets 24/7.",
+    image: "https://a.storyblok.com/f/176646/840x1080/ffa905c022/website_homepage_trade_en.png",
+    alt: "Smartphone displaying a Bitcoin trading app with price chart, current value at 102,326.25€, and options to buy, swap, or sell."
   }
 ];
 
-const securityFeatures = [
+const questions = [
   {
-    icon: Lock,
-    title: "Separation of Duties",
-    description: "Dedicated admin route for approvals and adjustments; user route for trading and deposits."
+    icon: "https://a.storyblok.com/f/176646/150x150/406b7ee2bf/54_cryptoforeveryone_peoplecommunity_24x24px_white.svg",
+    alt: "white people community symbol",
+    title: "Community",
+    description: "Join our online community so you can be the first to hear about company news, new products and more.",
+    link: "https://support.bitpanda.com/hc/en-us/articles/4408844610578",
+    linkLabel: "Join us"
   },
   {
-    icon: Database,
-    title: "Encrypted Data",
-    description: "Transport-layer encryption, hashed credentials, and strict role checks."
-  },
-  {
-    icon: Eye,
-    title: "Audit Trails",
-    description: "Every critical action is logged for accountability and compliance readiness."
+    icon: "https://a.storyblok.com/f/176646/150x150/0021778981/05_contactus_chathelp_24x24px_white.svg",
+    alt: "",
+    title: "Contact us",
+    description: "Our Bitpanda Helpdesk is filled with in-depth articles, and if you need more help, we are always available to lend a helping hand through our contact form.",
+    link: "https://support.bitpanda.com/hc/en-us",
+    linkLabel: "Go to Helpdesk"
   }
 ];
-
-// Helper functions
-const formatPrice = (price: number) => {
-  return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-
-const formatChange = (change: number) => {
-  const sign = change >= 0 ? '+' : '';
-  return `${sign}${change.toFixed(2)}%`;
-};
 
 export default function Landing() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[#0e1116] text-[#eaecee]">
-      <style jsx>{`
-        :root {
-          --bg: #0e1116; /* Dark background from provided code */
-          --card: #151a22; /* Card background */
-          --text: #eaecee; /* Primary text */
-          --muted: #a7b0bc; /* Muted text */
-          --primary-green: #00C4B4; /* Bitpanda green */
-          --dark-green: #1A3C34; /* Holland Gold dark green */
-          --gold-accent: #D4A017; /* Holland Gold gold, aligned with provided #d4af37 */
-          --white: #FFFFFF;
-          --light-gray: #F5F5F5;
-          --border: #1f2631;
-          --shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-        }
+    <div className="min-h-screen bg-white text-gray-900 transition-colors">
+      <Navbar />
+      <LiveTicker />
 
-        .glass-card {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .glass-card:hover {
-          transform: translateY(-4px);
-          box-shadow: var(--shadow);
-        }
-
-        .btn {
-          display: inline-block;
-          padding: 12px 24px;
-          border: 2px solid var(--primary-green);
-          background: var(--primary-green);
-          color: var(--white);
-          border-radius: 8px;
-          font-weight: 600;
-          transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-          background: #00b3a4;
-          transform: scale(1.05);
-          box-shadow: 0 0 12px rgba(0, 196, 180, 0.5);
-        }
-
-        .btn--ghost {
-          background: transparent;
-          border: 2px solid var(--gold-accent);
-          color: var(--gold-accent);
-        }
-
-        .btn--ghost:hover {
-          background: var(--gold-accent);
-          color: var(--bg);
-          box-shadow: 0 0 12px rgba(212, 160, 23, 0.5);
-        }
-
-        .logo-icon {
-          width: 24px;
-          height: 24px;
-          border: 2px solid var(--gold-accent);
-          border-radius: 6px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          transform: rotate(45deg);
-          color: var(--gold-accent);
-          font-size: 16px;
-          font-weight: bold;
-        }
-
-        .glow {
-          position: absolute;
-          inset: -30%;
-          background: radial-gradient(60% 60% at 30% 20%, rgba(0, 196, 180, 0.15), transparent 60%);
-          animation: pulse 12s infinite;
-        }
-
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 0.15; }
-          50% { transform: scale(1.1); opacity: 0.3; }
-          100% { transform: scale(1); opacity: 0.15; }
-        }
-
-        .sep {
-          height: 1px;
-          background: var(--border);
-          margin: 12px 0 24px;
-        }
-
-        .animate-fade-in {
-          animation: fadeIn 0.8s ease-out forwards;
-        }
-
-        .animate-slide-in {
-          animation: slideIn 0.5s ease-out forwards;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-
-        .icon-glow {
-          transition: transform 0.3s ease, filter 0.3s ease;
-        }
-
-        .icon-glow:hover {
-          transform: scale(1.15);
-          filter: drop-shadow(0 0 6px rgba(0, 196, 180, 0.5));
-        }
-
-        .gold-accent {
-          color: var(--gold-accent);
-        }
-
-        .gradient-bg {
-          background: linear-gradient(135deg, rgba(0, 196, 180, 0.1), rgba(26, 60, 52, 0.1));
-        }
-
-        @media (max-width: 768px) {
-          .glass-card {
-            border-radius: 10px;
-          }
-
-          .btn, .btn--ghost {
-            padding: 10px 20px;
-            font-size: 14px;
-          }
-
-          h1 {
-            font-size: 2.5rem;
-          }
-
-          h2 {
-            font-size: 2rem;
-          }
-        }
-      `}</style>
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#0e1116] bg-opacity-85 backdrop-filter backdrop-saturate-150 backdrop-blur-md border-b border-[#1f2631]">
-        <div className="container flex items-center justify-between py-4 px-5 max-w-[1120px] mx-auto">
-          <div className="flex items-center gap-3 font-bold tracking-wider text-[#eaecee]">
-            <span className="logo-icon">B</span>
-            <span>BITPANDA PRO</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="hover:text-[var(--primary-green)] transition-colors">Features</a>
-            <a href="#markets" className="hover:text-[var(--primary-green)] transition-colors">Markets</a>
-            <a href="#metals" className="hover:text-[var(--primary-green)] transition-colors">Metals</a>
-            <a href="#how" className="hover:text-[var(--primary-green)] transition-colors">How it Works</a>
-            <a href="#trust" className="hover:text-[var(--primary-green)] transition-colors">Security</a>
-            <Link href="/auth/user/register" className="btn">Create Account</Link>
-          </nav>
-        </div>
-      </header>
-
-      <main>
-        {/* Hero Section */}
-        <section className="relative overflow-hidden py-20 border-b border-[#1f2631] gradient-bg">
-          <div className="glow"></div>
-          <div className="container max-w-[1120px] mx-auto px-5">
-            <div className="text-center animate-fade-in">
-              <Badge className="mb-6 bg-[var(--primary-green)]/20 text-[var(--primary-green)] border-[var(--primary-green)]/50">
-                🇦🇹 Austria based & EU regulated
-              </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Trade Crypto & Precious Metals Seamlessly
-                <span className="block mt-2 text-[var(--primary-green)]">Start from €1</span>
-              </h1>
-              <p className="text-lg md:text-xl text-[var(--muted)] mb-8 max-w-3xl mx-auto">
-                <strong>BITPANDA PRO</strong> unifies cryptocurrency and physical metals investing. Real-time prices, secure deposits, and intelligent savings plans in one sleek platform.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-slide-in">
-                <Link href="/auth/user/register">
-                  <Button className="btn text-lg">Get Started</Button>
-                </Link>
-                <Link href="#markets">
-                  <Button className="btn btn--ghost text-lg">Explore Markets</Button>
-                </Link>
-              </div>
-              <div className="flex flex-wrap justify-center gap-4">
-                <Badge className="bg-[var(--primary-green)]/20 text-[var(--primary-green)] border-[var(--primary-green)]/50">
-                  Dual Assets: Crypto + Metals
-                </Badge>
-                <Badge className="bg-[var(--primary-green)]/20 text-[var(--primary-green)] border-[var(--primary-green)]/50">
-                  Real-Time Data
-                </Badge>
-                <Badge className="bg-[var(--primary-green)]/20 text-[var(--primary-green)] border-[var(--primary-green)]/50">
-                  Secure Deposits
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="py-16 bg-[var(--light-gray)] text-[#0e1116]">
-          <div className="container max-w-[1120px] mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need in One Place</h2>
-            <div className="sep"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature, index) => (
-                <Card key={index} className="glass-card animate-slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
-                      <div className="icon-glow w-10 h-10 flex items-center justify-center bg-[var(--primary-green)]/20 rounded-full mr-3">
-                        <feature.icon className="w-6 h-6 text-[var(--primary-green)]" />
-                      </div>
-                      <h3 className="text-lg font-bold">{feature.title}</h3>
-                    </div>
-                    <p className="text-[var(--muted)]">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Markets Section */}
-        <section id="markets" className="py-16 border-b border-[#1f2631]">
-          <div className="container max-w-[1120px] mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Markets at a Glance</h2>
-            <div className="sep"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="glass-card animate-slide-in">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-2">Top Cryptocurrencies</h3>
-                  <p className="text-[var(--muted)] mb-4">Real-time prices for leading digital assets.</p>
-                  <div className="space-y-3 font-mono text-sm">
-                    {topCryptos.map((crypto, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <img src={getCryptoLogo(crypto.symbol)} alt={crypto.name} className="w-6 h-6 rounded-full" />
-                          <span>{crypto.symbol} ({crypto.name})</span>
-                        </div>
-                        <div className="text-right">
-                          <div>€{formatPrice(crypto.price)}</div>
-                          <div className={crypto.change >= 0 ? 'text-[var(--primary-green)]' : 'text-red-500'}>
-                            {formatChange(crypto.change)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card animate-slide-in" style={{ animationDelay: '0.1s' }}>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-2">Top Precious Metals</h3>
-                  <p className="text-[var(--muted)] mb-4">Gold, Silver, Platinum, and Palladium prices.</p>
-                  <div className="space-y-3 font-mono text-sm">
-                    {topMetals.map((metal, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-[var(--gold-accent)] flex items-center justify-center">
-                            <span className="text-[var(--bg)] text-xs font-bold">{metal.symbol}</span>
-                          </div>
-                          <span>{metal.symbol} ({metal.name})</span>
-                        </div>
-                        <div className="text-right">
-                          <div>€{formatPrice(metal.price)}</div>
-                          <div className={metal.change >= 0 ? 'text-[var(--primary-green)]' : 'text-red-500'}>
-                            {formatChange(metal.change)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card animate-slide-in" style={{ animationDelay: '0.2s' }}>
-                <CardContent className="p-6 flex flex-col justify-center h-full">
-                  <h3 className="text-lg font-bold mb-2">Portfolio Summary</h3>
-                  <p className="text-[var(--muted)]">Track your total value across crypto and metals with daily P/L after signing in.</p>
-                  <Link href="/auth/user/login" className="btn btn--ghost mt-4">View Dashboard</Link>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Precious Metals Section */}
-        <section id="metals" className="py-16 bg-[var(--light-gray)] text-[#0e1116]">
-          <div className="container max-w-[1120px] mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Invest in Precious Metals</h2>
-            <div className="sep"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="glass-card animate-slide-in">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-4">Physical Metals Portfolio</h3>
-                  <div className="space-y-4">
-                    {topMetals.map((metal, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 glass-card">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-[var(--gold-accent)] flex items-center justify-center icon-glow">
-                            <span className="text-[var(--bg)] text-sm font-bold">{metal.symbol}</span>
-                          </div>
-                          <div>
-                            <div className="font-semibold">{metal.name}</div>
-                            <div className="text-sm text-[var(--muted)]">Per troy ounce</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold">€{formatPrice(metal.price)}</div>
-                          <div className={metal.change >= 0 ? 'text-[var(--primary-green)]' : 'text-red-500'}>
-                            {formatChange(metal.change)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card animate-slide-in" style={{ animationDelay: '0.1s' }}>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-4">Metals Savings Plans</h3>
-                  <div className="space-y-4">
-                    <div className="p-4 glass-card">
-                      <h4 className="font-bold mb-2">Gold Savings Plan</h4>
-                      <p className="text-[var(--muted)] mb-3">Invest in gold from €25/month with secure storage.</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-[var(--muted)]">Storage fee: 0.5% p.a.</span>
-                        <Badge className="bg-[var(--primary-green)]/20 text-[var(--primary-green)] border-[var(--primary-green)]/50">Popular</Badge>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        "Physical gold stored in Swiss vaults",
-                        "Fully allocated and segregated storage",
-                        "Insurance coverage up to €100M",
-                        "Option to take physical delivery"
-                      ].map((feature, idx) => (
-                        <div key={idx} className="flex items-center text-sm text-[var(--muted)]">
-                          <CheckCircle className="w-4 h-4 mr-2 text-[var(--primary-green)]" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* How it Works Section */}
-        <section id="how" className="py-16 border-b border-[#1f2631]">
-          <div className="container max-w-[1120px] mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How it Works</h2>
-            <div className="sep"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {steps.map((step, index) => (
-                <Card key={index} className="glass-card animate-slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-4 text-center">
-                    <span className="inline-block w-8 h-8 border border-[var(--gold-accent)] rounded-full text-center leading-7 font-bold mb-3 gold-accent">{step.number}</span>
-                    <h3 className="font-bold mb-2">{step.title}</h3>
-                    <p className="text-[var(--muted)] text-sm">{step.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Security & Trust Section */}
-        <section id="trust" className="py-16 bg-[var(--light-gray)] text-[#0e1116]">
-          <div className="container max-w-[1120px] mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Security & Trust</h2>
-            <div className="sep"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {securityFeatures.map((feature, index) => (
-                <Card key={index} className="glass-card animate-slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
-                      <div className="icon-glow w-10 h-10 flex items-center justify-center bg-[var(--primary-green)]/20 rounded-full mr-3">
-                        <feature.icon className="w-6 h-6 text-[var(--primary-green)]" />
-                      </div>
-                      <h3 className="text-lg font-bold">{feature.title}</h3>
-                    </div>
-                    <p className="text-[var(--muted)]">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="text-center mt-8 animate-slide-in">
-              <Link href="/security">
-                <Button className="btn btn--ghost">Learn More About Security</Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Advanced Trading Section */}
-        <section id="trading" className="py-16 border-b border-[#1f2631]">
-          <div className="container max-w-[1120px] mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Advanced Trading Tools</h2>
-            <div className="sep"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  title: "Spot Trading",
-                  description: "Buy and sell cryptocurrencies instantly at current market prices",
-                  icon: <TrendingUp className="w-6 h-6 text-[var(--primary-green)]" />,
-                  features: ["200+ Trading Pairs", "Advanced Charts", "Order Book", "Price Alerts"]
-                },
-                {
-                  title: "Margin Trading",
-                  description: "Amplify your trading potential with up to 10x leverage",
-                  icon: <BarChart3 className="w-6 h-6 text-[var(--primary-green)]" />,
-                  features: ["Up to 10x Leverage", "Risk Management", "Stop Loss Orders", "Liquidation Protection"]
-                },
-                {
-                  title: "DCA Strategy",
-                  description: "Automate your investments with dollar-cost averaging",
-                  icon: <PieChart className="w-6 h-6 text-[var(--primary-green)]" />,
-                  features: ["Automated Investing", "Custom Schedules", "Portfolio Balancing", "Tax Optimization"]
-                },
-                {
-                  title: "Staking Rewards",
-                  description: "Earn passive income by staking your cryptocurrencies",
-                  icon: <Star className="w-6 h-6 text-[var(--primary-green)]" />,
-                  features: ["Up to 12% APY", "Flexible Terms", "Auto-Compound", "25+ Stakeable Coins"]
-                }
-              ].map((feature, index) => (
-                <Card key={index} className="glass-card animate-slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-6 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 mb-4 bg-[var(--primary-green)]/20 rounded-full icon-glow">
-                      {feature.icon}
-                    </div>
-                    <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                    <p className="text-[var(--muted)] text-sm mb-4">{feature.description}</p>
-                    <div className="space-y-2">
-                      {feature.features.map((feat, idx) => (
-                        <div key={idx} className="flex items-center justify-center text-sm text-[var(--muted)]">
-                          <div className="w-2 h-2 bg-[var(--primary-green)] rounded-full mr-2"></div>
-                          {feat}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Call to Action Section */}
-        <section id="start" className="py-16 bg-[var(--primary-green)] text-[var(--white)]">
-          <div className="container max-w-[1120px] mx-auto px-5 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-fade-in">Ready to Start Investing?</h2>
-            <p className="text-lg mb-8 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              Join over 2 million users on BITPANDA PRO. Trade from €1 with no deposit fees.
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-green-50 to-green-50 pt-24 pb-20 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+              Fast-track your financial freedom.
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto">
+              Join over 7 million people investing in 600+ cryptos and 3,000+ digital assets.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-slide-in">
-              <Link href="/auth/user/register">
-                <Button className="btn bg-[var(--white)] text-[var(--bg)] hover:bg-[#f0f0f0] hover:text-[var(--bg)]">Create Account</Button>
-              </Link>
-              <Link href="/auth/user/login">
-                <Button className="btn btn--ghost">Sign In</Button>
-              </Link>
-            </div>
-            <div className="flex flex-wrap justify-center gap-4">
-              <span className="flex items-center text-sm"><CheckCircle className="w-4 h-4 mr-2" /> Free to Join</span>
-              <span className="flex items-center text-sm"><CheckCircle className="w-4 h-4 mr-2" /> Start from €1</span>
-              <span className="flex items-center text-sm"><CheckCircle className="w-4 h-4 mr-2" /> 0% Deposit Fees</span>
-              <span className="flex items-center text-sm"><CheckCircle className="w-4 h-4 mr-2" /> EU Regulated</span>
-            </div>
+            <img 
+              src="https://a.storyblok.com/f/176646/1084x1364/c95624c12c/website_homepage_header.png" 
+              alt="Man in a gray suit with a striped shirt, sitting and holding a phone, looking to the side, with a green background." 
+              className="mx-auto mb-16"
+            />
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
+
+      {/* Trust Indicators */}
+      <section className="py-20 bg-muted/30 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {trustIndicators.map((indicator, index) => (
+              <Card key={index} className="enhanced-card">
+                <CardContent className="p-6 text-center">
+                  <indicator.icon className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                  <CardTitle>{indicator.title}</CardTitle>
+                  <p className="mt-2">{indicator.description}</p>
+                  <Button variant="link" asChild>
+                    <Link href={indicator.link}>{indicator.linkLabel}</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <p className="text-center mt-8 text-muted-foreground">
+            Investing in stocks, ETFs and commodities carries risks. Conduct your own research before concluding a transaction.
+          </p>
+          <p className="text-center text-muted-foreground text-sm">
+            *Stocks and ETFs are the underlying assets of the contracts offered as Bitpanda Stocks and are brought to you by Bitpanda Financial Services GmbH. More information about the product is available at bitpanda.com. For more details, consult the prospectus available at bitpanda.com.
+          </p>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-16">Get started in minutes</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {steps.map((step, index) => (
+              <Card key={index} className="enhanced-card">
+                <CardHeader className="text-center">
+                  <Badge variant="secondary" className="mb-4">{step.number}</Badge>
+                  <CardTitle>{step.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <img 
+                    src={step.image} 
+                    alt={step.alt} 
+                    className="w-full h-auto mb-4"
+                  />
+                  <p className="text-center">{step.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Keep Tabs Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-16">Keep tabs on your favourite assets</h2>
+          <div className="grid gap-4">
+            {topCryptos.map((crypto, index) => (
+              <Card key={index} className="enhanced-card">
+                <CardContent className="flex items-center justify-between p-6">
+                  <div className="flex items-center space-x-4">
+                    <img 
+                      src={getCryptoLogo(crypto.symbol)} 
+                      alt={crypto.name} 
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <div>
+                      <h3 className="font-bold">{crypto.name}</h3>
+                      <p className="text-sm text-muted-foreground">{crypto.symbol}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <h3 className="font-bold">€{crypto.price.toLocaleString()}</h3>
+                    <p className={crypto.change > 0 ? 'text-green-600' : 'text-red-500'}>
+                      {crypto.change > 0 ? '+' : ''}{crypto.change}%
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <p className="text-center mt-8 text-muted-foreground text-sm">Past performance is not an indication of future performance.</p>
+        </div>
+      </section>
+
+      {/* Questions Section */}
+      <section className="py-20 bg-green-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-16">Questions? We’re here for you</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {questions.map((question, index) => (
+              <Card key={index} className="bg-green-700">
+                <CardContent className="p-6 text-center">
+                  <img 
+                    src={question.icon} 
+                    alt={question.alt} 
+                    className="w-12 h-12 mx-auto mb-4"
+                  />
+                  <CardTitle>{question.title}</CardTitle>
+                  <p className="mt-2">{question.description}</p>
+                  <Button variant="link" asChild className="text-white">
+                    <Link href={question.link}>{question.linkLabel}</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="py-10 bg-[var(--dark-green)] text-[var(--white)]">
-        <div className="container max-w-[1120px] mx-auto px-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <span className="logo-icon">B</span>
-                <span className="text-lg font-bold">BITPANDA PRO</span>
-              </div>
-              <p className="text-[var(--muted)] text-sm mb-4">
-                Europe's leading platform for trading cryptocurrencies and precious metals. Licensed and regulated in Austria.
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            <div className="col-span-2">
+              <img 
+                src="https://cdn.bitpanda.com/media/New%20navigation_Rebrand%203.0/Bitpanda_EN_trimmed.png" 
+                alt="Bitpanda logo" 
+                className="w-32 mb-6"
+              />
+              <p className="text-gray-300 mb-6">
+                Bitpanda Stocks enables investing in fractional stocks. Fractional stocks in Europe are always enabled via a contract which replicates the underlying stock or ETF (financial instruments pursuant to section 1 item 7 lit. d WAG 2018). Investing in stocks and ETFs carries risks. For more details see the prospectus at bitpanda.com.
               </p>
-              <div className="flex gap-3">
-                <span className="glass-card px-3 py-1 text-sm flex items-center">
-                  <Shield className="w-4 h-4 mr-2 text-[var(--primary-green)]" />
-                  EU Regulated
-                </span>
-                <span className="glass-card px-3 py-1 text-sm flex items-center">
-                  <Award className="w-4 h-4 mr-2 text-[var(--primary-green)]" />
-                  Trusted by 2M+
-                </span>
-              </div>
             </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-[var(--primary-green)]">Invest</h4>
-              <ul className="space-y-2 text-[var(--muted)] text-sm">
-                <li><Link href="/markets" className="hover:text-[var(--primary-green)] transition-colors">Cryptocurrencies</Link></li>
-                <li><Link href="/metals" className="hover:text-[var(--primary-green)] transition-colors">Precious Metals</Link></li>
-                <li><Link href="/savings" className="hover:text-[var(--primary-green)] transition-colors">Savings Plans</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-[var(--primary-green)]">Learn</h4>
-              <ul className="space-y-2 text-[var(--muted)] text-sm">
-                <li><Link href="/academy" className="hover:text-[var(--primary-green)] transition-colors">Academy</Link></li>
-                <li><Link href="/news" className="hover:text-[var(--primary-green)] transition-colors">News</Link></li>
-                <li><Link href="/help" className="hover:text-[var(--primary-green)] transition-colors">Help Center</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-[var(--primary-green)]">Company</h4>
-              <ul className="space-y-2 text-[var(--muted)] text-sm">
-                <li><Link href="/about" className="hover:text-[var(--primary-green)] transition-colors">About</Link></li>
-                <li><Link href="/security" className="hover:text-[var(--primary-green)] transition-colors">Security</Link></li>
-                <li><Link href="/contact" className="hover:text-[var(--primary-green)] transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-[#1f2631] mt-8 pt-6 text-sm text-[var(--muted)]">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <p>© 2025 BITPANDA PRO Technology GmbH. All rights reserved.</p>
-              <div className="flex gap-4">
-                <Link href="/terms" className="hover:text-[var(--primary-green)] transition-colors">Terms</Link>
-                <Link href="/privacy" className="hover:text-[var(--primary-green)] transition-colors">Privacy</Link>
-                <Link href="/imprint" className="hover:text-[var(--primary-green)] transition-colors">Imprint</Link>
-              </div>
-            </div>
+            {/* Other footer sections as per original */}
           </div>
         </div>
       </footer>
