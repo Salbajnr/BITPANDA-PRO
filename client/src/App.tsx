@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import Landing from "@/pages/Landing";
+import Landing from "@/pages/LandingNew";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Markets from "@/pages/Markets";

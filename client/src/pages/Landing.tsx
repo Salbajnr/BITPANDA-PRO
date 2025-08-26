@@ -26,12 +26,17 @@ import {
   Wallet,
   Timer,
   Eye,
-  Coins // Added Coins icon for the footer logo
+  Coins,
+  Rocket,
+  Lightning,
+  Cpu,
+  Database
 } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
 import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
 import { useAuth } from "@/hooks/useAuth";
+import FuturisticBackground from "@/components/FuturisticBackground";
 
 const topCryptos = [
   { symbol: "BTC", name: "Bitcoin", price: 45234.56, change: 2.34, volume: "28.5B" },
