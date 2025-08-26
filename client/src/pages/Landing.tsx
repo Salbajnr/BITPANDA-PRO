@@ -28,7 +28,7 @@ import {
   Eye,
   Coins,
   Rocket,
-  Lightning,
+
   Cpu,
   Database
 } from "lucide-react";
@@ -132,7 +132,7 @@ export default function Landing() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background transition-colors">
+    <div className="min-h-screen gradient-bg transition-colors">
       <Navbar />
       <LiveTicker />
 
@@ -152,20 +152,20 @@ export default function Landing() {
             </div>
 
             {/* Main Heading - Bitpanda Style */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up">
               BITPANDA PRO -
-              <span className="text-green-600 dark:text-green-400 block mt-2">Start investing today</span>
+              <span className="text-gradient block mt-2">Start investing today</span>
             </h1>
 
             {/* Subtitle - Exact Bitpanda copy */}
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed font-medium">
+            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-8 max-w-4xl mx-auto leading-relaxed font-medium animate-slide-in-right">
               Trade in minutes from only €1. Your No.1 European broker for stocks, crypto, indices, ETFs and precious metals. Trade 24/7. Fee-free on all deposits.
             </p>
 
             {/* CTA Buttons - Bitpanda Style */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link href="/auth">
-                <Button size="lg" className="btn-3d bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-lg text-lg h-14 transition-all duration-200">
+                <Button size="lg" className="btn-enhanced text-white font-semibold px-12 py-4 rounded-lg text-lg h-14">
                   Get started
                 </Button>
               </Link>
@@ -173,7 +173,7 @@ export default function Landing() {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="btn-3d border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-12 py-4 rounded-lg text-lg h-14 font-semibold transition-all duration-200"
+                className="enhanced-card border-2 border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-12 py-4 rounded-lg text-lg h-14 font-semibold transition-all duration-200"
               >
                 Learn more
               </Button>
@@ -182,8 +182,8 @@ export default function Landing() {
             {/* Trust Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {trustIndicators.map((indicator, index) => (
-                <div key={index} className="flex items-center justify-center space-x-3 solid-card p-4 transition-all duration-200 hover:scale-105 gradient-3d">
-                  <div className="icon-3d w-12 h-12 flex items-center justify-center bg-green-100 dark:bg-green-900/30">
+                <div key={index} className="flex items-center justify-center space-x-3 enhanced-card p-4 animate-fade-in-up" style={{animationDelay: `${index * 100}ms`}}>
+                  <div className="feature-icon w-12 h-12 flex items-center justify-center">
                     <span className="text-2xl">{indicator.badge}</span>
                   </div>
                   <div className="text-left">
@@ -265,7 +265,7 @@ export default function Landing() {
 
           <div className="grid gap-4 max-w-5xl mx-auto">
             {topCryptos.map((crypto, index) => (
-              <Card key={crypto.symbol} className="solid-card hover:border-green-300 transition-all duration-200 group">
+              <Card key={crypto.symbol} className="enhanced-card group animate-fade-in-up" style={{animationDelay: `${index * 100}ms`}}>
                 <CardContent className="flex items-center justify-between p-6">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-muted flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
