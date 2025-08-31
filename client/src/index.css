@@ -88,6 +88,117 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
+/* Smooth scrolling for the entire page */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Account for fixed navbar */
+}
+
+/* Enhanced scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--primary-green), var(--primary-green-dark));
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, var(--primary-green-dark), var(--primary-green));
+}
+
+/* Firefox scrollbar styling */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-green) var(--bg-secondary);
+}
+
+/* Smooth navigation animations */
+.nav-link-smooth {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link-smooth::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--primary-green), var(--primary-blue));
+  transition: width 0.3s ease;
+}
+
+.nav-link-smooth:hover::before {
+  width: 100%;
+}
+
+/* Enhanced animations */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-in-top {
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInFromBottom 0.4s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+/* Stagger animation for lists */
+.stagger-animation > * {
+  animation: slideInFromBottom 0.6s ease-out backwards;
+}
+
+.stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-animation > *:nth-child(6) { animation-delay: 0.6s; }
+
 .gradient-bg {
   background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
 }
