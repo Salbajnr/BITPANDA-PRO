@@ -140,6 +140,96 @@ const steps = [
   }
 ];
 
+const testimonials = [
+  {
+    name: "Sarah Chen",
+    role: "Portfolio Manager",
+    content: "BITPANDA PRO has revolutionized how I manage my crypto investments. The analytics tools are exceptional.",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face"
+  },
+  {
+    name: "Marco Rodriguez",
+    role: "Day Trader",
+    content: "The real-time market data and instant execution have significantly improved my trading performance.",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face"
+  },
+  {
+    name: "Emma Thompson",
+    role: "Crypto Investor",
+    content: "Best platform for beginners. The educational resources and customer support are outstanding.",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&h=64&fit=crop&crop=face"
+  }
+];
+
+const advancedFeatures = [
+  {
+    icon: Activity,
+    title: "Real-time Analytics",
+    description: "Advanced charting tools with 50+ technical indicators for professional trading decisions.",
+    color: "text-blue-600"
+  },
+  {
+    icon: Rocket,
+    title: "Lightning Fast Execution",
+    description: "Execute trades in milliseconds with our state-of-the-art matching engine.",
+    color: "text-purple-600"
+  },
+  {
+    icon: Database,
+    title: "Deep Market Data",
+    description: "Access to order books, market depth, and historical data for informed decisions.",
+    color: "text-orange-600"
+  },
+  {
+    icon: Cpu,
+    title: "AI-Powered Insights",
+    description: "Machine learning algorithms provide personalized investment recommendations.",
+    color: "text-red-600"
+  },
+  {
+    icon: PieChart,
+    title: "Portfolio Optimization",
+    description: "Automated rebalancing and risk management tools for optimal portfolio performance.",
+    color: "text-green-600"
+  },
+  {
+    icon: AlertCircle,
+    title: "Smart Alerts",
+    description: "Customizable price alerts and market notifications via SMS, email, and push notifications.",
+    color: "text-yellow-600"
+  }
+];
+
+const marketStats = [
+  {
+    value: "€2.8T",
+    label: "Total Market Cap",
+    icon: Globe,
+    change: "+5.2%"
+  },
+  {
+    value: "€127B",
+    label: "24h Volume",
+    icon: Activity,
+    change: "+12.7%"
+  },
+  {
+    value: "600+",
+    label: "Cryptocurrencies",
+    icon: Coins,
+    change: "New listings weekly"
+  },
+  {
+    value: "99.9%",
+    label: "Uptime",
+    icon: Shield,
+    change: "Industry leading"
+  }
+];
+
 const questions = [
   {
     icon: "https://a.storyblok.com/f/176646/150x150/406b7ee2bf/54_cryptoforeveryone_peoplecommunity_24x24px_white.svg",
@@ -168,20 +258,55 @@ export default function Landing() {
       <LiveTicker />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-green-50 to-green-50 pt-24 pb-20 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-green-50 via-blue-50 to-green-50 pt-24 pb-20 transition-colors overflow-hidden">
+        <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <Badge variant="secondary" className="mb-4 px-6 py-2 text-lg">
+              <Rocket className="w-4 h-4 mr-2" />
+              Europe's #1 Crypto Platform
+            </Badge>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
               Fast-track your financial freedom.
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto">
               Join over 7 million people investing in 600+ cryptos and 3,000+ digital assets.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button size="lg" asChild className="bg-green-600 hover:bg-green-700">
+                <Link href="/auth">
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  Start Trading Now
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline">
+                <Eye className="w-5 h-5 mr-2" />
+                Explore Features
+              </Button>
+            </div>
             <img 
               src="https://a.storyblok.com/f/176646/1084x1364/c95624c12c/website_homepage_header.png" 
               alt="Man in a gray suit with a striped shirt, sitting and holding a phone, looking to the side, with a green background." 
-              className="mx-auto mb-16"
+              className="mx-auto mb-8 hover:scale-105 transition-transform duration-500"
             />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600">7M+</div>
+                <div className="text-sm text-muted-foreground">Active Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600">600+</div>
+                <div className="text-sm text-muted-foreground">Cryptocurrencies</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600">24/7</div>
+                <div className="text-sm text-muted-foreground">Trading</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-orange-600">€0</div>
+                <div className="text-sm text-muted-foreground">Deposit Fees</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -267,6 +392,105 @@ export default function Landing() {
             ))}
           </div>
           <p className="text-center mt-8 text-muted-foreground text-sm">Past performance is not an indication of future performance.</p>
+        </div>
+      </section>
+
+      {/* Market Statistics */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-16">Market at a Glance</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {marketStats.map((stat, index) => (
+              <Card key={index} className="enhanced-card text-center">
+                <CardContent className="p-6">
+                  <stat.icon className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                  <h3 className="text-3xl font-bold mb-2">{stat.value}</h3>
+                  <p className="text-muted-foreground mb-2">{stat.label}</p>
+                  <Badge variant="secondary" className="text-green-600">{stat.change}</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Advanced Features */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Professional Trading Tools</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Access institutional-grade features designed for serious traders and investors
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {advancedFeatures.map((feature, index) => (
+              <Card key={index} className="enhanced-card group hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6">
+                  <feature.icon className={`w-12 h-12 mb-4 ${feature.color} group-hover:scale-110 transition-transform duration-300`} />
+                  <CardTitle className="mb-2">{feature.title}</CardTitle>
+                  <p className="text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20 bg-gradient-to-r from-green-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-16">Trusted by Millions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="enhanced-card">
+                <CardContent className="p-6">
+                  <div className="flex items-center mb-4">
+                    <img 
+                      src={testimonial.avatar} 
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full mr-4"
+                    />
+                    <div>
+                      <h4 className="font-semibold">{testimonial.name}</h4>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground italic">"{testimonial.content}"</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-20 bg-gradient-to-r from-green-600 to-green-800 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold mb-6">Ready to Start Your Investment Journey?</h2>
+          <p className="text-xl mb-8 opacity-90">
+            Join millions of investors who trust BITPANDA PRO for their financial future
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" variant="secondary" asChild className="text-green-600">
+              <Link href="/auth">
+                <Users className="w-5 h-5 mr-2" />
+                Start Trading Now
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-green-600">
+              <Play className="w-5 h-5 mr-2" />
+              Watch Demo
+            </Button>
+          </div>
+          <p className="text-sm mt-6 opacity-75">
+            Get started in under 5 minutes • No hidden fees • European regulated
+          </p>
         </div>
       </section>
 
