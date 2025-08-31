@@ -23,12 +23,28 @@ import Orders from "./pages/Orders";
 import NotFound from "@/pages/not-found";
 import Auth from "@/pages/Auth";
 import AdminLogin from "@/pages/AdminLogin";
+import Academy from "@/pages/Academy";
+import News from "@/pages/News";
+import About from "@/pages/About";
+import Careers from "@/pages/Careers";
+import HelpCenter from "@/pages/HelpCenter";
+import Stocks from "@/pages/Stocks";
+import Etfs from "@/pages/Etfs";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
+      {/* Public routes - always accessible */}
+      <Route path="/academy" component={Academy} />
+      <Route path="/news" component={News} />
+      <Route path="/about" component={About} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/help-center" component={HelpCenter} />
+      <Route path="/stocks" component={Stocks} />
+      <Route path="/etfs" component={Etfs} />
+      
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
