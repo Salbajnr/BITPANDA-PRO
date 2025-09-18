@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LockIcon, CheckCircleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { LockIcon, CheckCircleIcon, EyeIcon, EyeOffIcon, ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function ResetPassword() {
@@ -92,25 +93,30 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <Card>
+          <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <CheckCircleIcon className="h-16 w-16 text-green-500" />
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <CheckCircleIcon className="h-8 w-8 text-green-400" />
+                </div>
               </div>
-              <CardTitle className="text-2xl">Password Reset Complete</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl text-white">Password Reset Complete</CardTitle>
+              <CardDescription className="text-slate-400">
                 Your password has been successfully updated
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center space-y-4">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  You can now sign in with your new password
-                </p>
+                <div className="p-4 bg-green-900/20 border border-green-800/50 rounded-lg">
+                  <p className="text-sm text-green-300 flex items-center justify-center gap-2">
+                    <ShieldCheckIcon className="w-4 h-4" />
+                    You can now sign in with your new password
+                  </p>
+                </div>
                 
                 <Button 
                   onClick={handleGoToLogin}
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   data-testid="button-go-to-login"
                 >
                   Go to Login
@@ -126,20 +132,32 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card>
+        {/* Back button */}
+        <div className="mb-6">
+          <Link href="/auth">
+            <Button variant="ghost" className="text-slate-400 hover:text-white" size="sm">
+              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              Back to Login
+            </Button>
+          </Link>
+        </div>
+
+        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <LockIcon className="mr-2 h-5 w-5" />
+            <CardTitle className="flex items-center text-white">
+              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mr-3">
+                <LockIcon className="h-5 w-5 text-green-400" />
+              </div>
               Reset Password
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-slate-400">
               Enter your new password below
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
+                <Label htmlFor="password" className="text-slate-300">New Password</Label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                   <Input
@@ -148,7 +166,7 @@ export default function ResetPassword() {
                     placeholder="Enter new password (min. 6 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
                     minLength={6}
                     required
                     data-testid="input-new-password"
@@ -156,7 +174,7 @@ export default function ResetPassword() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-700"
+                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
                     data-testid="button-toggle-password"
                   >
                     {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
@@ -165,7 +183,7 @@ export default function ResetPassword() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword" className="text-slate-300">Confirm New Password</Label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                   <Input
@@ -174,7 +192,7 @@ export default function ResetPassword() {
                     placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
                     minLength={6}
                     required
                     data-testid="input-confirm-password"
@@ -182,7 +200,7 @@ export default function ResetPassword() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-700"
+                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
                     data-testid="button-toggle-confirm-password"
                   >
                     {showConfirmPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
@@ -190,17 +208,21 @@ export default function ResetPassword() {
                 </div>
               </div>
               
-              <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
-                <p>Password requirements:</p>
-                <ul className="list-disc ml-4 space-y-0.5">
-                  <li>At least 6 characters long</li>
-                  <li>Both passwords must match</li>
+              <div className="p-3 bg-slate-700/30 rounded-lg">
+                <p className="text-xs text-slate-400 mb-2">Password requirements:</p>
+                <ul className="list-disc ml-4 space-y-0.5 text-xs text-slate-400">
+                  <li className={password.length >= 6 ? "text-green-400" : ""}>
+                    At least 6 characters long
+                  </li>
+                  <li className={password && confirmPassword && password === confirmPassword ? "text-green-400" : ""}>
+                    Both passwords must match
+                  </li>
                 </ul>
               </div>
               
               <Button 
                 type="submit" 
-                className="w-full bg-green-600 hover:bg-green-700"
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                 disabled={resetPasswordMutation.isPending}
                 data-testid="button-reset-password"
               >
@@ -209,13 +231,20 @@ export default function ResetPassword() {
             </form>
             
             <div className="mt-6 text-center">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-400">
                 Remember your password?{" "}
                 <Link href="/auth">
-                  <span className="text-primary hover:underline cursor-pointer">
+                  <span className="text-blue-400 hover:text-blue-300 cursor-pointer">
                     Sign in
                   </span>
                 </Link>
+              </p>
+            </div>
+
+            {/* Demo Notice */}
+            <div className="mt-4 p-3 bg-blue-900/20 border border-blue-800/50 rounded-lg">
+              <p className="text-xs text-blue-300 text-center">
+                <strong>Demo Mode:</strong> Any password reset token will work in development
               </p>
             </div>
           </CardContent>

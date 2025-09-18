@@ -1,3 +1,4 @@
+
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -33,12 +34,21 @@ import Etfs from "@/pages/Etfs";
 import InvestorProtection from "@/pages/InvestorProtection";
 import API from "@/pages/API";
 import Ecosystem from "@/pages/Ecosystem";
+import ForgotPassword from "@/pages/ForgotPassword";
+import OtpVerification from "@/pages/OtpVerification";
+import ResetPassword from "@/pages/ResetPassword";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
+      {/* Public auth routes - always accessible */}
+      <Route path="/auth" component={Auth} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/verify-otp/:type/:email" component={OtpVerification} />
+      <Route path="/reset-password/:token" component={ResetPassword} />
+      
       {/* Public routes - always accessible */}
       <Route path="/academy" component={Academy} />
       <Route path="/news" component={News} />
@@ -51,11 +61,9 @@ function Router() {
       <Route path="/api" component={API} />
       <Route path="/ecosystem" component={Ecosystem} />
 
-
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route path="/auth" component={Auth} />
           <Route path="/admin" component={AdminLogin} />
         </>
       ) : (

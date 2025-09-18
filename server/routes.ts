@@ -17,6 +17,8 @@ import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
 import { z } from "zod";
 import { Router } from "express";
+import bcrypt from 'bcryptjs';
+
 
 // Database connection check
 const checkDbAvailable = () => {
@@ -76,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Crypto routes
   app.use('/api/crypto', cryptoRoutes);
-  
+
   // Metals routes
   app.use('/api/metals', metalsRoutes);
 
@@ -99,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const savingsPlansRoutes = (await import('./savings-plans-routes')).default;
   app.use('/api/savings-plans', savingsPlansRoutes);
 
-  // ADMIN AUTH ROUTES - Separate endpoints for admin users
+  // ADMIN AUTHROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
@@ -156,62 +158,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid input data" });
       }
       res.status(500).json({ message: "Login failed" });
-    }
-  });
-
-  app.post('/api/auth/register', checkDbConnection, async (req: Request, res: Response) => {
-    try {
-      const userData = registerSchema.parse(req.body);
-
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
-      if (existingUser) {
-        return res.status(400).json({
-          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken'
-        });
-      }
-
-      // Hash password
-      const hashedPassword = await hashPassword(userData.password);
-
-      // Create user
-      const user = await storage.createUser({
-        username: userData.username,
-        email: userData.email,
-        password: hashedPassword,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        role: 'user',
-        isActive: true,
-      });
-
-      // Create portfolio
-      const portfolio = await storage.createPortfolio({
-        userId: user.id,
-        totalValue: '0.00',
-        availableCash: '0.00',
-      });
-
-      // Set session
-      (req.session as any).userId = user.id;
-
-      res.json({
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role
-        },
-        portfolio
-      });
-    } catch (error) {
-      console.error("Registration error:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Registration failed" });
     }
   });
 
@@ -322,7 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/user/auth/user', requireAuth, async (req, res) => {
     try {
       const user = req.user!;
-      
+
       // Ensure user is not admin
       if (user.role === 'admin') {
         return res.status(403).json({ message: "Use admin endpoints for admin users" });
@@ -678,6 +624,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Alert routes
   app.use('/api/alerts', alertRoutes);
 
+  // Mount all route modules
+  app.use('/api/crypto', cryptoRoutes);
+  app.use('/api/trading', tradingRoutes);
+  app.use('/api/admin', adminRoutes);
+  app.use('/api/auth', authRoutes);
+  app.use('/api/alerts', alertRoutes);
+  app.use('/api/deposits', depositRoutes);
+  app.use('/api/portfolio', portfolioRoutes);
+  app.use('/api/portfolio', portfolioAnalyticsRoutes);
+  app.use('/api/metals', metalsRoutes);
+  app.use('/api/news', newsRoutes);
+
   const httpServer = createServer(app);
 
   // Add WebSocket server for real-time updates
@@ -783,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     try {
                       const symbolKey = symbol.replace('bitcoin', 'BTC').replace('ethereum', 'ETH').toUpperCase();
                       const priceData = await cryptoService.getPrice(symbolKey);
-                      
+
                       if (priceData) {
                         ws.send(JSON.stringify({
                           type: 'price_update',
