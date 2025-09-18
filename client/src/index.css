@@ -683,19 +683,29 @@ html {
 
 /* Enhanced Modern Card Styling */
 .solid-card {
-  @apply bg-card border border-border rounded-2xl backdrop-blur-lg;
+  @apply bg-card border border-border rounded-xl sm:rounded-2xl backdrop-blur-lg;
   background: linear-gradient(135deg, 
     rgba(255, 255, 255, 0.95) 0%, 
     rgba(255, 255, 255, 0.85) 100%);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     inset 0 -1px 0 rgba(0, 0, 0, 0.05);
   transform: translateY(0px) scale(1);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .solid-card {
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      0 4px 16px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  }
 }
 
 .solid-card::before {
@@ -838,6 +848,74 @@ html {
 /* Custom gradient backgrounds */
 .bg-gradient-radial {
   background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Responsive Typography */
+.responsive-text-xs { @apply text-xs sm:text-sm; }
+.responsive-text-sm { @apply text-sm sm:text-base; }
+.responsive-text-base { @apply text-base sm:text-lg; }
+.responsive-text-lg { @apply text-lg sm:text-xl; }
+.responsive-text-xl { @apply text-xl sm:text-2xl; }
+.responsive-text-2xl { @apply text-2xl sm:text-3xl; }
+.responsive-text-3xl { @apply text-3xl sm:text-4xl; }
+
+/* Responsive Spacing */
+.responsive-p-sm { @apply p-3 sm:p-4; }
+.responsive-p-md { @apply p-4 sm:p-6; }
+.responsive-p-lg { @apply p-6 sm:p-8; }
+.responsive-px-sm { @apply px-3 sm:px-4; }
+.responsive-px-md { @apply px-4 sm:px-6; }
+.responsive-px-lg { @apply px-6 sm:px-8; }
+.responsive-py-sm { @apply py-3 sm:py-4; }
+.responsive-py-md { @apply py-4 sm:py-6; }
+.responsive-py-lg { @apply py-6 sm:py-8; }
+
+/* Mobile-first responsive containers */
+.responsive-container {
+  @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.responsive-grid-auto {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+}
+
+.responsive-grid-2 {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6;
+}
+
+.responsive-grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6;
+}
+
+/* Better mobile touch targets */
+.touch-target {
+  @apply min-h-[44px] min-w-[44px];
+}
+
+/* Responsive flex utilities */
+.responsive-flex-col {
+  @apply flex flex-col sm:flex-row;
+}
+
+.responsive-flex-row {
+  @apply flex flex-row;
+}
+
+/* Safe area support for mobile devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Hover effects */

@@ -86,32 +86,32 @@ function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700">
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 z-40">
         <div className="flex-1 flex flex-col min-h-0">
           {/* Logo */}
           <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-slate-200 dark:border-slate-700">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
-                <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-6 h-6 rounded-lg" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
+                <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded-lg" />
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-slate-900 dark:text-white">BITPANDA PRO</h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Professional Trading</p>
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">BITPANDA PRO</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Professional Trading</p>
               </div>
             </div>
           </div>
 
           {/* User Info */}
           <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+            <div className="flex items-center min-w-0">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-sm">{user?.firstName?.charAt(0) || 'U'}</span>
               </div>
-              <div className="ml-3">
-                <div className="font-medium text-slate-900 dark:text-white text-sm">
+              <div className="ml-3 min-w-0">
+                <div className="font-medium text-slate-900 dark:text-white text-sm truncate">
                   {user?.firstName || 'User'} {user?.lastName || ''}
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
+                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   {user?.role === 'admin' ? 'Administrator' : 'Trader'}
                 </div>
               </div>
@@ -125,18 +125,18 @@ function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
               return (
                 <Link key={item.id} href={item.id}>
-                  <a className={cn(
-                    "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                  <button className={cn(
+                    "w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
                     isActive
                       ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
                       : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                   )}>
                     <Icon className={cn(
-                      "mr-3 h-5 w-5 transition-colors",
+                      "mr-3 h-5 w-5 transition-colors flex-shrink-0",
                       isActive ? "text-green-600 dark:text-green-400" : "text-slate-400 group-hover:text-slate-500"
                     )} />
-                    {item.label}
-                  </a>
+                    <span className="truncate">{item.label}</span>
+                  </button>
                 </Link>
               );
             })}
@@ -154,18 +154,18 @@ function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                   const isActive = location === item.id;
                   return (
                     <Link key={item.id} href={item.id}>
-                      <a className={cn(
-                        "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                      <button className={cn(
+                        "w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
                         isActive
                           ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
                           : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                       )}>
                         <Icon className={cn(
-                          "mr-3 h-5 w-5 transition-colors",
+                          "mr-3 h-5 w-5 transition-colors flex-shrink-0",
                           isActive ? "text-red-600 dark:text-red-400" : "text-slate-400 group-hover:text-slate-500"
                         )} />
-                        {item.label}
-                      </a>
+                        <span className="truncate">{item.label}</span>
+                      </button>
                     </Link>
                   );
                 })}
@@ -177,49 +177,69 @@ function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700 p-4">
             <Link href="/auth">
               <Button variant="ghost" size="sm" className="w-full justify-start text-slate-600 dark:text-slate-300">
-                <LogOut className="mr-3 h-4 w-4" />
-                Sign Out
+                <LogOut className="mr-3 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Sign Out</span>
               </Button>
             </Link>
           </div>
         </div>
       </aside>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar Overlay */}
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-          <div className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+          <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-2xl">
             <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+              <div className="flex items-center space-x-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
                   <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded" />
                 </div>
-                <h1 className="text-lg font-bold text-slate-900 dark:text-white">BITPANDA PRO</h1>
+                <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">BITPANDA PRO</h1>
               </div>
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+              <button 
+                onClick={onClose} 
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <nav className="px-2 py-4 space-y-1">
+            {/* Mobile User Info */}
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center min-w-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm">{user?.firstName?.charAt(0) || 'U'}</span>
+                </div>
+                <div className="ml-3 min-w-0">
+                  <div className="font-medium text-slate-900 dark:text-white text-sm truncate">
+                    {user?.firstName || 'User'} {user?.lastName || ''}
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                    {user?.role === 'admin' ? 'Administrator' : 'Trader'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <nav className="px-2 py-4 space-y-1 overflow-y-auto h-[calc(100vh-200px)]">
               {[...sidebarItems, ...adminItems].map((item) => {
                 const Icon = item.icon;
                 const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
                 return (
                   <Link key={item.id} href={item.id}>
-                    <a 
+                    <button
                       onClick={onClose}
                       className={cn(
-                        "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                        "w-full group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
                         isActive
                           ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
                           : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                       )}
                     >
-                      <Icon className="mr-3 h-5 w-5" />
-                      {item.label}
-                    </a>
+                      <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </button>
                   </Link>
                 );
               })}
@@ -236,27 +256,27 @@ function DashboardHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => voi
   const { user } = useAuth();
   
   return (
-    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 lg:pl-64">
+    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 lg:ml-64 sticky top-0 z-30">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center">
+        <div className="flex items-center min-w-0">
           <button
             onClick={onMobileMenuToggle}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 lg:hidden"
+            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 lg:hidden flex-shrink-0"
           >
             <Menu className="h-6 w-6" />
           </button>
-          <div className="ml-4 lg:ml-0">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="ml-4 lg:ml-0 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate">Dashboard</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
               Welcome back, {user?.firstName || 'Trader'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
           <Button variant="outline" size="sm" className="hidden sm:flex">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            <span className="hidden md:inline">Refresh</span>
           </Button>
           <NotificationCenter />
           <ThemeToggle />
@@ -302,7 +322,7 @@ export default function Dashboard() {
 
   if (authLoading || portfolioLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
           <p className="mt-4 text-slate-600 dark:text-slate-400">Loading dashboard...</p>
@@ -324,24 +344,24 @@ export default function Dashboard() {
     <div className="h-screen flex overflow-hidden bg-slate-50 dark:bg-slate-900">
       <DashboardSidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden lg:ml-64">
         <DashboardHeader onMobileMenuToggle={() => setIsMobileMenuOpen(true)} />
         
-        <main className="flex-1 relative overflow-y-auto focus:outline-none lg:pl-64">
-          <div className="py-6">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          <div className="py-4 sm:py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                <Card>
-                  <CardContent className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                <Card className="solid-card">
+                  <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <Wallet className="h-8 w-8 text-green-600" />
+                        <Wallet className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                       </div>
-                      <div className="ml-5 w-0 flex-1">
+                      <div className="ml-3 sm:ml-5 w-0 flex-1 min-w-0">
                         <dl>
-                          <dt className="text-sm font-medium text-slate-500 truncate">Total Balance</dt>
-                          <dd className="text-2xl font-bold text-slate-900 dark:text-white">
+                          <dt className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Balance</dt>
+                          <dd className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
                             ${totalPortfolioValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </dd>
                         </dl>
@@ -350,16 +370,16 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardContent className="p-6">
+                <Card className="solid-card">
+                  <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <DollarSign className="h-8 w-8 text-blue-600" />
+                        <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                       </div>
-                      <div className="ml-5 w-0 flex-1">
+                      <div className="ml-3 sm:ml-5 w-0 flex-1 min-w-0">
                         <dl>
-                          <dt className="text-sm font-medium text-slate-500 truncate">Available Cash</dt>
-                          <dd className="text-2xl font-bold text-slate-900 dark:text-white">
+                          <dt className="text-xs sm:text-sm font-medium text-slate-500 truncate">Available Cash</dt>
+                          <dd className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
                             ${availableCash.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </dd>
                         </dl>
@@ -368,16 +388,16 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardContent className="p-6">
+                <Card className="solid-card">
+                  <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <TrendingUp className="h-8 w-8 text-green-600" />
+                        <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                       </div>
-                      <div className="ml-5 w-0 flex-1">
+                      <div className="ml-3 sm:ml-5 w-0 flex-1 min-w-0">
                         <dl>
-                          <dt className="text-sm font-medium text-slate-500 truncate">24h Change</dt>
-                          <dd className="text-2xl font-bold text-green-600">
+                          <dt className="text-xs sm:text-sm font-medium text-slate-500 truncate">24h Change</dt>
+                          <dd className="text-lg sm:text-2xl font-bold text-green-600 truncate">
                             +${dailyChange.toFixed(2)}
                           </dd>
                         </dl>
@@ -386,16 +406,16 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardContent className="p-6">
+                <Card className="solid-card">
+                  <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <Activity className="h-8 w-8 text-purple-600" />
+                        <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
                       </div>
-                      <div className="ml-5 w-0 flex-1">
+                      <div className="ml-3 sm:ml-5 w-0 flex-1 min-w-0">
                         <dl>
-                          <dt className="text-sm font-medium text-slate-500 truncate">Active Positions</dt>
-                          <dd className="text-2xl font-bold text-slate-900 dark:text-white">
+                          <dt className="text-xs sm:text-sm font-medium text-slate-500 truncate">Active Positions</dt>
+                          <dd className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white">
                             {portfolioData?.holdings?.length || 0}
                           </dd>
                         </dl>
@@ -406,30 +426,30 @@ export default function Dashboard() {
               </div>
 
               {/* Quick Actions */}
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-base sm:text-lg font-medium text-slate-900 dark:text-white mb-3 sm:mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <Link href="/trading">
-                    <Button className="w-full h-20 flex flex-col items-center justify-center bg-green-600 hover:bg-green-700">
-                      <Activity className="h-6 w-6 mb-2" />
+                    <Button className="w-full h-16 sm:h-20 flex flex-col items-center justify-center bg-green-600 hover:bg-green-700 text-xs sm:text-sm">
+                      <Activity className="h-4 w-4 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
                       <span>Trade</span>
                     </Button>
                   </Link>
                   <Link href="/deposits">
-                    <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
-                      <Plus className="h-6 w-6 mb-2" />
+                    <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col items-center justify-center text-xs sm:text-sm">
+                      <Plus className="h-4 w-4 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
                       <span>Deposit</span>
                     </Button>
                   </Link>
                   <Link href="/analytics">
-                    <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
-                      <BarChart3 className="h-6 w-6 mb-2" />
+                    <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col items-center justify-center text-xs sm:text-sm">
+                      <BarChart3 className="h-4 w-4 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
                       <span>Analytics</span>
                     </Button>
                   </Link>
                   <Link href="/watchlist">
-                    <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
-                      <Eye className="h-6 w-6 mb-2" />
+                    <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col items-center justify-center text-xs sm:text-sm">
+                      <Eye className="h-4 w-4 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
                       <span>Watchlist</span>
                     </Button>
                   </Link>
@@ -437,15 +457,15 @@ export default function Dashboard() {
               </div>
 
               {/* Main Content Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
                 {/* Portfolio Performance Chart */}
-                <div className="lg:col-span-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Portfolio Performance</CardTitle>
+                <div className="xl:col-span-2">
+                  <Card className="solid-card">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg sm:text-xl">Portfolio Performance</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-64 sm:h-80">
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={[
                             { time: '00:00', value: totalPortfolioValue * 0.95 },
@@ -468,7 +488,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Right Sidebar Widgets */}
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <PriceAlertsList />
                   <RealTimePriceWidget 
                     symbols={['BTC', 'ETH', 'BNB']}
@@ -480,37 +500,37 @@ export default function Dashboard() {
               </div>
 
               {/* Holdings & Recent Transactions */}
-              <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {/* Holdings */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Your Holdings</CardTitle>
+                <Card className="solid-card">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg sm:text-xl">Your Holdings</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {portfolioData?.holdings?.slice(0, 5).map((holding) => (
                         <div key={holding.id} className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center mr-3">
+                          <div className="flex items-center min-w-0 flex-1">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center mr-3 flex-shrink-0">
                               <span className="text-white text-xs font-bold">{holding.symbol.slice(0, 2)}</span>
                             </div>
-                            <div>
-                              <div className="font-medium text-slate-900 dark:text-white">{holding.symbol}</div>
-                              <div className="text-sm text-slate-500">{holding.name}</div>
+                            <div className="min-w-0">
+                              <div className="font-medium text-slate-900 dark:text-white text-sm sm:text-base truncate">{holding.symbol}</div>
+                              <div className="text-xs sm:text-sm text-slate-500 truncate">{holding.name}</div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="font-medium text-slate-900 dark:text-white">
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <div className="font-medium text-slate-900 dark:text-white text-sm sm:text-base">
                               {parseFloat(holding.amount).toFixed(4)}
                             </div>
-                            <div className="text-sm text-slate-500">
+                            <div className="text-xs sm:text-sm text-slate-500">
                               ${(parseFloat(holding.amount) * parseFloat(holding.currentPrice)).toFixed(2)}
                             </div>
                           </div>
                         </div>
                       ))}
                       {(!portfolioData?.holdings || portfolioData.holdings.length === 0) && (
-                        <div className="text-center py-8 text-slate-500">
+                        <div className="text-center py-8 text-slate-500 text-sm">
                           No holdings yet. Start trading to see your portfolio here.
                         </div>
                       )}
@@ -519,31 +539,31 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Recent Transactions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Transactions</CardTitle>
+                <Card className="solid-card">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg sm:text-xl">Recent Transactions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {portfolioData?.transactions?.slice(0, 5).map((transaction) => (
                         <div key={transaction.id} className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
-                          <div className="flex items-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                          <div className="flex items-center min-w-0 flex-1">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0 ${
                               transaction.type === 'buy' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
                             }`}>
                               {transaction.type === 'buy' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                             </div>
-                            <div>
-                              <div className="font-medium text-slate-900 dark:text-white">
+                            <div className="min-w-0">
+                              <div className="font-medium text-slate-900 dark:text-white text-sm sm:text-base truncate">
                                 {transaction.type.toUpperCase()} {transaction.symbol}
                               </div>
-                              <div className="text-sm text-slate-500">
+                              <div className="text-xs sm:text-sm text-slate-500">
                                 {new Date(transaction.createdAt).toLocaleDateString()}
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="font-medium text-slate-900 dark:text-white">
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <div className="font-medium text-slate-900 dark:text-white text-sm sm:text-base">
                               ${parseFloat(transaction.total).toFixed(2)}
                             </div>
                             <Badge className="bg-green-100 text-green-700 text-xs">Completed</Badge>
@@ -551,7 +571,7 @@ export default function Dashboard() {
                         </div>
                       ))}
                       {(!portfolioData?.transactions || portfolioData.transactions.length === 0) && (
-                        <div className="text-center py-8 text-slate-500">
+                        <div className="text-center py-8 text-slate-500 text-sm">
                           No transactions yet. Your trading activity will appear here.
                         </div>
                       )}

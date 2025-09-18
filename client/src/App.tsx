@@ -53,7 +53,11 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 
 // Layout wrapper for authenticated pages (no navbar)
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {children}
+    </div>
+  );
 }
 
 function Router() {
