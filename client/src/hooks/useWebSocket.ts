@@ -296,7 +296,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     if (isConnected && symbols.length > 0) {
       subscribe(symbols);
     }
-  }, [symbols.join(','), isConnected]);
+  }, [symbols.join(','), isConnected, subscribe]);
 
   // Request notification permission on mount
   useEffect(() => {

@@ -24,10 +24,8 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
 }) => {
   const [displayPrices, setDisplayPrices] = useState<CryptoPrice[]>([]);
 
-  // Stable memoization of symbols array to prevent infinite re-renders
-  const stableSymbols = useMemo(() => {
-    return symbols.slice().sort();
-  }, [symbols.join(',')]);
+  // Stable memoization using string comparison
+  const symbolsKey = useMemo(() => symbols.sort().join(','), [symbols]);
 
   const { 
     isConnected, 
@@ -38,22 +36,22 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
     connect, 
     getPrice 
   } = useWebSocket({
-    symbols: stableSymbols,
+    symbols: symbols,
     autoConnect: true,
     reconnectAttempts: 5,
     reconnectInterval: 3000
   });
 
-  // Update display prices - only depend on prices and getPrice changes
+  // Update display prices only when prices data actually changes
   useEffect(() => {
     if (prices && prices.length > 0) {
-      const filteredPrices = stableSymbols
+      const filteredPrices = symbols
         .map(symbol => getPrice(symbol))
         .filter(Boolean) as CryptoPrice[];
 
       setDisplayPrices(filteredPrices.slice(0, maxItems));
     }
-  }, [prices.length, maxItems, stableSymbols.join(',')]);
+  }, [prices, maxItems, symbolsKey]); // Use symbolsKey instead of symbols array
 
   const formatPrice = (price: number) => {
     if (price >= 1000) {
