@@ -24,7 +24,7 @@ const updateAlertSchema = z.object({
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const alerts = await storage.getPriceAlerts(userId);
+    const alerts = await storage.getUserPriceAlerts(userId);
     res.json(alerts);
   } catch (error) {
     console.error('Error fetching alerts:', error);
@@ -137,7 +137,7 @@ router.get('/notifications', requireAuth, async (req: Request, res: Response) =>
   try {
     const userId = req.user!.id;
     const limit = parseInt(req.query.limit as string) || 20;
-    const notifications = await storage.getNotifications(userId, limit);
+    const notifications = await storage.getUserNotifications(userId, limit);
     res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);

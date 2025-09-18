@@ -886,7 +886,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserNotifications(userId: string, limit = 20): Promise<Notification[]> {
+  async getNotifications(userId: string, limit = 20): Promise<Notification[]> {
     try {
       const db = this.ensureDb();
       const userNotifications = await db.select()
@@ -897,7 +897,7 @@ export class DatabaseStorage implements IStorage {
       return userNotifications;
     } catch (error) {
       console.error("Error getting notifications:", error);
-      throw error;
+      return [];
     }
   }
 

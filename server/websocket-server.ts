@@ -34,9 +34,25 @@ class WebSocketManager {
   private readonly UPDATE_INTERVAL = 10000; // 10 seconds
 
   initialize(server: Server): void {
+    if (this.wss) {
+      this.wss.close();
+    }
+
     this.wss = new WebSocketServer({ 
-      server, 
-      path: '/ws'
+      noServer: true
+    });
+
+    // Handle upgrade manually to avoid multiple upgrade calls
+    server.on('upgrade', (request, socket, head) => {
+      const pathname = new URL(request.url!, `http://${request.headers.host}`).pathname;
+      
+      if (pathname === '/ws') {
+        this.wss!.handleUpgrade(request, socket, head, (ws) => {
+          this.wss!.emit('connection', ws, request);
+        });
+      } else {
+        socket.destroy();
+      }
     });
 
     this.wss.on('connection', (ws, request) => {
