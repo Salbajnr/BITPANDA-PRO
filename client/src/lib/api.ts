@@ -247,4 +247,26 @@ export const depositApi = {
   },
 };
 
+export const withdrawalApi = {
+  getWithdrawals: () => api.get('/api/withdrawals'),
+  
+  getLimits: () => api.get('/api/withdrawals/limits'),
+  
+  calculateFees: (data: { amount: string; method: string }) =>
+    api.post('/api/withdrawals/calculate-fees', data),
+  
+  requestWithdrawal: (withdrawalData: {
+    amount: string;
+    withdrawalMethod: string;
+    destinationAddress: string;
+    destinationDetails?: any;
+  }) => api.post('/api/withdrawals/request', withdrawalData),
+  
+  confirmWithdrawal: (token: string) =>
+    api.post('/api/withdrawals/confirm', { token }),
+  
+  cancelWithdrawal: (id: string) =>
+    api.delete(`/api/withdrawals/${id}`),
+};
+
 export default api;

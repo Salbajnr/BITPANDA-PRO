@@ -16,6 +16,7 @@ import withdrawalRoutes from "./withdrawal-routes";
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
+import withdrawalRoutes from './withdrawal-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));

@@ -1202,6 +1202,114 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Withdrawal operations
+  async getUserWithdrawals(userId: string): Promise<any[]> {
+    try {
+      // Mock implementation - in real app, query withdrawals table
+      return [
+        {
+          id: '1',
+          userId,
+          amount: '1000.00',
+          currency: 'USD',
+          withdrawalMethod: 'bank_transfer',
+          destinationAddress: 'Bank Account ****1234',
+          status: 'pending',
+          requestedAt: new Date(),
+          fees: '25.00',
+          netAmount: '975.00'
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching withdrawals:", error);
+      return [];
+    }
+  }
+
+  async getWithdrawalLimits(userId: string): Promise<any> {
+    try {
+      // Mock implementation - in real app, query withdrawal_limits table
+      return {
+        dailyLimit: '10000.00',
+        monthlyLimit: '50000.00',
+        dailyUsed: '0.00',
+        monthlyUsed: '0.00'
+      };
+    } catch (error) {
+      console.error("Error fetching withdrawal limits:", error);
+      return {
+        dailyLimit: '10000.00',
+        monthlyLimit: '50000.00',
+        dailyUsed: '0.00',
+        monthlyUsed: '0.00'
+      };
+    }
+  }
+
+  async calculateWithdrawalFees(amount: number, method: string): Promise<number> {
+    try {
+      // Calculate fees based on method and amount
+      const feeRates = {
+        bank_transfer: 0.025, // 2.5%
+        crypto_wallet: 0.01, // 1%
+        paypal: 0.035, // 3.5%
+        other: 0.02 // 2%
+      };
+
+      const rate = feeRates[method as keyof typeof feeRates] || 0.02;
+      const fee = amount * rate;
+      const minFee = 5; // Minimum $5 fee
+      const maxFee = 100; // Maximum $100 fee
+
+      return Math.max(minFee, Math.min(fee, maxFee));
+    } catch (error) {
+      console.error("Error calculating withdrawal fees:", error);
+      return 25; // Default fee
+    }
+  }
+
+  async createWithdrawal(data: any): Promise<any> {
+    try {
+      // Mock implementation - in real app, insert into withdrawals table
+      return {
+        id: Date.now().toString(),
+        ...data,
+        status: 'pending',
+        requestedAt: new Date(),
+        isConfirmed: false
+      };
+    } catch (error) {
+      console.error("Error creating withdrawal:", error);
+      throw error;
+    }
+  }
+
+  async confirmWithdrawal(userId: string, token: string): Promise<any> {
+    try {
+      // Mock implementation - in real app, verify token and update withdrawal
+      return {
+        id: '1',
+        userId,
+        status: 'under_review',
+        isConfirmed: true,
+        confirmedAt: new Date()
+      };
+    } catch (error) {
+      console.error("Error confirming withdrawal:", error);
+      return null;
+    }
+  }
+
+  async cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean> {
+    try {
+      // Mock implementation - in real app, update withdrawal status to cancelled
+      return true;
+    } catch (error) {
+      console.error("Error cancelling withdrawal:", error);
+      return false;
+    }
+  }
+
   // Lending operations
   async getUserLendingPositions(userId: string): Promise<any[]> {
     try {

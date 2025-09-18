@@ -1,4 +1,3 @@
-
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -80,7 +79,7 @@ function Router() {
       </Route>
       <Route path="/verify-otp/:type/:email" component={OtpVerification} />
       <Route path="/reset-password/:token" component={ResetPassword} />
-      
+
       {/* Public routes - always accessible with navbar */}
       <Route path="/academy">
         <PublicLayout>

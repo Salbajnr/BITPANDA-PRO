@@ -50,8 +50,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint
   app.get('/health', (req, res) => {
-    res.json({ 
-      status: 'OK', 
+    res.json({
+      status: 'OK',
       timestamp: new Date().toISOString(),
       database: checkDbAvailable() ? 'connected' : 'disconnected'
     });
@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const stakingRoutes = (await import('./staking-routes')).default;
   app.use('/api/staking', stakingRoutes);
 
-  // Lending routes  
+  // Lending routes
   const lendingRoutes = (await import('./lending-routes')).default;
   app.use('/api/lending', lendingRoutes);
 
@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Portfolio not found" });
       }
 
-      const { type, symbol, amount, price, total } = req.body;
+      const { type, symbol, amount, price, total, name } = req.body;
       const tradeData = {
         userId: req.user!.id,
         type,
@@ -441,7 +441,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount,
         price,
         total,
-        status: 'completed'
+        status: 'completed',
+        name: name || symbol, // Add name to trade data
       };
 
       const transaction = await storage.createTransaction(tradeData);
@@ -451,7 +452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (existing) {
           const newAmount = parseFloat(existing.amount) + parseFloat(tradeData.amount);
           const newAverage = (parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) +
-                            parseFloat(tradeData.price) * parseFloat(tradeData.amount)) / newAmount;
+                            parseFloat(tradeData.amount) * parseFloat(tradeData.price)) / newAmount;
 
           await storage.upsertHolding({
             portfolioId: portfolio.id,
@@ -625,12 +626,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/alerts', alertRoutes);
 
   // Mount all route modules
+  app.use('/api/auth', authRoutes);
+  app.use('/api/user/auth', authRoutes);
+  app.use('/api/admin/auth', authRoutes);
   app.use('/api/crypto', cryptoRoutes);
   app.use('/api/trading', tradingRoutes);
+  app.use('/api/trade', tradingRoutes);
   app.use('/api/admin', adminRoutes);
-  app.use('/api/auth', authRoutes);
   app.use('/api/alerts', alertRoutes);
   app.use('/api/deposits', depositRoutes);
+  app.use('/api/withdrawals', withdrawalRoutes);
   app.use('/api/portfolio', portfolioRoutes);
   app.use('/api/portfolio', portfolioAnalyticsRoutes);
   app.use('/api/metals', metalsRoutes);

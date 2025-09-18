@@ -156,29 +156,6 @@ export const balanceAdjustments = pgTable('balance_adjustments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Withdrawal status enum
-export const withdrawalStatusEnum = pgEnum('withdrawal_status', ['pending', 'approved', 'rejected']);
-export const withdrawalPaymentMethodEnum = pgEnum('withdrawal_payment_method', ['bank_transfer', 'crypto_wallet', 'paypal', 'mobile_money', 'other']);
-
-// User withdrawals
-export const withdrawals = pgTable('withdrawals', {
-  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
-  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
-  currency: text('currency').notNull().default('USD'),
-  paymentMethod: withdrawalPaymentMethodEnum('payment_method').notNull(),
-  destinationAddress: text('destination_address').notNull(),
-  destinationDetails: text('destination_details'),
-  notes: text('notes'),
-  status: withdrawalStatusEnum('status').notNull().default('pending'),
-  adminNotes: text('admin_notes'),
-  approvedById: text('approved_by_id').references(() => users.id),
-  processedAt: timestamp('processed_at'),
-  transactionId: text('transaction_id'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
 // News articles
 export const newsArticles = pgTable("news_articles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -272,6 +249,50 @@ export const supportMessages = pgTable("support_messages", {
   isInternal: boolean("is_internal").default(false).notNull(), // true for admin-only notes
   attachmentUrls: jsonb("attachment_urls").$type<string[]>().default([]),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Withdrawal status and method enums
+export const withdrawalStatusEnum = pgEnum('withdrawal_status', ['pending', 'under_review', 'approved', 'rejected', 'processing', 'completed', 'failed']);
+export const withdrawalMethodEnum = pgEnum('withdrawal_method', ['bank_transfer', 'crypto_wallet', 'paypal', 'other']);
+
+// Withdrawals table
+export const withdrawals = pgTable('withdrawals', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
+  currency: text('currency').notNull().default('USD'),
+  withdrawalMethod: withdrawalMethodEnum('withdrawal_method').notNull(),
+  destinationAddress: text('destination_address'), // Bank account, wallet address, etc.
+  destinationDetails: jsonb('destination_details'), // Additional details like routing number, etc.
+  status: withdrawalStatusEnum('status').notNull().default('pending'),
+  requestedAt: timestamp('requested_at').defaultNow().notNull(),
+  processedAt: timestamp('processed_at'),
+  completedAt: timestamp('completed_at'),
+  rejectionReason: text('rejection_reason'),
+  adminNotes: text('admin_notes'),
+  transactionHash: text('transaction_hash'), // For crypto withdrawals
+  fees: numeric('fees', { precision: 20, scale: 8 }).default('0').notNull(),
+  netAmount: numeric('net_amount', { precision: 20, scale: 8 }).notNull(), // Amount after fees
+  reviewedById: text('reviewed_by_id').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at'),
+  confirmationToken: text('confirmation_token'), // For email confirmation
+  confirmationExpiresAt: timestamp('confirmation_expires_at'),
+  isConfirmed: boolean('is_confirmed').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Withdrawal limits table
+export const withdrawalLimits = pgTable('withdrawal_limits', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  dailyLimit: numeric('daily_limit', { precision: 20, scale: 8 }).default('10000').notNull(),
+  monthlyLimit: numeric('monthly_limit', { precision: 20, scale: 8 }).default('50000').notNull(),
+  dailyUsed: numeric('daily_used', { precision: 20, scale: 8 }).default('0').notNull(),
+  monthlyUsed: numeric('monthly_used', { precision: 20, scale: 8 }).default('0').notNull(),
+  lastResetDate: timestamp('last_reset_date').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // Live chat sessions
@@ -435,12 +456,6 @@ export const insertBalanceAdjustmentSchema = createInsertSchema(balanceAdjustmen
   createdAt: true,
 });
 
-export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export const insertNewsArticleSchema = createInsertSchema(newsArticles).omit({
   id: true,
   createdAt: true,
@@ -489,6 +504,18 @@ export const insertUserPreferencesSchema = createInsertSchema(userPreferences).o
   updatedAt: true,
 });
 
+export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWithdrawalLimitSchema = createInsertSchema(withdrawalLimits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -526,3 +553,5 @@ export type PriceAlert = typeof priceAlerts.$inferSelect;
 export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
+export type WithdrawalLimit = typeof withdrawalLimits.$inferSelect;
+export type InsertWithdrawalLimit = z.infer<typeof insertWithdrawalLimitSchema>;
