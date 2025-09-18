@@ -517,36 +517,71 @@ export const insertWithdrawalLimitSchema = createInsertSchema(withdrawalLimits).
 });
 
 // Types
+// User types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+// Portfolio types  
 export type Portfolio = typeof portfolios.$inferSelect;
 export type InsertPortfolio = z.infer<typeof insertPortfolioSchema>;
+
+// Holding types
 export type Holding = typeof holdings.$inferSelect;
 export type InsertHolding = z.infer<typeof insertHoldingSchema>;
+
+// Transaction types
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+
+// Deposit types
 export type Deposit = typeof deposits.$inferSelect;
 export type InsertDeposit = z.infer<typeof insertDepositSchema>;
+
+// Withdrawal types
+export type Withdrawal = typeof withdrawals.$inferSelect;
+export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
+export type WithdrawalLimit = typeof withdrawalLimits.$inferSelect;
+export type InsertWithdrawalLimit = z.infer<typeof insertWithdrawalLimitSchema>;
+
+// Balance adjustment types
 export type BalanceAdjustment = typeof balanceAdjustments.$inferSelect;
 export type InsertBalanceAdjustment = z.infer<typeof insertBalanceAdjustmentSchema>;
+
+// Notification types
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Price alert types
+export type PriceAlert = typeof priceAlerts.$inferSelect;
+export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;
+
+// News types
 export type NewsArticle = typeof newsArticles.$inferSelect;
 export type InsertNewsArticle = z.infer<typeof insertNewsArticleSchema>;
+
+// Auth types
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type OtpToken = typeof otpTokens.$inferSelect;
 export type InsertOtpToken = z.infer<typeof insertOtpTokenSchema>;
+
+// KYC types
 export type KycVerification = typeof kycVerifications.$inferSelect;
 export type InsertKycVerification = z.infer<typeof insertKycVerificationSchema>;
+
+// Support types
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 export type SupportMessage = typeof supportMessages.$inferSelect;
 export type InsertSupportMessage = z.infer<typeof insertSupportMessageSchema>;
+
+// Live chat types
 export type LiveChatSession = typeof liveChatSessions.$inferSelect;
 export type InsertLiveChatSession = z.infer<typeof insertLiveChatSessionSchema>;
 export type LiveChatMessage = typeof liveChatMessages.$inferSelect;
-export type InsertLiveChatMessage = typeof liveChatMessages.$inferInsert;
-export type WithdrawalLimit = typeof withdrawalLimits.$inferSelect;
-export type InsertWithdrawalLimit = typeof withdrawalLimits.$inferInsert;
-export type UpsertUser = typeof users.$inferInsert;
+export type InsertLiveChatMessage = z.infer<typeof insertLiveChatMessageSchema>;
+
+// User preferences types
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;

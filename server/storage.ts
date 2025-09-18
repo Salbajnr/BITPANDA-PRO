@@ -25,6 +25,9 @@ import {
   type Deposit,
   type Withdrawal,
   type InsertWithdrawal,
+  type InsertPortfolio,
+  type InsertHolding,
+  type InsertTransaction,
   type UpsertUser,
   type BalanceAdjustment,
   type InsertBalanceAdjustment,
@@ -122,6 +125,19 @@ export interface IStorage {
   createBalanceAdjustment(adjustment: InsertBalanceAdjustment): Promise<BalanceAdjustment>;
   getBalanceAdjustments(userId?: string, page?: number, limit?: number): Promise<BalanceAdjustment[]>;
   updatePortfolioBalance(userId: string, amount: number): Promise<void>;
+
+  // Notification operations
+  getNotifications(userId: string, limit?: number): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(notificationId: string): Promise<void>;
+  deleteNotification(notificationId: string): Promise<void>;
+
+  // Price alert operations
+  getPriceAlerts(userId: string): Promise<PriceAlert[]>;
+  createPriceAlert(alert: InsertPriceAlert): Promise<PriceAlert>;
+  updatePriceAlert(id: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert | null>;
+  deletePriceAlert(id: string): Promise<void>;
+  getPriceAlertById(id: string): Promise<PriceAlert | null>;
 
   // News operations
   getNewsArticles(limit?: number, category?: string, search?: string): Promise<NewsArticle[]>;
