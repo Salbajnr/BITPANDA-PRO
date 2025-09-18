@@ -181,11 +181,11 @@ app.use((req, res, next) => {
 💸 Withdrawals: /api/withdrawals
 📡 WebSocket: ws://0.0.0.0:${port}/ws
 `);
-
-      // Initialize WebSocket servers for real-time updates
-      webSocketManager.initialize(server);
-      chatWebSocketManager.initialize(server);
     });
+
+    // Initialize WebSocket servers for real-time updates (after server is listening)
+    webSocketManager.initialize(server);
+    chatWebSocketManager.initialize(server);
 
     // Gracefully handle existing server shutdown
     process.on('SIGTERM', () => {

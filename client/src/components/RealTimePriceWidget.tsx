@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,15 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
   maxItems = 5,
   className = ''
 }) => {
+  const [displayPrices, setDisplayPrices] = useState<CryptoPrice[]>([]);
+
+  const webSocketOptions = useMemo(() => ({
+    symbols,
+    autoConnect: true,
+    reconnectAttempts: 5,
+    reconnectInterval: 3000
+  }), [symbols]);
+
   const { 
     isConnected, 
     isConnecting, 
@@ -30,18 +38,13 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
     lastUpdate, 
     connect, 
     getPrice 
-  } = useWebSocket({ 
-    symbols, 
-    autoConnect: true 
-  });
-
-  const [displayPrices, setDisplayPrices] = useState<CryptoPrice[]>([]);
+  } = useWebSocket(webSocketOptions);
 
   useEffect(() => {
     const filteredPrices = symbols
       .map(symbol => getPrice(symbol))
       .filter(Boolean) as CryptoPrice[];
-    
+
     setDisplayPrices(filteredPrices.slice(0, maxItems));
   }, [prices, symbols, maxItems, getPrice]);
 
@@ -107,7 +110,7 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
           <div className="text-xs text-gray-500">{crypto.name}</div>
         </div>
       </div>
-      
+
       <div className="text-right">
         <div className="font-medium text-sm">
           {formatPrice(crypto.price)}
@@ -133,7 +136,7 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
           </div>
         )}
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         {connectionError && (
           <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">

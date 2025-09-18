@@ -56,7 +56,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
   const getWebSocketUrl = () => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    return `${protocol}//${host}/ws`;
+    return `${protocol}//${host}/ws/prices`;
   };
 
   const connect = useCallback(() => {

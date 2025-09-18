@@ -36,7 +36,7 @@ class WebSocketManager {
   initialize(server: Server): void {
     this.wss = new WebSocketServer({ 
       server, 
-      path: '/ws'
+      path: '/ws/prices'
     });
 
     this.wss.on('connection', (ws, request) => {

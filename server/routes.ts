@@ -791,35 +791,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clientSubscriptions.set(clientId, { interval, symbols: message.symbols });
         }
 
-        if (message.type === 'unsubscribe') {
-          if (clientSubscriptions.has(clientId)) {
-            clearInterval(clientSubscriptions.get(clientId).interval);
-            clientSubscriptions.delete(clientId);
-            console.log('Client unsubscribed:', clientId);
-          }
-        }
-      } catch (error) {
-        console.error('WebSocket message error:', error);
-      }
-    });
-
-    // Clean up on disconnect
-    ws.on('close', () => {
-      if (clientSubscriptions.has(clientId)) {
-        clearInterval(clientSubscriptions.get(clientId).interval);
-        clientSubscriptions.delete(clientId);
-      }
-      console.log('Client disconnected from WebSocket:', clientId);
-    });
-
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-      if (clientSubscriptions.has(clientId)) {
-        clearInterval(clientSubscriptions.get(clientId).interval);
-        clientSubscriptions.delete(clientId);
-      }
-    });
-  });
-
-  return httpServer;
-}
+        
