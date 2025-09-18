@@ -343,7 +343,10 @@ export class DatabaseStorage implements IStorage {
       return holding;
     } else {
       const db = this.ensureDb();
-      const [holding] = await db.insert(holdings).values(holdingData).returning();
+      const [holding] = await db.insert(holdings).values({
+        ...holdingData,
+        assetType: holdingData.assetType || 'crypto' // Default to crypto for backward compatibility
+      }).returning();
       return holding;
     }
   }

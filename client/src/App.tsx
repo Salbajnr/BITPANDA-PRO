@@ -39,6 +39,12 @@ import Ecosystem from "@/pages/Ecosystem";
 import ForgotPassword from "@/pages/ForgotPassword";
 import OtpVerification from "@/pages/OtpVerification";
 import ResetPassword from "@/pages/ResetPassword";
+import { lazy } from 'react';
+
+const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
+const MetalsTrading = lazy(() => import("./pages/MetalsTrading"));
+const AdminMetalsManagement = lazy(() => import("./pages/AdminMetalsManagement"));
+const Commodities = lazy(() => import("./pages/Commodities"));
 
 // Layout wrapper for public pages
 function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -131,6 +137,9 @@ function Router() {
           <Ecosystem />
         </PublicLayout>
       </Route>
+      <Route path="/precious-metals" component={PreciousMetals} />
+      <Route path="/metals-trading" component={MetalsTrading} />
+      <Route path="/commodities" component={Commodities} />
 
       {isLoading || !isAuthenticated ? (
         <>
@@ -183,11 +192,9 @@ function Router() {
               <Withdrawals />
             </AuthenticatedLayout>
           </Route>
-          <Route path="/admin/withdrawals">
-            <AuthenticatedLayout>
-              <AdminWithdrawalManagement />
-            </AuthenticatedLayout>
-          </Route>
+          <Route path="/admin/news" component={AdminNewsManagement} />
+          <Route path="/admin/metals" component={AdminMetalsManagement} />
+          <Route path="/admin/withdrawals" component={AdminWithdrawalManagement} />
           <Route path="/portfolio">
             <AuthenticatedLayout>
               <PortfolioTracker />

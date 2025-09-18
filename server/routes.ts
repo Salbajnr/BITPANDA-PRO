@@ -82,6 +82,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Metals routes
   app.use('/api/metals', metalsRoutes);
+  
+  // Metals trading routes
+  const metalsTrading = (await import('./metals-trading-routes')).default;
+  app.use('/api/metals-trading', metalsTrading);
 
   // News routes
   app.use('/api/news', newsRoutes);
