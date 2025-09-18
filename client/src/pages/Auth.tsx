@@ -10,7 +10,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
-import { Eye, EyeOff, Mail, Lock, User, Phone, CheckCircle, ArrowLeft } from "lucide-react";
+import { 
+  Eye, 
+  EyeOff, 
+  Mail, 
+  Lock, 
+  User, 
+  Phone, 
+  CheckCircle, 
+  ArrowLeft,
+  Shield,
+  Sparkles,
+  Chrome
+} from "lucide-react";
 
 interface LoginData {
   emailOrUsername: string;
@@ -132,262 +144,373 @@ export default function Auth() {
     registerMutation.mutate(registerForm);
   };
 
+  const handleGoogleAuth = () => {
+    toast({
+      title: "Google Authentication",
+      description: "Google sign-in will be available soon!",
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Back to home link */}
-        <div className="mb-6">
-          <Link href="/">
-            <Button variant="ghost" className="text-slate-400 hover:text-white" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <img
-              src="/src/assets/bitpanda-logo.svg"
-              alt="BITPANDA PRO"
-              className="w-10 h-10"
-            />
-            <h1 className="text-3xl font-bold text-white">BITPANDA PRO</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(34,197,94,0.1),transparent)]" />
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+      
+      <div className="relative flex items-center justify-center min-h-screen p-4">
+        <div className="w-full max-w-md">
+          {/* Back to home link */}
+          <div className="mb-8">
+            <Link href="/">
+              <Button 
+                variant="ghost" 
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm transition-all duration-300" 
+                size="sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
           </div>
-          <p className="text-slate-400">Your gateway to crypto trading</p>
-        </div>
 
-        <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-white">Welcome</CardTitle>
-            <CardDescription className="text-slate-400">
-              Sign in to your account or create a new one
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-700/50">
-                <TabsTrigger value="login" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
-                  Sign In
-                </TabsTrigger>
-                <TabsTrigger value="register" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
-                  Sign Up
-                </TabsTrigger>
-              </TabsList>
+          {/* Logo Section */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center space-x-3 mb-6">
+              <div className="relative">
+                <img
+                  src="/src/assets/bitpanda-logo.svg"
+                  alt="BITPANDA PRO"
+                  className="w-12 h-12 drop-shadow-xl"
+                />
+                <div className="absolute inset-0 bg-green-400/20 rounded-full blur-xl animate-pulse" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white tracking-tight">
+                  BITPANDA PRO
+                </h1>
+                <div className="flex items-center justify-center mt-1">
+                  <Sparkles className="w-3 h-3 text-green-400 mr-1" />
+                  <span className="text-xs text-green-400 font-medium">PROFESSIONAL TRADING</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-slate-400 text-lg">Your gateway to crypto trading</p>
+          </div>
 
-              <TabsContent value="login">
-                <form onSubmit={handleUserLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="emailOrUsername" className="text-slate-300">
-                      Email or Username
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                      <Input
-                        id="emailOrUsername"
-                        type="text"
-                        placeholder="Enter your email or username"
-                        value={userLoginForm.emailOrUsername}
-                        onChange={(e) => setUserLoginForm({ ...userLoginForm, emailOrUsername: e.target.value })}
-                        className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-slate-300">
-                      Password
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        value={userLoginForm.password}
-                        onChange={(e) => setUserLoginForm({ ...userLoginForm, password: e.target.value })}
-                        className="pl-10 pr-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <Link href="/forgot-password">
-                      <span className="text-sm text-green-400 hover:text-green-300 cursor-pointer">
-                        Forgot password?
-                      </span>
-                    </Link>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
-                    disabled={userLoginMutation.isPending}
+          {/* Main Auth Card */}
+          <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/50 shadow-2xl ring-1 ring-slate-700/20">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-2xl text-white font-bold">Welcome Back</CardTitle>
+              <CardDescription className="text-slate-400 text-base">
+                Access your trading dashboard
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-700/30 backdrop-blur-sm border border-slate-600/50">
+                  <TabsTrigger 
+                    value="login" 
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
                   >
-                    {userLoginMutation.isPending ? "Signing in..." : "Sign In"}
-                  </Button>
-                </form>
-              </TabsContent>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Sign In
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="register" 
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Sign Up
+                  </TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="register">
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <TabsContent value="login" className="space-y-6">
+                  <form onSubmit={handleUserLogin} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-slate-300">
-                        First Name *
+                      <Label htmlFor="emailOrUsername" className="text-slate-300 font-medium">
+                        Email or Username
                       </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <div className="relative group">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-green-400 transition-colors" />
                         <Input
-                          id="firstName"
+                          id="emailOrUsername"
                           type="text"
-                          placeholder="John"
-                          value={registerForm.firstName}
-                          onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
-                          className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
+                          placeholder="Enter your email or username"
+                          value={userLoginForm.emailOrUsername}
+                          onChange={(e) => setUserLoginForm({ ...userLoginForm, emailOrUsername: e.target.value })}
+                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="text-slate-300">
-                        Last Name *
+                      <Label htmlFor="password" className="text-slate-300 font-medium">
+                        Password
                       </Label>
-                      <Input
-                        id="lastName"
-                        type="text"
-                        placeholder="Doe"
-                        value={registerForm.lastName}
-                        onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
-                        className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
-                        required
-                      />
+                      <div className="relative group">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-green-400 transition-colors" />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={userLoginForm.password}
+                          onChange={(e) => setUserLoginForm({ ...userLoginForm, password: e.target.value })}
+                          className="pl-10 pr-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-slate-500 hover:text-slate-300 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="username" className="text-slate-300">
-                      Username *
-                    </Label>
+                    <div className="text-right">
+                      <Link href="/forgot-password">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-green-400 hover:text-green-300 hover:bg-green-400/10 p-0 h-auto font-medium"
+                        >
+                          Forgot password?
+                        </Button>
+                      </Link>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]" 
+                      disabled={userLoginMutation.isPending}
+                    >
+                      {userLoginMutation.isPending ? (
+                        <div className="flex items-center">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Signing in...
+                        </div>
+                      ) : (
+                        <>
+                          <Shield className="w-4 h-4 mr-2" />
+                          Sign In
+                        </>
+                      )}
+                    </Button>
+
+                    {/* Divider */}
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                      <Input
-                        id="username"
-                        type="text"
-                        placeholder="johndoe"
-                        value={registerForm.username}
-                        onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
-                        className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
-                        required
-                      />
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-slate-600/50" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-slate-800/40 px-2 text-slate-400">Or continue with</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-slate-300">
-                      Email *
-                    </Label>
+                    {/* Google Sign In */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGoogleAuth}
+                      className="w-full h-12 border-slate-600/50 bg-slate-700/20 hover:bg-slate-700/40 text-slate-300 hover:text-white transition-all duration-300"
+                    >
+                      <Chrome className="w-5 h-5 mr-2" />
+                      Sign in with Google
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="register" className="space-y-6">
+                  <form onSubmit={handleRegister} className="space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName" className="text-slate-300 font-medium">
+                          First Name *
+                        </Label>
+                        <div className="relative group">
+                          <User className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-green-400 transition-colors" />
+                          <Input
+                            id="firstName"
+                            type="text"
+                            placeholder="John"
+                            value={registerForm.firstName}
+                            onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
+                            className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName" className="text-slate-300 font-medium">
+                          Last Name *
+                        </Label>
+                        <Input
+                          id="lastName"
+                          type="text"
+                          placeholder="Doe"
+                          value={registerForm.lastName}
+                          onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
+                          className="h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="username" className="text-slate-300 font-medium">
+                        Username *
+                      </Label>
+                      <div className="relative group">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-green-400 transition-colors" />
+                        <Input
+                          id="username"
+                          type="text"
+                          placeholder="johndoe"
+                          value={registerForm.username}
+                          onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
+                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-slate-300 font-medium">
+                        Email *
+                      </Label>
+                      <div className="relative group">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-green-400 transition-colors" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="john@example.com"
+                          value={registerForm.email}
+                          onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-slate-300 font-medium">
+                        Phone (Optional)
+                      </Label>
+                      <div className="relative group">
+                        <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-green-400 transition-colors" />
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="+1 (555) 123-4567"
+                          value={registerForm.phone}
+                          onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
+                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="register-password" className="text-slate-300 font-medium">
+                        Password *
+                      </Label>
+                      <div className="relative group">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500 group-focus-within:text-green-400 transition-colors" />
+                        <Input
+                          id="register-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Create a strong password (min. 6 characters)"
+                          value={registerForm.password}
+                          onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                          className="pl-10 pr-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-slate-500 hover:text-slate-300 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-700/20 rounded-lg p-4 border border-slate-600/30">
+                      <p className="text-xs text-slate-400 font-medium mb-2">Password requirements:</p>
+                      <ul className="text-xs text-slate-400 space-y-1">
+                        <li className="flex items-center">
+                          <CheckCircle className="w-3 h-3 text-green-400 mr-2" />
+                          At least 6 characters long
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle className="w-3 h-3 text-green-400 mr-2" />
+                          Mix of letters and numbers recommended
+                        </li>
+                      </ul>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]" 
+                      disabled={registerMutation.isPending}
+                    >
+                      {registerMutation.isPending ? (
+                        <div className="flex items-center">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Creating account...
+                        </div>
+                      ) : (
+                        <>
+                          <User className="w-4 h-4 mr-2" />
+                          Create Account
+                        </>
+                      )}
+                    </Button>
+
+                    {/* Divider */}
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="john@example.com"
-                        value={registerForm.email}
-                        onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
-                        className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
-                        required
-                      />
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-slate-600/50" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-slate-800/40 px-2 text-slate-400">Or continue with</span>
+                      </div>
                     </div>
+
+                    {/* Google Sign Up */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGoogleAuth}
+                      className="w-full h-12 border-slate-600/50 bg-slate-700/20 hover:bg-slate-700/40 text-slate-300 hover:text-white transition-all duration-300"
+                    >
+                      <Chrome className="w-5 h-5 mr-2" />
+                      Sign up with Google
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+
+              {/* Security Notice */}
+              <div className="bg-gradient-to-r from-blue-900/20 to-green-900/20 border border-blue-800/30 rounded-lg p-4 backdrop-blur-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-4 h-4 text-blue-400" />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-slate-300">
-                      Phone (Optional)
-                    </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+1 (555) 123-4567"
-                        value={registerForm.phone}
-                        onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
-                        className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
-                      />
-                    </div>
+                  <div>
+                    <p className="text-sm text-blue-300 font-medium mb-1">Secure & Professional</p>
+                    <p className="text-xs text-blue-400/80 leading-relaxed">
+                      Your data is protected with enterprise-grade security. Experience professional crypto trading with BITPANDA PRO.
+                    </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password" className="text-slate-300">
-                      Password *
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                      <Input
-                        id="register-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Create a strong password (min. 6 characters)"
-                        value={registerForm.password}
-                        onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-                        className="pl-10 pr-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-green-500"
-                        required
-                        minLength={6}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-slate-400 space-y-1">
-                    <p>Password requirements:</p>
-                    <ul className="list-disc ml-4 space-y-0.5">
-                      <li>At least 6 characters long</li>
-                      <li>Mix of letters and numbers recommended</li>
-                    </ul>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" 
-                    disabled={registerMutation.isPending}
-                  >
-                    {registerMutation.isPending ? "Creating account..." : "Create Account"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-
-            {/* Demo Notice */}
-            <div className="mt-6 p-4 bg-blue-900/20 border border-blue-800/50 rounded-lg">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-blue-400 mt-0.5" />
-                <div>
-                  <p className="text-xs text-blue-300 font-medium">Demo Mode</p>
-                  <p className="text-xs text-blue-400/80">
-                    Test the platform with demo credentials or create a new account
-                  </p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
