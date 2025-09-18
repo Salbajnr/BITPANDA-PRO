@@ -30,6 +30,9 @@ import Careers from "@/pages/Careers";
 import HelpCenter from "@/pages/HelpCenter";
 import Stocks from "@/pages/Stocks";
 import Etfs from "@/pages/Etfs";
+import InvestorProtection from "@/pages/InvestorProtection";
+import API from "@/pages/API";
+import Ecosystem from "@/pages/Ecosystem";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -44,7 +47,11 @@ function Router() {
       <Route path="/help-center" component={HelpCenter} />
       <Route path="/stocks" component={Stocks} />
       <Route path="/etfs" component={Etfs} />
-      
+      <Route path="/investor-protection" component={InvestorProtection} />
+      <Route path="/api" component={API} />
+      <Route path="/ecosystem" component={Ecosystem} />
+
+
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />

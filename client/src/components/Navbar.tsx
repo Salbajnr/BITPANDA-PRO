@@ -73,7 +73,7 @@ export default function Navbar() {
       const offset = 80; // Account for fixed navbar
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
-      
+
       window.scrollTo({
         top: offsetPosition,
         behavior: 'smooth'
@@ -83,8 +83,8 @@ export default function Navbar() {
 
   return (
     <nav className={`bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-all duration-300 ${
-      scrolled 
-        ? 'shadow-lg bg-background/98 backdrop-blur-xl' 
+      scrolled
+        ? 'shadow-lg bg-background/98 backdrop-blur-xl'
         : 'shadow-sm'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -93,9 +93,9 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center space-x-2 cursor-pointer">
-                <img 
-                  src="/src/assets/bitpanda-logo.svg" 
-                  alt="BITPANDA PRO" 
+                <img
+                  src="/src/assets/bitpanda-logo.svg"
+                  alt="BITPANDA PRO"
                   className="w-8 h-8"
                 />
                 <span className="text-xl font-bold text-foreground">BITPANDA PRO</span>
@@ -121,17 +121,23 @@ export default function Navbar() {
                           <Coins className="w-4 h-4 text-green-600" />
                           Cryptocurrencies
                         </div>
-                        <MenubarItem className="p-0 cursor-pointer">
-                          <Link to="/markets" className="w-full block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                        <MenubarItem
+                          className="p-0 cursor-pointer"
+                          onClick={() => navigate('/markets')}
+                        >
+                          <div className="w-full block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
                             <div className="font-medium text-foreground">Markets</div>
                             <div className="text-xs text-muted-foreground">Trade 600+ cryptocurrencies</div>
-                          </Link>
+                          </div>
                         </MenubarItem>
-                        <MenubarItem className="p-0 cursor-pointer">
-                          <Link to="/dual-markets" className="w-full block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                        <MenubarItem
+                          className="p-0 cursor-pointer"
+                          onClick={() => navigate('/dual-markets')}
+                        >
+                          <div className="w-full block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
                             <div className="font-medium text-foreground">Crypto Indices</div>
                             <div className="text-xs text-muted-foreground">Diversified crypto portfolios</div>
-                          </Link>
+                          </div>
                         </MenubarItem>
                       </div>
                       <div className="space-y-1">
@@ -139,23 +145,32 @@ export default function Navbar() {
                           <BarChart3 className="w-4 h-4 text-blue-600" />
                           Traditional Assets
                         </div>
-                        <MenubarItem className="p-0 cursor-pointer">
-                          <Link to="/stocks" className="w-full block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                        <MenubarItem
+                          className="p-0 cursor-pointer"
+                          onClick={() => navigate('/stocks')}
+                        >
+                          <div className="w-full block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
                             <div className="font-medium text-foreground">Stocks</div>
                             <div className="text-xs text-muted-foreground">Global stock markets</div>
-                          </Link>
+                          </div>
                         </MenubarItem>
-                        <MenubarItem className="p-0 cursor-pointer">
-                          <Link to="/etfs" className="w-full block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                        <MenubarItem
+                          className="p-0 cursor-pointer"
+                          onClick={() => navigate('/etfs')}
+                        >
+                          <div className="w-full block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
                             <div className="font-medium text-foreground">ETFs</div>
                             <div className="text-xs text-muted-foreground">Exchange-traded funds</div>
-                          </Link>
+                          </div>
                         </MenubarItem>
-                        <MenubarItem className="p-0 cursor-pointer">
-                          <Link to="/precious-metals" className="w-full block p-3 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200">
+                        <MenubarItem
+                          className="p-0 cursor-pointer"
+                          onClick={() => navigate('/precious-metals')}
+                        >
+                          <div className="w-full block p-3 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200">
                             <div className="font-medium text-foreground">Precious Metals</div>
                             <div className="text-xs text-muted-foreground">Gold, Silver & more</div>
-                          </Link>
+                          </div>
                         </MenubarItem>
                       </div>
                     </div>
@@ -172,32 +187,41 @@ export default function Navbar() {
                 </MenubarTrigger>
                 <MenubarContent className="w-[420px] p-4 bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200">
                   <div className="space-y-1">
-                    <MenubarItem className="p-0 cursor-pointer">
-                      <Link to="/academy" className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                    <MenubarItem
+                      className="p-0 cursor-pointer"
+                      onClick={() => navigate('/academy')}
+                    >
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
                         <BookOpen className="w-5 h-5 text-green-500 mt-0.5 transition-transform duration-200 group-hover:scale-110" />
                         <div>
                           <div className="font-medium text-foreground">Academy</div>
                           <div className="text-xs text-muted-foreground">Learn crypto and investing basics</div>
                         </div>
-                      </Link>
+                      </div>
                     </MenubarItem>
-                    <MenubarItem className="p-0 cursor-pointer">
-                      <Link to="/news" className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                    <MenubarItem
+                      className="p-0 cursor-pointer"
+                      onClick={() => navigate('/news')}
+                    >
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
                         <Newspaper className="w-5 h-5 text-blue-500 mt-0.5 transition-transform duration-200 group-hover:scale-110" />
                         <div>
                           <div className="font-medium text-foreground">Market News</div>
                           <div className="text-xs text-muted-foreground">Latest financial insights</div>
                         </div>
-                      </Link>
+                      </div>
                     </MenubarItem>
-                    <MenubarItem className="p-0 cursor-pointer">
-                      <Link to="/tutorials" className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
+                    <MenubarItem
+                      className="p-0 cursor-pointer"
+                      onClick={() => navigate('/tutorials')}
+                    >
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
                         <Users className="w-5 h-5 text-purple-500 mt-0.5 transition-transform duration-200 group-hover:scale-110" />
                         <div>
                           <div className="font-medium text-foreground">Getting Started</div>
                           <div className="text-xs text-muted-foreground">Step-by-step guides</div>
                         </div>
-                      </Link>
+                      </div>
                     </MenubarItem>
                   </div>
                 </MenubarContent>
@@ -211,42 +235,54 @@ export default function Navbar() {
                 </MenubarTrigger>
                 <MenubarContent className="w-[380px] p-4 bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200">
                   <div className="space-y-1">
-                    <MenubarItem className="p-0 cursor-pointer">
-                      <Link to="/about-us" className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                    <MenubarItem
+                      className="p-0 cursor-pointer"
+                      onClick={() => navigate('/about-us')}
+                    >
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
                         <Home className="w-5 h-5 text-blue-500 mt-0.5" />
                         <div>
                           <div className="font-medium text-foreground">About Us</div>
                           <div className="text-xs text-muted-foreground">Learn more about our mission and team</div>
                         </div>
-                      </Link>
+                      </div>
                     </MenubarItem>
-                    <MenubarItem className="p-0 cursor-pointer">
-                      <Link to="/careers" className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                    <MenubarItem
+                      className="p-0 cursor-pointer"
+                      onClick={() => navigate('/careers')}
+                    >
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
                         <Users className="w-5 h-5 text-green-500 mt-0.5" />
                         <div>
                           <div className="font-medium text-foreground">Careers</div>
                           <div className="text-xs text-muted-foreground">Join our team and build the future</div>
                         </div>
-                      </Link>
+                      </div>
                     </MenubarItem>
                     <MenubarSeparator />
-                    <MenubarItem className="p-0 cursor-pointer">
-                      <Link to="/press" className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200">
+                    <MenubarItem
+                      className="p-0 cursor-pointer"
+                      onClick={() => navigate('/press')}
+                    >
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200">
                         <Shield className="w-5 h-5 text-red-500 mt-0.5" />
                         <div>
                           <div className="font-medium text-foreground">Press</div>
                           <div className="text-xs text-muted-foreground">Latest news and press releases</div>
                         </div>
-                      </Link>
+                      </div>
                     </MenubarItem>
-                    <MenubarItem className="p-0 cursor-pointer">
-                      <Link to="/help-center" className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
+                    <MenubarItem
+                      className="p-0 cursor-pointer"
+                      onClick={() => navigate('/help-center')}
+                    >
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
                         <HelpCircle className="w-5 h-5 text-purple-500 mt-0.5" />
                         <div>
                           <div className="font-medium text-foreground">Help Center</div>
                           <div className="text-xs text-muted-foreground">Find answers to common questions</div>
                         </div>
-                      </Link>
+                      </div>
                     </MenubarItem>
                   </div>
                 </MenubarContent>
@@ -311,10 +347,10 @@ export default function Navbar() {
               className="relative w-10 h-10 rounded-xl transition-all duration-300 hover:bg-accent"
             >
               <div className="relative w-6 h-6 flex items-center justify-center">
-                <Menu 
+                <Menu
                   className={`h-5 w-5 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'}`}
                 />
-                <X 
+                <X
                   className={`h-5 w-5 absolute transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`}
                 />
               </div>
