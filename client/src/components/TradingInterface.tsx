@@ -23,7 +23,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
   const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop_loss' | 'take_profit'>('market');
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState("");
-  const [limitPrice, setLimitPrice] = useState(""); // Renamed from 'price' for clarity with limit orders
+  const [limitPrice, setLimitPrice] = useState('');
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -257,11 +257,15 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
                     id="price"
                     type="number"
                     placeholder="0.00"
-                    value={orderType === 'market' ? formatPrice(currentPrice) : limitPrice}
-                    onChange={(e) => setLimitPrice(e.target.value)}
+                    value={orderType === 'market' ? formatPrice(currentPrice) : orderType === 'limit' ? limitPrice : orderType === 'stop_loss' ? stopLoss : takeProfit}
+                    onChange={(e) => {
+                      if (orderType === 'limit') setLimitPrice(e.target.value);
+                      else if (orderType === 'stop_loss') setStopLoss(e.target.value);
+                      else if (orderType === 'take_profit') setTakeProfit(e.target.value);
+                    }}
                     disabled={orderType === 'market'}
                     className="bg-gray-800 border-gray-700 text-white disabled:opacity-50"
-                    data-testid={orderType === 'limit' ? "input-limit-price" : "input-price"}
+                    data-testid={orderType === 'limit' ? "input-limit-price" : orderType === 'stop_loss' ? "input-stop-loss-price" : orderType === 'take_profit' ? "input-take-profit-price" : "input-price"}
                   />
                 </div>
               </div>
@@ -371,7 +375,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
 
               <Button
                 onClick={() => handleTrade(tradeType)}
-                disabled={tradeMutation.isPending || !amount || (orderType === 'limit' && !limitPrice) || (orderType === 'stop_loss' && !stopLoss) || (orderType === 'take_profit' && !takeProfit) }
+                disabled={tradeMutation.isPending || !amount || (orderType === 'limit' && !limitPrice) || (useStopLoss && !stopLoss) || (useTakeProfit && !takeProfit) }
                 className={`w-full ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
                 data-testid={tradeType === 'buy' ? "button-execute-buy" : "button-execute-sell"}
               >

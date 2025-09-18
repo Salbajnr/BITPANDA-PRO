@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +18,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+
 
 interface PortfolioData {
   totalValue: number;
@@ -80,7 +81,7 @@ export default function PortfolioAnalytics() {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setPortfolioData(data);
@@ -130,6 +131,17 @@ export default function PortfolioAnalytics() {
     ];
     return colors[index % colors.length];
   };
+
+  // Calculate allocation data from holdings
+  const allocationData = portfolioData?.holdings?.map((holding: any) => ({
+    name: holding.symbol,
+    value: holding.totalValue,
+  })) || [];
+
+  const COLORS = [
+    '#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6',
+    '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#6B7280'
+  ];
 
   if (loading) {
     return (
@@ -513,18 +525,32 @@ export default function PortfolioAnalytics() {
 
           <TabsContent value="allocation" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Asset Allocation Pie Chart */}
               <Card>
                 <CardHeader>
                   <CardTitle>Asset Allocation</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded">
-                    <div className="text-center">
-                      <PieChart className="h-12 w-12 text-slate-400 mx-auto mb-2" />
-                      <p className="text-slate-600 dark:text-slate-400">
-                        Pie chart will be displayed here
-                      </p>
-                    </div>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={allocationData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {allocationData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: any) => [`$${value.toLocaleString()}`, 'Value']} />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>

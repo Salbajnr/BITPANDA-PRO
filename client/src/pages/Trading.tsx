@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface OrderData {
@@ -57,6 +58,29 @@ export default function Trading() {
   const [amount, setAmount] = useState('');
   const [limitPrice, setLimitPrice] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // WebSocket for real-time price updates
+  const { lastMessage } = useWebSocket('/ws/prices');
+  
+  useEffect(() => {
+    if (lastMessage) {
+      try {
+        const data = JSON.parse(lastMessage.data);
+        if (data.type === 'price_update') {
+          queryClient.setQueryData(['/api/crypto/markets'], (oldData: any) => {
+            if (!oldData) return oldData;
+            return oldData.map((crypto: any) => 
+              crypto.symbol === data.symbol 
+                ? { ...crypto, current_price: data.price, price_change_percentage_24h: data.change }
+                : crypto
+            );
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    }
+  }, [lastMessage, queryClient]);
 
   // Fetch crypto market data
   const { data: cryptoData, isLoading: cryptoLoading } = useQuery({

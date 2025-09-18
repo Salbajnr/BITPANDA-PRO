@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
@@ -15,6 +14,14 @@ export default function AdminBalanceManagement() {
   const { data: stats } = useQuery({
     queryKey: ['/api/admin/analytics/overview'],
     queryFn: () => apiRequest('/api/admin/analytics/overview'),
+    retry: 1,
+    enabled: user?.role === 'admin',
+  });
+
+  // Fetch adjustment history
+  const { data: adjustmentHistory } = useQuery({
+    queryKey: ['/api/admin/analytics/balance-adjustments'],
+    queryFn: () => apiRequest('/api/admin/analytics/balance-adjustments'),
     retry: 1,
     enabled: user?.role === 'admin',
   });
@@ -104,6 +111,40 @@ export default function AdminBalanceManagement() {
 
         {/* Main Balance Manipulator */}
         <AdminBalanceManipulator />
+
+        {/* Transaction History */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Recent Balance Adjustments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {adjustmentHistory && adjustmentHistory.length === 0 ? (
+              <p className="text-gray-500">No balance adjustments found.</p>
+            ) : (
+              <div className="space-y-3">
+                {adjustmentHistory?.map((adjustment: any) => (
+                  <div key={adjustment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">{adjustment.targetUser?.username}</p>
+                      <p className="text-sm text-gray-500">
+                        {adjustment.adjustmentType.toUpperCase()}: {adjustment.currency} {adjustment.amount}
+                      </p>
+                      <p className="text-xs text-gray-400">{adjustment.reason || 'No reason provided'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500">
+                        {new Date(adjustment.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        by {adjustment.admin?.username}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
