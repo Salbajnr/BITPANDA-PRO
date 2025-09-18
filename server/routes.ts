@@ -18,7 +18,7 @@ import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
 import { z } from "zod";
 import { Router } from "express";
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 
 // Database connection check
@@ -836,5 +836,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   process.on('SIGINT', cleanup);
 
   return httpServer;
-}
 }

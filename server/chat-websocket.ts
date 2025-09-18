@@ -4,69 +4,6 @@ import { Server } from 'http';
 import { parse } from 'url';
 import { storage } from './storage';
 
-interface ChatClient {
-  ws: WebSocket;
-  userId?: string;
-  adminId?: string;
-}
-
-class ChatWebSocketManager {
-  private wss: WebSocketServer | null = null;
-  private clients = new Map<string, ChatClient>();
-
-  initialize(server: Server): void {
-    this.wss = new WebSocketServer({ 
-      server, 
-      path: '/ws/chat'
-    });
-
-    this.wss.on('connection', (ws, request) => {
-      const clientId = this.generateClientId();
-      console.log(`💬 Chat WebSocket client connected: ${clientId}`);
-
-      this.clients.set(clientId, { ws });
-
-      ws.on('message', async (data) => {
-        try {
-          const message = JSON.parse(data.toString());
-          await this.handleMessage(clientId, message);
-        } catch (error) {
-          console.error('Chat WebSocket message error:', error);
-        }
-      });
-
-      ws.on('close', () => {
-        console.log(`💬 Chat WebSocket client disconnected: ${clientId}`);
-        this.clients.delete(clientId);
-      });
-
-      ws.on('error', (error) => {
-        console.error(`💬 Chat WebSocket error for client ${clientId}:`, error);
-        this.clients.delete(clientId);
-      });
-    });
-
-    console.log('💬 Chat WebSocket server initialized on /ws/chat');
-  }
-
-  private async handleMessage(clientId: string, message: any): Promise<void> {
-    // Handle chat messages here
-    console.log('Chat message received:', message);
-  }
-
-  private generateClientId(): string {
-    return `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  shutdown(): void {
-    this.clients.clear();
-    if (this.wss) {
-      this.wss.close();
-    }
-  }
-}
-
-export const chatWebSocketManager = new ChatWebSocketManager();
 
 interface ChatClient {
   ws: WebSocket;
