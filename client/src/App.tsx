@@ -144,8 +144,10 @@ function Router() {
       <Route path="/metals-trading" component={MetalsTrading} />
       <Route path="/commodities" component={Commodities} />
 
-      {isLoading || !isAuthenticated ? (
+      {/* Conditional routing based on authentication */}
+      {!isAuthenticated && !isLoading ? (
         <>
+          {/* Public routes when not authenticated */}
           <Route path="/">
             <PublicLayout>
               <Landing />
@@ -157,7 +159,7 @@ function Router() {
             </PublicLayout>
           </Route>
         </>
-      ) : (
+      ) : !isLoading ? (
         <>
           {/* Authenticated routes - no navbar, custom layouts */}
           <Route path="/">
