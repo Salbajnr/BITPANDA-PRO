@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import Navbar from "@/components/Navbar";
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -38,50 +39,180 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import OtpVerification from "@/pages/OtpVerification";
 import ResetPassword from "@/pages/ResetPassword";
 
+// Layout wrapper for public pages
+function PublicLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="flex-1">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+// Layout wrapper for authenticated pages (no navbar)
+function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
-      {/* Public auth routes - always accessible */}
-      <Route path="/auth" component={Auth} />
-      <Route path="/forgot-password" component={ForgotPassword} />
+      {/* Public auth routes - always accessible with navbar */}
+      <Route path="/auth">
+        <PublicLayout>
+          <Auth />
+        </PublicLayout>
+      </Route>
+      <Route path="/forgot-password">
+        <PublicLayout>
+          <ForgotPassword />
+        </PublicLayout>
+      </Route>
       <Route path="/verify-otp/:type/:email" component={OtpVerification} />
       <Route path="/reset-password/:token" component={ResetPassword} />
       
-      {/* Public routes - always accessible */}
-      <Route path="/academy" component={Academy} />
-      <Route path="/news" component={News} />
-      <Route path="/about" component={About} />
-      <Route path="/careers" component={Careers} />
-      <Route path="/help-center" component={HelpCenter} />
-      <Route path="/stocks" component={Stocks} />
-      <Route path="/etfs" component={Etfs} />
-      <Route path="/investor-protection" component={InvestorProtection} />
-      <Route path="/api" component={API} />
-      <Route path="/ecosystem" component={Ecosystem} />
+      {/* Public routes - always accessible with navbar */}
+      <Route path="/academy">
+        <PublicLayout>
+          <Academy />
+        </PublicLayout>
+      </Route>
+      <Route path="/news">
+        <PublicLayout>
+          <News />
+        </PublicLayout>
+      </Route>
+      <Route path="/about">
+        <PublicLayout>
+          <About />
+        </PublicLayout>
+      </Route>
+      <Route path="/careers">
+        <PublicLayout>
+          <Careers />
+        </PublicLayout>
+      </Route>
+      <Route path="/help-center">
+        <PublicLayout>
+          <HelpCenter />
+        </PublicLayout>
+      </Route>
+      <Route path="/stocks">
+        <PublicLayout>
+          <Stocks />
+        </PublicLayout>
+      </Route>
+      <Route path="/etfs">
+        <PublicLayout>
+          <Etfs />
+        </PublicLayout>
+      </Route>
+      <Route path="/investor-protection">
+        <PublicLayout>
+          <InvestorProtection />
+        </PublicLayout>
+      </Route>
+      <Route path="/api">
+        <PublicLayout>
+          <API />
+        </PublicLayout>
+      </Route>
+      <Route path="/ecosystem">
+        <PublicLayout>
+          <Ecosystem />
+        </PublicLayout>
+      </Route>
 
       {isLoading || !isAuthenticated ? (
         <>
-          <Route path="/" component={Landing} />
-          <Route path="/admin" component={AdminLogin} />
+          <Route path="/">
+            <PublicLayout>
+              <Landing />
+            </PublicLayout>
+          </Route>
+          <Route path="/admin">
+            <PublicLayout>
+              <AdminLogin />
+            </PublicLayout>
+          </Route>
         </>
       ) : (
         <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/markets" component={Markets} />
-          <Route path="/trading" component={Trading} />
-          <Route path="/deposits" component={Deposits} />
-          <Route path="/portfolio" component={PortfolioTracker} />
-          <Route path="/analytics" component={PortfolioAnalytics} />
-          <Route path="/settings" component={UserSettings} />
-          <Route path="/transactions" component={TransactionHistory} />
-          <Route path="/watchlist" component={Watchlist} />
-          <Route path="/help" component={Help} />
-          <Route path="/security" component={Security} />
-          <Route path="/orders" component={Orders} />
+          {/* Authenticated routes - no navbar, custom layouts */}
+          <Route path="/">
+            <AuthenticatedLayout>
+              <Dashboard />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/dashboard">
+            <AuthenticatedLayout>
+              <Dashboard />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/admin">
+            <AuthenticatedLayout>
+              <AdminDashboard />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/markets">
+            <AuthenticatedLayout>
+              <Markets />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/trading">
+            <AuthenticatedLayout>
+              <Trading />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/deposits">
+            <AuthenticatedLayout>
+              <Deposits />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/portfolio">
+            <AuthenticatedLayout>
+              <PortfolioTracker />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/analytics">
+            <AuthenticatedLayout>
+              <PortfolioAnalytics />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/settings">
+            <AuthenticatedLayout>
+              <UserSettings />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/transactions">
+            <AuthenticatedLayout>
+              <TransactionHistory />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/watchlist">
+            <AuthenticatedLayout>
+              <Watchlist />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/help">
+            <AuthenticatedLayout>
+              <Help />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/security">
+            <AuthenticatedLayout>
+              <Security />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/orders">
+            <AuthenticatedLayout>
+              <Orders />
+            </AuthenticatedLayout>
+          </Route>
         </>
       )}
       <Route component={NotFound} />
