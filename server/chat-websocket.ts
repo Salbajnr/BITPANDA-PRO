@@ -19,9 +19,29 @@ class ChatWebSocketManager {
   private sessionClients = new Map<string, Set<string>>(); // sessionId -> set of clientIds
 
   initialize(server: Server): void {
+    if (this.wss) {
+      this.wss.close();
+    }
+    
     this.wss = new WebSocketServer({
-      server,
-      path: '/ws/chat',
+      noServer: true
+    });
+
+    // Handle chat WebSocket upgrades specifically
+    const originalUpgrade = server.emit;
+    server.on('upgrade', (request, socket, head) => {
+      try {
+        const pathname = new URL(request.url!, `http://${request.headers.host}`).pathname;
+        
+        if (pathname === '/ws/chat') {
+          this.wss!.handleUpgrade(request, socket, head, (ws) => {
+            this.wss!.emit('connection', ws, request);
+          });
+        }
+      } catch (error) {
+        console.error('Chat WebSocket upgrade error:', error);
+        socket.destroy();
+      }
     });
 
     this.wss.on('connection', (ws, request) => {

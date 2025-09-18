@@ -878,8 +878,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Get price alerts for user
   async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
-    return this.getUserPriceAlerts(userId);
+    try {
+      const db = this.ensureDb();
+      const result = await db
+        .select()
+        .from(priceAlerts)
+        .where(eq(priceAlerts.userId, userId))
+        .orderBy(desc(priceAlerts.createdAt));
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching price alerts:', error);
+      return [];
+    }
+  }
+
+  // Get user price alerts (alias for WebSocket compatibility)
+  async getUserPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    return this.getPriceAlerts(userId);
   }
 
   // Notification methods

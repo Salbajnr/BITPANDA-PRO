@@ -42,18 +42,29 @@ class WebSocketManager {
       noServer: true
     });
 
-    // Remove all existing upgrade listeners to prevent conflicts
-    server.removeAllListeners('upgrade');
+    // Remove existing upgrade listeners for this path only
+    const existingListeners = server.listeners('upgrade');
+    existingListeners.forEach(listener => {
+      server.removeListener('upgrade', listener);
+    });
 
-    // Handle upgrade manually to avoid multiple upgrade calls
+    // Handle upgrade with path checking
     server.on('upgrade', (request, socket, head) => {
-      const pathname = new URL(request.url!, `http://${request.headers.host}`).pathname;
-      
-      if (pathname === '/ws') {
-        this.wss!.handleUpgrade(request, socket, head, (ws) => {
-          this.wss!.emit('connection', ws, request);
-        });
-      } else {
+      try {
+        const pathname = new URL(request.url!, `http://${request.headers.host}`).pathname;
+        
+        if (pathname === '/ws') {
+          this.wss!.handleUpgrade(request, socket, head, (ws) => {
+            this.wss!.emit('connection', ws, request);
+          });
+        } else if (pathname === '/ws/chat') {
+          // Let chat WebSocket handle this
+          return;
+        } else {
+          socket.destroy();
+        }
+      } catch (error) {
+        console.error('WebSocket upgrade error:', error);
         socket.destroy();
       }
     });
