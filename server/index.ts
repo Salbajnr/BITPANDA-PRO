@@ -20,16 +20,32 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Add CORS middleware with credentials support
+// Add CORS middleware with secure configuration
 app.use((req, res, next) => {
-  // Allow specific origin for credentials
+  // Secure allowlist for CORS
+  const allowedOrigins = [
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
+    'http://0.0.0.0:5000',
+    'https://*.replit.app',
+    'https://*.replit.dev',
+    process.env.REPLIT_DOMAINS?.split(',') || []
+  ].flat();
+  
   const origin = req.headers.origin;
-  if (origin) {
-    res.header('Access-Control-Allow-Origin', origin);
+  const isAllowed = allowedOrigins.some(allowed => 
+    allowed === origin || 
+    (allowed.includes('*') && origin?.endsWith(allowed.replace('*.', '.')))
+  );
+  
+  if (isAllowed || !origin) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
   }
+  
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
