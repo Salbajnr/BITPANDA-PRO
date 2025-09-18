@@ -27,7 +27,7 @@ externalPort = 3000
 PORT = "5000"
 
 [workflows]
-runButton = "Start Fixed WebSocket Server"
+runButton = "Debug Clean Start"
 
 [[workflows.workflow]]
 name = "Project"
@@ -271,6 +271,23 @@ args = "npm run dev"
 
 [[workflows.workflow]]
 name = "Start Fixed WebSocket Server"
+author = 47731001
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5000\" || pkill -f \"tsx.*server\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 3"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Debug Clean Start"
 author = 47731001
 mode = "sequential"
 
