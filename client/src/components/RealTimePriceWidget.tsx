@@ -44,7 +44,7 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
       .filter(Boolean) as CryptoPrice[];
 
     setDisplayPrices(filteredPrices.slice(0, maxItems));
-  }, [prices, symbols, maxItems, getPrice]);
+  }, [prices, maxItems, getPrice]);
 
   const formatPrice = (price: number) => {
     if (price >= 1000) {
