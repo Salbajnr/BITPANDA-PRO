@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ApiService } from "@/lib/api";
+// Remove unused import - using queryClient instead
 import Navbar from "@/components/Navbar";
 import {
   Wallet, TrendingUp, TrendingDown, ArrowUp, ArrowDown,
@@ -996,10 +996,7 @@ export default function Dashboard() {
                                     <Button size="sm" variant="outline">
                                       <Star className="h-4 w-4" />
                                     </Button>
-                                    <PriceAlertModal 
-                                      symbol={crypto.symbol.toUpperCase()} 
-                                      currentPrice={crypto.current_price}
-                                    />
+                                    <PriceAlertModal />
                                     <Button size="sm">
                                       Trade
                                     </Button>
