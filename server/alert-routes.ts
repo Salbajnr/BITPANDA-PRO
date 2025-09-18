@@ -66,7 +66,7 @@ router.put('/:alertId', requireAuth, async (req: Request, res: Response) => {
     const updates = updateAlertSchema.parse(req.body);
 
     // Verify alert belongs to user
-    const alert = await storage.getPriceAlert(alertId);
+    const alert = await storage.getPriceAlertById(alertId);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: 'Alert not found' });
     }
@@ -78,7 +78,7 @@ router.put('/:alertId', requireAuth, async (req: Request, res: Response) => {
     if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
 
     await storage.updatePriceAlert(alertId, updateData);
-    const updatedAlert = await storage.getPriceAlert(alertId);
+    const updatedAlert = await storage.getPriceAlertById(alertId);
 
     res.json(updatedAlert);
   } catch (error) {
@@ -97,7 +97,7 @@ router.delete('/:alertId', requireAuth, async (req: Request, res: Response) => {
     const alertId = req.params.alertId;
 
     // Verify alert belongs to user
-    const alert = await storage.getPriceAlert(alertId);
+    const alert = await storage.getPriceAlertById(alertId);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: 'Alert not found' });
     }
@@ -117,13 +117,13 @@ router.patch('/:alertId/toggle', requireAuth, async (req: Request, res: Response
     const alertId = req.params.alertId;
 
     // Verify alert belongs to user
-    const alert = await storage.getPriceAlert(alertId);
+    const alert = await storage.getPriceAlertById(alertId);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: 'Alert not found' });
     }
 
     await storage.updatePriceAlert(alertId, { isActive: !alert.isActive });
-    const updatedAlert = await storage.getPriceAlert(alertId);
+    const updatedAlert = await storage.getPriceAlertById(alertId);
 
     res.json(updatedAlert);
   } catch (error) {

@@ -1458,7 +1458,7 @@ export class DatabaseStorage implements IStorage {
 
       if (agentId && status === 'active') {
         updateData.agentId = agentId;
-        
+
         // Get agent name
         const agent = await this.getUser(agentId);
         if (agent) {
@@ -1541,7 +1541,7 @@ export class DatabaseStorage implements IStorage {
       if (options.status) {
         countQuery = countQuery.where(eq(liveChatSessions.status, options.status));
       }
-      
+
       const totalResult = await countQuery;
       const total = totalResult[0]?.count || 0;
 
@@ -1878,7 +1878,7 @@ export class DatabaseStorage implements IStorage {
   async confirmWithdrawal(userId: string, token: string): Promise<any> {
     try {
       const db = this.ensureDb();
-      
+
       // Find withdrawal with matching token and user
       const [withdrawal] = await db
         .select()
@@ -1922,7 +1922,7 @@ export class DatabaseStorage implements IStorage {
   async getWithdrawalLimits(userId: string): Promise<any> {
     try {
       const db = this.ensureDb();
-      
+
       // Try to get existing limits
       const [limits] = await db
         .select()
@@ -2029,7 +2029,7 @@ export class DatabaseStorage implements IStorage {
   async getWithdrawalStats(): Promise<any> {
     try {
       const db = this.ensureDb();
-      
+
       const totalWithdrawals = await db
         .select({ count: count() })
         .from(withdrawals);
@@ -2069,7 +2069,7 @@ export class DatabaseStorage implements IStorage {
   async cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean> {
     try {
       const db = this.ensureDb();
-      
+
       const [result] = await db
         .update(withdrawals)
         .set({
@@ -2475,7 +2475,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Delete user (admin action)
-  async deleteUser(userId: string) {
+  async deleteUser(userId: string): Promise<boolean> {
     try {
       // Delete user's portfolio first
       const portfolio = await this.getPortfolio(userId);

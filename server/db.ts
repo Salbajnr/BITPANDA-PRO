@@ -1,5 +1,6 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from "drizzle-orm/neon-serverless";
+import { sql } from "drizzle-orm";
 import ws from "ws";
 import * as schema from "@shared/schema";
 
@@ -40,7 +41,7 @@ if (pool) {
         client.release();
         
         // Test a simple query
-        await db.execute(schema.sql`SELECT 1`);
+        await db.execute(sql`SELECT 1`);
         console.log("✅ Database query test successful");
         return;
       } catch (err: any) {
