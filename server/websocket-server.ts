@@ -42,6 +42,9 @@ class WebSocketManager {
       noServer: true
     });
 
+    // Remove all existing upgrade listeners to prevent conflicts
+    server.removeAllListeners('upgrade');
+
     // Handle upgrade manually to avoid multiple upgrade calls
     server.on('upgrade', (request, socket, head) => {
       const pathname = new URL(request.url!, `http://${request.headers.host}`).pathname;

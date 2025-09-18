@@ -874,6 +874,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    return this.getUserPriceAlerts(userId);
+  }
+
   // Notification methods
   async createNotification(data: InsertNotification): Promise<Notification> {
     try {
@@ -886,7 +890,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getNotifications(userId: string, limit = 20): Promise<Notification[]> {
+  async getUserNotifications(userId: string, limit = 20): Promise<Notification[]> {
     try {
       const db = this.ensureDb();
       const userNotifications = await db.select()
@@ -899,6 +903,10 @@ export class DatabaseStorage implements IStorage {
       console.error("Error getting notifications:", error);
       return [];
     }
+  }
+
+  async getNotifications(userId: string, limit = 20): Promise<Notification[]> {
+    return this.getUserNotifications(userId, limit);
   }
 
   async getNotification(notificationId: string): Promise<Notification | undefined> {
