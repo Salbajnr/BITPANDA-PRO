@@ -247,7 +247,7 @@ function Router() {
             </AuthenticatedLayout>
           </Route>
         </>
-      )}
+      ) : null}
       <Route component={NotFound} />
     </Switch>
   );
