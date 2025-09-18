@@ -101,7 +101,8 @@ app.use((req, res, next) => {
     try {
       await seedDatabase();
     } catch (error) {
-      console.warn('⚠️  Database seeding failed (this is normal if already seeded):', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn('⚠️  Database seeding failed (this is normal if already seeded):', errorMessage);
     }
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
