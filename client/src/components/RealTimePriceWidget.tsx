@@ -23,13 +23,6 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
 }) => {
   const [displayPrices, setDisplayPrices] = useState<CryptoPrice[]>([]);
 
-  const webSocketOptions = useMemo(() => ({
-    symbols,
-    autoConnect: true,
-    reconnectAttempts: 5,
-    reconnectInterval: 3000
-  }), [symbols]);
-
   const { 
     isConnected, 
     isConnecting, 
@@ -38,7 +31,12 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
     lastUpdate, 
     connect, 
     getPrice 
-  } = useWebSocket(webSocketOptions);
+  } = useWebSocket({
+    symbols,
+    autoConnect: true,
+    reconnectAttempts: 5,
+    reconnectInterval: 3000
+  });
 
   useEffect(() => {
     const filteredPrices = symbols
