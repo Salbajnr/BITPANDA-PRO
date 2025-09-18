@@ -3,31 +3,52 @@ import {
   portfolios,
   holdings,
   transactions,
+  deposits,
+  withdrawals,
   balanceAdjustments,
+  notifications,
+  priceAlerts,
   newsArticles,
-  deposits, // Added deposits schema import
+  passwordResetTokens,
+  otpTokens,
+  kycVerifications,
+  supportTickets,
+  supportMessages,
+  liveChatSessions,
+  liveChatMessages,
   userPreferences,
-  priceAlerts, // Assuming priceAlerts schema is available
-  notifications, // Assuming notifications schema is available
   type User,
-  type UpsertUser,
   type Portfolio,
-  type InsertPortfolio,
   type Holding,
-  type InsertHolding,
   type Transaction,
-  type InsertTransaction,
+  type Deposit,
+  type Withdrawal,
+  type InsertWithdrawal,
   type BalanceAdjustment,
   type InsertBalanceAdjustment,
+  type Notification,
+  type InsertNotification,
+  type PriceAlert,
+  type InsertPriceAlert,
   type NewsArticle,
   type InsertNewsArticle,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
+  type OtpToken,
+  type InsertOtpToken,
+  type KycVerification,
+  type InsertKycVerification,
+  type SupportTicket,
+  type InsertSupportTicket,
+  type SupportMessage,
+  type InsertSupportMessage,
+  type LiveChatSession,
+  type InsertLiveChatSession,
+  type LiveChatMessage,
+  type InsertLiveChatMessage,
   type UserPreferences,
-  type InsertUserPreferences,
-  type PriceAlert, // Assuming PriceAlert type is available
-  type InsertPriceAlert, // Assuming InsertPriceAlert type is available
-  type Notification, // Assuming Notification type is available
-  type InsertNotification, // Assuming InsertNotification type is available
-} from "@shared/schema";
+  type InsertUserPreferences
+} from '@shared/schema';
 import { db } from "./db";
 import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum } from "drizzle-orm";
 
@@ -113,6 +134,22 @@ export interface IStorage {
   getUserDeposits(userId: string, limit?: number): Promise<any[]>;
   getAllDeposits(): Promise<any[]>;
   updateDepositStatus(id: string, status: string, rejectionReason?: string): Promise<any>;
+
+  // Withdrawal operations
+  createWithdrawal(withdrawalData: {
+    userId: string;
+    paymentMethod: string;
+    amount: string;
+    currency: string;
+    destinationAddress: string;
+    destinationDetails: string | null;
+    notes: string | null;
+    status: string;
+    transactionId: string;
+  }): Promise<any>;
+  getUserWithdrawals(userId: string): Promise<any[]>;
+  getAllWithdrawals(): Promise<any[]>;
+  updateWithdrawalStatus(id: string, status: string, adminNotes?: string): Promise<any>;
 
   // Analytics operations
   getAnalyticsOverview(): Promise<any>;
@@ -591,10 +628,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createBalanceAdjustment(data: InsertBalanceAdjustment): Promise<BalanceAdjustment> {
+  async createBalanceAdjustment(adjustment: InsertBalanceAdjustment): Promise<BalanceAdjustment> {
     try {
       const db = this.ensureDb();
-      const [adjustment] = await db.insert(balanceAdjustments).values(data).returning();
+      const [adjustment] = await db.insert(balanceAdjustments).values(adjustment).returning();
       return adjustment;
     } catch (error) {
       console.error("Error creating balance adjustment:", error);
@@ -1336,6 +1373,76 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date().toISOString()
       })
       .where(eq(deposits.id, id))
+      .returning();
+    return result;
+  }
+
+  // Withdrawal methods
+  async createWithdrawal(withdrawalData: {
+    userId: string;
+    paymentMethod: string;
+    amount: string;
+    currency: string;
+    destinationAddress: string;
+    destinationDetails: string | null;
+    notes: string | null;
+    status: string;
+    transactionId: string;
+  }): Promise<any> {
+    const db = this.ensureDb();
+    const [result] = await db.insert(withdrawals).values(withdrawalData).returning();
+    return result;
+  }
+
+  async getUserWithdrawals(userId: string): Promise<any[]> {
+    const db = this.ensureDb();
+    return await db
+      .select()
+      .from(withdrawals)
+      .where(eq(withdrawals.userId, userId))
+      .orderBy(desc(withdrawals.createdAt));
+  }
+
+  async getAllWithdrawals() {
+    const db = this.ensureDb();
+    return await db
+      .select({
+        id: withdrawals.id,
+        userId: withdrawals.userId,
+        paymentMethod: withdrawals.paymentMethod,
+        amount: withdrawals.amount,
+        currency: withdrawals.currency,
+        destinationAddress: withdrawals.destinationAddress,
+        destinationDetails: withdrawals.destinationDetails,
+        notes: withdrawals.notes,
+        status: withdrawals.status,
+        adminNotes: withdrawals.adminNotes,
+        createdAt: withdrawals.createdAt,
+        updatedAt: withdrawals.updatedAt,
+        processedAt: withdrawals.processedAt,
+        user: {
+          username: users.username,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName
+        }
+      })
+      .from(withdrawals)
+      .leftJoin(users, eq(withdrawals.userId, users.id))
+      .orderBy(desc(withdrawals.createdAt));
+  }
+
+  async updateWithdrawalStatus(id: string, status: string, adminNotes?: string): Promise<any> {
+    const db = this.ensureDb();
+    const [result] = await db
+      .update(withdrawals)
+      .set({
+        status,
+        adminNotes,
+        processedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(withdrawals.id, id))
       .returning();
     return result;
   }

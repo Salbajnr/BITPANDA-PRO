@@ -14,6 +14,8 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import Markets from "@/pages/Markets";
 import Trading from "@/pages/Trading";
 import Deposits from "@/pages/Deposits";
+import Withdrawals from "@/pages/Withdrawals";
+import AdminWithdrawalManagement from "@/pages/AdminWithdrawalManagement";
 import PortfolioTracker from './pages/PortfolioTracker';
 import PortfolioAnalytics from './pages/PortfolioAnalytics';
 import UserSettings from "@/pages/UserSettings";
@@ -175,6 +177,16 @@ function Router() {
           <Route path="/deposits">
             <AuthenticatedLayout>
               <Deposits />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/withdrawals">
+            <AuthenticatedLayout>
+              <Withdrawals />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/admin/withdrawals">
+            <AuthenticatedLayout>
+              <AdminWithdrawalManagement />
             </AuthenticatedLayout>
           </Route>
           <Route path="/portfolio">

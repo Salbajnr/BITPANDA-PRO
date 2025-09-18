@@ -12,6 +12,7 @@ import adminRoutes from './admin-routes';
 import authRoutes from './auth-routes';
 import alertRoutes from './alert-routes';
 import depositRoutes from './deposit-routes';
+import withdrawalRoutes from "./withdrawal-routes";
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
@@ -31,21 +32,21 @@ app.use((req, res, next) => {
     'https://*.replit.dev',
     process.env.REPLIT_DOMAINS?.split(',') || []
   ].flat();
-  
+
   const origin = req.headers.origin;
   const isAllowed = allowedOrigins.some(allowed => 
     allowed === origin || 
     (allowed.includes('*') && origin?.endsWith(allowed.replace('*.', '.')))
   );
-  
+
   if (isAllowed || !origin) {
     res.header('Access-Control-Allow-Origin', origin || '*');
   }
-  
+
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -121,6 +122,34 @@ app.use((req, res, next) => {
       console.warn('⚠️  Database seeding failed (this is normal if already seeded):', errorMessage);
     }
 
+    // ALL routes
+    app.use('/api/crypto', cryptoRoutes);
+    app.use('/api/trading', tradingRoutes);
+    app.use('/api/admin', adminRoutes);
+    app.use('/api/auth', authRoutes);
+    app.use('/api/alerts', alertRoutes);
+    app.use("/api/deposits", depositRoutes);
+    app.use("/api/withdrawals", withdrawalRoutes);
+    app.use("/api/metals", metalsRoutes);
+    app.use('/api/portfolio', portfolioRoutes);
+    app.use('/api/portfolio/analytics', portfolioAnalyticsRoutes);
+    app.use('/api/news', newsRoutes);
+
+
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+
+    // IMPORTANTLY: This catch-all route should be the last route registered.
+    // It ensures that any requests that do not match the defined API routes
+    // are handled by the Vite development server (or static file serving in production).
+    // This allows the frontend routing to work seamlessly.
+
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
     // this serves both the API and the client.
@@ -148,6 +177,7 @@ app.use((req, res, next) => {
 💎 Crypto Data: /api/crypto
 💍 Precious Metals: /api/metals
 📰 News: /api/news
+💸 Withdrawals: /api/withdrawals
 📡 WebSocket: ws://0.0.0.0:${port}/ws
 `);
 

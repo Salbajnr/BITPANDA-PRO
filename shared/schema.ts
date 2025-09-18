@@ -156,6 +156,29 @@ export const balanceAdjustments = pgTable('balance_adjustments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Withdrawal status enum
+export const withdrawalStatusEnum = pgEnum('withdrawal_status', ['pending', 'approved', 'rejected']);
+export const withdrawalPaymentMethodEnum = pgEnum('withdrawal_payment_method', ['bank_transfer', 'crypto_wallet', 'paypal', 'mobile_money', 'other']);
+
+// User withdrawals
+export const withdrawals = pgTable('withdrawals', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
+  currency: text('currency').notNull().default('USD'),
+  paymentMethod: withdrawalPaymentMethodEnum('payment_method').notNull(),
+  destinationAddress: text('destination_address').notNull(),
+  destinationDetails: text('destination_details'),
+  notes: text('notes'),
+  status: withdrawalStatusEnum('status').notNull().default('pending'),
+  adminNotes: text('admin_notes'),
+  approvedById: text('approved_by_id').references(() => users.id),
+  processedAt: timestamp('processed_at'),
+  transactionId: text('transaction_id'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // News articles
 export const newsArticles = pgTable("news_articles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -412,6 +435,12 @@ export const insertBalanceAdjustmentSchema = createInsertSchema(balanceAdjustmen
   createdAt: true,
 });
 
+export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertNewsArticleSchema = createInsertSchema(newsArticles).omit({
   id: true,
   createdAt: true,
@@ -495,3 +524,5 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type PriceAlert = typeof priceAlerts.$inferSelect;
 export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;
+export type Withdrawal = typeof withdrawals.$inferSelect;
+export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
