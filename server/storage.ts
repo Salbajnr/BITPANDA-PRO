@@ -5,6 +5,7 @@ import {
   transactions,
   deposits,
   withdrawals,
+  withdrawalLimits,
   balanceAdjustments,
   notifications,
   priceAlerts,

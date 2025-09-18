@@ -46,6 +46,7 @@ const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
 const MetalsTrading = lazy(() => import("./pages/MetalsTrading"));
 const AdminMetalsManagement = lazy(() => import("./pages/AdminMetalsManagement"));
 const AdminChatManagement = lazy(() => import("./pages/AdminChatManagement"));
+const AdminNewsManagement = lazy(() => import("./pages/AdminNewsManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
 
 // Layout wrapper for public pages
