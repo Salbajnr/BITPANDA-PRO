@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,10 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
 }) => {
   const [displayPrices, setDisplayPrices] = useState<CryptoPrice[]>([]);
 
-  // Memoize symbols to prevent infinite re-renders - use string join for stable comparison
-  const memoizedSymbols = useMemo(() => symbols, [JSON.stringify(symbols.sort())]);
+  // Stable memoization of symbols array to prevent infinite re-renders
+  const stableSymbols = useMemo(() => {
+    return symbols.slice().sort();
+  }, [symbols.join(',')]);
 
   const { 
     isConnected, 
@@ -36,20 +38,22 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
     connect, 
     getPrice 
   } = useWebSocket({
-    symbols: memoizedSymbols,
+    symbols: stableSymbols,
     autoConnect: true,
     reconnectAttempts: 5,
     reconnectInterval: 3000
   });
 
-  // Update display prices when price data changes
+  // Update display prices - only depend on prices and getPrice changes
   useEffect(() => {
-    const filteredPrices = memoizedSymbols
-      .map(symbol => getPrice(symbol))
-      .filter(Boolean) as CryptoPrice[];
+    if (prices && prices.length > 0) {
+      const filteredPrices = stableSymbols
+        .map(symbol => getPrice(symbol))
+        .filter(Boolean) as CryptoPrice[];
 
-    setDisplayPrices(filteredPrices.slice(0, maxItems));
-  }, [prices, maxItems, getPrice, memoizedSymbols]);
+      setDisplayPrices(filteredPrices.slice(0, maxItems));
+    }
+  }, [prices.length, maxItems, stableSymbols.join(',')]);
 
   const formatPrice = (price: number) => {
     if (price >= 1000) {
