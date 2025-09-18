@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,13 +41,18 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
     reconnectInterval: 3000
   });
 
+  // Memoize getPrice function to prevent re-renders
+  const memoizedGetPrice = useCallback((symbol: string) => {
+    return getPrice(symbol);
+  }, [getPrice]);
+
   useEffect(() => {
     const filteredPrices = memoizedSymbols
-      .map(symbol => getPrice(symbol))
+      .map(symbol => memoizedGetPrice(symbol))
       .filter(Boolean) as CryptoPrice[];
 
     setDisplayPrices(filteredPrices.slice(0, maxItems));
-  }, [prices, maxItems, getPrice, memoizedSymbols]);
+  }, [prices, maxItems, memoizedGetPrice, memoizedSymbols]);
 
   const formatPrice = (price: number) => {
     if (price >= 1000) {

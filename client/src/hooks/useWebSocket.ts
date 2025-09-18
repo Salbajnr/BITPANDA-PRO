@@ -56,7 +56,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
   const getWebSocketUrl = () => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    return `${protocol}//${host}/ws/prices`;
+    return `${protocol}//${host}/ws`;
   };
 
   const connect = useCallback(() => {
@@ -86,11 +86,26 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
           }));
         }
 
-        // Subscribe to symbols if provided
+        // Subscribe to symbols if provided - map to CoinGecko IDs
         if (symbols.length > 0) {
+          const symbolMap: Record<string, string> = {
+            'BTC': 'bitcoin',
+            'ETH': 'ethereum',
+            'BNB': 'binancecoin',
+            'ADA': 'cardano',
+            'SOL': 'solana',
+            'DOT': 'polkadot',
+            'MATIC': 'matic-network',
+            'AVAX': 'avalanche-2',
+            'LINK': 'chainlink',
+            'UNI': 'uniswap'
+          };
+          
+          const mappedSymbols = symbols.map(symbol => symbolMap[symbol.toUpperCase()] || symbol.toLowerCase());
+          
           ws.current?.send(JSON.stringify({
             type: 'subscribe',
-            symbols,
+            symbols: mappedSymbols,
             userId: user?.id
           }));
         }
@@ -153,8 +168,25 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       case 'price_update':
         if (Array.isArray(message.data)) {
           const newPrices = new Map(prices);
+          const symbolMap: Record<string, string> = {
+            'bitcoin': 'BTC',
+            'ethereum': 'ETH',
+            'binancecoin': 'BNB',
+            'cardano': 'ADA',
+            'solana': 'SOL',
+            'polkadot': 'DOT',
+            'matic-network': 'MATIC',
+            'avalanche-2': 'AVAX',
+            'chainlink': 'LINK',
+            'uniswap': 'UNI'
+          };
+          
           message.data.forEach((price: CryptoPrice) => {
-            newPrices.set(price.symbol, price);
+            const displaySymbol = symbolMap[price.symbol.toLowerCase()] || price.symbol.toUpperCase();
+            newPrices.set(displaySymbol, {
+              ...price,
+              symbol: displaySymbol
+            });
           });
           setPrices(newPrices);
           setLastUpdate(new Date());
@@ -193,9 +225,24 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
 
   const subscribe = useCallback((newSymbols: string[]) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
+      const symbolMap: Record<string, string> = {
+        'BTC': 'bitcoin',
+        'ETH': 'ethereum',
+        'BNB': 'binancecoin',
+        'ADA': 'cardano',
+        'SOL': 'solana',
+        'DOT': 'polkadot',
+        'MATIC': 'matic-network',
+        'AVAX': 'avalanche-2',
+        'LINK': 'chainlink',
+        'UNI': 'uniswap'
+      };
+      
+      const mappedSymbols = newSymbols.map(symbol => symbolMap[symbol.toUpperCase()] || symbol.toLowerCase());
+      
       ws.current.send(JSON.stringify({
         type: 'subscribe',
-        symbols: newSymbols,
+        symbols: mappedSymbols,
         userId: user?.id
       }));
     }
@@ -249,7 +296,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     if (isConnected && symbols.length > 0) {
       subscribe(symbols);
     }
-  }, [symbols.join(','), isConnected]);
+  }, [symbols.join(','), isConnected, subscribe]);
 
   // Request notification permission on mount
   useEffect(() => {
