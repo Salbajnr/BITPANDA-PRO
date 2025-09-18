@@ -25,6 +25,7 @@ import {
   type Deposit,
   type Withdrawal,
   type InsertWithdrawal,
+  type UpsertUser,
   type BalanceAdjustment,
   type InsertBalanceAdjustment,
   type Notification,

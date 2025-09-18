@@ -549,3 +549,4 @@ export type LiveChatMessage = typeof liveChatMessages.$inferSelect;
 export type InsertLiveChatMessage = typeof liveChatMessages.$inferInsert;
 export type WithdrawalLimit = typeof withdrawalLimits.$inferSelect;
 export type InsertWithdrawalLimit = typeof withdrawalLimits.$inferInsert;
+export type UpsertUser = typeof users.$inferInsert;
