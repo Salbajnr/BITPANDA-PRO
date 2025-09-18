@@ -330,3 +330,419 @@ const UserAgreement = () => {
 };
 
 export default UserAgreement;
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Checkbox } from '../components/ui/checkbox';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Separator } from '../components/ui/separator';
+import { 
+  FileText, 
+  Shield, 
+  AlertCircle, 
+  CheckCircle, 
+  Download,
+  Scale,
+  Globe,
+  Lock,
+  DollarSign,
+  Clock
+} from 'lucide-react';
+import Navbar from '../components/Navbar';
+
+export default function UserAgreement() {
+  const [acceptedSections, setAcceptedSections] = useState({
+    terms: false,
+    privacy: false,
+    trading: false,
+    risk: false
+  });
+
+  const allAccepted = Object.values(acceptedSections).every(Boolean);
+
+  const handleSectionAccept = (section: keyof typeof acceptedSections) => {
+    setAcceptedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const agreementSections = [
+    {
+      id: 'terms',
+      title: 'Terms of Service',
+      icon: <FileText className="h-5 w-5" />,
+      summary: 'General terms and conditions for using BITPANDA PRO',
+      content: `
+1. ACCEPTANCE OF TERMS
+By accessing and using BITPANDA PRO services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+
+2. ACCOUNT REGISTRATION
+- You must be at least 18 years old to use our services
+- You must provide accurate and complete information
+- You are responsible for maintaining account security
+- One account per person is allowed
+
+3. SERVICES PROVIDED
+- Cryptocurrency trading platform
+- Portfolio management tools
+- Market data and analysis
+- Educational resources
+
+4. USER RESPONSIBILITIES
+- Comply with all applicable laws and regulations
+- Maintain confidentiality of account credentials
+- Report suspicious activities immediately
+- Use services for legitimate purposes only
+
+5. PROHIBITED ACTIVITIES
+- Money laundering or terrorist financing
+- Market manipulation or fraudulent activities
+- Violating any applicable laws or regulations
+- Using automated trading systems without permission
+
+6. INTELLECTUAL PROPERTY
+All content, trademarks, and intellectual property belong to BITPANDA PRO or its licensors.
+
+7. LIMITATION OF LIABILITY
+BITPANDA PRO's liability is limited to the maximum extent permitted by law.
+
+8. TERMINATION
+We reserve the right to suspend or terminate accounts that violate these terms.
+      `
+    },
+    {
+      id: 'privacy',
+      title: 'Privacy Policy',
+      icon: <Lock className="h-5 w-5" />,
+      summary: 'How we collect, use, and protect your personal information',
+      content: `
+1. INFORMATION COLLECTION
+We collect information you provide directly:
+- Account registration details
+- Transaction history
+- Communication records
+- Support interactions
+
+2. AUTOMATIC INFORMATION COLLECTION
+- IP addresses and device information
+- Browser type and version
+- Usage patterns and preferences
+- Cookies and similar technologies
+
+3. USE OF INFORMATION
+Your information is used to:
+- Provide and maintain our services
+- Process transactions
+- Comply with legal requirements
+- Improve user experience
+- Send important notifications
+
+4. INFORMATION SHARING
+We do not sell your personal information. We may share information:
+- With service providers
+- For legal compliance
+- With your explicit consent
+- In case of business transfer
+
+5. DATA SECURITY
+We implement industry-standard security measures:
+- Encryption of sensitive data
+- Regular security audits
+- Access controls and monitoring
+- Incident response procedures
+
+6. YOUR RIGHTS
+You have the right to:
+- Access your personal data
+- Correct inaccurate information
+- Delete your account
+- Data portability
+- Opt-out of marketing communications
+
+7. DATA RETENTION
+We retain your data as long as necessary for service provision and legal compliance.
+
+8. INTERNATIONAL TRANSFERS
+Your data may be transferred to countries with different privacy laws. We ensure adequate protection through appropriate safeguards.
+      `
+    },
+    {
+      id: 'trading',
+      title: 'Trading Terms',
+      icon: <DollarSign className="h-5 w-5" />,
+      summary: 'Specific terms for trading activities and transactions',
+      content: `
+1. TRADING SERVICES
+BITPANDA PRO provides cryptocurrency trading services subject to these terms and applicable regulations.
+
+2. ORDER EXECUTION
+- Orders are executed based on current market conditions
+- We use best execution practices
+- Orders may be partially filled
+- Market volatility can affect execution prices
+
+3. FEES AND CHARGES
+- Trading fees are clearly displayed
+- Fees are deducted from your account automatically
+- Fee schedules may change with advance notice
+- Additional fees may apply for premium services
+
+4. MARKET DATA
+- Real-time market data is provided for trading purposes
+- Data accuracy is not guaranteed
+- Third-party data providers may have separate terms
+- Past performance does not guarantee future results
+
+5. TRADING LIMITS
+- Daily and monthly trading limits may apply
+- Limits are based on account verification level
+- Additional verification may be required for higher limits
+- We reserve the right to impose additional limits
+
+6. SETTLEMENT AND CLEARING
+- Trades settle according to standard market practices
+- Cryptocurrency transfers may take time to confirm
+- Settlement times vary by asset and network congestion
+- Failed transactions may be reversed
+
+7. CUSTODY SERVICES
+- We provide secure custody for your digital assets
+- Assets are held in segregated accounts
+- Cold storage is used for majority of funds
+- Insurance coverage applies to custodied assets
+
+8. MARKET DISRUPTIONS
+In case of market disruptions, we may:
+- Suspend trading temporarily
+- Cancel or modify orders
+- Implement emergency procedures
+- Communicate changes promptly
+      `
+    },
+    {
+      id: 'risk',
+      title: 'Risk Disclosure',
+      icon: <AlertCircle className="h-5 w-5" />,
+      summary: 'Important information about trading risks and potential losses',
+      content: `
+1. GENERAL RISK WARNING
+Trading cryptocurrencies involves substantial risk of loss and is not suitable for all investors. You should carefully consider whether trading is appropriate for you.
+
+2. MARKET RISKS
+- Cryptocurrency markets are highly volatile
+- Prices can change rapidly and unpredictably
+- Market liquidity may vary significantly
+- External factors can cause extreme price movements
+
+3. TECHNOLOGY RISKS
+- Technical failures may occur
+- Internet connectivity issues can affect trading
+- Cybersecurity threats exist
+- Software bugs or glitches may happen
+
+4. REGULATORY RISKS
+- Cryptocurrency regulations are evolving
+- New laws may affect market access
+- Compliance requirements may change
+- Regulatory actions can impact prices
+
+5. COUNTERPARTY RISKS
+- Third-party service providers may fail
+- Exchange or platform risks
+- Settlement and custody risks
+- Liquidity provider risks
+
+6. OPERATIONAL RISKS
+- Human error in trading decisions
+- Misunderstanding of platform features
+- Inadequate risk management
+- Emotional trading decisions
+
+7. LIQUIDITY RISKS
+- Some assets may have limited liquidity
+- Large orders may affect market prices
+- Order execution may be delayed
+- Slippage may occur during volatile periods
+
+8. LOSS OF CAPITAL
+- You may lose some or all of your investment
+- Past performance is not indicative of future results
+- Diversification does not guarantee profits
+- Only invest what you can afford to lose
+
+9. RISK MANAGEMENT
+We recommend:
+- Start with small amounts
+- Use stop-loss orders
+- Diversify your portfolio
+- Keep informed about market conditions
+- Seek professional advice if needed
+
+10. NO INVESTMENT ADVICE
+BITPANDA PRO does not provide investment advice. All trading decisions are your responsibility.
+      `
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      {/* Header */}
+      <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-24 pb-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Scale className="w-4 h-4" />
+            <span>📋 Legal Documentation</span>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            User Agreement
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Please read and accept our terms of service, privacy policy, and risk disclosures to use BITPANDA PRO services.
+          </p>
+        </div>
+      </section>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Progress Indicator */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Agreement Progress</h3>
+              <span className="text-sm text-gray-600">
+                {Object.values(acceptedSections).filter(Boolean).length} of {Object.keys(acceptedSections).length} sections accepted
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {Object.entries(acceptedSections).map(([key, accepted]) => (
+                <div
+                  key={key}
+                  className={`h-2 rounded-full ${
+                    accepted ? 'bg-green-500' : 'bg-gray-200'
+                  } transition-colors duration-200`}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Agreement Sections */}
+        <div className="space-y-6">
+          {agreementSections.map((section) => (
+            <Card key={section.id} className="overflow-hidden">
+              <CardHeader className="bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${
+                      acceptedSections[section.id as keyof typeof acceptedSections] 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {section.icon}
+                    </div>
+                    {section.title}
+                  </CardTitle>
+                  {acceptedSections[section.id as keyof typeof acceptedSections] && (
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  )}
+                </div>
+                <p className="text-gray-600 text-sm mt-2">{section.summary}</p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="h-64 p-6">
+                  <div className="whitespace-pre-line text-sm text-gray-700 leading-relaxed">
+                    {section.content}
+                  </div>
+                </ScrollArea>
+                <Separator />
+                <div className="p-4 bg-gray-50">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id={section.id}
+                      checked={acceptedSections[section.id as keyof typeof acceptedSections]}
+                      onCheckedChange={() => handleSectionAccept(section.id as keyof typeof acceptedSections)}
+                    />
+                    <label 
+                      htmlFor={section.id}
+                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                    >
+                      I have read and agree to the {section.title}
+                    </label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row gap-4">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => window.print()}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download PDF
+          </Button>
+          
+          <Button
+            className={`flex-1 ${
+              allAccepted 
+                ? 'bg-green-600 hover:bg-green-700' 
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
+            disabled={!allAccepted}
+          >
+            {allAccepted ? (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Accept All Terms
+              </>
+            ) : (
+              <>
+                <Clock className="w-4 h-4 mr-2" />
+                Please Accept All Sections
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Footer Notice */}
+        <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+            <div className="text-sm text-yellow-800">
+              <p className="font-semibold mb-1">Important Notice:</p>
+              <p>
+                By accepting these terms, you acknowledge that you understand the risks involved in cryptocurrency trading 
+                and that you are legally bound by these agreements. These terms may be updated periodically, and you will 
+                be notified of any significant changes.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <Card className="mt-6">
+          <CardContent className="p-6 text-center">
+            <h4 className="font-semibold text-gray-900 mb-2">Need Help Understanding These Terms?</h4>
+            <p className="text-gray-600 mb-4">
+              Our legal and compliance team is available to answer your questions.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button variant="outline" size="sm">
+                Contact Legal Team
+              </Button>
+              <Button variant="outline" size="sm">
+                Schedule Consultation
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

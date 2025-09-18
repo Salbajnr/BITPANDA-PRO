@@ -402,3 +402,365 @@ export default function Watchlist() {
     </div>
   );
 }
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Star, 
+  Plus, 
+  Trash2, 
+  Bell,
+  TrendingUp,
+  TrendingDown,
+  Search,
+  RefreshCw,
+  Target,
+  AlertTriangle,
+  Eye
+} from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { Redirect } from "wouter";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { useToast } from "@/hooks/use-toast";
+
+interface WatchlistItem {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  price_change_percentage_24h: number;
+  image: string;
+  target_price?: number;
+  alert_type?: 'above' | 'below';
+  date_added: string;
+}
+
+export default function Watchlist() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<any>(null);
+  const [targetPrice, setTargetPrice] = useState("");
+  const [alertType, setAlertType] = useState<'above' | 'below'>('above');
+
+  if (!user) {
+    return <Redirect to="/auth" />;
+  }
+
+  const { data: watchlist = [], isLoading: watchlistLoading, refetch } = useQuery({
+    queryKey: ['/api/watchlist'],
+    queryFn: async () => {
+      const response = await fetch('/api/watchlist', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch watchlist');
+      return response.json();
+    }
+  });
+
+  const { data: availableAssets = [] } = useQuery({
+    queryKey: ['/api/crypto/search', searchTerm],
+    queryFn: async () => {
+      const response = await fetch(`/api/crypto/search?q=${searchTerm}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to search assets');
+      return response.json();
+    },
+    enabled: searchTerm.length > 2
+  });
+
+  const addToWatchlistMutation = useMutation({
+    mutationFn: async (data: { symbol: string; target_price?: number; alert_type?: 'above' | 'below' }) => {
+      const response = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to add to watchlist');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Added to Watchlist",
+        description: "Asset has been added to your watchlist",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/watchlist'] });
+      setIsAddDialogOpen(false);
+      setSelectedAsset(null);
+      setTargetPrice("");
+      setSearchTerm("");
+    }
+  });
+
+  const removeFromWatchlistMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/watchlist/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to remove from watchlist');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Removed from Watchlist",
+        description: "Asset has been removed from your watchlist",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/watchlist'] });
+    }
+  });
+
+  const updateAlertMutation = useMutation({
+    mutationFn: async (data: { id: string; target_price: number; alert_type: 'above' | 'below' }) => {
+      const response = await fetch(`/api/watchlist/${data.id}/alert`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ target_price: data.target_price, alert_type: data.alert_type })
+      });
+      if (!response.ok) throw new Error('Failed to update alert');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Alert Updated",
+        description: "Price alert has been updated",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/watchlist'] });
+    }
+  });
+
+  const handleAddToWatchlist = () => {
+    if (!selectedAsset) return;
+
+    const data: any = { symbol: selectedAsset.symbol };
+    if (targetPrice) {
+      data.target_price = parseFloat(targetPrice);
+      data.alert_type = alertType;
+    }
+
+    addToWatchlistMutation.mutate(data);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
+          
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                  Watchlist
+                </h1>
+                <p className="text-slate-600 dark:text-slate-400">
+                  Track your favorite cryptocurrencies and set price alerts
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => refetch()} variant="outline">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Asset
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add to Watchlist</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Input
+                          placeholder="Search cryptocurrencies..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+
+                      {searchTerm.length > 2 && (
+                        <div className="max-h-48 overflow-y-auto border rounded-lg">
+                          {availableAssets.map((asset: any) => (
+                            <div
+                              key={asset.id}
+                              onClick={() => setSelectedAsset(asset)}
+                              className={`p-3 cursor-pointer border-b hover:bg-gray-50 ${
+                                selectedAsset?.id === asset.id ? 'bg-blue-50 border-blue-200' : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <img src={asset.image} alt={asset.name} className="w-8 h-8" />
+                                <div>
+                                  <div className="font-semibold">{asset.symbol.toUpperCase()}</div>
+                                  <div className="text-sm text-gray-500">{asset.name}</div>
+                                </div>
+                                <div className="ml-auto">
+                                  <div className="font-semibold">${asset.current_price}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {selectedAsset && (
+                        <div className="border-t pt-4">
+                          <h4 className="font-semibold mb-3">Price Alert (Optional)</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Input
+                                type="number"
+                                placeholder="Target price"
+                                value={targetPrice}
+                                onChange={(e) => setTargetPrice(e.target.value)}
+                              />
+                            </div>
+                            <select
+                              value={alertType}
+                              onChange={(e) => setAlertType(e.target.value as 'above' | 'below')}
+                              className="px-3 py-2 border rounded-md"
+                            >
+                              <option value="above">Above</option>
+                              <option value="below">Below</option>
+                            </select>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleAddToWatchlist}
+                          disabled={!selectedAsset || addToWatchlistMutation.isPending}
+                        >
+                          Add to Watchlist
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {/* Watchlist */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Your Watchlist ({watchlist.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {watchlistLoading ? (
+                  <div className="text-center py-12">
+                    <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                    <p>Loading watchlist...</p>
+                  </div>
+                ) : watchlist.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Star className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Your watchlist is empty</h3>
+                    <p className="text-gray-600 mb-4">Add cryptocurrencies to track their prices and set alerts</p>
+                    <Button onClick={() => setIsAddDialogOpen(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add First Asset
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {watchlist.map((item: WatchlistItem) => (
+                      <div key={item.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <img src={item.image} alt={item.name} className="w-12 h-12" />
+                            <div>
+                              <h3 className="font-semibold text-lg">{item.symbol.toUpperCase()}</h3>
+                              <p className="text-gray-600">{item.name}</p>
+                              {item.target_price && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Bell className="w-3 h-3 text-yellow-500" />
+                                  <span className="text-xs text-gray-500">
+                                    Alert {item.alert_type} ${item.target_price}
+                                  </span>
+                                  {((item.alert_type === 'above' && item.current_price >= item.target_price) ||
+                                    (item.alert_type === 'below' && item.current_price <= item.target_price)) && (
+                                    <Badge className="bg-red-100 text-red-800">
+                                      <AlertTriangle className="w-3 h-3 mr-1" />
+                                      Triggered
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <div className="text-2xl font-bold">${item.current_price.toLocaleString()}</div>
+                            <div className={`flex items-center justify-end gap-1 ${
+                              item.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {item.price_change_percentage_24h >= 0 ? (
+                                <TrendingUp className="w-4 h-4" />
+                              ) : (
+                                <TrendingDown className="w-4 h-4" />
+                              )}
+                              <span className="font-medium">
+                                {item.price_change_percentage_24h >= 0 ? '+' : ''}{item.price_change_percentage_24h.toFixed(2)}%
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Added {new Date(item.date_added).toLocaleDateString()}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 ml-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Set alert functionality would be implemented here
+                                console.log('Set alert for', item.symbol);
+                              }}
+                            >
+                              <Target className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeFromWatchlistMutation.mutate(item.id)}
+                              disabled={removeFromWatchlistMutation.isPending}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}

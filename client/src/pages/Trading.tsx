@@ -550,3 +550,402 @@ export default function Trading() {
     </div>
   );
 }
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign,
+  ShoppingCart,
+  Target,
+  Clock,
+  BarChart3,
+  Activity,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+  Zap
+} from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { Redirect } from "wouter";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { useToast } from "@/hooks/use-toast";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+interface CryptoAsset {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  price_change_percentage_24h: number;
+  image: string;
+  market_cap: number;
+  total_volume: number;
+}
+
+export default function Trading() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [selectedAsset, setSelectedAsset] = useState<CryptoAsset | null>(null);
+  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+  const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
+  const [amount, setAmount] = useState('');
+  const [price, setPrice] = useState('');
+  const [total, setTotal] = useState(0);
+
+  if (!user) {
+    return <Redirect to="/auth" />;
+  }
+
+  const { data: cryptoData = [], isLoading } = useQuery({
+    queryKey: ['/api/crypto/market-data'],
+    queryFn: async () => {
+      const response = await fetch('/api/crypto/market-data', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch market data');
+      return response.json();
+    },
+    refetchInterval: 5000
+  });
+
+  const { data: portfolio } = useQuery({
+    queryKey: ['/api/portfolio'],
+    queryFn: async () => {
+      const response = await fetch('/api/portfolio', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch portfolio');
+      return response.json();
+    }
+  });
+
+  const executeTradeMutation = useMutation({
+    mutationFn: async (tradeData: any) => {
+      const response = await fetch('/api/trading/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(tradeData)
+      });
+      if (!response.ok) throw new Error('Failed to execute trade');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Trade Executed",
+        description: "Your trade has been successfully executed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio'] });
+      // Reset form
+      setAmount('');
+      setPrice('');
+      setTotal(0);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Trade Failed",
+        description: error.message || "Failed to execute trade",
+        variant: "destructive",
+      });
+    }
+  });
+
+  useEffect(() => {
+    if (selectedAsset && amount) {
+      const currentPrice = orderType === 'market' ? selectedAsset.current_price : parseFloat(price) || 0;
+      setTotal(parseFloat(amount) * currentPrice);
+    }
+  }, [amount, price, selectedAsset, orderType]);
+
+  const handleTrade = () => {
+    if (!selectedAsset || !amount) {
+      toast({
+        title: "Missing Information",
+        description: "Please select an asset and enter amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (orderType === 'limit' && !price) {
+      toast({
+        title: "Missing Price",
+        description: "Please enter a price for limit orders",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const tradeData = {
+      symbol: selectedAsset.symbol,
+      type: tradeType,
+      orderType,
+      amount: parseFloat(amount),
+      price: orderType === 'limit' ? parseFloat(price) : selectedAsset.current_price
+    };
+
+    executeTradeMutation.mutate(tradeData);
+  };
+
+  // Mock chart data
+  const chartData = Array.from({ length: 24 }, (_, i) => ({
+    time: `${i}:00`,
+    price: selectedAsset ? selectedAsset.current_price * (0.95 + Math.random() * 0.1) : 0
+  }));
+
+  const availableCash = portfolio?.portfolio?.availableCash ? parseFloat(portfolio.portfolio.availableCash) : 0;
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
+          
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                Trading
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400">
+                Buy and sell cryptocurrencies with real-time market data
+              </p>
+            </div>
+
+            <div className="grid grid-cols-12 gap-6">
+              {/* Asset Selection */}
+              <div className="col-span-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      Select Asset
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {isLoading ? (
+                      <div className="text-center py-8">
+                        <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                        <p>Loading assets...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {cryptoData.slice(0, 20).map((asset: CryptoAsset) => (
+                          <div
+                            key={asset.id}
+                            onClick={() => setSelectedAsset(asset)}
+                            className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                              selectedAsset?.id === asset.id
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <img src={asset.image} alt={asset.name} className="w-8 h-8" />
+                                <div>
+                                  <div className="font-semibold">{asset.symbol.toUpperCase()}</div>
+                                  <div className="text-sm text-gray-500">{asset.name}</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-semibold">${asset.current_price.toLocaleString()}</div>
+                                <div className={`text-sm flex items-center ${
+                                  asset.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
+                                }`}>
+                                  {asset.price_change_percentage_24h >= 0 ? (
+                                    <TrendingUp className="w-3 h-3 mr-1" />
+                                  ) : (
+                                    <TrendingDown className="w-3 h-3 mr-1" />
+                                  )}
+                                  {asset.price_change_percentage_24h.toFixed(2)}%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Chart */}
+              <div className="col-span-5">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        {selectedAsset ? `${selectedAsset.symbol.toUpperCase()} Chart` : 'Select an Asset'}
+                      </span>
+                      {selectedAsset && (
+                        <Badge className={selectedAsset.price_change_percentage_24h >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                          {selectedAsset.price_change_percentage_24h >= 0 ? '+' : ''}{selectedAsset.price_change_percentage_24h.toFixed(2)}%
+                        </Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedAsset ? (
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="time" />
+                            <YAxis />
+                            <Tooltip 
+                              formatter={(value: number) => [`$${value.toLocaleString()}`, 'Price']}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="price" 
+                              stroke="#3b82f6" 
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-gray-500">
+                        <div className="text-center">
+                          <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                          <p>Select an asset to view chart</p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Trading Panel */}
+              <div className="col-span-3">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Place Order
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Buy/Sell Tabs */}
+                    <Tabs value={tradeType} onValueChange={(value: any) => setTradeType(value)}>
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="buy" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+                          Buy
+                        </TabsTrigger>
+                        <TabsTrigger value="sell" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
+                          Sell
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+
+                    {/* Order Type */}
+                    <div>
+                      <Label>Order Type</Label>
+                      <Select value={orderType} onValueChange={(value: any) => setOrderType(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="market">Market Order</SelectItem>
+                          <SelectItem value="limit">Limit Order</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Amount */}
+                    <div>
+                      <Label>Amount ({selectedAsset?.symbol.toUpperCase() || 'Asset'})</Label>
+                      <Input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0.00"
+                        step="0.00000001"
+                      />
+                    </div>
+
+                    {/* Price (for limit orders) */}
+                    {orderType === 'limit' && (
+                      <div>
+                        <Label>Price (USD)</Label>
+                        <Input
+                          type="number"
+                          value={price}
+                          onChange={(e) => setPrice(e.target.value)}
+                          placeholder={selectedAsset?.current_price.toString() || '0.00'}
+                          step="0.01"
+                        />
+                      </div>
+                    )}
+
+                    {/* Total */}
+                    <div>
+                      <Label>Total (USD)</Label>
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <span className="text-lg font-semibold">
+                          ${total.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Available Balance */}
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Available Cash:</span>
+                        <span className="font-semibold">${availableCash.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Trade Button */}
+                    <Button
+                      onClick={handleTrade}
+                      disabled={!selectedAsset || !amount || executeTradeMutation.isPending}
+                      className={`w-full ${
+                        tradeType === 'buy' 
+                          ? 'bg-green-600 hover:bg-green-700' 
+                          : 'bg-red-600 hover:bg-red-700'
+                      }`}
+                    >
+                      {executeTradeMutation.isPending ? (
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      ) : tradeType === 'buy' ? (
+                        <ShoppingCart className="w-4 h-4 mr-2" />
+                      ) : (
+                        <DollarSign className="w-4 h-4 mr-2" />
+                      )}
+                      {executeTradeMutation.isPending ? 'Processing...' : `${tradeType.toUpperCase()} ${selectedAsset?.symbol.toUpperCase() || 'Asset'}`}
+                    </Button>
+
+                    {/* Risk Warning */}
+                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                        <div className="text-xs text-yellow-800">
+                          <strong>Risk Warning:</strong> Cryptocurrency trading involves significant risk. Only trade with funds you can afford to lose.
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
