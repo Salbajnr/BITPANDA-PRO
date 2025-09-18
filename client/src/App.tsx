@@ -21,6 +21,7 @@ import UserSettings from "@/pages/UserSettings";
 import TransactionHistory from "@/pages/TransactionHistory";
 import Watchlist from "@/pages/Watchlist";
 import Help from "@/pages/Help";
+import LiveSupport from "@/pages/LiveSupport";
 import Security from "./pages/Security";
 import Orders from "./pages/Orders";
 import NotFound from "@/pages/not-found";
@@ -44,6 +45,7 @@ import { lazy } from 'react';
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
 const MetalsTrading = lazy(() => import("./pages/MetalsTrading"));
 const AdminMetalsManagement = lazy(() => import("./pages/AdminMetalsManagement"));
+const AdminChatManagement = lazy(() => import("./pages/AdminChatManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
 
 // Layout wrapper for public pages
@@ -195,6 +197,7 @@ function Router() {
           <Route path="/admin/news" component={AdminNewsManagement} />
           <Route path="/admin/metals" component={AdminMetalsManagement} />
           <Route path="/admin/withdrawals" component={AdminWithdrawalManagement} />
+          <Route path="/admin/chat" component={AdminChatManagement} />
           <Route path="/portfolio">
             <AuthenticatedLayout>
               <PortfolioTracker />
@@ -223,6 +226,11 @@ function Router() {
           <Route path="/help">
             <AuthenticatedLayout>
               <Help />
+            </AuthenticatedLayout>
+          </Route>
+          <Route path="/support">
+            <AuthenticatedLayout>
+              <LiveSupport />
             </AuthenticatedLayout>
           </Route>
           <Route path="/security">

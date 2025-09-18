@@ -630,6 +630,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Alert routes
   app.use('/api/alerts', alertRoutes);
 
+  // Chat routes
+  const chatRoutes = (await import('./chat-routes')).default;
+  app.use('/api/support/chat', chatRoutes);
+
+  // Upload routes
+  const uploadRoutes = (await import('./upload-routes')).default;
+  app.use('/api/upload', uploadRoutes);
+
   // Mount all route modules
   app.use('/api/auth', authRoutes);
   app.use('/api/user/auth', authRoutes);

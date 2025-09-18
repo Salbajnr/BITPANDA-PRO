@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,18 +12,22 @@ import { Separator } from "@/components/ui/separator";
 import { 
   MessageCircleIcon, SendIcon, PaperclipIcon, UserIcon,
   ClockIcon, CheckCircleIcon, AlertCircleIcon, StarIcon,
-  PhoneIcon, VideoIcon, MailIcon, HelpCircleIcon
+  PhoneIcon, VideoIcon, MailIcon, HelpCircleIcon, FileIcon,
+  DownloadIcon, XIcon, ImageIcon
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface ChatMessage {
   id: string;
+  sessionId: string;
   senderId: string;
   senderName: string;
   senderRole: string;
   message: string;
   messageType: string;
   attachmentUrl?: string;
+  attachmentName?: string;
+  attachmentSize?: number;
   createdAt: string;
 }
 
@@ -54,11 +59,15 @@ export default function LiveSupport() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   
   const [activeTab, setActiveTab] = useState<'chat' | 'tickets'>('chat');
   const [currentMessage, setCurrentMessage] = useState("");
   const [chatSubject, setChatSubject] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   
   // New ticket form
   const [ticketForm, setTicketForm] = useState({
@@ -72,14 +81,14 @@ export default function LiveSupport() {
     queryKey: ["/api/support/chat/active"],
     retry: false,
     enabled: !!user && activeTab === 'chat',
-    refetchInterval: 3000, // Poll every 3 seconds
+    refetchInterval: 5000,
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery<ChatMessage[]>({
     queryKey: ["/api/support/chat/messages", activeSession?.id],
     retry: false,
     enabled: !!activeSession?.id,
-    refetchInterval: 2000, // Poll every 2 seconds for new messages
+    refetchInterval: 2000,
   });
 
   const { data: tickets = [], isLoading: ticketsLoading } = useQuery<SupportTicket[]>({
@@ -87,6 +96,58 @@ export default function LiveSupport() {
     retry: false,
     enabled: !!user && activeTab === 'tickets',
   });
+
+  // WebSocket connection for real-time chat
+  useEffect(() => {
+    if (!activeSession?.id) return;
+
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chat`);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('💬 Chat WebSocket connected');
+      ws.send(JSON.stringify({
+        type: 'join_session',
+        sessionId: activeSession.id,
+        userId: user?.id
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'new_message') {
+          queryClient.invalidateQueries({ queryKey: ["/api/support/chat/messages", activeSession.id] });
+        } else if (data.type === 'user_typing') {
+          setIsTyping(data.isTyping && data.userId !== user?.id);
+        } else if (data.type === 'session_status_changed') {
+          queryClient.invalidateQueries({ queryKey: ["/api/support/chat/active"] });
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('💬 Chat WebSocket disconnected');
+    };
+
+    ws.onerror = (error) => {
+      console.error('💬 Chat WebSocket error:', error);
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, [activeSession?.id, user?.id, queryClient]);
+
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const startChatMutation = useMutation({
     mutationFn: (subject: string) =>
@@ -112,22 +173,74 @@ export default function LiveSupport() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: (message: string) =>
-      apiRequest('/api/support/chat/message', { 
+    mutationFn: async (data: { message: string; attachmentUrl?: string; attachmentName?: string; attachmentSize?: number }) => {
+      const response = await apiRequest('/api/support/chat/message', { 
         method: 'POST', 
         body: { 
           sessionId: activeSession?.id,
-          message 
+          message: data.message,
+          attachmentUrl: data.attachmentUrl,
+          attachmentName: data.attachmentName,
+          attachmentSize: data.attachmentSize,
+          messageType: data.attachmentUrl ? 'file' : 'text'
         } 
-      }),
+      });
+
+      // Send real-time update via WebSocket
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
+          type: 'send_message',
+          sessionId: activeSession?.id,
+          message: data.message,
+          attachmentUrl: data.attachmentUrl,
+          messageType: data.attachmentUrl ? 'file' : 'text'
+        }));
+      }
+
+      return response;
+    },
     onSuccess: () => {
       setCurrentMessage("");
+      setSelectedFile(null);
       queryClient.invalidateQueries({ queryKey: ["/api/support/chat/messages", activeSession?.id] });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Failed to send message",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const uploadFileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'chat_attachment');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "File uploaded",
+        description: "File uploaded successfully",
+      });
+      return data;
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload file",
         variant: "destructive",
       });
     },
@@ -178,25 +291,6 @@ export default function LiveSupport() {
     },
   });
 
-  const rateChatMutation = useMutation({
-    mutationFn: (data: { sessionId: string; rating: number; feedback?: string }) =>
-      apiRequest('/api/support/chat/rate', { 
-        method: 'POST', 
-        body: data 
-      }),
-    onSuccess: () => {
-      toast({
-        title: "Feedback submitted",
-        description: "Thank you for your feedback",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/support/chat/active"] });
-    },
-  });
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   const handleStartChat = () => {
     if (!chatSubject.trim()) {
       toast({
@@ -209,11 +303,81 @@ export default function LiveSupport() {
     startChatMutation.mutate(chatSubject);
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select a file smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check file type
+      const allowedTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 'text/plain', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Unsupported file type",
+          description: "Please select an image, PDF, or document file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentMessage.trim()) return;
     
-    sendMessageMutation.mutate(currentMessage);
+    if (!currentMessage.trim() && !selectedFile) return;
+
+    try {
+      let attachmentData = null;
+
+      if (selectedFile) {
+        setUploading(true);
+        const uploadResult = await uploadFileMutation.mutateAsync(selectedFile);
+        attachmentData = {
+          attachmentUrl: uploadResult.url,
+          attachmentName: selectedFile.name,
+          attachmentSize: selectedFile.size
+        };
+        setUploading(false);
+      }
+
+      await sendMessageMutation.mutateAsync({
+        message: currentMessage || `Sent file: ${selectedFile?.name}`,
+        ...attachmentData
+      });
+
+    } catch (error) {
+      setUploading(false);
+      console.error('Error sending message:', error);
+    }
+  };
+
+  const handleTyping = (value: string) => {
+    setCurrentMessage(value);
+
+    // Send typing indicator via WebSocket
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'typing',
+        sessionId: activeSession?.id,
+        userId: user?.id,
+        isTyping: value.length > 0
+      }));
+    }
   };
 
   const handleCreateTicket = (e: React.FormEvent) => {
@@ -227,6 +391,24 @@ export default function LiveSupport() {
       return;
     }
     createTicketMutation.mutate(ticketForm);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) {
+      return <ImageIcon className="h-4 w-4" />;
+    }
+    
+    return <FileIcon className="h-4 w-4" />;
   };
 
   const getStatusBadge = (status: string) => {
@@ -381,7 +563,34 @@ export default function LiveSupport() {
                                 </span>
                               </div>
                             )}
-                            <p className="text-sm">{message.message}</p>
+                            
+                            <p className="text-sm mb-2">{message.message}</p>
+                            
+                            {/* File attachment */}
+                            {message.attachmentUrl && (
+                              <div className="mt-2 p-2 rounded bg-black/10 dark:bg-white/10">
+                                <div className="flex items-center gap-2">
+                                  {getFileIcon(message.attachmentName || '')}
+                                  <span className="text-xs font-medium truncate flex-1">
+                                    {message.attachmentName}
+                                  </span>
+                                  {message.attachmentSize && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatFileSize(message.attachmentSize)}
+                                    </span>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => window.open(message.attachmentUrl, '_blank')}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <DownloadIcon className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            
                             <p className="text-xs opacity-75 mt-1">
                               {new Date(message.createdAt).toLocaleTimeString()}
                             </p>
@@ -407,34 +616,73 @@ export default function LiveSupport() {
                       <div ref={messagesEndRef} />
                     </div>
 
+                    {/* File Preview */}
+                    {selectedFile && (
+                      <div className="p-3 border rounded-lg bg-slate-50 dark:bg-slate-800 mb-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {getFileIcon(selectedFile.name)}
+                            <div>
+                              <p className="text-sm font-medium">{selectedFile.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatFileSize(selectedFile.size)}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedFile(null)}
+                          >
+                            <XIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Message Input */}
                     {activeSession.status === 'active' && (
-                      <form onSubmit={handleSendMessage} className="flex gap-2 mt-4">
-                        <Input
-                          value={currentMessage}
-                          onChange={(e) => setCurrentMessage(e.target.value)}
-                          placeholder="Type your message..."
-                          disabled={sendMessageMutation.isPending}
-                          data-testid="input-message"
-                        />
-                        <Button 
-                          type="submit" 
-                          disabled={sendMessageMutation.isPending || !currentMessage.trim()}
-                          data-testid="button-send-message"
-                        >
-                          <SendIcon className="h-4 w-4" />
-                        </Button>
+                      <form onSubmit={handleSendMessage} className="space-y-3">
+                        <div className="flex gap-2">
+                          <Input
+                            value={currentMessage}
+                            onChange={(e) => handleTyping(e.target.value)}
+                            placeholder="Type your message..."
+                            disabled={sendMessageMutation.isPending || uploading}
+                            className="flex-1"
+                            data-testid="input-message"
+                          />
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileSelect}
+                            className="hidden"
+                            accept="image/*,.pdf,.doc,.docx,.txt"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                          >
+                            <PaperclipIcon className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            disabled={sendMessageMutation.isPending || uploading || (!currentMessage.trim() && !selectedFile)}
+                            data-testid="button-send-message"
+                          >
+                            {uploading ? "Uploading..." : <SendIcon className="h-4 w-4" />}
+                          </Button>
+                        </div>
                       </form>
                     )}
 
                     {/* Chat Controls */}
                     {activeSession.status !== 'ended' && (
                       <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                        <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm" disabled>
-                            <PaperclipIcon className="h-4 w-4 mr-2" />
-                            Attach File
-                          </Button>
+                        <div className="text-sm text-muted-foreground">
+                          Session ID: {activeSession.id.slice(-8)}
                         </div>
                         <Button 
                           variant="destructive" 
@@ -471,6 +719,22 @@ export default function LiveSupport() {
                 <div className="flex items-center gap-2">
                   <CheckCircleIcon className="h-4 w-4 text-green-500" />
                   <span className="text-sm">Average response: &lt; 2 minutes</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">File Attachments</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="text-sm text-muted-foreground">
+                  <p className="mb-2">Supported file types:</p>
+                  <ul className="space-y-1 text-xs">
+                    <li>• Images: JPG, PNG, GIF, WebP</li>
+                    <li>• Documents: PDF, DOC, DOCX, TXT</li>
+                    <li>• Maximum size: 10MB</li>
+                  </ul>
                 </div>
               </CardContent>
             </Card>

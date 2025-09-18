@@ -6,6 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { portfolioRoutes } from './portfolio-routes';
 import { seedDatabase } from "./seedData";
 import { webSocketManager } from "./websocket-server";
+import { chatWebSocketManager } from './chat-websocket';
 import cryptoRoutes from './crypto-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';
@@ -34,8 +35,8 @@ app.use((req, res, next) => {
   ].flat();
 
   const origin = req.headers.origin;
-  const isAllowed = allowedOrigins.some(allowed => 
-    allowed === origin || 
+  const isAllowed = allowedOrigins.some(allowed =>
+    allowed === origin ||
     (allowed.includes('*') && origin?.endsWith(allowed.replace('*.', '.')))
   );
 
@@ -181,14 +182,16 @@ app.use((req, res, next) => {
 📡 WebSocket: ws://0.0.0.0:${port}/ws
 `);
 
-      // Initialize WebSocket server
+      // Initialize WebSocket servers for real-time updates
       webSocketManager.initialize(server);
+      chatWebSocketManager.initialize(server);
     });
 
     // Gracefully handle existing server shutdown
     process.on('SIGTERM', () => {
       console.log('SIGTERM received, shutting down gracefully');
       webSocketManager.shutdown();
+      chatWebSocketManager.shutdown();
       server.close(() => {
         console.log('Process terminated');
       });
@@ -197,6 +200,7 @@ app.use((req, res, next) => {
     process.on('SIGINT', () => {
       console.log('SIGINT received, shutting down gracefully');
       webSocketManager.shutdown();
+      chatWebSocketManager.shutdown();
       server.close(() => {
         console.log('Process terminated');
       });
