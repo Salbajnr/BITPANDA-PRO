@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   TrendingUp,
   TrendingDown,
-  PieChart,
+  PieChart as PieChartIcon,
   BarChart3,
   Calendar,
   Download,

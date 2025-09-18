@@ -16,6 +16,10 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
+localPort = 38173
+externalPort = 3001
+
+[[ports]]
 localPort = 43643
 externalPort = 3000
 
@@ -23,7 +27,7 @@ externalPort = 3000
 PORT = "5000"
 
 [workflows]
-runButton = "Start Fixed Navbar"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
