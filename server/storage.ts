@@ -682,7 +682,8 @@ export class DatabaseStorage implements IStorage {
   // Get news articles with filtering
   async getNewsArticles(limit: number = 10, category?: string, search?: string): Promise<NewsArticle[]> {
     try {
-      let query = this.db
+      const db = this.ensureDb();
+      let query = db
         .select()
         .from(newsArticles);
 
@@ -713,7 +714,8 @@ export class DatabaseStorage implements IStorage {
   // Get single news article by ID
   async getNewsArticleById(id: string): Promise<NewsArticle | null> {
     try {
-      const article = await this.db
+      const db = this.ensureDb();
+      const article = await db
         .select()
         .from(newsArticles)
         .where(eq(newsArticles.id, id))
@@ -735,7 +737,8 @@ export class DatabaseStorage implements IStorage {
   // Update news article
   async updateNewsArticle(id: string, updates: Partial<InsertNewsArticle>): Promise<NewsArticle | null> {
     try {
-      const updated = await this.db
+      const db = this.ensureDb();
+      const updated = await db
         .update(newsArticles)
         .set(updates)
         .where(eq(newsArticles.id, id))
@@ -756,11 +759,12 @@ export class DatabaseStorage implements IStorage {
   // Get news analytics
   async getNewsAnalytics() {
     try {
-      const totalArticles = await this.db
+      const db = this.ensureDb();
+      const totalArticles = await db
         .select({ count: count() })
         .from(newsArticles);
 
-      const articlesBySource = await this.db
+      const articlesBySource = await db
         .select({
           source: newsArticles.source,
           count: count()
@@ -768,7 +772,7 @@ export class DatabaseStorage implements IStorage {
         .from(newsArticles)
         .groupBy(newsArticles.source);
 
-      const recentArticles = await this.db
+      const recentArticles = await db
         .select({ count: count() })
         .from(newsArticles)
         .where(gte(newsArticles.publishedAt, sql`NOW() - INTERVAL '7 days'`));
