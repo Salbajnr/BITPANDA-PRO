@@ -106,15 +106,6 @@ app.use((req, res, next) => {
       console.error(`Error occurred: ${err.stack || err}`);
     });
 
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
-      serveStatic(app);
-    }
-
     // Seed database with initial data
     try {
       await seedDatabase();
@@ -135,7 +126,6 @@ app.use((req, res, next) => {
     app.use('/api/portfolio', portfolioRoutes);
     app.use('/api/portfolio/analytics', portfolioAnalyticsRoutes);
     app.use('/api/news', newsRoutes);
-
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route

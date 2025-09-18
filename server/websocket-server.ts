@@ -227,7 +227,7 @@ class WebSocketManager {
 
   private async checkPriceAlerts(userId: string, prices: CryptoPrice[], ws: WebSocket): Promise<void> {
     try {
-      const alerts = await storage.getPriceAlerts(userId);
+      const alerts = await storage.getUserPriceAlerts(userId);
       
       for (const alert of alerts) {
         if (!alert.isActive || alert.isTriggered) continue;

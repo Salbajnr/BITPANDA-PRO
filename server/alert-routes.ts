@@ -1,4 +1,3 @@
-
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth } from './simple-auth';
@@ -38,7 +37,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const alertData = createAlertSchema.parse(req.body);
-    
+
     const alert = await storage.createPriceAlert({
       userId,
       symbol: alertData.symbol,
@@ -65,7 +64,7 @@ router.put('/:alertId', requireAuth, async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const alertId = req.params.alertId;
     const updates = updateAlertSchema.parse(req.body);
-    
+
     // Verify alert belongs to user
     const alert = await storage.getPriceAlert(alertId);
     if (!alert || alert.userId !== userId) {
@@ -80,7 +79,7 @@ router.put('/:alertId', requireAuth, async (req: Request, res: Response) => {
 
     await storage.updatePriceAlert(alertId, updateData);
     const updatedAlert = await storage.getPriceAlert(alertId);
-    
+
     res.json(updatedAlert);
   } catch (error) {
     console.error('Error updating alert:', error);
@@ -96,7 +95,7 @@ router.delete('/:alertId', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const alertId = req.params.alertId;
-    
+
     // Verify alert belongs to user
     const alert = await storage.getPriceAlert(alertId);
     if (!alert || alert.userId !== userId) {
@@ -116,7 +115,7 @@ router.patch('/:alertId/toggle', requireAuth, async (req: Request, res: Response
   try {
     const userId = req.user!.id;
     const alertId = req.params.alertId;
-    
+
     // Verify alert belongs to user
     const alert = await storage.getPriceAlert(alertId);
     if (!alert || alert.userId !== userId) {
@@ -125,7 +124,7 @@ router.patch('/:alertId/toggle', requireAuth, async (req: Request, res: Response
 
     await storage.updatePriceAlert(alertId, { isActive: !alert.isActive });
     const updatedAlert = await storage.getPriceAlert(alertId);
-    
+
     res.json(updatedAlert);
   } catch (error) {
     console.error('Error toggling alert:', error);
@@ -149,15 +148,7 @@ router.get('/notifications', requireAuth, async (req: Request, res: Response) =>
 // Mark notification as read
 router.patch('/notifications/:notificationId/read', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
     const notificationId = req.params.notificationId;
-    
-    // Verify notification belongs to user
-    const notification = await storage.getNotification(notificationId);
-    if (!notification || notification.userId !== userId) {
-      return res.status(404).json({ message: 'Notification not found' });
-    }
-
     await storage.markNotificationAsRead(notificationId);
     res.json({ message: 'Notification marked as read' });
   } catch (error) {
