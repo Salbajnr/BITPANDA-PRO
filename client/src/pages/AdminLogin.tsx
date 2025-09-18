@@ -42,7 +42,7 @@ export default function AdminLogin() {
       return res;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["auth-user"] });
       toast({
         title: "Admin login successful",
         description: `Welcome back, Admin ${data.user.firstName}!`,

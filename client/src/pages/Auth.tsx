@@ -67,7 +67,7 @@ export default function Auth() {
       return res;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["auth-user"] });
       toast({
         title: "Login successful",
         description: `Welcome back, ${data.user.firstName}!`,
