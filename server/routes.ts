@@ -82,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Metals routes
   app.use('/api/metals', metalsRoutes);
-  
+
   // Metals trading routes
   const metalsTrading = (await import('./metals-trading-routes')).default;
   app.use('/api/metals-trading', metalsTrading);
@@ -791,4 +791,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clientSubscriptions.set(clientId, { interval, symbols: message.symbols });
         }
 
-        
+        if (message.type === 'unsubscribe') {
+          // Client wants to unsubscribe from price updates
+          if (clientSubscriptions.has(clientId)) {
+            clearInterval(clientSubscriptions.get(clientId).interval);
+            clientSubscriptions.delete(clientId);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    });
+
+    // Handle client disconnect
+    ws.on('close', () => {
+      console.log('Client disconnected from WebSocket');
+      if (clientSubscriptions.has(clientId)) {
+        clearInterval(clientSubscriptions.get(clientId).interval);
+        clientSubscriptions.delete(clientId);
+      }
+    });
+
+    // Handle WebSocket errors
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      if (clientSubscriptions.has(clientId)) {
+        clearInterval(clientSubscriptions.get(clientId).interval);
+        clientSubscriptions.delete(clientId);
+      }
+    });
+  });
+
+  // Cleanup function for graceful shutdown
+  const cleanup = () => {
+    clientSubscriptions.forEach((subscription) => {
+      clearInterval(subscription.interval);
+    });
+    clientSubscriptions.clear();
+    wss.close();
+  };
+
+  // Handle server shutdown
+  process.on('SIGTERM', cleanup);
+  process.on('SIGINT', cleanup);
+
+  return httpServer;
+}
