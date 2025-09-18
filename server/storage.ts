@@ -136,20 +136,17 @@ export interface IStorage {
   updateDepositStatus(id: string, status: string, rejectionReason?: string): Promise<any>;
 
   // Withdrawal operations
-  createWithdrawal(withdrawalData: {
-    userId: string;
-    paymentMethod: string;
-    amount: string;
-    currency: string;
-    destinationAddress: string;
-    destinationDetails: string | null;
-    notes: string | null;
-    status: string;
-    transactionId: string;
-  }): Promise<any>;
+  createWithdrawal(withdrawalData: any): Promise<any>;
   getUserWithdrawals(userId: string): Promise<any[]>;
   getAllWithdrawals(): Promise<any[]>;
+  getWithdrawalById(id: string): Promise<any>;
   updateWithdrawalStatus(id: string, status: string, adminNotes?: string): Promise<any>;
+  confirmWithdrawal(userId: string, token: string): Promise<any>;
+  getWithdrawalLimits(userId: string): Promise<any>;
+  setWithdrawalLimits(userId: string, limits: { dailyLimit: number; monthlyLimit: number }): Promise<any>;
+  calculateWithdrawalFees(amount: number, method: string): Promise<number>;
+  getWithdrawalStats(): Promise<any>;
+  cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean>;
 
   // Analytics operations
   getAnalyticsOverview(): Promise<any>;
@@ -1486,73 +1483,346 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Withdrawal methods
-  async createWithdrawal(withdrawalData: {
-    userId: string;
-    paymentMethod: string;
-    amount: string;
-    currency: string;
-    destinationAddress: string;
-    destinationDetails: string | null;
-    notes: string | null;
-    status: string;
-    transactionId: string;
-  }): Promise<any> {
-    const db = this.ensureDb();
-    const [result] = await db.insert(withdrawals).values(withdrawalData).returning();
-    return result;
+  async createWithdrawal(withdrawalData: any): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      const [result] = await db.insert(withdrawals).values({
+        userId: withdrawalData.userId,
+        amount: withdrawalData.amount,
+        currency: withdrawalData.currency,
+        withdrawalMethod: withdrawalData.withdrawalMethod,
+        destinationAddress: withdrawalData.destinationAddress,
+        destinationDetails: withdrawalData.destinationDetails,
+        status: withdrawalData.status || 'pending',
+        fees: withdrawalData.fees || '0',
+        netAmount: withdrawalData.netAmount,
+        confirmationToken: withdrawalData.confirmationToken,
+        confirmationExpiresAt: withdrawalData.confirmationExpiresAt ? new Date(withdrawalData.confirmationExpiresAt) : null,
+        requestedAt: new Date(),
+        isConfirmed: false
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Error creating withdrawal:", error);
+      throw error;
+    }
   }
 
   async getUserWithdrawals(userId: string): Promise<any[]> {
-    const db = this.ensureDb();
-    return await db
-      .select()
-      .from(withdrawals)
-      .where(eq(withdrawals.userId, userId))
-      .orderBy(desc(withdrawals.createdAt));
+    try {
+      const db = this.ensureDb();
+      return await db
+        .select()
+        .from(withdrawals)
+        .where(eq(withdrawals.userId, userId))
+        .orderBy(desc(withdrawals.createdAt));
+    } catch (error) {
+      console.error("Error fetching user withdrawals:", error);
+      return [];
+    }
   }
 
   async getAllWithdrawals() {
-    const db = this.ensureDb();
-    return await db
-      .select({
-        id: withdrawals.id,
-        userId: withdrawals.userId,
-        paymentMethod: withdrawals.paymentMethod,
-        amount: withdrawals.amount,
-        currency: withdrawals.currency,
-        destinationAddress: withdrawals.destinationAddress,
-        destinationDetails: withdrawals.destinationDetails,
-        notes: withdrawals.notes,
-        status: withdrawals.status,
-        adminNotes: withdrawals.adminNotes,
-        createdAt: withdrawals.createdAt,
-        updatedAt: withdrawals.updatedAt,
-        processedAt: withdrawals.processedAt,
-        user: {
-          username: users.username,
-          email: users.email,
-          firstName: users.firstName,
-          lastName: users.lastName
-        }
-      })
-      .from(withdrawals)
-      .leftJoin(users, eq(withdrawals.userId, users.id))
-      .orderBy(desc(withdrawals.createdAt));
+    try {
+      const db = this.ensureDb();
+      return await db
+        .select({
+          id: withdrawals.id,
+          userId: withdrawals.userId,
+          withdrawalMethod: withdrawals.withdrawalMethod,
+          amount: withdrawals.amount,
+          currency: withdrawals.currency,
+          destinationAddress: withdrawals.destinationAddress,
+          destinationDetails: withdrawals.destinationDetails,
+          status: withdrawals.status,
+          adminNotes: withdrawals.adminNotes,
+          fees: withdrawals.fees,
+          netAmount: withdrawals.netAmount,
+          requestedAt: withdrawals.requestedAt,
+          processedAt: withdrawals.processedAt,
+          completedAt: withdrawals.completedAt,
+          isConfirmed: withdrawals.isConfirmed,
+          createdAt: withdrawals.createdAt,
+          updatedAt: withdrawals.updatedAt,
+          user: {
+            username: users.username,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName
+          }
+        })
+        .from(withdrawals)
+        .leftJoin(users, eq(withdrawals.userId, users.id))
+        .orderBy(desc(withdrawals.createdAt));
+    } catch (error) {
+      console.error("Error fetching all withdrawals:", error);
+      return [];
+    }
+  }
+
+  async getWithdrawalById(id: string): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      const [result] = await db
+        .select()
+        .from(withdrawals)
+        .where(eq(withdrawals.id, id))
+        .limit(1);
+      return result;
+    } catch (error) {
+      console.error("Error fetching withdrawal by ID:", error);
+      return null;
+    }
   }
 
   async updateWithdrawalStatus(id: string, status: string, adminNotes?: string): Promise<any> {
-    const db = this.ensureDb();
-    const [result] = await db
-      .update(withdrawals)
-      .set({
+    try {
+      const db = this.ensureDb();
+      const updateData: any = {
         status,
-        adminNotes,
-        processedAt: new Date(),
         updatedAt: new Date()
-      })
-      .where(eq(withdrawals.id, id))
-      .returning();
-    return result;
+      };
+
+      if (adminNotes) {
+        updateData.adminNotes = adminNotes;
+      }
+
+      if (status === 'approved') {
+        updateData.reviewedAt = new Date();
+      } else if (status === 'completed') {
+        updateData.completedAt = new Date();
+      } else if (status === 'processing') {
+        updateData.processedAt = new Date();
+      }
+
+      const [result] = await db
+        .update(withdrawals)
+        .set(updateData)
+        .where(eq(withdrawals.id, id))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error("Error updating withdrawal status:", error);
+      throw error;
+    }
+  }
+
+  async confirmWithdrawal(userId: string, token: string): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      
+      // Find withdrawal with matching token and user
+      const [withdrawal] = await db
+        .select()
+        .from(withdrawals)
+        .where(and(
+          eq(withdrawals.userId, userId),
+          eq(withdrawals.confirmationToken, token),
+          eq(withdrawals.isConfirmed, false)
+        ))
+        .limit(1);
+
+      if (!withdrawal) {
+        return null;
+      }
+
+      // Check if token is expired
+      if (withdrawal.confirmationExpiresAt && new Date() > withdrawal.confirmationExpiresAt) {
+        return null;
+      }
+
+      // Update withdrawal to confirmed
+      const [confirmed] = await db
+        .update(withdrawals)
+        .set({
+          isConfirmed: true,
+          status: 'under_review',
+          confirmationToken: null,
+          confirmationExpiresAt: null,
+          updatedAt: new Date()
+        })
+        .where(eq(withdrawals.id, withdrawal.id))
+        .returning();
+
+      return confirmed;
+    } catch (error) {
+      console.error("Error confirming withdrawal:", error);
+      return null;
+    }
+  }
+
+  async getWithdrawalLimits(userId: string): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      
+      // Try to get existing limits
+      const [limits] = await db
+        .select()
+        .from(withdrawalLimits)
+        .where(eq(withdrawalLimits.userId, userId))
+        .limit(1);
+
+      if (limits) {
+        return {
+          dailyLimit: parseFloat(limits.dailyLimit),
+          monthlyLimit: parseFloat(limits.monthlyLimit),
+          dailyUsed: parseFloat(limits.dailyUsed),
+          monthlyUsed: parseFloat(limits.monthlyUsed)
+        };
+      }
+
+      // Create default limits if none exist
+      const [newLimits] = await db
+        .insert(withdrawalLimits)
+        .values({
+          userId,
+          dailyLimit: '10000.00',
+          monthlyLimit: '50000.00',
+          dailyUsed: '0.00',
+          monthlyUsed: '0.00',
+          lastResetDate: new Date()
+        })
+        .returning();
+
+      return {
+        dailyLimit: parseFloat(newLimits.dailyLimit),
+        monthlyLimit: parseFloat(newLimits.monthlyLimit),
+        dailyUsed: parseFloat(newLimits.dailyUsed),
+        monthlyUsed: parseFloat(newLimits.monthlyUsed)
+      };
+    } catch (error) {
+      console.error("Error fetching withdrawal limits:", error);
+      return {
+        dailyLimit: 10000,
+        monthlyLimit: 50000,
+        dailyUsed: 0,
+        monthlyUsed: 0
+      };
+    }
+  }
+
+  async setWithdrawalLimits(userId: string, limits: { dailyLimit: number; monthlyLimit: number }): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      const [result] = await db
+        .insert(withdrawalLimits)
+        .values({
+          userId,
+          dailyLimit: limits.dailyLimit.toString(),
+          monthlyLimit: limits.monthlyLimit.toString(),
+          dailyUsed: '0.00',
+          monthlyUsed: '0.00',
+          lastResetDate: new Date()
+        })
+        .onConflictDoUpdate({
+          target: withdrawalLimits.userId,
+          set: {
+            dailyLimit: limits.dailyLimit.toString(),
+            monthlyLimit: limits.monthlyLimit.toString(),
+            updatedAt: new Date()
+          }
+        })
+        .returning();
+
+      return {
+        dailyLimit: parseFloat(result.dailyLimit),
+        monthlyLimit: parseFloat(result.monthlyLimit),
+        dailyUsed: parseFloat(result.dailyUsed),
+        monthlyUsed: parseFloat(result.monthlyUsed)
+      };
+    } catch (error) {
+      console.error("Error setting withdrawal limits:", error);
+      throw error;
+    }
+  }
+
+  async calculateWithdrawalFees(amount: number, method: string): Promise<number> {
+    try {
+      const feeRates = {
+        bank_transfer: 0.015, // 1.5%
+        crypto_wallet: 0.005, // 0.5%
+        paypal: 0.025, // 2.5%
+        mobile_money: 0.02, // 2%
+        other: 0.02 // 2%
+      };
+
+      const rate = feeRates[method as keyof typeof feeRates] || 0.02;
+      const fee = amount * rate;
+      const minFee = method === 'crypto_wallet' ? 2 : 5;
+      const maxFee = method === 'crypto_wallet' ? 50 : 100;
+
+      return Math.max(minFee, Math.min(fee, maxFee));
+    } catch (error) {
+      console.error("Error calculating withdrawal fees:", error);
+      return 25; // Default fee
+    }
+  }
+
+  async getWithdrawalStats(): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      
+      const totalWithdrawals = await db
+        .select({ count: count() })
+        .from(withdrawals);
+
+      const pendingWithdrawals = await db
+        .select({ count: count() })
+        .from(withdrawals)
+        .where(eq(withdrawals.status, 'pending'));
+
+      const approvedWithdrawals = await db
+        .select({ count: count() })
+        .from(withdrawals)
+        .where(eq(withdrawals.status, 'approved'));
+
+      const totalVolume = await db
+        .select({ total: sum(withdrawals.amount) })
+        .from(withdrawals)
+        .where(eq(withdrawals.status, 'completed'));
+
+      return {
+        totalWithdrawals: Number(totalWithdrawals[0]?.count || 0),
+        pendingWithdrawals: Number(pendingWithdrawals[0]?.count || 0),
+        approvedWithdrawals: Number(approvedWithdrawals[0]?.count || 0),
+        totalVolume: Number(totalVolume[0]?.total || 0)
+      };
+    } catch (error) {
+      console.error("Error fetching withdrawal stats:", error);
+      return {
+        totalWithdrawals: 0,
+        pendingWithdrawals: 0,
+        approvedWithdrawals: 0,
+        totalVolume: 0
+      };
+    }
+  }
+
+  async cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean> {
+    try {
+      const db = this.ensureDb();
+      
+      const [result] = await db
+        .update(withdrawals)
+        .set({
+          status: 'cancelled',
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(withdrawals.id, withdrawalId),
+          eq(withdrawals.userId, userId),
+          or(
+            eq(withdrawals.status, 'pending'),
+            eq(withdrawals.status, 'pending_confirmation')
+          )
+        ))
+        .returning();
+
+      return !!result;
+    } catch (error) {
+      console.error("Error cancelling withdrawal:", error);
+      return false;
+    }
   }
 
   async getAnalyticsOverview(): Promise<any> {

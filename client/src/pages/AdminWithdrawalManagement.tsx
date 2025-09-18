@@ -1,36 +1,41 @@
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { api } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
 import { 
-  Send, Clock, CheckCircle, XCircle, DollarSign, 
-  Building, CreditCard, Smartphone, Wallet, RefreshCw,
-  User, Calendar, MessageCircle, AlertTriangle, Info, Eye
-} from "lucide-react";
+  DollarSign, Clock, CheckCircle, XCircle, AlertTriangle, 
+  CreditCard, Building, Smartphone, RefreshCw, Eye, 
+  MessageSquare, UserCheck, FileText, Calendar, Filter,
+  TrendingUp, TrendingDown
+} from 'lucide-react';
 
 interface Withdrawal {
   id: string;
   userId: string;
-  paymentMethod: string;
+  withdrawalMethod: string;
   amount: string;
   currency: string;
   destinationAddress: string;
-  destinationDetails?: string;
-  notes?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  destinationDetails?: any;
+  status: 'pending' | 'pending_confirmation' | 'under_review' | 'approved' | 'rejected' | 'processing' | 'completed' | 'cancelled';
   adminNotes?: string;
+  fees: string;
+  netAmount: string;
+  requestedAt: string;
+  processedAt?: string;
+  completedAt?: string;
+  isConfirmed: boolean;
   createdAt: string;
   updatedAt: string;
-  processedAt?: string;
   user?: {
     username: string;
     email: string;
@@ -45,62 +50,145 @@ export default function AdminWithdrawalManagement() {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Fetch all withdrawals
-  const { data: withdrawals, isLoading, refetch } = useQuery({
+  const { data: withdrawals = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/withdrawals/all'],
-    queryFn: () => api.get('/withdrawals/all'),
+    queryFn: async () => {
+      const response = await api.get('/withdrawals/all');
+      if (response.error) throw new Error(response.error);
+      return response.data || [];
+    },
   });
 
-  // Update withdrawal status mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status, notes }: { id: string; status: string; notes: string }) => {
-      return api.patch(`/withdrawals/${id}/status`, {
-        status,
-        adminNotes: notes
-      });
+  // Fetch withdrawal statistics
+  const { data: stats } = useQuery({
+    queryKey: ['/api/withdrawals/stats'],
+    queryFn: async () => {
+      const response = await api.get('/withdrawals/stats');
+      return response.data || {};
     },
-    onSuccess: (_, variables) => {
+  });
+
+  // Approve withdrawal mutation
+  const approveMutation = useMutation({
+    mutationFn: async ({ id, adminNotes }: { id: string; adminNotes: string }) => {
+      const response = await api.post(`/withdrawals/${id}/approve`, { adminNotes });
+      if (response.error) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: () => {
       toast({
-        title: "Success",
-        description: `Withdrawal ${variables.status} successfully.`,
+        title: "Withdrawal Approved",
+        description: "The withdrawal has been approved and is now processing.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/withdrawals/all'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/withdrawals/stats'] });
       setIsDetailsModalOpen(false);
-      setSelectedWithdrawal(null);
       setAdminNotes('');
       setProcessingId(null);
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to update withdrawal status.",
+        description: error.message || "Failed to approve withdrawal",
         variant: "destructive",
       });
       setProcessingId(null);
     },
   });
 
-  const handleStatusUpdate = (status: 'approved' | 'rejected') => {
-    if (!selectedWithdrawal) return;
-
-    if (status === 'rejected' && !adminNotes.trim()) {
+  // Reject withdrawal mutation
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, adminNotes, rejectionReason }: { id: string; adminNotes: string; rejectionReason: string }) => {
+      const response = await api.post(`/withdrawals/${id}/reject`, { adminNotes, rejectionReason });
+      if (response.error) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: () => {
       toast({
-        title: "Admin Notes Required",
-        description: "Please provide a reason for rejecting this withdrawal.",
+        title: "Withdrawal Rejected",
+        description: "The withdrawal has been rejected and funds returned to user.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/withdrawals/all'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/withdrawals/stats'] });
+      setIsDetailsModalOpen(false);
+      setAdminNotes('');
+      setRejectionReason('');
+      setProcessingId(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reject withdrawal",
         variant: "destructive",
       });
-      return;
-    }
+      setProcessingId(null);
+    },
+  });
 
-    setProcessingId(selectedWithdrawal.id);
-    updateStatusMutation.mutate({
-      id: selectedWithdrawal.id,
-      status,
-      notes: adminNotes
-    });
+  // Complete withdrawal mutation
+  const completeMutation = useMutation({
+    mutationFn: async ({ id, adminNotes }: { id: string; adminNotes: string }) => {
+      const response = await api.post(`/withdrawals/${id}/complete`, { adminNotes });
+      if (response.error) throw new Error(response.error);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Withdrawal Completed",
+        description: "The withdrawal has been marked as completed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/withdrawals/all'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/withdrawals/stats'] });
+      setIsDetailsModalOpen(false);
+      setAdminNotes('');
+      setProcessingId(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to complete withdrawal",
+        variant: "destructive",
+      });
+      setProcessingId(null);
+    },
+  });
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: Clock },
+      pending_confirmation: { color: 'bg-blue-100 text-blue-800 border-blue-300', icon: AlertTriangle },
+      under_review: { color: 'bg-purple-100 text-purple-800 border-purple-300', icon: Eye },
+      approved: { color: 'bg-green-100 text-green-800 border-green-300', icon: CheckCircle },
+      rejected: { color: 'bg-red-100 text-red-800 border-red-300', icon: XCircle },
+      processing: { color: 'bg-blue-100 text-blue-800 border-blue-300', icon: RefreshCw },
+      completed: { color: 'bg-green-100 text-green-800 border-green-300', icon: CheckCircle },
+      cancelled: { color: 'bg-gray-100 text-gray-800 border-gray-300', icon: XCircle },
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const Icon = config.icon;
+
+    return (
+      <Badge className={`${config.color} flex items-center space-x-1`}>
+        <Icon className="w-3 h-3" />
+        <span>{status.replace('_', ' ').toUpperCase()}</span>
+      </Badge>
+    );
+  };
+
+  const getMethodIcon = (method: string) => {
+    switch (method) {
+      case 'bank_transfer': return Building;
+      case 'crypto_wallet': return DollarSign;
+      case 'paypal': return CreditCard;
+      case 'mobile_money': return Smartphone;
+      default: return DollarSign;
+    }
   };
 
   const formatCurrency = (amount: string) => {
@@ -110,75 +198,75 @@ export default function AdminWithdrawalManagement() {
     }).format(parseFloat(amount));
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'rejected':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return <Clock className="w-4 h-4 text-yellow-500" />;
+  const handleApprove = (withdrawal: Withdrawal) => {
+    if (!adminNotes.trim()) {
+      toast({
+        title: "Admin Notes Required",
+        description: "Please provide admin notes before approving the withdrawal.",
+        variant: "destructive",
+      });
+      return;
     }
+    setProcessingId(withdrawal.id);
+    approveMutation.mutate({ id: withdrawal.id, adminNotes });
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      'pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'approved': 'bg-green-100 text-green-800 border-green-300',
-      'rejected': 'bg-red-100 text-red-800 border-red-300'
-    };
-
-    return (
-      <Badge variant="outline" className={variants[status as keyof typeof variants]}>
-        {getStatusIcon(status)}
-        <span className="ml-1 capitalize">{status}</span>
-      </Badge>
-    );
-  };
-
-  const getPaymentMethodIcon = (method: string) => {
-    switch (method) {
-      case 'bank_transfer':
-        return <Building className="w-5 h-5 text-blue-600" />;
-      case 'crypto_wallet':
-        return <Wallet className="w-5 h-5 text-orange-500" />;
-      case 'paypal':
-        return <CreditCard className="w-5 h-5 text-blue-500" />;
-      case 'mobile_money':
-        return <Smartphone className="w-5 h-5 text-green-500" />;
-      default:
-        return <Send className="w-5 h-5 text-gray-500" />;
+  const handleReject = (withdrawal: Withdrawal) => {
+    if (!rejectionReason.trim()) {
+      toast({
+        title: "Rejection Reason Required",
+        description: "Please provide a reason for rejecting the withdrawal.",
+        variant: "destructive",
+      });
+      return;
     }
+    setProcessingId(withdrawal.id);
+    rejectMutation.mutate({ 
+      id: withdrawal.id, 
+      adminNotes: adminNotes || `Rejected: ${rejectionReason}`,
+      rejectionReason 
+    });
   };
 
-  const filteredWithdrawals = withdrawals?.filter((withdrawal: Withdrawal) => {
+  const handleComplete = (withdrawal: Withdrawal) => {
+    setProcessingId(withdrawal.id);
+    completeMutation.mutate({ 
+      id: withdrawal.id, 
+      adminNotes: adminNotes || "Withdrawal completed successfully" 
+    });
+  };
+
+  const openDetailsModal = (withdrawal: Withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setAdminNotes(withdrawal.adminNotes || '');
+    setRejectionReason('');
+    setIsDetailsModalOpen(true);
+  };
+
+  const filteredWithdrawals = withdrawals.filter((withdrawal: Withdrawal) => {
     if (statusFilter === 'all') return true;
     return withdrawal.status === statusFilter;
-  }) || [];
-
-  const pendingCount = withdrawals?.filter((w: Withdrawal) => w.status === 'pending')?.length || 0;
-  const totalAmount = withdrawals?.reduce((sum: number, w: Withdrawal) => 
-    w.status === 'approved' ? sum + parseFloat(w.amount) : sum, 0) || 0;
+  });
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-4">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
                 Withdrawal Management
               </h1>
-              <p className="text-gray-400">
-                Review and process user withdrawal requests
+              <p className="text-xl text-gray-600">
+                Review and manage user withdrawal requests
               </p>
             </div>
             <div className="flex space-x-3">
               <Button 
                 onClick={() => refetch()} 
                 variant="outline"
-                className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
+                className="border-blue-500 text-blue-600 hover:bg-blue-50"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
@@ -187,65 +275,90 @@ export default function AdminWithdrawalManagement() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Clock className="w-8 h-8 text-yellow-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-white">{pendingCount}</p>
-                  <p className="text-sm text-gray-400">Pending Reviews</p>
+        {/* Statistics Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Total Withdrawals
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">
+                  {stats.totalWithdrawals || 0}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <CheckCircle className="w-8 h-8 text-green-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-white">
-                    {withdrawals?.filter((w: Withdrawal) => w.status === 'approved')?.length || 0}
-                  </p>
-                  <p className="text-sm text-gray-400">Approved</p>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                  <Clock className="w-4 h-4 mr-2" />
+                  Pending Review
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {stats.pendingWithdrawals || 0}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <DollarSign className="w-8 h-8 text-blue-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-white">{formatCurrency(totalAmount.toString())}</p>
-                  <p className="text-sm text-gray-400">Total Processed</p>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approved
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.approvedWithdrawals || 0}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Total Volume
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(stats.totalVolume?.toString() || '0')}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Withdrawals List */}
-        <Card className="bg-slate-800 border-slate-700">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-bold text-white">
+              <CardTitle className="text-xl font-bold text-gray-900">
                 Withdrawal Requests
               </CardTitle>
               <div className="flex items-center space-x-3">
-                <Label htmlFor="status-filter" className="text-gray-300">Filter:</Label>
+                <Label htmlFor="status-filter">Filter by status:</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40 bg-slate-700 border-slate-600">
+                  <SelectTrigger className="w-48">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="all">All Withdrawals</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="pending_confirmation">Pending Confirmation</SelectItem>
+                    <SelectItem value="under_review">Under Review</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="processing">Processing</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -254,174 +367,221 @@ export default function AdminWithdrawalManagement() {
           <CardContent>
             {isLoading ? (
               <div className="text-center py-12">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
-                <p className="text-gray-400">Loading withdrawal requests...</p>
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+                <p className="text-gray-600">Loading withdrawals...</p>
               </div>
             ) : filteredWithdrawals.length === 0 ? (
               <div className="text-center py-12">
-                <Send className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-                <h3 className="text-xl font-semibold text-white mb-2">No Withdrawals Found</h3>
-                <p className="text-gray-400">
-                  {statusFilter === 'all' ? "No withdrawal requests yet." : `No ${statusFilter} withdrawals.`}
+                <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Withdrawals Found</h3>
+                <p className="text-gray-600">
+                  {statusFilter === 'all' 
+                    ? "No withdrawal requests have been submitted yet." 
+                    : `No ${statusFilter.replace('_', ' ')} withdrawals found.`}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredWithdrawals.map((withdrawal: Withdrawal) => (
-                  <div key={withdrawal.id} className="bg-slate-700 border border-slate-600 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        {getPaymentMethodIcon(withdrawal.paymentMethod)}
+                {filteredWithdrawals.map((withdrawal: Withdrawal) => {
+                  const MethodIcon = getMethodIcon(withdrawal.withdrawalMethod);
+                  return (
+                    <div key={withdrawal.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-4">
+                          <MethodIcon className="w-6 h-6 text-blue-600" />
+                          <div>
+                            <div className="font-semibold text-gray-900 text-lg">
+                              {formatCurrency(withdrawal.amount)} {withdrawal.currency}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {withdrawal.user?.username} ({withdrawal.user?.email})
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          {getStatusBadge(withdrawal.status)}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openDetailsModal(withdrawal)}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <div className="font-medium text-white">
-                            {formatCurrency(withdrawal.amount)} {withdrawal.currency}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            {withdrawal.user?.username} • {withdrawal.paymentMethod.replace('_', ' ')}
-                          </div>
+                          <span className="font-medium text-gray-700">Method:</span>
+                          <p className="text-gray-600">{withdrawal.withdrawalMethod.replace('_', ' ')}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Fees:</span>
+                          <p className="text-gray-600">{formatCurrency(withdrawal.fees)}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Net Amount:</span>
+                          <p className="text-gray-600">{formatCurrency(withdrawal.netAmount)}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Requested:</span>
+                          <p className="text-gray-600">{new Date(withdrawal.requestedAt).toLocaleDateString()}</p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        {getStatusBadge(withdrawal.status)}
-                        <div className="text-sm text-gray-400">
-                          {new Date(withdrawal.createdAt).toLocaleDateString()}
+
+                      {withdrawal.adminNotes && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded border">
+                          <div className="text-sm font-medium text-blue-800">Admin Notes:</div>
+                          <div className="text-sm text-blue-700">{withdrawal.adminNotes}</div>
                         </div>
-                        <Button
-                          onClick={() => {
-                            setSelectedWithdrawal(withdrawal);
-                            setAdminNotes(withdrawal.adminNotes || '');
-                            setIsDetailsModalOpen(true);
-                          }}
-                          size="sm"
-                          variant="outline"
-                          className="border-slate-500 text-slate-300 hover:bg-slate-600"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          Review
-                        </Button>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Withdrawal Details Modal */}
+        {/* Details Modal */}
         <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-          <DialogContent className="max-w-2xl bg-slate-800 border-slate-700">
+          <DialogContent className="max-w-2xl bg-gray-900 text-white">
             <DialogHeader>
-              <DialogTitle className="text-white">Withdrawal Request Details</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Withdrawal Details</DialogTitle>
             </DialogHeader>
+            
             {selectedWithdrawal && (
               <div className="space-y-6">
-                {/* User Info */}
-                <div className="bg-slate-700 p-4 rounded-lg">
-                  <h4 className="font-semibold text-white mb-2 flex items-center">
-                    <User className="w-4 h-4 mr-2" />
-                    User Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">Username:</span>
-                      <p className="text-white">{selectedWithdrawal.user?.username}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Email:</span>
-                      <p className="text-white">{selectedWithdrawal.user?.email}</p>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-gray-400">User:</span>
+                    <p className="text-white font-medium">
+                      {selectedWithdrawal.user?.firstName} {selectedWithdrawal.user?.lastName}
+                    </p>
+                    <p className="text-gray-300 text-sm">{selectedWithdrawal.user?.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Amount:</span>
+                    <p className="text-white font-medium text-lg">
+                      {formatCurrency(selectedWithdrawal.amount)} {selectedWithdrawal.currency}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Method:</span>
+                    <p className="text-white">{selectedWithdrawal.withdrawalMethod.replace('_', ' ')}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Destination:</span>
+                    <p className="text-white truncate">{selectedWithdrawal.destinationAddress}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Fees:</span>
+                    <p className="text-white">{formatCurrency(selectedWithdrawal.fees)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Net Amount:</span>
+                    <p className="text-white font-medium">{formatCurrency(selectedWithdrawal.netAmount)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Status:</span>
+                    <div className="mt-1">{getStatusBadge(selectedWithdrawal.status)}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Created:</span>
+                    <p className="text-white">
+                      {new Date(selectedWithdrawal.createdAt).toLocaleString()}
+                    </p>
                   </div>
                 </div>
 
-                {/* Withdrawal Details */}
-                <div className="bg-slate-700 p-4 rounded-lg">
-                  <h4 className="font-semibold text-white mb-2 flex items-center">
-                    <Send className="w-4 h-4 mr-2" />
-                    Withdrawal Details
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">Amount:</span>
-                      <p className="text-white font-medium">
-                        {formatCurrency(selectedWithdrawal.amount)} {selectedWithdrawal.currency}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Method:</span>
-                      <p className="text-white">{selectedWithdrawal.paymentMethod.replace('_', ' ')}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-gray-400">Destination:</span>
-                      <p className="text-white break-all">{selectedWithdrawal.destinationAddress}</p>
-                    </div>
-                    {selectedWithdrawal.destinationDetails && (
-                      <div className="col-span-2">
-                        <span className="text-gray-400">Details:</span>
-                        <p className="text-white">{selectedWithdrawal.destinationDetails}</p>
-                      </div>
-                    )}
-                    {selectedWithdrawal.notes && (
-                      <div className="col-span-2">
-                        <span className="text-gray-400">User Notes:</span>
-                        <p className="text-white">{selectedWithdrawal.notes}</p>
-                      </div>
-                    )}
-                    <div>
-                      <span className="text-gray-400">Status:</span>
-                      <div className="mt-1">{getStatusBadge(selectedWithdrawal.status)}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Created:</span>
-                      <p className="text-white">
-                        {new Date(selectedWithdrawal.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Admin Notes */}
-                <div>
-                  <Label htmlFor="admin-notes" className="text-white">Admin Notes</Label>
-                  <Textarea
-                    id="admin-notes"
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    placeholder="Add notes about this withdrawal..."
-                    className="mt-2 bg-slate-700 border-slate-600 text-white"
-                    rows={3}
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                {selectedWithdrawal.status === 'pending' && (
-                  <div className="flex justify-end space-x-3 pt-4 border-t border-slate-600">
-                    <Button
-                      onClick={() => handleStatusUpdate('approved')}
-                      disabled={processingId === selectedWithdrawal.id}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      {processingId === selectedWithdrawal.id ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Approve Withdrawal
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={() => handleStatusUpdate('rejected')}
-                      disabled={processingId === selectedWithdrawal.id}
-                      variant="destructive"
-                    >
-                      {processingId === selectedWithdrawal.id ? 'Rejecting...' : 'Reject Withdrawal'}
-                    </Button>
+                {selectedWithdrawal.destinationDetails && (
+                  <div>
+                    <span className="text-gray-400">Destination Details:</span>
+                    <pre className="text-white text-sm bg-gray-800 p-3 rounded mt-2">
+                      {JSON.stringify(selectedWithdrawal.destinationDetails, null, 2)}
+                    </pre>
                   </div>
                 )}
+
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="adminNotes">Admin Notes</Label>
+                    <Textarea
+                      id="adminNotes"
+                      placeholder="Enter admin notes..."
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      className="mt-1 bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+
+                  {selectedWithdrawal.status === 'under_review' && (
+                    <div>
+                      <Label htmlFor="rejectionReason">Rejection Reason (if rejecting)</Label>
+                      <Textarea
+                        id="rejectionReason"
+                        placeholder="Enter rejection reason..."
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        className="mt-1 bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  {selectedWithdrawal.status === 'under_review' && (
+                    <>
+                      <Button
+                        onClick={() => handleApprove(selectedWithdrawal)}
+                        disabled={processingId === selectedWithdrawal.id}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {processingId === selectedWithdrawal.id ? (
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                        )}
+                        Approve Withdrawal
+                      </Button>
+                      <Button
+                        onClick={() => handleReject(selectedWithdrawal)}
+                        disabled={processingId === selectedWithdrawal.id}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {processingId === selectedWithdrawal.id ? (
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <XCircle className="w-4 h-4 mr-2" />
+                        )}
+                        Reject Withdrawal
+                      </Button>
+                    </>
+                  )}
+
+                  {selectedWithdrawal.status === 'processing' && (
+                    <Button
+                      onClick={() => handleComplete(selectedWithdrawal)}
+                      disabled={processingId === selectedWithdrawal.id}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {processingId === selectedWithdrawal.id ? (
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
+                      Mark as Completed
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDetailsModalOpen(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
               </div>
             )}
           </DialogContent>

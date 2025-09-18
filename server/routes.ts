@@ -7,6 +7,7 @@ import { hashPassword, verifyPassword, loadUser, requireAuth, requireAdmin } fro
 import { insertTransactionSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema, priceAlerts, notifications } from "@shared/schema";
 import authRoutes from './auth-routes';
 import depositRoutes from './deposit-routes';
+import withdrawalRoutes from './withdrawal-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';
 import { portfolioRoutes } from './portfolio-routes';

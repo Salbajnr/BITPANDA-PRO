@@ -65,12 +65,12 @@ export default function Withdrawals() {
   // Create withdrawal mutation
   const createWithdrawalMutation = useMutation({
     mutationFn: async (data: any) => {
-      return api.post('/withdrawals', data);
+      return api.post('/withdrawals/request', data);
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast({
-        title: "Withdrawal Submitted",
-        description: "Your withdrawal request has been submitted for review.",
+        title: "Withdrawal Request Created",
+        description: response.data?.message || "Please check your email to confirm the withdrawal.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/withdrawals'] });
       queryClient.invalidateQueries({ queryKey: ['/api/portfolio'] });
@@ -78,10 +78,10 @@ export default function Withdrawals() {
       setIsConfirmModalOpen(false);
       resetForm();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to submit withdrawal request. Please try again.",
+        description: error.response?.data?.message || "Failed to submit withdrawal request. Please try again.",
         variant: "destructive",
       });
       setIsConfirmModalOpen(false);
@@ -138,11 +138,11 @@ export default function Withdrawals() {
 
   const confirmWithdrawal = () => {
     createWithdrawalMutation.mutate({
-      payment_method: formData.payment_method,
-      amount: parseFloat(formData.amount),
+      withdrawalMethod: formData.payment_method,
+      amount: formData.amount,
       currency: formData.currency,
-      destination_address: formData.destination_address,
-      destination_details: formData.destination_details,
+      destinationAddress: formData.destination_address,
+      destinationDetails: formData.destination_details ? { details: formData.destination_details } : undefined,
       notes: formData.notes
     });
   };
@@ -276,10 +276,11 @@ export default function Withdrawals() {
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                        <SelectItem value="crypto_wallet">Crypto Wallet</SelectItem>
-                        <SelectItem value="paypal">PayPal</SelectItem>
-                        <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                        <SelectItem value="bank_transfer">Bank Transfer (1.5% fee)</SelectItem>
+                        <SelectItem value="crypto_wallet">Crypto Wallet (0.5% fee)</SelectItem>
+                        <SelectItem value="paypal">PayPal (2.5% fee)</SelectItem>
+                        <SelectItem value="mobile_money">Mobile Money (2.0% fee)</SelectItem>
+                        <SelectItem value="other">Other Method (2.0% fee)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

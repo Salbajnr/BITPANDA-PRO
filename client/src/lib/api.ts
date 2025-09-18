@@ -250,7 +250,11 @@ export const depositApi = {
 export const withdrawalApi = {
   getWithdrawals: () => api.get('/api/withdrawals'),
   
+  getAllWithdrawals: () => api.get('/api/withdrawals/all'),
+  
   getLimits: () => api.get('/api/withdrawals/limits'),
+  
+  getStats: () => api.get('/api/withdrawals/stats'),
   
   calculateFees: (data: { amount: string; method: string }) =>
     api.post('/api/withdrawals/calculate-fees', data),
@@ -260,10 +264,23 @@ export const withdrawalApi = {
     withdrawalMethod: string;
     destinationAddress: string;
     destinationDetails?: any;
+    notes?: string;
   }) => api.post('/api/withdrawals/request', withdrawalData),
   
   confirmWithdrawal: (token: string) =>
     api.post('/api/withdrawals/confirm', { token }),
+  
+  approveWithdrawal: (id: string, adminNotes?: string) =>
+    api.post(`/api/withdrawals/${id}/approve`, { adminNotes }),
+  
+  rejectWithdrawal: (id: string, rejectionReason: string, adminNotes?: string) =>
+    api.post(`/api/withdrawals/${id}/reject`, { rejectionReason, adminNotes }),
+  
+  completeWithdrawal: (id: string, adminNotes?: string) =>
+    api.post(`/api/withdrawals/${id}/complete`, { adminNotes }),
+  
+  setLimits: (userId: string, limits: { dailyLimit: string; monthlyLimit: string }) =>
+    api.post(`/api/withdrawals/limits/${userId}`, limits),
   
   cancelWithdrawal: (id: string) =>
     api.delete(`/api/withdrawals/${id}`),
