@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
+import LiveTicker from "@/components/LiveTicker";
 import Landing from "@/pages/Landing";
 import LandingNew from "@/pages/LandingNew";
 import Auth from "@/pages/Auth";
@@ -84,6 +85,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <LiveTicker />
       <main className="flex-1">
         {children}
       </main>
@@ -143,17 +145,17 @@ export default function App() {
         <LanguageProvider>
           <Switch>
             {/* Public Routes */}
-            <Route path="/" component={LandingNew} />
-            <Route path="/home" component={Landing} />
-            <Route path="/auth" component={Auth} />
-            <Route path="/markets" component={Markets} />
-            <Route path="/news" component={News} />
-            <Route path="/about" component={About} />
-            <Route path="/features" component={Features} />
-            <Route path="/help" component={Help} />
-            <Route path="/contact" component={Contact} />
-            <Route path="/privacy" component={Privacy} />
-            <Route path="/terms" component={Terms} />
+            <Route path="/" component={() => <PublicLayout><LandingNew /></PublicLayout>} />
+            <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
+            <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
+            <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
+            <Route path="/news" component={() => <PublicLayout><News /></PublicLayout>} />
+            <Route path="/about" component={() => <PublicLayout><About /></PublicLayout>} />
+            <Route path="/features" component={() => <PublicLayout><Features /></PublicLayout>} />
+            <Route path="/help" component={() => <PublicLayout><Help /></PublicLayout>} />
+            <Route path="/contact" component={() => <PublicLayout><Contact /></PublicLayout>} />
+            <Route path="/privacy" component={() => <PublicLayout><Privacy /></PublicLayout>} />
+            <Route path="/terms" component={() => <PublicLayout><Terms /></PublicLayout>} />
 
             {/* Investment Routes */}
             <Route path="/stocks" component={Stocks} />

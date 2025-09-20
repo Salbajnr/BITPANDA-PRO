@@ -36,7 +36,6 @@ import {
   Target
 } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
-import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
 import { useAuth } from "@/hooks/useAuth";
 import FuturisticBackground from "@/components/FuturisticBackground";
@@ -167,8 +166,6 @@ export default function Landing() {
   return (
     <div className="min-h-screen relative overflow-hidden matrix-bg">
       <FuturisticBackground />
-      <Navbar />
-      <LiveTicker />
       
       {/* Futuristic Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16">

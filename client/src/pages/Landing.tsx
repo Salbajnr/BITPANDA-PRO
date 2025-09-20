@@ -32,8 +32,6 @@ import {
   Database
 } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
-import Navbar from "@/components/Navbar";
-import LiveTicker from "@/components/LiveTicker";
 import { useAuth } from "@/hooks/useAuth";
 import FuturisticBackground from "@/components/FuturisticBackground";
 
@@ -254,8 +252,6 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 transition-colors">
-      <Navbar />
-      <LiveTicker />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-green-50 via-blue-50 to-green-50 pt-24 pb-20 transition-colors overflow-hidden">
