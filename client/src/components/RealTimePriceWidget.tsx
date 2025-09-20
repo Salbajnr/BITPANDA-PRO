@@ -1,112 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
-interface PriceData {
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { TrendingUp, TrendingDown } from 'lucide-react';
+
+interface CryptoPrice {
   symbol: string;
   price: number;
-  change: number;
-  changePercent: number;
+  change24h: number;
+  name: string;
 }
 
 interface RealTimePriceWidgetProps {
-  symbol?: string;
+  symbols?: string[];
   className?: string;
 }
 
 const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({ 
-  symbol = 'BTC', 
+  symbols = ['BTC', 'ETH', 'ADA', 'SOL'], 
   className = '' 
 }) => {
-  const [priceData, setPriceData] = useState<PriceData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [prices, setPrices] = useState<CryptoPrice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
-    let interval: NodeJS.Timeout;
-
-    const fetchPrice = async () => {
+    const fetchPrices = async () => {
       try {
-        const response = await fetch(`/api/crypto/price/${symbol}`);
-        if (response.ok && isMounted) {
-          const data = await response.json();
-          setPriceData(data);
-        }
+        setIsLoading(true);
+        // Simulate API call with mock data
+        const mockPrices: CryptoPrice[] = [
+          { symbol: 'BTC', name: 'Bitcoin', price: 42350.50, change24h: 2.45 },
+          { symbol: 'ETH', name: 'Ethereum', price: 2650.30, change24h: -1.23 },
+          { symbol: 'ADA', name: 'Cardano', price: 0.485, change24h: 5.67 },
+          { symbol: 'SOL', name: 'Solana', price: 98.75, change24h: -2.15 }
+        ];
+        
+        // Add some randomness to simulate real-time updates
+        const updatedPrices = mockPrices.map(price => ({
+          ...price,
+          price: price.price * (1 + (Math.random() - 0.5) * 0.02),
+          change24h: price.change24h + (Math.random() - 0.5) * 2
+        }));
+        
+        setPrices(updatedPrices.filter(p => symbols.includes(p.symbol)));
       } catch (error) {
-        console.error('Error fetching price:', error);
+        console.error('Error fetching prices:', error);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
-    fetchPrice();
-    interval = setInterval(fetchPrice, 10000); // Update every 10 seconds
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 5000); // Update every 5 seconds
 
-    return () => {
-      isMounted = false;
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [symbol]);
+    return () => clearInterval(interval);
+  }, [symbols]);
 
-  if (loading) {
-    return (
-      <Card className={`animate-pulse ${className}`}>
-        <CardContent className="p-4">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!priceData) {
+  if (isLoading) {
     return (
       <Card className={className}>
-        <CardContent className="p-4 text-center">
-          <p className="text-gray-500 dark:text-gray-400">Price data unavailable</p>
+        <CardHeader>
+          <CardTitle>Real-Time Prices</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  const isPositive = priceData.changePercent >= 0;
-
   return (
-    <Card className={`${className} hover:shadow-lg transition-shadow duration-300`}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-          <DollarSign className="h-4 w-4" />
-          {priceData.symbol.toUpperCase()}
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-green-500" />
+          Real-Time Prices
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              ${priceData.price.toLocaleString()}
-            </p>
-            <div className="flex items-center gap-1 mt-1">
-              {isPositive ? (
-                <TrendingUp className="h-4 w-4 text-green-600" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-red-600" />
-              )}
-              <span className={`text-sm font-medium ${
-                isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {isPositive ? '+' : ''}{priceData.changePercent.toFixed(2)}%
-              </span>
+      <CardContent>
+        <div className="space-y-4">
+          {prices.map((crypto) => (
+            <div key={crypto.symbol} className="flex items-center justify-between">
+              <div>
+                <div className="font-semibold text-sm">{crypto.symbol}</div>
+                <div className="text-xs text-gray-500">{crypto.name}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-bold">
+                  ${crypto.price.toLocaleString(undefined, { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: crypto.price < 1 ? 4 : 2 
+                  })}
+                </div>
+                <div className={`text-xs flex items-center justify-end ${
+                  crypto.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {crypto.change24h >= 0 ? (
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                  ) : (
+                    <TrendingDown className="w-3 h-3 mr-1" />
+                  )}
+                  {crypto.change24h >= 0 ? '+' : ''}
+                  {crypto.change24h.toFixed(2)}%
+                </div>
+              </div>
             </div>
-          </div>
-          <Badge variant={isPositive ? "default" : "destructive"}>
-            {isPositive ? '+' : ''}${priceData.change.toFixed(2)}
-          </Badge>
+          ))}
         </div>
       </CardContent>
     </Card>

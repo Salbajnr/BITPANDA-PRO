@@ -740,3 +740,311 @@ export default function Contact() {
     </div>
   );
 }
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Label } from '../components/ui/label';
+import { Badge } from '../components/ui/badge';
+import { 
+  Mail, Phone, MapPin, Clock, MessageSquare, 
+  Send, CheckCircle, Globe, Headphones, Shield,
+  Users, Award, ExternalLink
+} from 'lucide-react';
+import Navbar from '../components/Navbar';
+
+export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    category: 'general',
+    message: ''
+  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission here
+    setIsSubmitted(true);
+    setTimeout(() => setIsSubmitted(false), 3000);
+  };
+
+  const contactMethods = [
+    {
+      icon: <MessageSquare className="w-6 h-6" />,
+      title: "Live Chat",
+      description: "Get instant help from our support team",
+      availability: "24/7",
+      action: "Start Chat",
+      color: "bg-blue-500"
+    },
+    {
+      icon: <Mail className="w-6 h-6" />,
+      title: "Email Support",
+      description: "Send us a detailed message",
+      availability: "Response within 2 hours",
+      action: "Send Email",
+      color: "bg-green-500"
+    },
+    {
+      icon: <Phone className="w-6 h-6" />,
+      title: "Phone Support",
+      description: "Speak directly with our experts",
+      availability: "Mon-Fri 9AM-6PM CET",
+      action: "Call Now",
+      color: "bg-purple-500"
+    },
+    {
+      icon: <Headphones className="w-6 h-6" />,
+      title: "Premium Support",
+      description: "Priority support for VIP users",
+      availability: "24/7 Priority Queue",
+      action: "Access VIP",
+      color: "bg-orange-500"
+    }
+  ];
+
+  const offices = [
+    {
+      city: "Vienna",
+      country: "Austria",
+      address: "Campus 2, Jakov-Lind-Straße 2, 1020 Vienna",
+      phone: "+43 1 123 456 789",
+      type: "Headquarters"
+    },
+    {
+      city: "London",
+      country: "United Kingdom", 
+      address: "25 Old Broad Street, London EC2N 1HN",
+      phone: "+44 20 7123 4567",
+      type: "European Office"
+    },
+    {
+      city: "New York",
+      country: "United States",
+      address: "1 World Trade Center, New York, NY 10007",
+      phone: "+1 (555) 123-4567",
+      type: "Americas Office"
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-24 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-8">
+              <Headphones className="w-4 h-4" />
+              <span>🌍 24/7 Global Support</span>
+            </div>
+
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+              Get in Touch
+              <span className="text-blue-600 block mt-2">We're here to help</span>
+            </h1>
+
+            <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
+              Have questions about trading, need technical support, or want to learn more about our services? 
+              Our expert team is ready to assist you.
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-blue-500" />
+                Average response: 5 minutes
+              </div>
+              <div className="flex items-center">
+                <Users className="w-4 h-4 mr-2 text-green-500" />
+                2M+ customers helped
+              </div>
+              <div className="flex items-center">
+                <Award className="w-4 h-4 mr-2 text-purple-500" />
+                99.8% satisfaction rate
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Methods */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Preferred Contact Method</h2>
+            <p className="text-lg text-gray-600">We offer multiple ways to get in touch based on your needs</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {contactMethods.map((method, index) => (
+              <Card key={index} className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                <CardContent className="p-6 text-center">
+                  <div className={`w-16 h-16 ${method.color} rounded-full flex items-center justify-center mx-auto mb-4 text-white`}>
+                    {method.icon}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{method.title}</h3>
+                  <p className="text-gray-600 text-sm mb-3">{method.description}</p>
+                  <Badge variant="outline" className="mb-4">{method.availability}</Badge>
+                  <Button className="w-full">{method.action}</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Contact Form */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Send className="w-5 h-5" />
+                  Send us a Message
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isSubmitted ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Message Sent!</h3>
+                    <p className="text-gray-600">Thank you for contacting us. We'll get back to you within 2 hours.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          placeholder="Your full name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          placeholder="your.email@example.com"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="category">Category</Label>
+                      <select
+                        id="category"
+                        value={formData.category}
+                        onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      >
+                        <option value="general">General Inquiry</option>
+                        <option value="technical">Technical Support</option>
+                        <option value="trading">Trading Questions</option>
+                        <option value="account">Account Issues</option>
+                        <option value="partnership">Partnership</option>
+                        <option value="press">Press & Media</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="subject">Subject</Label>
+                      <Input
+                        id="subject"
+                        value={formData.subject}
+                        onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                        placeholder="Brief description of your inquiry"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="message">Message</Label>
+                      <Textarea
+                        id="message"
+                        value={formData.message}
+                        onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        placeholder="Tell us how we can help you..."
+                        rows={5}
+                        required
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Message
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Office Locations */}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Our Global Offices</h3>
+              <div className="space-y-6">
+                {offices.map((office, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{office.city}, {office.country}</h4>
+                          <Badge variant="outline" className="mt-1">{office.type}</Badge>
+                        </div>
+                        <MapPin className="w-5 h-5 text-gray-500" />
+                      </div>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <p className="flex items-start">
+                          <MapPin className="w-4 h-4 mr-2 mt-0.5 text-gray-400" />
+                          {office.address}
+                        </p>
+                        <p className="flex items-center">
+                          <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                          {office.phone}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Quick Links */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Quick Links</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <a href="/help-center" className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                      <span>Help Center & FAQ</span>
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </a>
+                    <a href="/api" className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                      <span>API Documentation</span>
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </a>
+                    <a href="/security" className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                      <span>Security & Trust</span>
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </a>
+                    <a href="/careers" className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                      <span>Join Our Team</span>
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

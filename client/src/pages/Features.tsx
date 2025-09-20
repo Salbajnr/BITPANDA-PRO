@@ -798,3 +798,319 @@ export default function Features() {
     </div>
   );
 }
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { 
+  Shield, TrendingUp, Zap, Users, BarChart3, Globe,
+  Smartphone, Lock, Award, CheckCircle, ArrowRight,
+  CreditCard, Wallet, Bell, Settings, BookOpen, Headphones
+} from 'lucide-react';
+import Navbar from '../components/Navbar';
+
+export default function Features() {
+  const mainFeatures = [
+    {
+      icon: <TrendingUp className="w-8 h-8" />,
+      title: "Advanced Trading",
+      description: "Professional trading tools with real-time charts, technical analysis, and order types",
+      features: ["Real-time market data", "Advanced charting", "Multiple order types", "Portfolio analytics"],
+      color: "blue"
+    },
+    {
+      icon: <Shield className="w-8 h-8" />,
+      title: "Bank-Grade Security",
+      description: "Multi-layer security protocols to protect your assets and personal information",
+      features: ["Two-factor authentication", "Cold storage", "Encrypted data", "Regular audits"],
+      color: "green"
+    },
+    {
+      icon: <Smartphone className="w-8 h-8" />,
+      title: "Mobile Trading",
+      description: "Trade on the go with our fully-featured mobile application",
+      features: ["iOS & Android apps", "Mobile-optimized UI", "Push notifications", "Biometric login"],
+      color: "purple"
+    },
+    {
+      icon: <BarChart3 className="w-8 h-8" />,
+      title: "Portfolio Analytics",
+      description: "Comprehensive portfolio tracking and performance analysis tools",
+      features: ["Performance tracking", "Risk analysis", "Asset allocation", "Tax reporting"],
+      color: "orange"
+    }
+  ];
+
+  const tradingFeatures = [
+    {
+      title: "Spot Trading",
+      description: "Buy and sell cryptocurrencies at current market prices",
+      icon: <Zap className="w-6 h-6" />
+    },
+    {
+      title: "Margin Trading",
+      description: "Amplify your trading power with leverage up to 5x",
+      icon: <TrendingUp className="w-6 h-6" />
+    },
+    {
+      title: "DCA Orders",
+      description: "Dollar-cost averaging for consistent investment strategies",
+      icon: <BarChart3 className="w-6 h-6" />
+    },
+    {
+      title: "Stop-Loss Orders",
+      description: "Protect your investments with automated risk management",
+      icon: <Shield className="w-6 h-6" />
+    }
+  ];
+
+  const securityFeatures = [
+    {
+      title: "Multi-Signature Wallets",
+      description: "Enhanced security with multiple signature requirements",
+      status: "Active"
+    },
+    {
+      title: "Cold Storage",
+      description: "95% of funds stored offline for maximum security",
+      status: "Active"
+    },
+    {
+      title: "Insurance Coverage",
+      description: "Digital asset insurance up to €100M",
+      status: "Active"
+    },
+    {
+      title: "Regular Security Audits",
+      description: "Third-party security assessments and penetration testing",
+      status: "Active"
+    }
+  ];
+
+  const supportedAssets = [
+    { name: "Bitcoin", symbol: "BTC", type: "Cryptocurrency" },
+    { name: "Ethereum", symbol: "ETH", type: "Cryptocurrency" },
+    { name: "Stocks", symbol: "AAPL, TSLA, etc.", type: "Traditional Asset" },
+    { name: "ETFs", symbol: "SPY, QQQ, etc.", type: "Fund" },
+    { name: "Gold", symbol: "GOLD", type: "Precious Metal" },
+    { name: "Silver", symbol: "SILVER", type: "Precious Metal" }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-24 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-8">
+              <Zap className="w-4 h-4" />
+              <span>🚀 Platform Features</span>
+            </div>
+
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+              Powerful Features
+              <span className="text-blue-600 block mt-2">Built for Professional Trading</span>
+            </h1>
+
+            <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
+              Discover the comprehensive suite of tools and features that make BITPANDA PRO 
+              the preferred choice for serious crypto traders and investors.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4">
+                <ArrowRight className="w-5 h-5 mr-2" />
+                Start Trading
+              </Button>
+              <Button variant="outline" size="lg" className="border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white px-8 py-4">
+                <BookOpen className="w-5 h-5 mr-2" />
+                View Documentation
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Features Grid */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Core Features</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Everything you need for professional cryptocurrency trading and investment
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {mainFeatures.map((feature, index) => (
+              <Card key={index} className="border border-gray-200 hover:border-blue-300 transition-all duration-200 hover:shadow-lg">
+                <CardContent className="p-8">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${
+                      feature.color === 'blue' ? 'bg-blue-100 text-blue-600' :
+                      feature.color === 'green' ? 'bg-green-100 text-green-600' :
+                      feature.color === 'purple' ? 'bg-purple-100 text-purple-600' :
+                      'bg-orange-100 text-orange-600'
+                    }`}>
+                      {feature.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+                      <p className="text-gray-600 mb-4">{feature.description}</p>
+                      <div className="space-y-2">
+                        {feature.features.map((item, idx) => (
+                          <div key={idx} className="flex items-center text-sm text-gray-600">
+                            <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trading Features */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Trading Tools</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Advanced trading features for every level of trader
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {tradingFeatures.map((feature, index) => (
+              <Card key={index} className="text-center border border-gray-200 hover:border-blue-300 transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 text-blue-600">
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-600">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security Features */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Enterprise-Grade Security
+              </h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Your security is our top priority. We employ multiple layers of protection 
+                to ensure your funds and data are always safe.
+              </p>
+
+              <div className="space-y-4">
+                {securityFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200">
+                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-gray-900">{feature.title}</h4>
+                        <Badge className="bg-green-100 text-green-800">{feature.status}</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="bg-gradient-to-br from-green-500 to-blue-600 rounded-3xl p-8 text-white">
+                <Shield className="w-16 h-16 mb-6 opacity-80" />
+                <h3 className="text-2xl font-bold mb-4">Regulated & Compliant</h3>
+                <p className="opacity-90 mb-6">
+                  Licensed by the Austrian Financial Market Authority (FMA) and fully 
+                  compliant with European Union regulations.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4" />
+                    <span className="text-sm">MiFID II Compliant</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    <span className="text-sm">GDPR Compliant</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    <span className="text-sm">PCI DSS Certified</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Supported Assets */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Supported Assets</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Trade a diverse range of digital and traditional assets
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {supportedAssets.map((asset, index) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                <div>
+                  <h4 className="font-semibold text-gray-900">{asset.name}</h4>
+                  <p className="text-sm text-gray-600">{asset.symbol}</p>
+                </div>
+                <Badge variant="outline">{asset.type}</Badge>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <p className="text-gray-600 mb-4">And many more assets available on the platform</p>
+            <Button variant="outline" className="border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white">
+              View All Assets
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-blue-600">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to Get Started?</h2>
+          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+            Join millions of users who trust BITPANDA PRO for their cryptocurrency 
+            trading and investment needs.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-12 py-4">
+              <ArrowRight className="w-5 h-5 mr-2" />
+              Start Trading Now
+            </Button>
+            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600 px-12 py-4">
+              <Headphones className="w-5 h-5 mr-2" />
+              Contact Sales
+            </Button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
