@@ -707,6 +707,10 @@ export class DatabaseStorage implements IStorage {
       return articles;
     } catch (error) {
       console.error('Error fetching news articles:', error);
+      // Return empty array if table doesn't exist
+      if (error?.code === '42P01') {
+        return [];
+      }
       throw error;
     }
   }
@@ -874,6 +878,10 @@ export class DatabaseStorage implements IStorage {
       return alerts;
     } catch (error) {
       console.error("Error getting active price alerts:", error);
+      // Return empty array if table doesn't exist
+      if (error?.code === '42P01') {
+        return [];
+      }
       throw error;
     }
   }
@@ -891,6 +899,10 @@ export class DatabaseStorage implements IStorage {
       return result;
     } catch (error) {
       console.error('Error fetching price alerts:', error);
+      // Return empty array if table doesn't exist
+      if (error?.code === '42P01') {
+        return [];
+      }
       return [];
     }
   }
@@ -923,6 +935,10 @@ export class DatabaseStorage implements IStorage {
       return userNotifications;
     } catch (error) {
       console.error("Error getting notifications:", error);
+      // Return empty array if table doesn't exist
+      if (error?.code === '42P01') {
+        return [];
+      }
       return [];
     }
   }

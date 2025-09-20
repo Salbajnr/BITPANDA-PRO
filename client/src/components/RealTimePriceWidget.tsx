@@ -1,218 +1,195 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { useWebSocket, type CryptoPrice } from '@/hooks/useWebSocket';
-import { TrendingUp, TrendingDown, Activity, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { getCryptoLogo } from './CryptoLogos';
+
+interface CryptoPriceData {
+  symbol: string;
+  name: string;
+  price: number;
+  change24h: number;
+  volume24h: number;
+  marketCap: number;
+}
 
 interface RealTimePriceWidgetProps {
   symbols?: string[];
-  title?: string;
-  showChart?: boolean;
   maxItems?: number;
-  className?: string;
 }
 
-const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
-  symbols = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL'],
-  title = 'Live Prices',
-  showChart = true,
-  maxItems = 5,
-  className = ''
-}) => {
-  const [displayPrices, setDisplayPrices] = useState<CryptoPrice[]>([]);
+export function RealTimePriceWidget({
+  symbols = ['bitcoin', 'ethereum', 'binancecoin'],
+  maxItems = 6
+}: RealTimePriceWidgetProps) {
+  const [prices, setPrices] = useState<CryptoPriceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Stable memoization using string comparison
-  const symbolsKey = useMemo(() => symbols.sort().join(','), [symbols]);
+  const fetchPrices = useCallback(async () => {
+    try {
+      setError(null);
+      const symbolsString = symbols.join(',');
+      const response = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${symbolsString}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
+      );
 
-  const { 
-    isConnected, 
-    isConnecting, 
-    connectionError, 
-    prices, 
-    lastUpdate, 
-    connect, 
-    getPrice 
-  } = useWebSocket({
-    symbols: symbols,
-    autoConnect: true,
-    reconnectAttempts: 5,
-    reconnectInterval: 3000
-  });
+      if (!response.ok) {
+        throw new Error('Failed to fetch prices');
+      }
 
-  // Update display prices only when prices data actually changes
-  useEffect(() => {
-    if (prices && prices.length > 0) {
-      const filteredPrices = symbols
-        .map(symbol => getPrice(symbol))
-        .filter(Boolean) as CryptoPrice[];
+      const data = await response.json();
 
-      setDisplayPrices(filteredPrices.slice(0, maxItems));
+      const priceData: CryptoPriceData[] = Object.entries(data).map(([id, info]: [string, any]) => ({
+        symbol: id,
+        name: id.charAt(0).toUpperCase() + id.slice(1),
+        price: info.usd || 0,
+        change24h: info.usd_24h_change || 0,
+        volume24h: info.usd_24h_vol || 0,
+        marketCap: info.usd_market_cap || 0,
+      }));
+
+      setPrices(priceData.slice(0, maxItems));
+    } catch (err) {
+      console.error('Error fetching crypto prices:', err);
+      setError('Failed to load prices');
+      // Set fallback data
+      setPrices([
+        {
+          symbol: 'bitcoin',
+          name: 'Bitcoin',
+          price: 45000,
+          change24h: 2.5,
+          volume24h: 25000000000,
+          marketCap: 875000000000,
+        },
+        {
+          symbol: 'ethereum',
+          name: 'Ethereum',
+          price: 3200,
+          change24h: -1.2,
+          volume24h: 15000000000,
+          marketCap: 385000000000,
+        },
+        {
+          symbol: 'binancecoin',
+          name: 'BNB',
+          price: 420,
+          change24h: 0.8,
+          volume24h: 2000000000,
+          marketCap: 62000000000,
+        },
+      ].slice(0, maxItems));
+    } finally {
+      setLoading(false);
     }
-  }, [prices, maxItems, symbolsKey]); // Use symbolsKey instead of symbols array
+  }, [symbols, maxItems]);
 
-  const formatPrice = (price: number) => {
+  useEffect(() => {
+    fetchPrices();
+
+    // Set up interval for real-time updates
+    const interval = setInterval(fetchPrices, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [fetchPrices]);
+
+  const formatPrice = (price: number): string => {
     if (price >= 1000) {
-      return `$${price.toLocaleString(undefined, { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
-      })}`;
+      return `$${price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
     } else if (price >= 1) {
-      return `$${price.toFixed(4)}`;
+      return `$${price.toFixed(2)}`;
     } else {
       return `$${price.toFixed(6)}`;
     }
   };
 
-  const formatChange = (change: number) => {
-    const sign = change >= 0 ? '+' : '';
-    return `${sign}${change.toFixed(2)}%`;
+  const formatVolume = (volume: number): string => {
+    if (volume >= 1e9) {
+      return `$${(volume / 1e9).toFixed(1)}B`;
+    } else if (volume >= 1e6) {
+      return `$${(volume / 1e6).toFixed(1)}M`;
+    } else {
+      return `$${(volume / 1e3).toFixed(1)}K`;
+    }
   };
 
-  const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-500';
-    if (change < 0) return 'text-red-500';
-    return 'text-gray-500';
-  };
-
-  const getChangeIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="w-3 h-3" />;
-    if (change < 0) return <TrendingDown className="w-3 h-3" />;
-    return <Activity className="w-3 h-3" />;
-  };
-
-  const ConnectionStatus = () => (
-    <div className="flex items-center space-x-2 text-sm">
-      {isConnected ? (
-        <>
-          <Wifi className="w-4 h-4 text-green-500" />
-          <span className="text-green-500">Live</span>
-        </>
-      ) : isConnecting ? (
-        <>
-          <RefreshCw className="w-4 h-4 text-yellow-500 animate-spin" />
-          <span className="text-yellow-500">Connecting...</span>
-        </>
-      ) : (
-        <>
-          <WifiOff className="w-4 h-4 text-red-500" />
-          <span className="text-red-500">Offline</span>
-        </>
-      )}
-    </div>
-  );
-
-  const PriceRow = ({ crypto }: { crypto: CryptoPrice }) => (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
-      <div className="flex items-center space-x-3">
-        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-          {getCryptoLogo(crypto.symbol, 'w-6 h-6')}
-        </div>
-        <div>
-          <div className="font-medium text-sm">{crypto.symbol}</div>
-          <div className="text-xs text-gray-500">{crypto.name}</div>
-        </div>
-      </div>
-
-      <div className="text-right">
-        <div className="font-medium text-sm">
-          {formatPrice(crypto.price)}
-        </div>
-        <div className={`flex items-center space-x-1 text-xs ${getChangeColor(crypto.change_24h)}`}>
-          {getChangeIcon(crypto.change_24h)}
-          <span>{formatChange(crypto.change_24h)}</span>
-        </div>
-      </div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Live Prices
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Array(3).fill(0).map((_, i) => (
+              <div key={i} className="animate-pulse flex items-center gap-3">
+                <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-300 rounded w-20 mb-2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-16"></div>
+                </div>
+                <div className="text-right">
+                  <div className="h-4 bg-gray-300 rounded w-16 mb-2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-12"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className={`${className}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          <ConnectionStatus />
-        </div>
-        {lastUpdate && (
-          <div className="text-xs text-gray-500">
-            Last updated: {lastUpdate.toLocaleTimeString()}
-          </div>
-        )}
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Live Prices
+          {error && <Badge variant="destructive" className="ml-2">Error</Badge>}
+        </CardTitle>
       </CardHeader>
-
-      <CardContent className="pt-0">
-        {connectionError && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-red-600 dark:text-red-400">
-                {connectionError}
-              </span>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={connect}
-                className="ml-2"
-              >
-                Retry
-              </Button>
+      <CardContent>
+        <div className="space-y-4">
+          {prices.map((crypto) => (
+            <div key={crypto.symbol} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              <div className="flex items-center gap-3">
+                <img
+                  src={getCryptoLogo(crypto.symbol)}
+                  alt={crypto.name}
+                  className="w-8 h-8 rounded-full"
+                  onError={(e) => {
+                    e.currentTarget.src = '/src/assets/logo.jpeg';
+                  }}
+                />
+                <div>
+                  <div className="font-medium">{crypto.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Vol: {formatVolume(crypto.volume24h)}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-bold">{formatPrice(crypto.price)}</div>
+                <div className="flex items-center gap-1">
+                  {crypto.change24h >= 0 ? (
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                  )}
+                  <span className={`text-sm ${crypto.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {crypto.change24h >= 0 ? '+' : ''}{crypto.change24h.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-
-        <div className="space-y-0">
-          {displayPrices.length > 0 ? (
-            displayPrices.map((crypto) => (
-              <PriceRow key={crypto.symbol} crypto={crypto} />
-            ))
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              {isConnecting ? (
-                <>
-                  <RefreshCw className="w-8 h-8 mx-auto mb-2 animate-spin" />
-                  <p>Loading price data...</p>
-                </>
-              ) : (
-                <>
-                  <Activity className="w-8 h-8 mx-auto mb-2" />
-                  <p>No price data available</p>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={connect}
-                    className="mt-2"
-                  >
-                    Connect
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
+          ))}
         </div>
-
-        {displayPrices.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <span className="text-gray-500">Tracked Symbols:</span>
-                <span className="ml-1 font-medium">{displayPrices.length}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Status:</span>
-                <Badge 
-                  variant={isConnected ? "default" : "secondary"} 
-                  className="ml-1 text-xs"
-                >
-                  {isConnected ? 'Live' : 'Offline'}
-                </Badge>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
-};
-
-export default RealTimePriceWidget;
+}

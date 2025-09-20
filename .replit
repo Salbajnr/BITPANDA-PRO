@@ -27,7 +27,7 @@ externalPort = 3000
 PORT = "5000"
 
 [workflows]
-runButton = "Project"
+runButton = "Start Fixed Server"
 
 [[workflows.workflow]]
 name = "Project"
