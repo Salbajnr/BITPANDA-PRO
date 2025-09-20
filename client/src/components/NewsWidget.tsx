@@ -12,7 +12,7 @@ import {
   Newspaper,
   ArrowRight
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'wouter';
 import { newsApi } from '@/services/newsApi';
 
 interface NewsWidgetProps {
