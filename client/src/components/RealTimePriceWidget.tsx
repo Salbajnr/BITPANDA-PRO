@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
@@ -33,14 +32,14 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
           { symbol: 'ADA', name: 'Cardano', price: 0.485, change24h: 5.67 },
           { symbol: 'SOL', name: 'Solana', price: 98.75, change24h: -2.15 }
         ];
-        
+
         // Add some randomness to simulate real-time updates
         const updatedPrices = mockPrices.map(price => ({
           ...price,
           price: price.price * (1 + (Math.random() - 0.5) * 0.02),
           change24h: price.change24h + (Math.random() - 0.5) * 2
         }));
-        
+
         setPrices(updatedPrices.filter(p => symbols.includes(p.symbol)));
       } catch (error) {
         console.error('Error fetching prices:', error);
@@ -118,4 +117,5 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
   );
 };
 
+export { RealTimePriceWidget };
 export default RealTimePriceWidget;

@@ -9,7 +9,6 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
 import Landing from "@/pages/Landing";
-import LandingNew from "@/pages/LandingNew";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -145,7 +144,7 @@ export default function App() {
         <LanguageProvider>
           <Switch>
             {/* Public Routes */}
-            <Route path="/" component={() => <PublicLayout><LandingNew /></PublicLayout>} />
+            <Route path="/" component={() => <PublicLayout><Landing /></PublicLayout>} />
             <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
             <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
             <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
