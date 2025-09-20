@@ -11,7 +11,8 @@ import {
   Wallet, TrendingUp, TrendingDown, ArrowUp, ArrowDown,
   BarChart3, PieChart, Bell, DollarSign, Activity, 
   Eye, Star, Plus, Target, Clock, Users, Globe, 
-  Settings, LogOut, Menu, X, Search, Filter, RefreshCw
+  Settings, LogOut, Menu, X, Search, Filter, RefreshCw,
+  Shield, FileText
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -72,10 +73,19 @@ function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     { id: "/portfolio", label: "Portfolio", icon: Wallet },
     { id: "/analytics", label: "Analytics", icon: TrendingUp },
     { id: "/trading", label: "Trading", icon: Activity },
+    { id: "/advanced-trading", label: "Advanced Trading", icon: Target },
     { id: "/transactions", label: "Transactions", icon: Clock },
+    { id: "/orders", label: "Orders", icon: Activity },
     { id: "/watchlist", label: "Watchlist", icon: Eye },
+    { id: "/alerts", label: "Price Alerts", icon: Bell },
+    { id: "/deposits", label: "Deposits", icon: DollarSign },
+    { id: "/withdrawals", label: "Withdrawals", icon: DollarSign },
     { id: "/markets", label: "Markets", icon: Globe },
     { id: "/news", label: "News", icon: Globe },
+    { id: "/risk-management", label: "Risk Management", icon: Shield },
+    { id: "/tax-reporting", label: "Tax Reporting", icon: FileText },
+    { id: "/api-management", label: "API Management", icon: Settings },
+    { id: "/notifications", label: "Notifications", icon: Bell },
     { id: "/settings", label: "Settings", icon: Settings },
   ];
 
@@ -92,7 +102,7 @@ function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-slate-200 dark:border-slate-700">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
-                <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded-lg" />
+                <img src="/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded-lg" />
               </div>
               <div className="min-w-0">
                 <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">BITPANDA PRO</h1>
@@ -193,7 +203,7 @@ function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center space-x-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
-                  <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded" />
+                  <img src="/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded" />
                 </div>
                 <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">BITPANDA PRO</h1>
               </div>

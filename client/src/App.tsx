@@ -1,5 +1,4 @@
-
-import { Switch, Route } from "wouter";
+import { Route, Switch, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +8,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import Landing from "@/pages/Landing";
+import LandingNew from "@/pages/LandingNew";
+import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Markets from "@/pages/Markets";
@@ -26,7 +27,6 @@ import LiveSupport from "@/pages/LiveSupport";
 import Security from "./pages/Security";
 import Orders from "./pages/Orders";
 import NotFound from "@/pages/not-found";
-import Auth from "@/pages/Auth";
 import AdminLogin from "@/pages/AdminLogin";
 import Academy from "@/pages/Academy";
 import News from "@/pages/News";
@@ -42,6 +42,26 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import OtpVerification from "@/pages/OtpVerification";
 import ResetPassword from "@/pages/ResetPassword";
 import { lazy, Suspense } from 'react';
+
+// Additional pages imported in the changes
+import Analytics from "@/pages/Analytics";
+import Alerts from "@/pages/Alerts";
+import Notifications from "@/pages/Notifications";
+import TaxReporting from "@/pages/TaxReporting";
+import RiskManagement from "@/pages/RiskManagement";
+import AdvancedTrading from "@/pages/AdvancedTrading";
+import APIManagement from "@/pages/APIManagement";
+import MetalsTrading from "@/pages/MetalsTrading";
+import Commodities from "@/pages/Commodities";
+import DualMarkets from "@/pages/DualMarkets";
+
+// Admin Pages
+import AdminNewsManagement from "@/pages/AdminNewsManagement";
+import AdminBalanceManagement from "@/pages/AdminBalanceManagement";
+import AdminDepositManagement from "@/pages/AdminDepositManagement";
+import AdminChatManagement from "@/pages/AdminChatManagement";
+import AdminMetalsManagement from "@/pages/AdminMetalsManagement";
+
 
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
 const MetalsTrading = lazy(() => import("./pages/MetalsTrading"));
@@ -74,283 +94,136 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 // Layout wrapper for authenticated pages (no navbar)
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-background">
       {children}
     </div>
   );
 }
 
-function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
 
-  // Show loading spinner while auth is being determined
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  return (
-    <Switch>
-      {/* Public auth routes - always accessible */}
-      <Route path="/auth">
-        <PublicLayout>
-          <Auth />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/forgot-password">
-        <PublicLayout>
-          <ForgotPassword />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/verify-otp/:type/:email">
-        {(params) => <OtpVerification {...params} />}
-      </Route>
-      
-      <Route path="/reset-password/:token">
-        {(params) => <ResetPassword {...params} />}
-      </Route>
+  if (!user) {
+    return <Redirect to="/auth" />;
+  }
 
-      {/* Public informational routes - always accessible */}
-      <Route path="/academy">
-        <PublicLayout>
-          <Academy />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/news">
-        <PublicLayout>
-          <News />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/about">
-        <PublicLayout>
-          <About />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/careers">
-        <PublicLayout>
-          <Careers />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/help-center">
-        <PublicLayout>
-          <HelpCenter />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/stocks">
-        <PublicLayout>
-          <Stocks />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/etfs">
-        <PublicLayout>
-          <Etfs />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/investor-protection">
-        <PublicLayout>
-          <InvestorProtection />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/api">
-        <PublicLayout>
-          <API />
-        </PublicLayout>
-      </Route>
-      
-      <Route path="/ecosystem">
-        <PublicLayout>
-          <Ecosystem />
-        </PublicLayout>
-      </Route>
+  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+}
 
-      {/* Lazy loaded public routes */}
-      <Route path="/precious-metals">
-        <Suspense fallback={<LoadingSpinner />}>
-          <PreciousMetals />
-        </Suspense>
-      </Route>
-      
-      <Route path="/metals-trading">
-        <Suspense fallback={<LoadingSpinner />}>
-          <MetalsTrading />
-        </Suspense>
-      </Route>
-      
-      <Route path="/commodities">
-        <Suspense fallback={<LoadingSpinner />}>
-          <Commodities />
-        </Suspense>
-      </Route>
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
 
-      {/* Authenticated routes */}
-      {isAuthenticated ? (
-        <>
-          <Route path="/" nest>
-            <AuthenticatedLayout>
-              <Dashboard />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/dashboard">
-            <AuthenticatedLayout>
-              <Dashboard />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/admin" nest>
-            <AuthenticatedLayout>
-              <AdminDashboard />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/markets">
-            <AuthenticatedLayout>
-              <Markets />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/trading">
-            <AuthenticatedLayout>
-              <Trading />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/deposits">
-            <AuthenticatedLayout>
-              <Deposits />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/withdrawals">
-            <AuthenticatedLayout>
-              <Withdrawals />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/portfolio">
-            <AuthenticatedLayout>
-              <PortfolioTracker />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/analytics">
-            <AuthenticatedLayout>
-              <PortfolioAnalytics />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/settings">
-            <AuthenticatedLayout>
-              <UserSettings />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/transactions">
-            <AuthenticatedLayout>
-              <TransactionHistory />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/watchlist">
-            <AuthenticatedLayout>
-              <Watchlist />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/help">
-            <AuthenticatedLayout>
-              <Help />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/support">
-            <AuthenticatedLayout>
-              <LiveSupport />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/security">
-            <AuthenticatedLayout>
-              <Security />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/orders">
-            <AuthenticatedLayout>
-              <Orders />
-            </AuthenticatedLayout>
-          </Route>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-          {/* Admin routes with lazy loading */}
-          <Route path="/admin/news">
-            <Suspense fallback={<LoadingSpinner />}>
-              <AdminNewsManagement />
-            </Suspense>
-          </Route>
-          
-          <Route path="/admin/metals">
-            <Suspense fallback={<LoadingSpinner />}>
-              <AdminMetalsManagement />
-            </Suspense>
-          </Route>
-          
-          <Route path="/admin/withdrawals">
-            <AuthenticatedLayout>
-              <AdminWithdrawalManagement />
-            </AuthenticatedLayout>
-          </Route>
-          
-          <Route path="/admin/chat">
-            <Suspense fallback={<LoadingSpinner />}>
-              <AdminChatManagement />
-            </Suspense>
-          </Route>
-        </>
-      ) : (
-        <>
-          {/* Landing page for non-authenticated users */}
-          <Route path="/" nest>
-            <PublicLayout>
-              <Landing />
-            </PublicLayout>
-          </Route>
-          
-          <Route path="/admin">
-            <PublicLayout>
-              <AdminLogin />
-            </PublicLayout>
-          </Route>
-        </>
-      )}
+  if (!user || user.role !== 'admin') {
+    return <Redirect to="/dashboard" />;
+  }
 
-      {/* 404 route - this should be last */}
-      <Route>
-        <NotFound />
-      </Route>
-    </Switch>
-  );
+  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
 }
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <ThemeProvider>
-          <TooltipProvider>
-            <Router />
-            <Toaster />
-          </TooltipProvider>
-        </ThemeProvider>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <Switch>
+            {/* Public Routes */}
+            <Route path="/" component={LandingNew} />
+            <Route path="/home" component={Landing} />
+            <Route path="/auth" component={Auth} />
+            <Route path="/markets" component={Markets} />
+            <Route path="/news" component={News} />
+            <Route path="/about" component={About} />
+            <Route path="/features" component={Features} />
+            <Route path="/help" component={Help} />
+            <Route path="/contact" component={Contact} />
+            <Route path="/privacy" component={Privacy} />
+            <Route path="/terms" component={Terms} />
+
+            {/* Investment Routes */}
+            <Route path="/stocks" component={Stocks} />
+            <Route path="/etfs" component={Etfs} />
+            <Route path="/crypto-indices" component={CryptoIndices} />
+            <Route path="/precious-metals" component={PreciousMetals} />
+            <Route path="/savings-plans" component={SavingsPlans} />
+            <Route path="/metals-trading" component={MetalsTrading} />
+            <Route path="/commodities" component={Commodities} />
+            <Route path="/dual-markets" component={DualMarkets} />
+
+            {/* Information Routes */}
+            <Route path="/api-docs" component={API} />
+            <Route path="/press" component={Press} />
+            <Route path="/imprint" component={Imprint} />
+            <Route path="/careers" component={Careers} />
+            <Route path="/academy" component={Academy} />
+            <Route path="/help-center" component={HelpCenter} />
+            <Route path="/user-agreement" component={UserAgreement} />
+            <Route path="/tutorials" component={Tutorials} />
+            <Route path="/security" component={Security} />
+            <Route path="/investor-protection" component={InvestorProtection} />
+            <Route path="/forgot-password" component={ForgotPassword} />
+            <Route path="/verify-otp/:type/:email" component={OtpVerification} />
+            <Route path="/reset-password/:token" component={ResetPassword} />
+            <Route path="/api" component={API} />
+            <Route path="/ecosystem" component={Ecosystem} />
+
+            {/* Protected Dashboard Routes */}
+            <Route path="/dashboard" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/portfolio" component={() => <ProtectedRoute><PortfolioTracker /></ProtectedRoute>} />
+            <Route path="/analytics" component={() => <ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/trading" component={() => <ProtectedRoute><Trading /></ProtectedRoute>} />
+            <Route path="/advanced-trading" component={() => <ProtectedRoute><AdvancedTrading /></ProtectedRoute>} />
+            <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+            <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />
+            <Route path="/watchlist" component={() => <ProtectedRoute><Watchlist /></ProtectedRoute>} />
+            <Route path="/alerts" component={() => <ProtectedRoute><Alerts /></ProtectedRoute>} />
+            <Route path="/notifications" component={() => <ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/deposits" component={() => <ProtectedRoute><Deposits /></ProtectedRoute>} />
+            <Route path="/withdrawals" component={() => <ProtectedRoute><Withdrawals /></ProtectedRoute>} />
+            <Route path="/tax-reporting" component={() => <ProtectedRoute><TaxReporting /></ProtectedRoute>} />
+            <Route path="/risk-management" component={() => <ProtectedRoute><RiskManagement /></ProtectedRoute>} />
+            <Route path="/api-management" component={() => <ProtectedRoute><APIManagement /></ProtectedRoute>} />
+            <Route path="/settings" component={() => <ProtectedRoute><UserSettings /></ProtectedRoute>} />
+
+            {/* Admin Routes */}
+            <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/dashboard" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/users" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/news" component={() => <AdminRoute><AdminNewsManagement /></AdminRoute>} />
+            <Route path="/admin/news-management" component={() => <AdminRoute><AdminNewsManagement /></AdminRoute>} />
+            <Route path="/admin/balances" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
+            <Route path="/admin/balance-management" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
+            <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
+            <Route path="/admin/deposit-management" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
+            <Route path="/admin/withdrawals" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
+            <Route path="/admin/withdrawal-management" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
+            <Route path="/admin/chat" component={() => <AdminRoute><AdminChatManagement /></AdminRoute>} />
+            <Route path="/admin/chat-management" component={() => <AdminRoute><AdminChatManagement /></AdminRoute>} />
+            <Route path="/admin/metals" component={() => <AdminRoute><AdminMetalsManagement /></AdminRoute>} />
+            <Route path="/admin/metals-management" component={() => <AdminRoute><AdminMetalsManagement /></AdminRoute>} />
+
+            {/* 404 Route */}
+            <Route component={NotFound} />
+          </Switch>
+
+          <Toaster />
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

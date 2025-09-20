@@ -17,7 +17,8 @@ import {
   Search, Plus, ArrowUp, ArrowDown, CheckSquare, Trash2,
   Activity, MessageCircle, PieChart, Clock, ChevronLeft, ChevronRight,
   MoreHorizontal, Sun, Moon, Ban, RotateCcw, Eye, Download,
-  AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard, Save, UserPlus
+  AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard, Save, UserPlus,
+  FileText, Banknote, Award
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
 
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('dashboard');
-  
+
   const [analytics, setAnalytics] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -369,10 +370,7 @@ export default function AdminDashboard() {
                 </h1>
                 <p className="text-slate-500">Advanced admin controls and monitoring</p>
               </div>
-              <div className="flex items-center space-x-4">
-                <Badge className="bg-green-100 text-green-800">
-                  System Online
-                </Badge>
+              <div className="flex space-x-4">
                 <Button
                   variant="outline"
                   size="sm"
@@ -382,6 +380,17 @@ export default function AdminDashboard() {
                   <RefreshCw className="h-4 w-4" />
                   Refresh Data
                 </Button>
+                <div className="hidden md:flex items-center space-x-2">
+                  <a href="/admin/balance-management" className="text-sm bg-orange-100 text-orange-800 px-3 py-1 rounded-lg hover:bg-orange-200 transition-colors">
+                    Balance Mgmt
+                  </a>
+                  <a href="/admin/news-management" className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors">
+                    News Mgmt
+                  </a>
+                  <a href="/admin/withdrawal-management" className="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-lg hover:bg-purple-200 transition-colors">
+                    Withdrawals
+                  </a>
+                </div>
               </div>
             </div>
           </header>
