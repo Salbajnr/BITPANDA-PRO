@@ -235,6 +235,13 @@ export interface IStorage {
   createLoan(data: any): Promise<any>;
   getLoan(loanId: string, userId: string): Promise<any>;
   updateLoan(loanId: string, updates: any): Promise<any>;
+
+  // Trading System Enhancements
+  validateOrder(orderData: any): Promise<{ isValid: boolean; message?: string }>;
+  calculateTradingFees(amount: number, type: string, orderType: string): Promise<number>;
+  executeTrade(tradeData: any): Promise<any>;
+  getOpenOrders(userId: string): Promise<any[]>;
+  getOrderHistory(userId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -429,9 +436,17 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async createTransaction(transactionData: InsertTransaction): Promise<Transaction> {
+  // Updated createTransaction method with new fields for enhanced trading
+  async createTransaction(data: InsertTransaction): Promise<Transaction> {
     const db = this.ensureDb();
-    const [transaction] = await db.insert(transactions).values(transactionData).returning();
+    const [transaction] = await db.insert(transactions).values({
+      ...data,
+      fee: data.fee || '0',
+      orderType: data.orderType || 'market',
+      stopLoss: data.stopLoss !== undefined ? data.stopLoss : null,
+      takeProfit: data.takeProfit !== undefined ? data.takeProfit : null,
+      slippage: data.slippage || '0.5'
+    }).returning();
     return transaction;
   }
 
@@ -2267,27 +2282,51 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void> {
+  async logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, ipAddress: string, userAgent: string }): Promise<void> {
     try {
-      // Mock admin action logging - in real app, store in audit table
-      console.log('Admin action logged:', action);
+      // This would save to an audit_logs table
+      // For now, just log to console
+      console.log('Admin action logged:', {
+        ...action,
+        timestamp: new Date().toISOString()
+      });
+
+      // Placeholder for actual audit log creation if using a real DB
+      // await this.createAuditLog({
+      //   adminId: action.adminId,
+      //   action: action.action,
+      //   targetId: action.targetUserId || 'N/A',
+      //   details: action.details || {},
+      //   ipAddress: action.ipAddress || '',
+      //   userAgent: action.userAgent || ''
+      // });
+
     } catch (error) {
       console.error("Error logging admin action:", error);
     }
   }
 
-  async getAuditLogs(params: { page: number, limit: number, action?: string }): Promise<{ logs: any[], total: number }> {
+  async getAuditLogs(options: {
+    page: number;
+    limit: number;
+    action?: string;
+    userId?: string;
+  }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
     try {
-      // Mock audit logs
-      const logs = [
-        { id: '1', adminId: 'admin1', action: 'suspend_user', targetUserId: 'user1', timestamp: new Date(), details: {} },
-        { id: '2', adminId: 'admin1', action: 'balance_adjustment', targetUserId: 'user2', timestamp: new Date(), details: {} }
-      ];
-
-      return { logs, total: logs.length };
+      // This would query from an audit_logs table
+      // For now, return empty results
+      return {
+        logs: [],
+        pagination: {
+          page: options.page,
+          limit: options.limit,
+          total: 0,
+          pages: 0
+        }
+      };
     } catch (error) {
       console.error("Error fetching audit logs:", error);
-      return { logs: [], total: 0 };
+      throw error;
     }
   }
 
@@ -2494,24 +2533,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Update transaction status (admin action)
-  async updateTransactionStatus(transactionId: string, status: string, reason: string, adminId: string) {
+  async updateTransactionStatus(transactionId: string, status: string, reason: string, adminId: string): Promise<boolean> {
     try {
-      await this.db
+      const updatedTransaction = await this.db
         .update(transactions)
         .set({
           status,
           updatedAt: new Date()
         })
-        .where(eq(transactions.id, transactionId));
+        .where(eq(transactions.id, transactionId))
+        .returning();
 
       // Log admin action
-      await this.createAuditLog({
+      await this.logAdminAction({
         adminId,
         action: 'transaction_status_update',
         targetId: transactionId,
-        details: { status, reason },
-        ipAddress: '',
-        userAgent: ''
+        details: { status, reason, userId: updatedTransaction[0]?.userId },
+        ipAddress: '', // IP address should ideally be passed or obtained from request context
+        userAgent: '' // User agent should ideally be passed or obtained from request context
       });
 
       return true;
@@ -2579,8 +2619,8 @@ export class DatabaseStorage implements IStorage {
         action: 'settings_update',
         targetId: 'platform',
         details: settings,
-        ipAddress: '',
-        userAgent: ''
+        ipAddress: '', // IP address should ideally be passed or obtained from request context
+        userAgent: '' // User agent should ideally be passed or obtained from request context
       });
 
       // In a real implementation, you'd save these to a settings table
@@ -2608,33 +2648,13 @@ export class DatabaseStorage implements IStorage {
         timestamp: new Date().toISOString()
       });
 
+      // In a real implementation, you would insert this into an audit_logs table.
+      // Example (assuming an auditLogs table and drizzle-orm):
+      // await this.db.insert(auditLogs).values({ ...logData, timestamp: new Date() });
+
       return true;
     } catch (error) {
       console.error("Error creating audit log:", error);
-      throw error;
-    }
-  }
-
-  async getAuditLogs(options: {
-    page: number;
-    limit: number;
-    action?: string;
-    userId?: string;
-  }) {
-    try {
-      // This would query from an audit_logs table
-      // For now, return empty results
-      return {
-        logs: [],
-        pagination: {
-          page: options.page,
-          limit: options.limit,
-          total: 0,
-          pages: 0
-        }
-      };
-    } catch (error) {
-      console.error("Error getting audit logs:", error);
       throw error;
     }
   }
@@ -2719,6 +2739,50 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('❌ Failed to create initial users:', error);
     }
+  }
+
+  // Placeholder methods for Enhanced Trading System
+  async validateOrder(orderData: any): Promise<{ isValid: boolean; message?: string }> {
+    console.log("Validating order:", orderData);
+    // TODO: Implement actual order validation logic
+    // - Check for sufficient funds
+    // - Check minimum/maximum order sizes
+    // - Validate stop-loss/take-profit values
+    // - Check for valid symbols and amounts
+    return { isValid: true };
+  }
+
+  async calculateTradingFees(amount: number, type: string, orderType: string): Promise<number> {
+    console.log(`Calculating fees for amount: ${amount}, type: ${type}, orderType: ${orderType}`);
+    // TODO: Implement fee calculation logic based on trading volume, order type, user tier, etc.
+    let feePercentage = 0.001; // Default 0.1% fee
+    if (orderType === 'limit') {
+      feePercentage = 0.0008; // Lower fee for limit orders
+    }
+    return amount * feePercentage;
+  }
+
+  async executeTrade(tradeData: any): Promise<any> {
+    console.log("Executing trade:", tradeData);
+    // TODO: Implement actual trade execution logic
+    // - Create transaction records for buy/sell
+    // - Update user portfolio and holdings
+    // - Handle stop-loss and take-profit triggers
+    // - Calculate and deduct fees
+    // - Return trade confirmation details
+    return { success: true, tradeId: `trade_${Date.now()}` };
+  }
+
+  async getOpenOrders(userId: string): Promise<any[]> {
+    console.log(`Fetching open orders for user: ${userId}`);
+    // TODO: Implement fetching of open orders from a database or order book
+    return [];
+  }
+
+  async getOrderHistory(userId: string): Promise<any[]> {
+    console.log(`Fetching order history for user: ${userId}`);
+    // TODO: Implement fetching of order history from a database
+    return [];
   }
 }
 

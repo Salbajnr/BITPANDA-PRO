@@ -30,6 +30,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
   const [useStopLoss, setUseStopLoss] = useState(false);
   const [useTakeProfit, setUseTakeProfit] = useState(false);
   const [slippage, setSlippage] = useState('0.5');
+  const [fees, setFees] = useState({ tradingFee: 0, netTotal: 0 });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -96,6 +97,39 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
       setLimitPrice(currentPrice.toString());
     }
   }, [orderType, currentPrice, limitPrice]);
+
+  // Calculate fees and net total
+  useEffect(() => {
+    if (amount && (orderType === "market" || limitPrice)) {
+      const calculateFees = async () => {
+        try {
+          const price = orderType === "market" ? currentPrice : parseFloat(limitPrice || "0");
+          const response = await fetch('/api/trading/calculate-fees', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: parseFloat(amount),
+              price: price,
+              type: tradeType
+            }),
+            credentials: 'include',
+          });
+          
+          if (response.ok) {
+            const feeData = await response.json();
+            setFees({
+              tradingFee: parseFloat(feeData.tradingFee),
+              netTotal: parseFloat(feeData.netTotal)
+            });
+          }
+        } catch (error) {
+          console.error('Failed to calculate fees:', error);
+        }
+      };
+      
+      calculateFees();
+    }
+  }, [amount, limitPrice, orderType, currentPrice, tradeType]);
 
   const handleTrade = (type: 'buy' | 'sell') => {
     if (!amount || parseFloat(amount) <= 0) {
@@ -355,8 +389,16 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
                     <span className="font-medium">{orderType.replace('_', ' ').toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Estimated Total:</span>
+                    <span>Gross Total:</span>
                     <span className="font-medium">${displayTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-orange-600">
+                    <span>Trading Fee (0.1%):</span>
+                    <span>${fees.tradingFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold border-t pt-1">
+                    <span>Net Total:</span>
+                    <span>${fees.netTotal.toFixed(2)}</span>
                   </div>
                   {useStopLoss && (
                     <div className="flex justify-between text-red-600">

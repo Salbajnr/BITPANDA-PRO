@@ -30,7 +30,7 @@ export default function Terms() {
       id: 'simulation',
       title: '4. Trading Simulation',
       icon: <AlertTriangle className="h-5 w-5" />,
-      content: `BITPANDA PRO is a simulation platform designed for educational purposes only. All trading activities are simulated and do not involve real money or actual cryptocurrency transactions. Virtual balances, profits, and losses have no real-world value and cannot be withdrawn, exchanged, or converted to real currency. Market data may be delayed or modified for educational purposes. Performance in simulation does not guarantee real trading success.`
+      content: `BITPANDA PRO is a simulation platform designed for educational purposes only. All trading activities are simulated and do not involve real money or actual cryptocurrency transactions. Virtual balances, profits, and losses have no real-world value and cannot be withdrawn, exchanged, or converted to real currency. Market data may be delayed or modified for educational purposes. Performance in simulation does not guarantee real trading success. Trading fees, slippage, and market conditions are simulated to provide realistic educational experience. All order types including market, limit, stop-loss, and take-profit orders are for educational purposes only.`
     },
     {
       id: 'prohibited',
