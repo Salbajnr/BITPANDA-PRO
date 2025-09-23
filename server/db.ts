@@ -39,7 +39,7 @@ if (pool) {
         const client = await pool.connect();
         console.log("✅ Database connected successfully");
         client.release();
-        
+
         // Test a simple query
         await db.execute(sql`SELECT 1`);
         console.log("✅ Database query test successful");

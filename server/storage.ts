@@ -2638,6 +2638,88 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Add this method to create initial users if they don't exist
+  async createInitialUsers(): Promise<void> {
+    try {
+      // Check if demo user already exists
+      const existingDemoUser = await this.getUserByEmail('demo@example.com');
+      if (existingDemoUser) {
+        console.log('✅ Demo users already exist');
+        return;
+      }
+
+      console.log('🌱 Creating initial test users...');
+
+      // Create demo user with proper password hash
+      const demoPasswordHash = await hashPassword('demo123');
+      const demoUser = {
+        id: 'demo-user-id',
+        username: 'demo',
+        email: 'demo@example.com',
+        password: demoPasswordHash,
+        firstName: 'Demo',
+        lastName: 'User',
+        role: 'user' as const,
+        isActive: true,
+        isVerified: true,
+        phone: '+1234567890',
+        profileImageUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await db.insert(users).values(demoUser).onConflictDoNothing();
+
+      // Create test user with proper password hash
+      const testPasswordHash = await hashPassword('test123');
+      const testUser = {
+        id: 'test-user-id',
+        username: 'testuser',
+        email: 'test@bitpanda.com',
+        password: testPasswordHash,
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'user' as const,
+        isActive: true,
+        isVerified: true,
+        phone: '+1987654321',
+        profileImageUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await db.insert(users).values(testUser).onConflictDoNothing();
+
+      // Create admin user with proper password hash
+      const adminPasswordHash = await hashPassword('admin123');
+      const adminUser = {
+        id: 'admin-user-id',
+        username: 'admin',
+        email: 'admin@example.com',
+        password: adminPasswordHash,
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'admin' as const,
+        isActive: true,
+        isVerified: true,
+        phone: '+1555000000',
+        profileImageUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await db.insert(users).values(adminUser).onConflictDoNothing();
+
+      console.log('✅ Test users created successfully');
+      console.log('📧 Demo User: demo@example.com / demo123');
+      console.log('📧 Test User: test@bitpanda.com / test123');
+      console.log('👑 Admin User: admin@example.com / admin123');
+
+    } catch (error) {
+      console.error('❌ Failed to create initial users:', error);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

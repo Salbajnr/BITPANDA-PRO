@@ -75,8 +75,10 @@ class PriceMonitorService {
     }
 
     try {
-      this.connectionAttempts++;
-      this.ws = new WebSocket('wss://helium/v2');
+      console.log('🔌 Connecting to price feed...');
+      // Import WebSocket dynamically to avoid server-side issues
+      const WebSocketLib = eval('require("ws")');
+      this.ws = new WebSocketLib('wss://stream.binance.com:9443/ws/!ticker@arr');
 
       this.ws.on('open', () => {
         console.log('✅ Connected to price feed');
