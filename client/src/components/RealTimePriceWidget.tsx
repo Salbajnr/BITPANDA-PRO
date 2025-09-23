@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useRealTimePrices } from '../hooks/useRealTimePrices';
 
 interface CryptoPrice {
   symbol: string;
@@ -21,38 +22,71 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
   const [prices, setPrices] = useState<CryptoPrice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { prices: realTimePrices, isConnected, isConnecting } = useRealTimePrices({
+    symbols,
+    enabled: true,
+    onPriceUpdate: (priceData) => {
+      // Update local prices when real-time data arrives
+      setPrices(prev => {
+        const updated = [...prev];
+        const index = updated.findIndex(p => p.symbol === priceData.symbol.toUpperCase());
+        if (index >= 0) {
+          updated[index] = {
+            ...updated[index],
+            price: priceData.price,
+            change24h: priceData.change_24h
+          };
+        } else {
+          updated.push({
+            symbol: priceData.symbol.toUpperCase(),
+            name: getSymbolName(priceData.symbol),
+            price: priceData.price,
+            change24h: priceData.change_24h
+          });
+        }
+        return updated;
+      });
+    }
+  });
+
   useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        setIsLoading(true);
-        // Simulate API call with mock data
-        const mockPrices: CryptoPrice[] = [
-          { symbol: 'BTC', name: 'Bitcoin', price: 42350.50, change24h: 2.45 },
-          { symbol: 'ETH', name: 'Ethereum', price: 2650.30, change24h: -1.23 },
-          { symbol: 'ADA', name: 'Cardano', price: 0.485, change24h: 5.67 },
-          { symbol: 'SOL', name: 'Solana', price: 98.75, change24h: -2.15 }
-        ];
+    const initializePrices = async () => {
+      setIsLoading(true);
+      
+      // Initialize with mock data if no real-time data available
+      const initialPrices: CryptoPrice[] = symbols.map(symbol => ({
+        symbol,
+        name: getSymbolName(symbol),
+        price: getMockPrice(symbol),
+        change24h: (Math.random() - 0.5) * 10
+      }));
 
-        // Add some randomness to simulate real-time updates
-        const updatedPrices = mockPrices.map(price => ({
-          ...price,
-          price: price.price * (1 + (Math.random() - 0.5) * 0.02),
-          change24h: price.change24h + (Math.random() - 0.5) * 2
-        }));
-
-        setPrices(updatedPrices.filter(p => symbols.includes(p.symbol)));
-      } catch (error) {
-        console.error('Error fetching prices:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      setPrices(initialPrices);
+      setIsLoading(false);
     };
 
-    fetchPrices();
-    const interval = setInterval(fetchPrices, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
+    initializePrices();
   }, [symbols]);
+
+  const getSymbolName = (symbol: string): string => {
+    const names: Record<string, string> = {
+      'BTC': 'Bitcoin',
+      'ETH': 'Ethereum', 
+      'ADA': 'Cardano',
+      'SOL': 'Solana'
+    };
+    return names[symbol.toUpperCase()] || symbol.toUpperCase();
+  };
+
+  const getMockPrice = (symbol: string): number => {
+    const prices: Record<string, number> = {
+      'BTC': 42350.50,
+      'ETH': 2650.30,
+      'ADA': 0.485,
+      'SOL': 98.75
+    };
+    return prices[symbol.toUpperCase()] || Math.random() * 1000;
+  };
 
   if (isLoading) {
     return (

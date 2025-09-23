@@ -7,6 +7,7 @@ import { portfolioRoutes } from './portfolio-routes';
 import { seedDatabase } from "./seedData";
 import { webSocketManager } from "./websocket-server";
 import { chatWebSocketManager } from './chat-websocket';
+import { realTimePriceService } from './real-time-price-service';
 import cryptoRoutes from './crypto-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';

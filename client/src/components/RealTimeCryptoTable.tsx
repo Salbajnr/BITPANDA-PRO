@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { CryptoApiService, CryptoPrice } from '../services/cryptoApi';
-import { useRealTimePrice } from '../hooks/useRealTimePrice';
+import { useRealTimePrices } from '../hooks/useRealTimePrices';
 import { TrendingUp, TrendingDown, Search, Star, StarOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,10 @@ export function RealTimeCryptoTable({
   });
 
   const symbols = cryptos.map(crypto => crypto.id);
-  const { prices, isConnected, getPrice, getChange } = useRealTimePrice(symbols);
+  const { isConnected, getPrice, getChange } = useRealTimePrices({ 
+    symbols,
+    enabled: true
+  });
 
   // Load watchlist from localStorage
   useEffect(() => {

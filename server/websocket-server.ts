@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { cryptoService, type CryptoPrice } from './crypto-service';
 import { storage } from './storage';
+import { realTimePriceService } from './real-time-price-service';
 
 interface ClientSubscription {
   ws: WebSocket;
@@ -100,15 +101,20 @@ class WebSocketManager {
       ws.on('close', () => {
         console.log(`🔌 WebSocket client disconnected: ${clientId}`);
         this.clients.delete(clientId);
+        realTimePriceService.removeSubscription(clientId);
         this.checkActiveClients();
       });
 
       ws.on('error', (error) => {
         console.error(`WebSocket error for client ${clientId}:`, error);
         this.clients.delete(clientId);
+        realTimePriceService.removeSubscription(clientId);
         this.checkActiveClients();
       });
     });
+
+    // Start real-time price service
+    realTimePriceService.start();
 
     console.log('🚀 WebSocket server initialized on /ws');
   }
@@ -155,19 +161,10 @@ class WebSocketManager {
       userId
     });
 
-    console.log(`📊 Client ${clientId} subscribed to: ${symbols.join(', ')}`);
+    // Add to real-time price service
+    realTimePriceService.addSubscription(clientId, ws, symbols, userId);
 
-    // Send initial prices
-    try {
-      const prices = await cryptoService.getPrices(symbols);
-      this.sendMessage(ws, {
-        type: 'price_update',
-        data: prices,
-        timestamp: Date.now()
-      });
-    } catch (error) {
-      console.error('Error sending initial prices:', error);
-    }
+    console.log(`📊 Client ${clientId} subscribed to: ${symbols.join(', ')}`);
 
     // Start price updates if not already running
     this.startPriceUpdates();
@@ -175,6 +172,7 @@ class WebSocketManager {
 
   private handleUnsubscription(clientId: string): void {
     this.clients.delete(clientId);
+    realTimePriceService.removeSubscription(clientId);
     console.log(`📊 Client ${clientId} unsubscribed`);
     this.checkActiveClients();
   }
@@ -367,6 +365,7 @@ class WebSocketManager {
   shutdown(): void {
     this.stopPriceUpdates();
     this.clients.clear();
+    realTimePriceService.stop();
     if (this.wss) {
       this.wss.close();
     }
