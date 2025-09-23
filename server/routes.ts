@@ -169,22 +169,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // REGULAR USER AUTH ROUTES - Separate endpoints for regular users
   app.post('/api/user/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
-      const { emailOrUsername, password } = loginSchema.parse(req.body);
+      const { emailOrUsername, password } = req.body;
 
-      // Find user by email or username
-      const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
-      if (!user || !user.password) {
-        return res.status(401).json({ message: "Invalid user credentials" });
+      console.log('Login attempt:', { emailOrUsername, password: password ? '***' : 'missing' });
+
+      if (!emailOrUsername || !password) {
+        console.log('Missing credentials');
+        return res.status(400).json({ message: "Missing credentials" });
+      }
+
+      // Get user by email or username
+      let user = await storage.getUserByEmail(emailOrUsername);
+      if (!user) {
+        user = await storage.getUserByUsername(emailOrUsername);
+      }
+
+      console.log('User found:', user ? { id: user.id, email: user.email, username: user.username } : 'none');
+
+      if (!user) {
+        console.log('User not found');
+        return res.status(401).json({ message: "Invalid credentials" });
       }
 
       // Verify password
       const isValid = await verifyPassword(password, user.password);
+      console.log('Password valid:', isValid);
+
       if (!isValid) {
-        return res.status(401).json({ message: "Invalid user credentials" });
+        console.log('Invalid password');
+        return res.status(401).json({ message: "Invalid credentials" });
       }
 
       if (!user.isActive) {
-        return res.status(401).json({ message: "User account is disabled" });
+        console.log('Account disabled');
+        return res.status(401).json({ message: "Account is disabled" });
       }
 
       // Ensure user is not admin (admins should use admin login)
@@ -195,6 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       (req.session as any).userId = user.id;
       (req.session as any).userRole = 'user';
+      console.log('Session created for user:', user.id);
 
       // Get portfolio
       let portfolio = await storage.getPortfolio(user.id);

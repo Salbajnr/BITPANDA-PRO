@@ -56,6 +56,7 @@ import {
 } from '@shared/schema';
 import { db } from "./db";
 import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray } from "drizzle-orm";
+import { hashPassword } from "./utils";
 
 export interface IStorage {
   // User operations
@@ -483,7 +484,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAllTransactions(params: { page: number, limit: number, userId?: string, type?: string }): Promise<{ transactions: any[], total: number }> {
+  async getAllTransactions(params: { page: number, limit: number, userId?: string, type?: string }): Promise<{ transactions: Transaction[], total: number }> {
     try {
       const { page, limit, userId, type } = params;
       const offset = (page - 1) * limit;
