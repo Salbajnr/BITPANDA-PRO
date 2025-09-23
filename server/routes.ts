@@ -206,6 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Return success immediately, don't wait for external services
       res.json({
         user: {
           id: user.id,
@@ -456,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existing = await storage.getHolding(portfolio.id, tradeData.symbol);
         if (existing) {
           const newAmount = parseFloat(existing.amount) + parseFloat(tradeData.amount);
-          const newAverage = (parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) +
+          const newAverage = (parseFloat(existing.amount) * parseFloat(existing.averagePurchasePrice) +
                             parseFloat(tradeData.amount) * parseFloat(tradeData.price)) / newAmount;
 
           await storage.upsertHolding({

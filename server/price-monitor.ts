@@ -1,4 +1,3 @@
-
 import { storage } from './storage';
 
 interface PriceData {
@@ -13,9 +12,17 @@ class PriceMonitorService {
   private readonly CHECK_INTERVAL = 30000; // 30 seconds
   private lastPrices: Map<string, number> = new Map();
 
+  // WebSocket related properties
+  private ws: WebSocket | null = null;
+  private reconnectInterval: NodeJS.Timeout | null = null;
+  private prices: Map<string, number> = new Map();
+  private isConnected = false;
+  private connectionAttempts = 0;
+  private maxConnectionAttempts = 3;
+
   async start() {
     console.log('🔔 Starting price monitor service...');
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
     }
@@ -27,6 +34,9 @@ class PriceMonitorService {
     this.monitoringInterval = setInterval(async () => {
       await this.checkPriceAlerts();
     }, this.CHECK_INTERVAL);
+
+    // WebSocket connection
+    this.startConnectionWithDelay();
   }
 
   stop() {
@@ -35,23 +45,110 @@ class PriceMonitorService {
       this.monitoringInterval = null;
       console.log('🔔 Price monitor service stopped');
     }
+    this.stopWebSocket();
+  }
+
+  private stopWebSocket() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+      this.isConnected = false;
+      if (this.reconnectInterval) {
+        clearInterval(this.reconnectInterval);
+        this.reconnectInterval = null;
+      }
+      console.log('WebSocket connection closed.');
+    }
+  }
+
+  private startConnectionWithDelay() {
+    // Wait 5 seconds before attempting to connect to external services
+    setTimeout(() => {
+      this.connect();
+    }, 5000);
+  }
+
+  private connect() {
+    if (this.connectionAttempts >= this.maxConnectionAttempts) {
+      console.log('⚠️  Max connection attempts reached for price feed. Running in fallback mode.');
+      return;
+    }
+
+    try {
+      this.connectionAttempts++;
+      this.ws = new WebSocket('wss://helium/v2');
+
+      this.ws.on('open', () => {
+        console.log('✅ Connected to price feed');
+        this.isConnected = true;
+        this.connectionAttempts = 0; // Reset on successful connection
+
+        // Subscribe to price updates
+        this.ws?.send(JSON.stringify({
+          method: 'subscribe',
+          params: ['btcusdt@ticker', 'ethusdt@ticker', 'adausdt@ticker']
+        }));
+      });
+
+      this.ws.on('message', (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          if (message.stream && message.data) {
+            const symbol = message.stream.replace('@ticker', '').toUpperCase();
+            const price = parseFloat(message.data.c);
+            this.prices.set(symbol, price);
+          }
+        } catch (error) {
+          console.error('Error parsing price data:', error);
+        }
+      });
+
+      this.ws.on('close', () => {
+        console.log('❌ Price feed disconnected');
+        this.isConnected = false;
+        if (this.connectionAttempts < this.maxConnectionAttempts) {
+          this.reconnect();
+        }
+      });
+
+      this.ws.on('error', (error) => {
+        console.error('Price feed error:', error);
+        this.isConnected = false;
+        // Don't automatically reconnect on error to prevent spam
+      });
+
+    } catch (error) {
+      console.error('Failed to connect to price feed:', error);
+      if (this.connectionAttempts < this.maxConnectionAttempts) {
+        this.reconnect();
+      }
+    }
+  }
+
+  private reconnect() {
+    if (this.reconnectInterval) {
+      clearInterval(this.reconnectInterval);
+    }
+    this.reconnectInterval = setInterval(() => {
+      this.connect();
+    }, 5000); // Try to reconnect every 5 seconds
   }
 
   async checkPriceAlerts() {
     try {
       // Get all active alerts
       const alerts = await storage.getActivePriceAlerts();
-      
+
       if (alerts.length === 0) {
         return;
       }
 
       // Get unique symbols from alerts
       const symbols = [...new Set(alerts.map(alert => this.getCoinGeckoId(alert.symbol)))];
-      
+
       // Fetch current prices
       const prices = await this.fetchCurrentPrices(symbols);
-      
+
       if (!prices) {
         console.error('Failed to fetch prices for alert checking');
         return;
@@ -61,7 +158,7 @@ class PriceMonitorService {
       for (const alert of alerts) {
         const coinGeckoId = this.getCoinGeckoId(alert.symbol);
         const currentPrice = prices[coinGeckoId]?.usd;
-        
+
         if (currentPrice && this.shouldTriggerAlert(alert, currentPrice)) {
           await this.triggerAlert(alert, currentPrice);
         }
@@ -76,7 +173,7 @@ class PriceMonitorService {
   private async fetchCurrentPrices(symbols: string[]): Promise<PriceData | null> {
     try {
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd&include_24hr_change=true`
+        `https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd&include_24h_change=true`
       );
 
       if (!response.ok) {
