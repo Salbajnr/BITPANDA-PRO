@@ -93,6 +93,37 @@ class ApiClient {
 // Export a default instance
 export const api = new ApiClient();
 
+// Generic apiRequest function for TanStack Query mutations
+export const apiRequest = async (
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<any> => {
+  const response = await fetch(endpoint, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    let errorMessage = `HTTP ${response.status}`;
+    
+    try {
+      const parsedError = JSON.parse(errorData);
+      errorMessage = parsedError.message || errorMessage;
+    } catch {
+      errorMessage = errorData || errorMessage;
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+};
+
 // Specific API functions
 export const authApi = {
   login: (credentials: { emailOrUsername: string; password: string }) =>
