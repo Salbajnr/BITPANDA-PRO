@@ -1,335 +1,3 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ScrollArea } from '../components/ui/scroll-area';
-import { Separator } from '../components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { FileText, Shield, DollarSign, AlertTriangle, Users, TrendingUp, Lock, CheckCircle } from 'lucide-react';
-
-const UserAgreement = () => {
-  const tradingTerms = [
-    {
-      id: 'simulation',
-      title: '1. Trading Simulation Nature',
-      icon: <TrendingUp className="h-5 w-5" />,
-      content: `This platform provides cryptocurrency trading simulation only. All trades are virtual and use simulated market data. No real money or cryptocurrency is involved in any transaction. Virtual profits and losses have no real-world value and cannot be withdrawn or converted to real currency.`
-    },
-    {
-      id: 'market-data',
-      title: '2. Market Data and Pricing',
-      icon: <DollarSign className="h-5 w-5" />,
-      content: `Market prices are derived from real cryptocurrency exchanges but may include delays or variations. Price movements are simulated and may not perfectly reflect real market conditions. We do not guarantee accuracy of pricing data or market simulation algorithms.`
-    },
-    {
-      id: 'virtual-balance',
-      title: '3. Virtual Balance Management',
-      icon: <Shield className="h-5 w-5" />,
-      content: `Users receive virtual trading balances for simulation purposes. These balances can be reset or modified by administrators for educational purposes. Virtual balances do not represent real financial obligations or assets.`
-    },
-    {
-      id: 'trading-rules',
-      title: '4. Trading Rules and Limitations',
-      icon: <FileText className="h-5 w-5" />,
-      content: `All trading activities must comply with platform rules. Users may not attempt to exploit simulation algorithms or engage in activities that would be illegal in real trading scenarios. We reserve the right to reset accounts or restrict access for violations.`
-    },
-    {
-      id: 'educational',
-      title: '5. Educational Purpose',
-      icon: <Users className="h-5 w-5" />,
-      content: `This platform is designed for educational and training purposes. Content and features are meant to simulate real trading environments for learning. Users should not consider this as financial advice or recommendation for real trading decisions.`
-    },
-    {
-      id: 'data-collection',
-      title: '6. Data Collection and Analytics',
-      icon: <Lock className="h-5 w-5" />,
-      content: `We collect trading simulation data to improve platform functionality and provide analytics. User trading patterns and performance data may be aggregated for platform improvements. Personal data handling follows our Privacy Policy.`
-    },
-    {
-      id: 'platform-changes',
-      title: '7. Platform Modifications',
-      icon: <AlertTriangle className="h-5 w-5" />,
-      content: `We reserve the right to modify, suspend, or discontinue any aspect of the platform. Features, virtual currencies, and simulation parameters may be updated without notice. Users will be notified of significant changes when possible.`
-    },
-    {
-      id: 'liability',
-      title: '8. Limitation of Liability',
-      icon: <Shield className="h-5 w-5" />,
-      content: `BITPANDA PRO is not liable for any decisions made based on simulation results. The platform is provided "as is" without warranties. Users acknowledge this is simulation only and should seek professional advice for real trading decisions.`
-    }
-  ];
-
-  const riskDisclosures = [
-    {
-      title: 'Simulation Risk',
-      description: 'Simulation results do not guarantee real trading performance',
-      level: 'High'
-    },
-    {
-      title: 'Educational Purpose',
-      description: 'Platform designed for learning, not financial advice',
-      level: 'Important'
-    },
-    {
-      title: 'No Real Value',
-      description: 'Virtual gains and losses have no monetary value',
-      level: 'Critical'
-    },
-    {
-      title: 'Market Differences',
-      description: 'Simulated markets may differ from real market conditions',
-      level: 'Medium'
-    }
-  ];
-
-  const userResponsibilities = [
-    'Use platform solely for educational and training purposes',
-    'Maintain account security and confidentiality',
-    'Comply with all platform rules and guidelines',
-    'Not attempt to exploit or manipulate simulation systems',
-    'Understand that all trading is simulated and has no real value',
-    'Seek professional advice before making real trading decisions'
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            User Agreement
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-4">
-            Trading Simulation Terms & Conditions
-          </p>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-            Last updated: {new Date().toLocaleDateString()}
-          </p>
-          <div className="max-w-3xl mx-auto text-gray-600 dark:text-gray-300">
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
-                <AlertTriangle className="h-5 w-5" />
-                <span className="font-semibold">Trading Simulation Platform</span>
-              </div>
-              <p className="text-amber-700 dark:text-amber-300 mt-2">
-                This agreement governs your use of our cryptocurrency trading simulation platform. 
-                No real money or cryptocurrency is involved.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Tabs */}
-        <div className="max-w-6xl mx-auto">
-          <Tabs defaultValue="agreement" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="agreement">User Agreement</TabsTrigger>
-              <TabsTrigger value="trading">Trading Terms</TabsTrigger>
-              <TabsTrigger value="risks">Risk Disclosure</TabsTrigger>
-              <TabsTrigger value="responsibilities">Responsibilities</TabsTrigger>
-            </TabsList>
-
-            {/* User Agreement Tab */}
-            <TabsContent value="agreement">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-6 w-6" />
-                    Trading Simulation Agreement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[600px] pr-4">
-                    <div className="space-y-8">
-                      {tradingTerms.map((section, index) => (
-                        <div key={section.id}>
-                          <div className="flex items-center gap-3 mb-4">
-                            {section.icon}
-                            <h2 className="text-xl font-semibold">{section.title}</h2>
-                          </div>
-                          <div className="text-gray-700 dark:text-gray-300 leading-relaxed pl-8">
-                            {section.content.split('. ').map((sentence, idx) => (
-                              <p key={idx} className="mb-2">{sentence}{sentence.endsWith('.') ? '' : '.'}</p>
-                            ))}
-                          </div>
-                          {index < tradingTerms.length - 1 && (
-                            <Separator className="mt-6" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Trading Terms Tab */}
-            <TabsContent value="trading">
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-6 w-6" />
-                      Trading Simulation Rules
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="border rounded-lg p-4">
-                        <h3 className="font-semibold mb-2 flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          Virtual Trading Only
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          All trades are simulated using virtual currency with no real-world value.
-                        </p>
-                      </div>
-                      <div className="border rounded-lg p-4">
-                        <h3 className="font-semibold mb-2 flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          Educational Purpose
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          Platform designed to teach cryptocurrency trading concepts and strategies.
-                        </p>
-                      </div>
-                      <div className="border rounded-lg p-4">
-                        <h3 className="font-semibold mb-2 flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          Real Market Data
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          Uses real cryptocurrency price feeds for realistic simulation experience.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Platform Features</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div>
-                          <h4 className="font-medium">Portfolio Tracking</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Monitor virtual portfolio performance</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div>
-                          <h4 className="font-medium">Trading Analytics</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Detailed trading statistics and insights</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div>
-                          <h4 className="font-medium">Market Data</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">Real-time cryptocurrency price information</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Risk Disclosure Tab */}
-            <TabsContent value="risks">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-6 w-6" />
-                    Risk Disclosure Statement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-                        <AlertTriangle className="h-5 w-5" />
-                        <span className="font-semibold">Important Risk Notice</span>
-                      </div>
-                      <p className="text-red-700 dark:text-red-300 mt-2">
-                        This is a simulation platform only. Results do not reflect real trading performance and should not be used as basis for actual investment decisions.
-                      </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {riskDisclosures.map((risk, index) => (
-                        <div key={index} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold">{risk.title}</h3>
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              risk.level === 'Critical' ? 'bg-red-100 text-red-800' :
-                              risk.level === 'High' ? 'bg-orange-100 text-orange-800' :
-                              risk.level === 'Important' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-blue-100 text-blue-800'
-                            }`}>
-                              {risk.level}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{risk.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Responsibilities Tab */}
-            <TabsContent value="responsibilities">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-6 w-6" />
-                    User Responsibilities
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                      <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                        By using this platform, you agree to:
-                      </h3>
-                      <ul className="space-y-2">
-                        {userResponsibilities.map((responsibility, index) => (
-                          <li key={index} className="flex items-start gap-2 text-blue-700 dark:text-blue-300">
-                            <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{responsibility}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="text-center p-6 border rounded-lg">
-                      <h3 className="text-lg font-semibold mb-4">Agreement Confirmation</h3>
-                      <p className="text-gray-600 dark:text-gray-300 mb-6">
-                        By using BITPANDA PRO, you confirm that you have read, understood, and agree to abide by this User Agreement.
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                          I Accept the Agreement
-                        </button>
-                        <button className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                          Download Agreement
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default UserAgreement;
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -346,7 +14,10 @@ import {
   Globe,
   Lock,
   DollarSign,
-  Clock
+  Clock,
+  TrendingUp,
+  Users,
+  Target
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
@@ -370,217 +41,264 @@ export default function UserAgreement() {
   const agreementSections = [
     {
       id: 'terms',
-      title: 'Terms of Service',
+      title: 'General Terms of Service',
       icon: <FileText className="h-5 w-5" />,
-      summary: 'General terms and conditions for using BITPANDA PRO',
+      summary: 'General platform usage terms and user responsibilities',
       content: `
 1. ACCEPTANCE OF TERMS
-By accessing and using BITPANDA PRO services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+By accessing and using BITPANDA PRO services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and all applicable laws and regulations.
 
-2. ACCOUNT REGISTRATION
+2. ACCOUNT REGISTRATION AND SECURITY
 - You must be at least 18 years old to use our services
-- You must provide accurate and complete information
-- You are responsible for maintaining account security
-- One account per person is allowed
+- You must provide accurate and complete information during registration
+- You are responsible for maintaining the security of your account credentials
+- One account per person is allowed; multiple accounts may result in suspension
 
-3. SERVICES PROVIDED
-- Cryptocurrency trading platform
-- Portfolio management tools
-- Market data and analysis
-- Educational resources
+3. PLATFORM SERVICES AND FEATURES
+- Cryptocurrency trading simulation with virtual currency
+- Portfolio management and tracking tools
+- Educational resources and market analysis
+- Real-time market data and charting tools
+- Risk management and analytics features
 
-4. USER RESPONSIBILITIES
-- Comply with all applicable laws and regulations
-- Maintain confidentiality of account credentials
-- Report suspicious activities immediately
-- Use services for legitimate purposes only
+4. USER RESPONSIBILITIES AND CONDUCT
+- Comply with all applicable laws and regulations in your jurisdiction
+- Maintain confidentiality of account credentials and security information
+- Report suspicious activities or security breaches immediately
+- Use services for legitimate educational purposes only
+- Respect other users and maintain professional conduct
 
-5. PROHIBITED ACTIVITIES
-- Money laundering or terrorist financing
-- Market manipulation or fraudulent activities
-- Violating any applicable laws or regulations
-- Using automated trading systems without permission
+5. PROHIBITED ACTIVITIES AND RESTRICTIONS
+- Money laundering, terrorist financing, or other illegal financial activities
+- Market manipulation, fraud, or deceptive trading practices
+- Violating any applicable laws, regulations, or third-party rights
+- Using automated trading systems or bots without explicit permission
+- Attempting to reverse engineer or compromise platform security
 
-6. INTELLECTUAL PROPERTY
-All content, trademarks, and intellectual property belong to BITPANDA PRO or its licensors.
+6. INTELLECTUAL PROPERTY RIGHTS
+All platform content, trademarks, and intellectual property belong to BITPANDA PRO or its licensors. Users may not reproduce, distribute, or create derivative works without permission.
 
-7. LIMITATION OF LIABILITY
-BITPANDA PRO's liability is limited to the maximum extent permitted by law.
+7. LIABILITY LIMITATIONS AND DISCLAIMERS
+BITPANDA PRO's liability is limited to the maximum extent permitted by law. We provide services "as is" without warranties of any kind.
 
-8. TERMINATION
-We reserve the right to suspend or terminate accounts that violate these terms.
+8. ACCOUNT TERMINATION AND SUSPENSION
+We reserve the right to suspend or terminate accounts that violate these terms, engage in prohibited activities, or pose security risks.
       `
     },
     {
       id: 'privacy',
-      title: 'Privacy Policy',
+      title: 'Privacy Policy Agreement',
       icon: <Lock className="h-5 w-5" />,
-      summary: 'How we collect, use, and protect your personal information',
+      summary: 'Data collection, processing, and protection practices',
       content: `
-1. INFORMATION COLLECTION
-We collect information you provide directly:
-- Account registration details
-- Transaction history
-- Communication records
-- Support interactions
+1. INFORMATION COLLECTION AND PROCESSING
+We collect and process personal information including:
+- Account registration details (name, email, contact information)
+- Trading activity and transaction history within the simulation
+- Technical data (IP addresses, device information, browser details)
+- Usage patterns and platform interaction data
 
-2. AUTOMATIC INFORMATION COLLECTION
-- IP addresses and device information
-- Browser type and version
-- Usage patterns and preferences
-- Cookies and similar technologies
-
-3. USE OF INFORMATION
+2. DATA USAGE AND PURPOSE
 Your information is used to:
-- Provide and maintain our services
-- Process transactions
-- Comply with legal requirements
-- Improve user experience
-- Send important notifications
+- Provide and maintain simulation services
+- Process virtual transactions and maintain records
+- Communicate important updates and educational content
+- Ensure platform security and prevent unauthorized access
+- Comply with legal and regulatory requirements
+- Improve user experience and platform functionality
 
-4. INFORMATION SHARING
-We do not sell your personal information. We may share information:
-- With service providers
-- For legal compliance
-- With your explicit consent
-- In case of business transfer
+3. INFORMATION SHARING AND DISCLOSURE
+We do not sell personal information. Information may be shared with:
+- Authorized service providers under strict confidentiality agreements
+- Legal authorities when required by law or regulation
+- Business partners for legitimate educational purposes (with consent)
+- In case of business transfer or merger (with continued protection)
 
-5. DATA SECURITY
-We implement industry-standard security measures:
-- Encryption of sensitive data
-- Regular security audits
-- Access controls and monitoring
-- Incident response procedures
+4. DATA SECURITY AND PROTECTION
+We implement comprehensive security measures:
+- Advanced encryption for all data transmission and storage
+- Multi-factor authentication and access controls
+- Regular security audits and vulnerability assessments
+- Incident response procedures for potential breaches
+- Secure backup and disaster recovery systems
 
-6. YOUR RIGHTS
-You have the right to:
-- Access your personal data
-- Correct inaccurate information
-- Delete your account
-- Data portability
-- Opt-out of marketing communications
+5. DATA RETENTION AND DELETION
+We retain information for:
+- Active account period plus reasonable time for legal compliance
+- Up to 7 years for regulatory and audit purposes
+- Anonymized analytics data may be retained indefinitely
+- Users can request data deletion subject to legal requirements
 
-7. DATA RETENTION
-We retain your data as long as necessary for service provision and legal compliance.
+6. YOUR PRIVACY RIGHTS (GDPR COMPLIANCE)
+Under applicable privacy laws, you have rights to:
+- Access your personal data and understand how it's processed
+- Correct inaccurate or incomplete information
+- Request deletion of your personal data
+- Restrict or object to certain processing activities
+- Receive portable copies of your data
+- Withdraw consent where applicable
 
-8. INTERNATIONAL TRANSFERS
-Your data may be transferred to countries with different privacy laws. We ensure adequate protection through appropriate safeguards.
+7. COOKIES AND TRACKING TECHNOLOGIES
+We use cookies and similar technologies for:
+- Essential platform functionality and security
+- Personalization and user experience enhancement
+- Analytics and performance monitoring
+- Marketing and educational content delivery (with consent)
+
+8. INTERNATIONAL DATA TRANSFERS
+Data may be transferred internationally with appropriate safeguards including Standard Contractual Clauses and adequacy decisions.
       `
     },
     {
       id: 'trading',
-      title: 'Trading Terms',
+      title: 'Trading Simulation Agreement',
       icon: <DollarSign className="h-5 w-5" />,
-      summary: 'Specific terms for trading activities and transactions',
+      summary: 'Specific terms for trading activities and simulation features',
       content: `
-1. TRADING SERVICES
-BITPANDA PRO provides cryptocurrency trading services subject to these terms and applicable regulations.
+1. SIMULATION NATURE AND SCOPE
+BITPANDA PRO provides cryptocurrency trading simulation services where:
+- All trading activities use virtual currency with no real-world value
+- Market data is derived from real sources but may include delays or modifications
+- Trading results are for educational purposes only
+- No actual financial instruments or real money is involved
 
-2. ORDER EXECUTION
-- Orders are executed based on current market conditions
-- We use best execution practices
-- Orders may be partially filled
-- Market volatility can affect execution prices
+2. VIRTUAL CURRENCY AND PORTFOLIO MANAGEMENT
+- Users receive virtual trading balances for simulation purposes
+- Virtual gains and losses have no monetary value
+- Portfolio values are calculated using simulated market conditions
+- Virtual balances can be reset for educational scenarios
+- No withdrawal or conversion to real currency is possible
 
-3. FEES AND CHARGES
-- Trading fees are clearly displayed
-- Fees are deducted from your account automatically
-- Fee schedules may change with advance notice
-- Additional fees may apply for premium services
+3. TRADING FEATURES AND FUNCTIONALITY
+Available trading options include:
+- Spot trading simulation with major cryptocurrencies
+- Portfolio diversification and asset allocation tools
+- Risk management features including stop-loss simulation
+- Real-time market data and advanced charting tools
+- Educational trading strategies and backtesting capabilities
 
-4. MARKET DATA
-- Real-time market data is provided for trading purposes
-- Data accuracy is not guaranteed
-- Third-party data providers may have separate terms
-- Past performance does not guarantee future results
+4. ORDER EXECUTION AND PROCESSING
+- Orders are processed using simulation algorithms
+- Execution may differ from real market conditions
+- Slippage and market impact are simulated for educational value
+- Order types include market, limit, and conditional orders
+- Trade history and performance tracking are maintained
 
-5. TRADING LIMITS
-- Daily and monthly trading limits may apply
-- Limits are based on account verification level
-- Additional verification may be required for higher limits
-- We reserve the right to impose additional limits
+5. MARKET DATA AND PRICING
+- Prices derived from real cryptocurrency exchanges
+- Data may include intentional delays for educational purposes
+- Market volatility simulation based on historical patterns
+- No guarantee of data accuracy or real-time precision
+- Educational modifications may be applied to enhance learning
 
-6. SETTLEMENT AND CLEARING
-- Trades settle according to standard market practices
-- Cryptocurrency transfers may take time to confirm
-- Settlement times vary by asset and network congestion
-- Failed transactions may be reversed
+6. EDUCATIONAL PURPOSE AND LIMITATIONS
+This platform is designed to:
+- Teach cryptocurrency trading concepts and strategies
+- Provide risk-free environment for learning and practice
+- Demonstrate portfolio management principles
+- Educate users about market dynamics and analysis
+- NOT provide investment advice or recommendations
 
-7. CUSTODY SERVICES
-- We provide secure custody for your digital assets
-- Assets are held in segregated accounts
-- Cold storage is used for majority of funds
-- Insurance coverage applies to custodied assets
+7. PERFORMANCE TRACKING AND ANALYTICS
+- Comprehensive performance metrics and reporting
+- Risk analysis and portfolio optimization tools
+- Comparative analysis with market benchmarks
+- Historical performance tracking and trends
+- Educational insights and improvement recommendations
 
-8. MARKET DISRUPTIONS
-In case of market disruptions, we may:
-- Suspend trading temporarily
-- Cancel or modify orders
-- Implement emergency procedures
-- Communicate changes promptly
+8. PLATFORM MODIFICATIONS AND UPDATES
+We reserve the right to:
+- Modify simulation parameters and features
+- Update available cryptocurrencies and trading pairs
+- Enhance educational content and functionality
+- Reset or modify virtual balances for educational purposes
+- Temporarily suspend services for maintenance or improvements
       `
     },
     {
       id: 'risk',
-      title: 'Risk Disclosure',
+      title: 'Risk Disclosure Statement',
       icon: <AlertCircle className="h-5 w-5" />,
-      summary: 'Important information about trading risks and potential losses',
+      summary: 'Important risk information and educational disclaimers',
       content: `
 1. GENERAL RISK WARNING
-Trading cryptocurrencies involves substantial risk of loss and is not suitable for all investors. You should carefully consider whether trading is appropriate for you.
+This risk disclosure provides important information about cryptocurrency trading risks. While this is a simulation platform, understanding these risks is crucial for your education:
+- Cryptocurrency markets are highly volatile and unpredictable
+- Simulation results do not guarantee real trading performance
+- Past performance does not indicate future results
+- Real cryptocurrency trading involves substantial risk of loss
 
-2. MARKET RISKS
-- Cryptocurrency markets are highly volatile
-- Prices can change rapidly and unpredictably
-- Market liquidity may vary significantly
-- External factors can cause extreme price movements
+2. SIMULATION-SPECIFIC RISKS AND LIMITATIONS
+Using this simulation platform involves certain educational limitations:
+- Simulated market conditions may not reflect real trading environments
+- Order execution in simulation may differ significantly from real markets
+- Emotional and psychological factors of real trading are not replicated
+- Market liquidity and slippage may not be accurately simulated
+- Real-world trading costs and fees may not be fully represented
 
-3. TECHNOLOGY RISKS
-- Technical failures may occur
-- Internet connectivity issues can affect trading
-- Cybersecurity threats exist
-- Software bugs or glitches may happen
+3. CRYPTOCURRENCY MARKET RISKS (EDUCATIONAL)
+Understanding these market risks is essential for your education:
+- Extreme price volatility and rapid value changes
+- Regulatory uncertainty and potential government interventions
+- Technology risks including cybersecurity threats and system failures
+- Market manipulation and irregular trading patterns
+- Liquidity risks and potential difficulty executing trades
 
-4. REGULATORY RISKS
-- Cryptocurrency regulations are evolving
-- New laws may affect market access
-- Compliance requirements may change
-- Regulatory actions can impact prices
+4. TECHNOLOGY AND OPERATIONAL RISKS
+Risks associated with digital platforms and technology:
+- System outages, technical failures, or connectivity issues
+- Cybersecurity threats including hacking and data breaches
+- Software bugs or glitches affecting platform functionality
+- Internet connectivity problems affecting access
+- Mobile device limitations and compatibility issues
 
-5. COUNTERPARTY RISKS
-- Third-party service providers may fail
-- Exchange or platform risks
-- Settlement and custody risks
-- Liquidity provider risks
+5. REGULATORY AND COMPLIANCE RISKS
+Legal and regulatory considerations:
+- Changing cryptocurrency regulations and compliance requirements
+- Jurisdictional differences in legal treatment
+- Tax implications and reporting obligations
+- Anti-money laundering and know-your-customer requirements
+- Potential restrictions on cryptocurrency activities
 
-6. OPERATIONAL RISKS
-- Human error in trading decisions
-- Misunderstanding of platform features
-- Inadequate risk management
-- Emotional trading decisions
+6. EDUCATIONAL OBJECTIVES AND LIMITATIONS
+This platform aims to educate users about:
+- Cryptocurrency market dynamics and trading principles
+- Risk management strategies and portfolio diversification
+- Technical analysis and fundamental research methods
+- Market psychology and behavioral finance concepts
+- However, simulation cannot replicate all aspects of real trading
 
-7. LIQUIDITY RISKS
-- Some assets may have limited liquidity
-- Large orders may affect market prices
-- Order execution may be delayed
-- Slippage may occur during volatile periods
+7. NO INVESTMENT ADVICE DISCLAIMER
+Important disclaimers regarding our services:
+- BITPANDA PRO does not provide investment, financial, or legal advice
+- All educational content is for informational purposes only
+- Users should seek professional advice before making real investments
+- Platform content should not be considered as recommendations
+- Individual financial circumstances and risk tolerance must be considered
 
-8. LOSS OF CAPITAL
-- You may lose some or all of your investment
-- Past performance is not indicative of future results
-- Diversification does not guarantee profits
-- Only invest what you can afford to lose
+8. RISK MANAGEMENT EDUCATION
+We encourage users to learn about:
+- Diversification strategies to manage portfolio risk
+- Position sizing and capital allocation principles
+- Stop-loss and risk management techniques
+- Market research and analysis methodologies
+- Emotional discipline and trading psychology
 
-9. RISK MANAGEMENT
-We recommend:
-- Start with small amounts
-- Use stop-loss orders
-- Diversify your portfolio
-- Keep informed about market conditions
-- Seek professional advice if needed
+9. REAL TRADING CONSIDERATIONS
+Before engaging in real cryptocurrency trading, consider:
+- Starting with small amounts you can afford to lose
+- Developing a clear trading strategy and risk management plan
+- Understanding all fees, costs, and tax implications
+- Using only regulated and reputable trading platforms
+- Continuing education and staying informed about market developments
 
-10. NO INVESTMENT ADVICE
-BITPANDA PRO does not provide investment advice. All trading decisions are your responsibility.
+10. ACKNOWLEDGMENT OF UNDERSTANDING
+By accepting this risk disclosure, you acknowledge:
+- You understand the educational nature of this simulation
+- You recognize the limitations and risks described above
+- You will not rely solely on simulation results for real trading decisions
+- You understand the importance of professional advice for real investments
+- You accept responsibility for your educational journey and any future trading decisions
       `
     }
   ];
@@ -588,20 +306,30 @@ BITPANDA PRO does not provide investment advice. All trading decisions are your 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       {/* Header */}
-      <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-24 pb-12">
+      <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Scale className="w-4 h-4" />
-            <span>📋 Legal Documentation</span>
+            <span>📋 User Agreement</span>
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             User Agreement
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Please read and accept our terms of service, privacy policy, and risk disclosures to use BITPANDA PRO services.
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+            Please read and accept our comprehensive user agreement to use BITPANDA PRO services.
           </p>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 text-amber-800">
+              <AlertCircle className="h-5 w-5" />
+              <span className="font-semibold">Trading Simulation Platform</span>
+            </div>
+            <p className="text-amber-700 mt-2">
+              This agreement governs your use of our cryptocurrency trading simulation platform. 
+              No real money or cryptocurrency is involved.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -619,9 +347,9 @@ BITPANDA PRO does not provide investment advice. All trading decisions are your 
               {Object.entries(acceptedSections).map(([key, accepted]) => (
                 <div
                   key={key}
-                  className={`h-2 rounded-full ${
+                  className={`h-2 rounded-full transition-colors duration-200 ${
                     accepted ? 'bg-green-500' : 'bg-gray-200'
-                  } transition-colors duration-200`}
+                  }`}
                 />
               ))}
             </div>
@@ -685,9 +413,9 @@ BITPANDA PRO does not provide investment advice. All trading decisions are your 
             onClick={() => window.print()}
           >
             <Download className="w-4 h-4 mr-2" />
-            Download PDF
+            Download Agreement
           </Button>
-          
+
           <Button
             className={`flex-1 ${
               allAccepted 
@@ -717,9 +445,8 @@ BITPANDA PRO does not provide investment advice. All trading decisions are your 
             <div className="text-sm text-yellow-800">
               <p className="font-semibold mb-1">Important Notice:</p>
               <p>
-                By accepting these terms, you acknowledge that you understand the risks involved in cryptocurrency trading 
-                and that you are legally bound by these agreements. These terms may be updated periodically, and you will 
-                be notified of any significant changes.
+                By accepting these terms, you acknowledge that you understand the educational nature of this platform
+                and that you are legally bound by these agreements. These terms may be updated periodically with advance notice.
               </p>
             </div>
           </div>
