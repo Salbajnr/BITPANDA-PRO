@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -9,24 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Wallet, TrendingUp, TrendingDown, ArrowUp, ArrowDown,
-  BarChart3, PieChart, Bell, DollarSign, Activity, 
-  Eye, Star, Plus, Target, Clock, Users, Globe, 
-  Settings, LogOut, Menu, X, Search, Filter, RefreshCw,
-  Shield, FileText
+  Plus, Minus, RefreshCw, DollarSign, Send, 
+  Home, BarChart3, Activity, Search, User,
+  Eye, EyeOff, ChevronRight
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { NotificationCenter } from "@/components/NotificationCenter";
-import {
-  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer
-} from "recharts";
-import { ChartContainer } from "@/components/ui/chart";
-import { LiveMarketStats } from "@/components/LiveMarketStats";
-import { useRealTimePrice } from "@/hooks/useRealTimePrice";
-import NewsWidget from '@/components/NewsWidget';
-import { PriceAlertsList } from '@/components/PriceAlertsList';
-import RealTimePriceWidget from "@/components/RealTimePriceWidget";
-import { cn } from "@/lib/utils";
-import ThemeToggle from "@/components/ThemeToggle";
+import { Redirect } from "wouter";
 
 interface PortfolioData {
   portfolio: {
@@ -50,238 +37,45 @@ interface TopMover {
   symbol: string;
   name: string;
   change: number;
+  price: string;
+  icon: string;
 }
 
-// Dashboard Sidebar Component
-function DashboardSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [location, navigate] = useLocation();
-  const { user } = useAuth();
+// Bottom Navigation Component
+function BottomNavigation() {
+  const [location] = useLocation();
 
-  const sidebarItems = [
-    { id: "/dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "/portfolio", label: "Portfolio", icon: Wallet },
-    { id: "/analytics", label: "Analytics", icon: TrendingUp },
-    { id: "/trading", label: "Trading", icon: Activity },
-    { id: "/advanced-trading", label: "Advanced Trading", icon: Target },
-    { id: "/transactions", label: "Transactions", icon: Clock },
-    { id: "/orders", label: "Orders", icon: Activity },
-    { id: "/watchlist", label: "Watchlist", icon: Eye },
-    { id: "/alerts", label: "Price Alerts", icon: Bell },
-    { id: "/deposits", label: "Deposits", icon: DollarSign },
-    { id: "/withdrawals", label: "Withdrawals", icon: DollarSign },
-    { id: "/markets", label: "Markets", icon: Globe },
-    { id: "/news", label: "News", icon: Globe },
-    { id: "/risk-management", label: "Risk Management", icon: Shield },
-    { id: "/tax-reporting", label: "Tax Reporting", icon: FileText },
-    { id: "/api-management", label: "API Management", icon: Settings },
-    { id: "/notifications", label: "Notifications", icon: Bell },
-    { id: "/settings", label: "Settings", icon: Settings },
+  const navItems = [
+    { id: "/dashboard", label: "Home", icon: Home },
+    { id: "/portfolio", label: "Portfolio", icon: BarChart3 },
+    { id: "/trading", label: "Trade", icon: Activity },
+    { id: "/markets", label: "Discover", icon: Search },
+    { id: "/settings", label: "Profile", icon: User },
   ];
 
-  const adminItems = user?.role === 'admin' ? [
-    { id: "/admin", label: "Admin Panel", icon: Users },
-  ] : [];
-
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 z-40">
-        <div className="flex-1 flex flex-col min-h-0">
-          {/* Logo */}
-          <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
-                <img src="/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded-lg" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">BITPANDA PRO</h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Professional Trading</p>
-              </div>
-            </div>
-          </div>
-
-          {/* User Info */}
-          <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex items-center min-w-0">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">{user?.firstName?.charAt(0) || 'U'}</span>
-              </div>
-              <div className="ml-3 min-w-0">
-                <div className="font-medium text-slate-900 dark:text-white text-sm truncate">
-                  {user?.firstName || 'User'} {user?.lastName || ''}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                  {user?.role === 'admin' ? 'Administrator' : 'Trader'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
-              return (
-                <Link key={item.id} href={item.id}>
-                  <button className={cn(
-                    "w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                    isActive
-                      ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-                  )}>
-                    <Icon className={cn(
-                      "mr-3 h-5 w-5 transition-colors flex-shrink-0",
-                      isActive ? "text-green-600 dark:text-green-400" : "text-slate-400 group-hover:text-slate-500"
-                    )} />
-                    <span className="truncate">{item.label}</span>
-                  </button>
-                </Link>
-              );
-            })}
-
-            {adminItems.length > 0 && (
-              <>
-                <div className="border-t border-slate-200 dark:border-slate-700 my-4"></div>
-                <div className="px-3 py-2">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Administration
-                  </p>
-                </div>
-                {adminItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location === item.id;
-                  return (
-                    <Link key={item.id} href={item.id}>
-                      <button className={cn(
-                        "w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                        isActive
-                          ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-                      )}>
-                        <Icon className={cn(
-                          "mr-3 h-5 w-5 transition-colors flex-shrink-0",
-                          isActive ? "text-red-600 dark:text-red-400" : "text-slate-400 group-hover:text-slate-500"
-                        )} />
-                        <span className="truncate">{item.label}</span>
-                      </button>
-                    </Link>
-                  );
-                })}
-              </>
-            )}
-          </nav>
-
-          {/* Footer */}
-          <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700 p-4">
-            <Link href="/auth">
-              <Button variant="ghost" size="sm" className="w-full justify-start text-slate-600 dark:text-slate-300">
-                <LogOut className="mr-3 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Sign Out</span>
-              </Button>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 z-50">
+      <div className="flex justify-around items-center py-2 px-4 max-w-md mx-auto">
+        {navItems.map((item) => {
+          const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              to={item.id}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
+                isActive 
+                  ? "text-[#00cc88]" 
+                  : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              }`}
+            >
+              <Icon className="h-5 w-5 mb-1" />
+              <span className="text-xs font-medium">{item.label}</span>
             </Link>
-          </div>
-        </div>
-      </aside>
-
-      {/* Mobile Sidebar Overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-          <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-2xl">
-            <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex items-center space-x-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
-                  <img src="/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded" />
-                </div>
-                <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">BITPANDA PRO</h1>
-              </div>
-              <button 
-                onClick={onClose} 
-                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Mobile User Info */}
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex items-center min-w-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-sm">{user?.firstName?.charAt(0) || 'U'}</span>
-                </div>
-                <div className="ml-3 min-w-0">
-                  <div className="font-medium text-slate-900 dark:text-white text-sm truncate">
-                    {user?.firstName || 'User'} {user?.lastName || ''}
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {user?.role === 'admin' ? 'Administrator' : 'Trader'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <nav className="px-2 py-4 space-y-1 overflow-y-auto h-[calc(100vh-200px)]">
-              {[...sidebarItems, ...adminItems].map((item) => {
-                const Icon = item.icon;
-                const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
-                return (
-                  <Link key={item.id} href={item.id}>
-                    <button
-                      onClick={onClose}
-                      className={cn(
-                        "w-full group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
-                        isActive
-                          ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                      )}
-                    >
-                      <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-// Dashboard Header Component
-function DashboardHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
-  const { user } = useAuth();
-
-  return (
-    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 lg:ml-64 sticky top-0 z-30">
-      <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center min-w-0">
-          <button
-            onClick={onMobileMenuToggle}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 lg:hidden flex-shrink-0"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-          <div className="ml-4 lg:ml-0 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate">Dashboard</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
-              Welcome back, {user?.firstName || 'Trader'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-          <Button variant="outline" size="sm" className="hidden sm:flex">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            <span className="hidden md:inline">Refresh</span>
-          </Button>
-          <NotificationCenter />
-          <ThemeToggle />
-        </div>
+          );
+        })}
       </div>
-    </header>
+    </nav>
   );
 }
 
@@ -289,6 +83,8 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<"winners" | "losers">("winners");
+  const [showBalance, setShowBalance] = useState(true);
+  const [isHidden, setIsHidden] = useState(false);
 
   const { data: portfolioData, isLoading: portfolioLoading } = useQuery<PortfolioData>({
     queryKey: ["/api/portfolio"],
@@ -313,144 +109,285 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00cc88] mx-auto"></div>
           <p className="mt-4 text-slate-600 dark:text-slate-400">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  // Mock data for top movers
+  if (!user) {
+    return <Redirect to="/auth" />;
+  }
+
+  // Mock data for demo
   const topMovers: TopMover[] = [
-    { id: "1", symbol: "VSN", name: "Vision", change: 66.83 },
-    { id: "2", symbol: "REZ", name: "Renzo", change: 38.42 },
-    { id: "3", symbol: "HPOS10I", name: "HarryPotterOb...", change: 31.37 },
+    { id: "1", symbol: "ZERO", name: "ZeroLend", change: 80.42, price: "€1.24", icon: "🔄" },
+    { id: "2", symbol: "REZ", name: "Renzo", change: 54.60, price: "€0.58", icon: "🔄" },
+    { id: "3", symbol: "COW", name: "CoW Protocol", change: 32.00, price: "€2.14", icon: "🔄" },
+    { id: "4", symbol: "BTC", name: "Bitcoin", change: -5.23, price: "€67,432", icon: "₿" },
+    { id: "5", symbol: "ETH", name: "Ethereum", change: -2.14, price: "€3,421", icon: "Ξ" },
   ];
 
-  const totalPortfolioValue = portfolioData?.portfolio?.totalValue
-    ? parseFloat(portfolioData.portfolio.totalValue)
-    : 0;
+  const portfolioValue = portfolioData?.portfolio?.totalValue || "13.36";
+  const portfolioChange = -1.69; // Mock percentage change
+  const availableBalance = portfolioData?.portfolio?.availableCash || "0.00";
+
+  const winners = topMovers.filter(m => m.change > 0);
+  const losers = topMovers.filter(m => m.change < 0);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
-      <div className="max-w-md mx-auto px-4 py-6">
-        {/* Greeting and Balance */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-            Hallo {user?.firstName || "Heike"}!
-          </h1>
-          <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-            <span className="text-slate-500 dark:text-slate-400">🔔</span>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-20">
+      {/* Header - Portfolio Value */}
+      <div className="bg-white dark:bg-slate-900 p-4 text-center relative">
+        <h1 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+          Hello {user?.firstName || 'Trader'}!
+        </h1>
+        
+        <div className="mb-4">
+          <div className="flex items-center justify-center space-x-2">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
+              {showBalance ? `€${portfolioValue}` : "••••••"}
+            </h2>
+            <button
+              onClick={() => setShowBalance(!showBalance)}
+              className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
+              data-testid="toggle-balance"
+            >
+              {showBalance ? (
+                <Eye className="h-5 w-5 text-slate-400" />
+              ) : (
+                <EyeOff className="h-5 w-5 text-slate-400" />
+              )}
+            </button>
+          </div>
+          
+          <div className="flex items-center justify-center mt-2">
+            {portfolioChange >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-[#00cc88] mr-1" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+            )}
+            <span className={`text-sm ${portfolioChange >= 0 ? 'text-[#00cc88]' : 'text-red-500'}`}>
+              {portfolioChange >= 0 ? '↗' : '↘'} {Math.abs(portfolioChange)}% in 1 Tag
+            </span>
           </div>
         </div>
 
-        <div className="text-center mb-6">
-          <div className="text-4xl font-bold text-slate-900 dark:text-white">
-            {totalPortfolioValue.toLocaleString("de-DE", {
-              style: "currency",
-              currency: "EUR",
-            })}
-          </div>
-          <div className="text-sm text-red-500">▼ 0,73 % in 1 Tag</div>
-        </div>
-
-        {/* Trade Button */}
-        <Button className="w-full bg-green-500 hover:bg-green-600 text-white py-6 mb-6">
+        <Button 
+          className="w-full bg-[#00cc88] hover:bg-[#00b377] text-white font-medium py-3 rounded-lg"
+          data-testid="trade-button"
+        >
           Trade
         </Button>
 
-        {/* Promo Cards */}
-        <div className="grid grid-cols-3 gap-2 mb-6">
-          <Card className="bg-slate-100 dark:bg-slate-800">
-            <CardContent className="p-2 text-center">
-              <div className="w-full h-16 bg-slate-300 dark:bg-slate-700 rounded mb-2"></div>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Vision (VSN) ist live
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-slate-100 dark:bg-slate-800">
-            <CardContent className="p-2 text-center">
-              <div className="w-full h-16 bg-slate-300 dark:bg-slate-700 rounded mb-2"></div>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Bitcoin-Allzeithoch
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-slate-100 dark:bg-slate-800">
-            <CardContent className="p-2 text-center">
-              <div className="w-full h-16 bg-slate-300 dark:bg-slate-700 rounded mb-2"></div>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Gewinne ein Bitcoin
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-sm"
+          data-testid="button-hide"
+        >
+          {isHidden ? 'Show' : 'Hide'}
+        </button>
+      </div>
 
-        {/* Top Movers Section */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Top-Mover in 1 Tag
-            </h2>
-            <Link href="#" className="text-sm text-green-500">
-              Mehr anzeigen
-            </Link>
-          </div>
-
-          <div className="flex mb-4">
-            <Button
-              variant={activeTab === "winners" ? "default" : "outline"}
-              className={`flex-1 rounded-r-none ${
-                activeTab === "winners"
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-200 text-slate-700"
-              }`}
-              onClick={() => setActiveTab("winners")}
-            >
-              Gewinner
-            </Button>
-            <Button
-              variant={activeTab === "losers" ? "default" : "outline"}
-              className={`flex-1 rounded-l-none ${
-                activeTab === "losers"
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-200 text-slate-700"
-              }`}
-              onClick={() => setActiveTab("losers")}
-            >
-              Verlierer
-            </Button>
-          </div>
-
-          {/* Top Movers List */}
-          <div className="space-y-2">
-            {topMovers.map((mover) => (
-              <Card
-                key={mover.id}
-                className="bg-slate-50 dark:bg-slate-800 p-3 flex items-center"
-              >
-                <div className="w-10 h-10 rounded-full bg-slate-300 dark:bg-slate-700 mr-3"></div>
-                <div className="flex-1">
-                  <p className="font-medium text-slate-900 dark:text-white">
-                    {mover.symbol} {mover.name}
-                  </p>
-                </div>
-                <div
-                  className={`font-medium ${
-                    mover.change > 0 ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {mover.change > 0 ? "▲" : "▼"} {Math.abs(mover.change)}%
-                </div>
-              </Card>
-            ))}
+      {/* Portfolio Chart Placeholder */}
+      <div className="bg-white dark:bg-slate-900 m-4 p-6 rounded-xl shadow-sm">
+        <div className="h-32 bg-gradient-to-r from-[#00cc88]/10 to-[#00cc88]/20 rounded-lg flex items-center justify-center">
+          <div className="text-center">
+            <BarChart3 className="h-8 w-8 text-[#00cc88] mx-auto mb-2" />
+            <p className="text-sm text-slate-600 dark:text-slate-400">Portfolio Chart</p>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+
+      {/* Quick Actions */}
+      <div className="bg-white dark:bg-slate-900 m-4 p-6 rounded-xl shadow-sm">
+        <div className="grid grid-cols-3 gap-6">
+          <Link to="/deposits" className="text-center" data-testid="link-buy">
+            <div className="w-16 h-16 bg-[#00cc88] rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+              <Plus className="h-6 w-6 text-white" />
+            </div>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">Buy</p>
+          </Link>
+          
+          <Link to="/withdrawals" className="text-center" data-testid="link-sell">
+            <div className="w-16 h-16 bg-[#00cc88] rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+              <Minus className="h-6 w-6 text-white" />
+            </div>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">Sell</p>
+          </Link>
+          
+          <Link to="/trading" className="text-center" data-testid="link-swap">
+            <div className="w-16 h-16 bg-[#00cc88] rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+              <RefreshCw className="h-6 w-6 text-white" />
+            </div>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">Swap</p>
+          </Link>
+        </div>
+      </div>
+
+      {/* Additional Actions */}
+      <div className="bg-white dark:bg-slate-900 m-4 p-6 rounded-xl shadow-sm">
+        <div className="grid grid-cols-2 gap-4">
+          <Link to="/savings-plans" className="text-center" data-testid="link-savings">
+            <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
+              <RefreshCw className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            </div>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">Savings Plan</p>
+          </Link>
+          
+          <Link to="/staking" className="text-center" data-testid="link-staking">
+            <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-lg">%</span>
+            </div>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">Staking</p>
+          </Link>
+        </div>
+      </div>
+
+      {/* Wallet Section */}
+      <div className="bg-white dark:bg-slate-900 m-4 p-6 rounded-xl shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Wallet</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Available Balance</p>
+          </div>
+          <Wallet className="h-6 w-6 text-[#00cc88]" />
+        </div>
+        
+        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">€{availableBalance}</h3>
+        
+        <div className="grid grid-cols-3 gap-4">
+          <Link to="/deposits" className="text-center" data-testid="link-deposit">
+            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-lg">🏛️</span>
+            </div>
+            <p className="text-xs font-medium text-slate-900 dark:text-white">Deposit</p>
+          </Link>
+          
+          <Link to="/withdrawals" className="text-center" data-testid="link-withdraw">
+            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-lg">💸</span>
+            </div>
+            <p className="text-xs font-medium text-slate-900 dark:text-white">Withdraw</p>
+          </Link>
+          
+          <Link to="/trading" className="text-center" data-testid="link-send">
+            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Send className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            </div>
+            <p className="text-xs font-medium text-slate-900 dark:text-white">Send</p>
+          </Link>
+        </div>
+        
+        <Button 
+          variant="outline" 
+          className="w-full mt-4 text-[#00cc88] border-[#00cc88] hover:bg-[#00cc88] hover:text-white"
+          data-testid="button-deposit-free"
+        >
+          Free Deposit
+        </Button>
+      </div>
+
+      {/* Promotions */}
+      <div className="bg-white dark:bg-slate-900 m-4 p-6 rounded-xl shadow-sm">
+        <div className="space-y-4">
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg">
+            <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+              Save 20% on trading fees
+            </p>
+            <Button 
+              size="sm" 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              data-testid="button-trading-fees"
+            >
+              Get Started →
+            </Button>
+          </div>
+          
+          <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg">
+            <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">
+              Earn up to 30% rewards by staking your assets
+            </p>
+            <Button 
+              size="sm" 
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              data-testid="button-staking-rewards"
+            >
+              Stake →
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Movers */}
+      <div className="bg-white dark:bg-slate-900 m-4 rounded-xl shadow-sm">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+            Top Movers in 1 Day
+          </h3>
+          
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "winners" | "losers")}>
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="winners" data-testid="tab-winners">Winners</TabsTrigger>
+              <TabsTrigger value="losers" data-testid="tab-losers">Losers</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="winners">
+              <div className="space-y-3">
+                {winners.map((mover) => (
+                  <div key={mover.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg" data-testid={`mover-card-${mover.symbol}`}>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-[#00cc88]/10 rounded-full flex items-center justify-center">
+                        <span className="text-lg">{mover.icon}</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900 dark:text-white">{mover.symbol}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{mover.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-slate-900 dark:text-white">{mover.price}</p>
+                      <p className="text-sm text-[#00cc88] flex items-center">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        +{mover.change}%
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="losers">
+              <div className="space-y-3">
+                {losers.map((mover) => (
+                  <div key={mover.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg" data-testid={`mover-card-${mover.symbol}`}>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
+                        <span className="text-lg">{mover.icon}</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900 dark:text-white">{mover.symbol}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{mover.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-slate-900 dark:text-white">{mover.price}</p>
+                      <p className="text-sm text-red-500 flex items-center">
+                        <TrendingDown className="h-3 w-3 mr-1" />
+                        {mover.change}%
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation />
     </div>
   );
 }
