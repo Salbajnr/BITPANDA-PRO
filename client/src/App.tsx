@@ -41,6 +41,16 @@ import Ecosystem from "@/pages/Ecosystem";
 import ForgotPassword from "@/pages/ForgotPassword";
 import OtpVerification from "@/pages/OtpVerification";
 import ResetPassword from "@/pages/ResetPassword";
+import Features from "@/pages/Features";
+import Contact from "@/pages/Contact";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
+import UserAgreement from "@/pages/UserAgreement";
+import CryptoIndices from "@/pages/CryptoIndices";
+import SavingsPlans from "@/pages/SavingsPlans";
+import Press from "@/pages/Press";
+import Imprint from "@/pages/Imprint";
+import Tutorials from "@/pages/Tutorials";
 import { lazy, Suspense } from 'react';
 
 // Additional pages imported in the changes
@@ -51,18 +61,13 @@ import TaxReporting from "@/pages/TaxReporting";
 import RiskManagement from "@/pages/RiskManagement";
 import AdvancedTrading from "@/pages/AdvancedTrading";
 import APIManagement from "@/pages/APIManagement";
-import MetalsTrading from "@/pages/MetalsTrading";
-import Commodities from "@/pages/Commodities";
 import DualMarkets from "@/pages/DualMarkets";
 
 // Admin Pages
-import AdminNewsManagement from "@/pages/AdminNewsManagement";
 import AdminBalanceManagement from "@/pages/AdminBalanceManagement";
 import AdminDepositManagement from "@/pages/AdminDepositManagement";
-import AdminChatManagement from "@/pages/AdminChatManagement";
-import AdminMetalsManagement from "@/pages/AdminMetalsManagement";
 
-
+// Lazy loaded components
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
 const MetalsTrading = lazy(() => import("./pages/MetalsTrading"));
 const AdminMetalsManagement = lazy(() => import("./pages/AdminMetalsManagement"));
@@ -160,10 +165,10 @@ export default function App() {
             <Route path="/stocks" component={Stocks} />
             <Route path="/etfs" component={Etfs} />
             <Route path="/crypto-indices" component={CryptoIndices} />
-            <Route path="/precious-metals" component={PreciousMetals} />
+            <Route path="/precious-metals" component={() => <Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense>} />
             <Route path="/savings-plans" component={SavingsPlans} />
-            <Route path="/metals-trading" component={MetalsTrading} />
-            <Route path="/commodities" component={Commodities} />
+            <Route path="/metals-trading" component={() => <Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense>} />
+            <Route path="/commodities" component={() => <Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense>} />
             <Route path="/dual-markets" component={DualMarkets} />
 
             {/* Information Routes */}
@@ -205,18 +210,18 @@ export default function App() {
             <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/dashboard" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/admin/news" component={() => <AdminRoute><AdminNewsManagement /></AdminRoute>} />
-            <Route path="/admin/news-management" component={() => <AdminRoute><AdminNewsManagement /></AdminRoute>} />
+            <Route path="/admin/news" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
+            <Route path="/admin/news-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
             <Route path="/admin/balances" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
             <Route path="/admin/balance-management" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
             <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
             <Route path="/admin/deposit-management" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
             <Route path="/admin/withdrawals" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
             <Route path="/admin/withdrawal-management" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
-            <Route path="/admin/chat" component={() => <AdminRoute><AdminChatManagement /></AdminRoute>} />
-            <Route path="/admin/chat-management" component={() => <AdminRoute><AdminChatManagement /></AdminRoute>} />
-            <Route path="/admin/metals" component={() => <AdminRoute><AdminMetalsManagement /></AdminRoute>} />
-            <Route path="/admin/metals-management" component={() => <AdminRoute><AdminMetalsManagement /></AdminRoute>} />
+            <Route path="/admin/chat" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense></AdminRoute>} />
+            <Route path="/admin/chat-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense></AdminRoute>} />
+            <Route path="/admin/metals" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
+            <Route path="/admin/metals-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
 
             {/* 404 Route */}
             <Route component={NotFound} />
