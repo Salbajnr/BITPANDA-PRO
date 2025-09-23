@@ -404,6 +404,6 @@ export default function Dashboard() {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
-    </div>
+    </DashboardLayout>
   );
 }
