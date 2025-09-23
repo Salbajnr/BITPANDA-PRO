@@ -23,7 +23,7 @@ externalPort = 3000
 PORT = "5000"
 
 [workflows]
-runButton = "Fixed Login Server"
+runButton = "Start Fresh Login Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -356,6 +356,31 @@ args = "pkill -f \"node.*5000\" || pkill -f \"tsx.*server\" || true"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "sleep 3"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run db:push"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Start Fresh Login Server"
+author = 47928935
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5000\" || pkill -f \"tsx.*server\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"npm.*dev\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 5"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

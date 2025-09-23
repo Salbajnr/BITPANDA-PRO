@@ -20,9 +20,7 @@ console.log(databaseUrl ? '📍 Using database: Replit PostgreSQL' : '❌ DATABA
 export const pool = databaseUrl
   ? new Pool({
       connectionString: databaseUrl,
-      ssl: {
-        rejectUnauthorized: false
-      },
+      ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false },
       max: 20, // Maximum number of clients in the pool
       idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
       connectionTimeoutMillis: 2000, // Connection timeout

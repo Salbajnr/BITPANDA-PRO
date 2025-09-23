@@ -1,260 +1,192 @@
-import React, { useState } from 'react';
+
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLocation } from "wouter";
-import { 
-  ArrowLeft,
-  MapPin,
-  Clock,
-  Users,
-  Briefcase,
-  Star,
-  Send,
-  Building,
-  Globe,
-  Heart,
-  Trophy,
-  Zap,
-  Coffee
-} from 'lucide-react';
+import { MapPin, Clock, Users, ArrowRight, Building, Heart, Target, Zap } from "lucide-react";
+import Navbar from "@/components/Navbar";
+
+const jobOpenings = [
+  {
+    id: 1,
+    title: "Senior Frontend Developer",
+    department: "Engineering",
+    location: "Vienna, Austria",
+    type: "Full-time",
+    description: "Join our frontend team to build the next generation of our trading platform using React and TypeScript.",
+    requirements: ["5+ years React experience", "TypeScript proficiency", "Crypto trading knowledge"],
+    remote: true
+  },
+  {
+    id: 2,
+    title: "Blockchain Security Engineer",
+    department: "Security",
+    location: "Remote",
+    type: "Full-time",
+    description: "Help secure our blockchain infrastructure and smart contract implementations.",
+    requirements: ["Blockchain security expertise", "Smart contract auditing", "Penetration testing"],
+    remote: true
+  },
+  {
+    id: 3,
+    title: "Product Manager - Trading",
+    department: "Product",
+    location: "Vienna, Austria",
+    type: "Full-time",
+    description: "Lead the product strategy for our advanced trading features and user experience.",
+    requirements: ["Product management experience", "Trading platform knowledge", "User research skills"],
+    remote: false
+  },
+  {
+    id: 4,
+    title: "DevOps Engineer",
+    department: "Infrastructure",
+    location: "Berlin, Germany",
+    type: "Full-time",
+    description: "Scale our infrastructure to handle millions of trading transactions per second.",
+    requirements: ["Kubernetes expertise", "AWS/GCP experience", "High-scale systems"],
+    remote: true
+  }
+];
+
+const benefits = [
+  {
+    icon: Heart,
+    title: "Health & Wellness",
+    description: "Comprehensive health insurance, mental health support, and wellness programs"
+  },
+  {
+    icon: Target,
+    title: "Professional Growth",
+    description: "Learning budget, conference attendance, and internal mentorship programs"
+  },
+  {
+    icon: Users,
+    title: "Inclusive Culture",
+    description: "Diverse team with 40+ nationalities and strong commitment to equality"
+  },
+  {
+    icon: Zap,
+    title: "Innovation Focus",
+    description: "Work with cutting-edge technology and shape the future of finance"
+  }
+];
 
 export default function Careers() {
-  const [, setLocation] = useLocation();
-  const [selectedJob, setSelectedJob] = useState<string | null>(null);
-  const [applicationForm, setApplicationForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    position: '',
-    coverLetter: '',
-    experience: '',
-    portfolio: ''
-  });
-
-  const jobOpenings = [
-    {
-      id: '1',
-      title: 'Senior Frontend Developer',
-      department: 'Engineering',
-      location: 'Vienna, Austria',
-      type: 'Full-time',
-      experience: 'Senior',
-      description: 'Join our frontend team to build the next generation of crypto trading interfaces.',
-      requirements: ['React', 'TypeScript', 'Tailwind CSS', 'WebSocket APIs'],
-      salary: '€70,000 - €90,000'
-    },
-    {
-      id: '2',
-      title: 'Blockchain Engineer',
-      department: 'Engineering',
-      location: 'Remote',
-      type: 'Full-time',
-      experience: 'Mid-level',
-      description: 'Build and maintain our blockchain infrastructure and smart contracts.',
-      requirements: ['Solidity', 'Web3', 'Node.js', 'Ethereum'],
-      salary: '€80,000 - €100,000'
-    },
-    {
-      id: '3',
-      title: 'Product Manager',
-      department: 'Product',
-      location: 'Vienna, Austria',
-      type: 'Full-time',
-      experience: 'Senior',
-      description: 'Lead product strategy for our crypto trading platform.',
-      requirements: ['Product Management', 'Crypto Knowledge', 'Analytics', 'Leadership'],
-      salary: '€75,000 - €95,000'
-    },
-    {
-      id: '4',
-      title: 'DevOps Engineer',
-      department: 'Engineering',
-      location: 'Remote',
-      type: 'Full-time',
-      experience: 'Mid-level',
-      description: 'Maintain and scale our trading infrastructure.',
-      requirements: ['AWS', 'Docker', 'Kubernetes', 'CI/CD'],
-      salary: '€65,000 - €85,000'
-    }
-  ];
-
-  const benefits = [
-    {
-      icon: Heart,
-      title: 'Health & Wellness',
-      description: 'Comprehensive health insurance and wellness programs'
-    },
-    {
-      icon: Coffee,
-      title: 'Flexible Work',
-      description: 'Remote work options and flexible schedules'
-    },
-    {
-      icon: Trophy,
-      title: 'Career Growth',
-      description: 'Professional development and learning opportunities'
-    },
-    {
-      icon: Zap,
-      title: 'Innovation',
-      description: 'Work with cutting-edge blockchain technology'
-    }
-  ];
-
-  const handleApplicationSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Application submitted:', applicationForm);
-    // Handle application submission
-  };
-
-  const handleApplyClick = (jobId: string) => {
-    setSelectedJob(jobId);
-    setApplicationForm(prev => ({
-      ...prev,
-      position: jobOpenings.find(job => job.id === jobId)?.title || ''
-    }));
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => setLocation('/')}
-                className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Button>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Building className="w-8 h-8 text-green-500" />
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">BITPANDA PRO</h1>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Careers</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8 pt-24">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-slate-900 dark:text-white mb-6">
-            Join Our <span className="text-green-500">Mission</span>
+          <h1 className="text-5xl font-bold text-white mb-6 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+            Join the Future of Finance
           </h1>
-          <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto">
-            Be part of the team that's revolutionizing cryptocurrency trading. 
-            We're looking for passionate individuals to help shape the future of digital finance.
+          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+            Build the next generation of cryptocurrency trading platforms with a team of passionate innovators. 
+            Help millions of users worldwide access the decentralized economy.
           </p>
-          <div className="flex items-center justify-center space-x-8 text-slate-600 dark:text-slate-400">
-            <div className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>50+ Team Members</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Globe className="w-5 h-5" />
-              <span>Remote Friendly</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Star className="w-5 h-5" />
-              <span>4.8/5 Employee Rating</span>
-            </div>
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <Badge variant="outline" className="bg-green-400/10 text-green-400 border-green-400/20 px-4 py-2">
+              🌍 Remote-First
+            </Badge>
+            <Badge variant="outline" className="bg-blue-400/10 text-blue-400 border-blue-400/20 px-4 py-2">
+              💰 Competitive Salary
+            </Badge>
+            <Badge variant="outline" className="bg-purple-400/10 text-purple-400 border-purple-400/20 px-4 py-2">
+              🚀 Equity Options
+            </Badge>
+            <Badge variant="outline" className="bg-orange-400/10 text-orange-400 border-orange-400/20 px-4 py-2">
+              📚 Learning Budget
+            </Badge>
           </div>
         </div>
 
-        {/* Benefits Section */}
+        {/* Company Values */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-12">
-            Why Work With Us?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <benefit.icon className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">
-                    {benefit.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+          <h2 className="text-3xl font-bold text-white text-center mb-12">Why Work With Us</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {benefits.map((benefit, index) => {
+              const IconComponent = benefit.icon;
+              return (
+                <Card key={index} className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-700/50 transition-all duration-300 group">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 mx-auto mb-4 bg-gradient-to-r from-green-400 to-blue-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{benefit.title}</h3>
+                    <p className="text-slate-400 text-sm">{benefit.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
-        {/* Job Openings */}
+        {/* Open Positions */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-12">
-            Open Positions
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">Open Positions</h2>
+          <div className="grid gap-6">
             {jobOpenings.map((job) => (
-              <Card key={job.id} className="hover:shadow-lg transition-shadow">
+              <Card key={job.id} className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm hover:bg-slate-700/40 transition-all duration-300 group">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-xl text-slate-900 dark:text-white mb-2">
+                      <CardTitle className="text-xl text-white group-hover:text-green-400 transition-colors duration-300">
                         {job.title}
                       </CardTitle>
-                      <div className="flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
-                        <div className="flex items-center space-x-1">
-                          <Briefcase className="w-4 h-4" />
-                          <span>{job.department}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{job.location}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-4 h-4" />
-                          <span>{job.type}</span>
-                        </div>
-                      </div>
+                      <CardDescription className="text-slate-400 mt-2">
+                        {job.description}
+                      </CardDescription>
                     </div>
-                    <Badge variant="secondary">{job.experience}</Badge>
+                    <Badge 
+                      variant={job.remote ? "default" : "secondary"} 
+                      className={job.remote ? "bg-green-500/20 text-green-400 border-green-500/30" : ""}
+                    >
+                      {job.remote ? "Remote" : "On-site"}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-600 dark:text-slate-300 mb-4">
-                    {job.description}
-                  </p>
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-slate-900 dark:text-white mb-2">
-                      Requirements:
-                    </h4>
+                  <div className="flex flex-wrap gap-4 mb-4 text-sm text-slate-400">
+                    <div className="flex items-center gap-2">
+                      <Building className="w-4 h-4" />
+                      {job.department}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      {job.location}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      {job.type}
+                    </div>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <h4 className="text-white font-medium mb-2">Requirements:</h4>
                     <div className="flex flex-wrap gap-2">
                       {job.requirements.map((req, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge key={index} variant="outline" className="bg-slate-700/50 text-slate-300 border-slate-600">
                           {req}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold text-green-600 dark:text-green-400">
-                      {job.salary}
-                    </span>
+                  
+                  <div className="flex gap-3">
                     <Button 
-                      onClick={() => handleApplyClick(job.id)}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex-1"
                     >
                       Apply Now
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                    >
+                      Learn More
                     </Button>
                   </div>
                 </CardContent>
@@ -263,140 +195,24 @@ export default function Careers() {
           </div>
         </div>
 
-        {/* Application Form */}
-        {selectedJob && (
-          <Card className="max-w-4xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-2xl text-slate-900 dark:text-white">
-                Apply for Position
-              </CardTitle>
-              <p className="text-slate-600 dark:text-slate-400">
-                Position: {jobOpenings.find(job => job.id === selectedJob)?.title}
+        {/* Call to Action */}
+        <div className="text-center">
+          <Card className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border-green-500/20 backdrop-blur-sm">
+            <CardContent className="p-12">
+              <h2 className="text-3xl font-bold text-white mb-4">Don't See Your Role?</h2>
+              <p className="text-slate-300 mb-6 max-w-2xl mx-auto">
+                We're always looking for exceptional talent. Send us your resume and tell us how you'd like to contribute to the future of cryptocurrency trading.
               </p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleApplicationSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      value={applicationForm.firstName}
-                      onChange={(e) => setApplicationForm(prev => ({
-                        ...prev,
-                        firstName: e.target.value
-                      }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      value={applicationForm.lastName}
-                      onChange={(e) => setApplicationForm(prev => ({
-                        ...prev,
-                        lastName: e.target.value
-                      }))}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={applicationForm.email}
-                      onChange={(e) => setApplicationForm(prev => ({
-                        ...prev,
-                        email: e.target.value
-                      }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={applicationForm.phone}
-                      onChange={(e) => setApplicationForm(prev => ({
-                        ...prev,
-                        phone: e.target.value
-                      }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="experience">Experience Level</Label>
-                  <Select 
-                    value={applicationForm.experience}
-                    onValueChange={(value) => setApplicationForm(prev => ({
-                      ...prev,
-                      experience: value
-                    }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your experience level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="junior">Junior (0-2 years)</SelectItem>
-                      <SelectItem value="mid">Mid-level (2-5 years)</SelectItem>
-                      <SelectItem value="senior">Senior (5+ years)</SelectItem>
-                      <SelectItem value="lead">Lead/Principal (8+ years)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="portfolio">Portfolio/LinkedIn URL</Label>
-                  <Input
-                    id="portfolio"
-                    type="url"
-                    placeholder="https://..."
-                    value={applicationForm.portfolio}
-                    onChange={(e) => setApplicationForm(prev => ({
-                      ...prev,
-                      portfolio: e.target.value
-                    }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="coverLetter">Cover Letter *</Label>
-                  <Textarea
-                    id="coverLetter"
-                    rows={6}
-                    placeholder="Tell us why you're interested in this position and what makes you a great fit..."
-                    value={applicationForm.coverLetter}
-                    onChange={(e) => setApplicationForm(prev => ({
-                      ...prev,
-                      coverLetter: e.target.value
-                    }))}
-                    required
-                  />
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                    <Send className="w-4 h-4 mr-2" />
-                    Submit Application
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline"
-                    onClick={() => setSelectedJob(null)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              >
+                Send Your Application
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
             </CardContent>
           </Card>
-        )}
+        </div>
       </div>
     </div>
   );
