@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +41,7 @@ export default function Auth() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [userLoginForm, setUserLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
-  
+
   const [registerForm, setRegisterForm] = useState<RegisterData>({ 
     username: "", 
     email: "", 
@@ -120,7 +119,7 @@ export default function Auth() {
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
     if (!registerForm.firstName || !registerForm.lastName || !registerForm.username || 
         !registerForm.email || !registerForm.password) {
@@ -156,7 +155,7 @@ export default function Auth() {
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(34,197,94,0.1),transparent)]" />
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-      
+
       <div className="relative flex items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-md">
           {/* Back to home link */}
@@ -302,10 +301,10 @@ export default function Auth() {
                     {/* Divider */}
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-slate-600/50" />
+                        <span className="w-full border-t border-gray-300 dark:border-slate-600/50" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-slate-800/40 px-2 text-slate-400">Or continue with</span>
+                        <span className="bg-white/90 dark:bg-slate-800/40 px-2 text-gray-500 dark:text-slate-400">Or continue with</span>
                       </div>
                     </div>
 
@@ -473,10 +472,10 @@ export default function Auth() {
                     {/* Divider */}
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-slate-600/50" />
+                        <span className="w-full border-t border-gray-300 dark:border-slate-600/50" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-slate-800/40 px-2 text-slate-400">Or continue with</span>
+                        <span className="bg-white/90 dark:bg-slate-800/40 px-2 text-gray-500 dark:text-slate-400">Or continue with</span>
                       </div>
                     </div>
 

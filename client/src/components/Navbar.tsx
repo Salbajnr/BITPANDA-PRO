@@ -82,9 +82,9 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-all duration-300 ${
+    <nav className={`bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 sticky top-0 z-50 transition-all duration-300 ${
       scrolled
-        ? 'shadow-lg bg-background/98 backdrop-blur-xl'
+        ? 'shadow-lg'
         : 'shadow-sm'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
