@@ -7,7 +7,7 @@ channel = "stable-25_05"
 packages = ["kubectl"]
 
 [deployment]
-deploymentTarget = "vm"
+deploymentTarget = "autoscale"
 run = ["npm", "run", "start"]
 build = ["npm", "run", "build"]
 
