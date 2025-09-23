@@ -56,7 +56,7 @@ import {
 } from '@shared/schema';
 import { db } from "./db";
 import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray } from "drizzle-orm";
-import { hashPassword } from "./utils";
+import { hashPassword } from "./simple-auth";
 
 export interface IStorage {
   // User operations
