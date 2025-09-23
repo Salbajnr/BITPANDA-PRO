@@ -117,5 +117,4 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
   );
 };
 
-export { RealTimePriceWidget };
 export default RealTimePriceWidget;

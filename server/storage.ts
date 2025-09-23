@@ -55,7 +55,7 @@ import {
   type InsertUserPreferences
 } from '@shared/schema';
 import { db } from "./db";
-import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum } from "drizzle-orm";
+import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
