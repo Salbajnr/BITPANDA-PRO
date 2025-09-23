@@ -1,86 +1,70 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Users, 
-  MapPin, 
-  Calendar, 
-  ArrowRight, 
-  Globe, 
-  Heart, 
-  Lightbulb,
-  TrendingUp,
-  Coffee,
-  Gamepad2,
-  GraduationCap,
-  Shield,
-  Zap,
-  Award
-} from 'lucide-react';
-import { Link } from 'wouter';
+import { MapPin, Clock, Users, Briefcase, Heart, Globe, Zap, Target } from 'lucide-react';
 
 const jobOpenings = [
   {
     id: 1,
-    title: "Senior Frontend Developer",
+    title: "Senior Full Stack Developer",
     department: "Engineering",
     location: "Vienna, Austria",
     type: "Full-time",
-    description: "Join our frontend team to build the next generation of crypto trading interfaces using React and TypeScript.",
-    requirements: ["5+ years React experience", "TypeScript proficiency", "Financial UI experience preferred"],
-    posted: "2 days ago"
+    description: "Join our core platform team to build the next generation of crypto trading infrastructure.",
+    requirements: ["5+ years experience", "React & Node.js", "PostgreSQL", "Microservices"],
+    remote: true
   },
   {
     id: 2,
-    title: "Blockchain Security Engineer", 
+    title: "Blockchain Security Engineer",
     department: "Security",
-    location: "Remote",
-    type: "Full-time",
-    description: "Help secure our platform and smart contracts while building the future of decentralized finance.",
-    requirements: ["Solidity expertise", "Security audit experience", "DeFi knowledge"],
-    posted: "1 week ago"
+    location: "Remote Europe",
+    type: "Full-time", 
+    description: "Ensure the highest security standards for our cryptocurrency platform and user funds.",
+    requirements: ["Blockchain security expertise", "Smart contract auditing", "Penetration testing", "DeFi protocols"],
+    remote: true
   },
   {
     id: 3,
-    title: "Product Manager - Trading",
+    title: "Senior Product Manager",
     department: "Product",
     location: "Vienna, Austria",
-    type: "Full-time", 
-    description: "Lead product strategy for our professional trading platform used by millions of traders worldwide.",
-    requirements: ["Product management experience", "Trading platform knowledge", "Data-driven mindset"],
-    posted: "3 days ago"
+    type: "Full-time",
+    description: "Drive product strategy and roadmap for our trading and investment products.",
+    requirements: ["5+ years product management", "Fintech experience", "Data-driven approach", "User research"],
+    remote: false
   },
   {
     id: 4,
-    title: "DevOps Engineer",
-    department: "Infrastructure",
-    location: "Vienna, Austria / Remote",
+    title: "Compliance Specialist",
+    department: "Legal & Compliance",
+    location: "Vienna, Austria", 
     type: "Full-time",
-    description: "Scale our infrastructure to handle millions of users and billions in trading volume.",
-    requirements: ["Kubernetes experience", "AWS/Cloud expertise", "CI/CD pipelines"],
-    posted: "5 days ago"
+    description: "Navigate regulatory requirements across European markets for crypto asset services.",
+    requirements: ["Legal/compliance background", "EU financial regulations", "MiCA knowledge", "Risk assessment"],
+    remote: false
   },
   {
     id: 5,
-    title: "Compliance Officer",
-    department: "Legal & Compliance", 
-    location: "Vienna, Austria",
+    title: "DevOps Engineer",
+    department: "Infrastructure",
+    location: "Remote Europe",
     type: "Full-time",
-    description: "Ensure our platform meets regulatory requirements across multiple European jurisdictions.",
-    requirements: ["Financial compliance background", "European regulations knowledge", "Legal degree preferred"],
-    posted: "1 week ago"
+    description: "Scale our infrastructure to handle millions of users and high-frequency trading.",
+    requirements: ["Kubernetes", "AWS/GCP", "CI/CD pipelines", "Monitoring & alerting"],
+    remote: true
   },
   {
     id: 6,
-    title: "UX Designer",
+    title: "UX/UI Designer",
     department: "Design",
     location: "Vienna, Austria",
     type: "Full-time",
-    description: "Design intuitive experiences for both beginner and professional crypto traders.",
-    requirements: ["5+ years UX design", "Fintech experience", "User research skills"],
-    posted: "4 days ago"
+    description: "Create intuitive and beautiful experiences for complex financial products.",
+    requirements: ["5+ years UX/UI design", "Fintech experience", "Design systems", "User testing"],
+    remote: true
   }
 ];
 
@@ -88,210 +72,150 @@ const benefits = [
   {
     icon: Heart,
     title: "Health & Wellness",
-    description: "Comprehensive health insurance, mental health support, and wellness programs",
-    color: "text-red-500"
-  },
-  {
-    icon: Coffee,
-    title: "Work-Life Balance", 
-    description: "Flexible working hours, remote work options, and unlimited vacation policy",
-    color: "text-orange-500"
-  },
-  {
-    icon: TrendingUp,
-    title: "Growth & Development",
-    description: "Learning budget, conference attendance, and internal mentorship programs",
-    color: "text-green-500"
-  },
-  {
-    icon: Gamepad2,
-    title: "Fun & Culture",
-    description: "Team events, game rooms, and a vibrant office culture in the heart of Vienna",
-    color: "text-purple-500"
-  },
-  {
-    icon: Award,
-    title: "Competitive Package",
-    description: "Competitive salary, equity options, and performance-based bonuses",
-    color: "text-blue-500"
-  },
-  {
-    icon: Shield,
-    title: "Security & Stability",
-    description: "Job security in a growing company with strong financial backing",
-    color: "text-gray-500"
-  }
-];
-
-const values = [
-  {
-    icon: Lightbulb,
-    title: "Innovation First",
-    description: "We're constantly pushing the boundaries of what's possible in financial technology"
-  },
-  {
-    icon: Users,
-    title: "Customer Centric", 
-    description: "Every decision we make is focused on delivering value to our users"
-  },
-  {
-    icon: Shield,
-    title: "Trust & Security",
-    description: "We build products that our users can trust with their financial future"
+    description: "Comprehensive health insurance, mental health support, and wellness programs"
   },
   {
     icon: Globe,
-    title: "Global Impact",
-    description: "We're democratizing access to financial services across Europe and beyond"
+    title: "Remote-First Culture",
+    description: "Work from anywhere in Europe with flexible hours and quarterly team meetups"
+  },
+  {
+    icon: Zap,
+    title: "Learning & Development",
+    description: "Annual learning budget, conference attendance, and internal knowledge sharing"
+  },
+  {
+    icon: Target,
+    title: "Equity & Bonuses",
+    description: "Competitive salary, performance bonuses, and equity participation in company growth"
+  },
+  {
+    icon: Users,
+    title: "Inclusive Environment",
+    description: "Diverse team from 30+ countries with focus on psychological safety and inclusion"
+  },
+  {
+    icon: Briefcase,
+    title: "Career Growth",
+    description: "Clear progression paths, mentorship programs, and leadership development opportunities"
   }
 ];
 
-export default function Careers() {
+const Careers: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-green-600 to-green-800 text-white py-20">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge variant="secondary" className="mb-4 bg-white/20 text-white border-white/30">
-            <Users className="w-4 h-4 mr-2" />
-            Join Our Team
-          </Badge>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Shape the Future of Finance
+      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            Join the Future of
+            <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"> Finance</span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
-            Join Europe's leading crypto platform and help democratize access to digital assets for millions of users worldwide.
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-8">
+            Help us democratize access to digital assets and build the infrastructure for the next generation of financial services.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-green-600 hover:bg-gray-100">
-              <MapPin className="w-5 h-5 mr-2" />
-              View Open Positions
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-              <Heart className="w-5 h-5 mr-2" />
-              Learn About Our Culture
-            </Button>
-          </div>
+          <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3">
+            View Open Positions
+          </Button>
         </div>
       </section>
 
-      {/* Company Stats */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-green-600 mb-2">7M+</div>
-              <div className="text-gray-600">Active Users</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-600 mb-2">500+</div>
-              <div className="text-gray-600">Team Members</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-600 mb-2">15+</div>
-              <div className="text-gray-600">Countries</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-600 mb-2">€50B+</div>
-              <div className="text-gray-600">Assets Under Management</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Our Values */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Values</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're more than just a crypto platform. We're a team of passionate individuals working towards a common goal.
+      {/* Company Culture */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Why Work at BITPANDA PRO?
+            </h2>
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+              We're building the most trusted and innovative crypto platform in Europe, with a team that values excellence, innovation, and user-centricity.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <value.icon className="w-12 h-12 mx-auto mb-4 text-green-600" />
-                  <h3 className="text-xl font-semibold mb-2">{value.title}</h3>
-                  <p className="text-gray-600">{value.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Benefits */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Work With Us?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We offer competitive benefits and a supportive environment where you can grow your career.
-            </p>
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <benefit.icon className={`w-10 h-10 mb-4 ${benefit.color}`} />
-                  <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-                  <p className="text-gray-600">{benefit.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {benefits.map((benefit, index) => {
+              const IconComponent = benefit.icon;
+              return (
+                <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center mb-4">
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-slate-300 text-sm">
+                      {benefit.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Open Positions */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Open Positions</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Find your next opportunity and help us build the future of finance.
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Open Positions
+            </h2>
+            <p className="text-lg text-slate-300">
+              Join our team of world-class professionals building the future of finance
             </p>
           </div>
+
           <div className="space-y-6">
             {jobOpenings.map((job) => (
-              <Card key={job.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        <Badge variant="secondary">{job.department}</Badge>
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {job.location}
+              <Card key={job.id} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-semibold text-white">
+                          {job.title}
+                        </h3>
+                        <Badge variant="secondary" className="bg-green-600 text-white">
+                          {job.department}
                         </Badge>
-                        <Badge variant="outline">{job.type}</Badge>
+                        {job.remote && (
+                          <Badge variant="outline" className="border-blue-400 text-blue-400">
+                            Remote OK
+                          </Badge>
+                        )}
                       </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        Posted {job.posted}
+                      
+                      <div className="flex items-center gap-4 text-slate-300 text-sm mb-3">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          {job.location}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {job.type}
+                        </div>
+                      </div>
+
+                      <p className="text-slate-300 mb-3">
+                        {job.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {job.requirements.map((req, index) => (
+                          <Badge key={index} variant="outline" className="border-slate-500 text-slate-300">
+                            {req}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
-                    <Button className="bg-green-600 hover:bg-green-700">
-                      Apply Now
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base mb-4">
-                    {job.description}
-                  </CardDescription>
-                  <div>
-                    <h4 className="font-semibold mb-2">Key Requirements:</h4>
-                    <ul className="list-disc list-inside text-gray-600 space-y-1">
-                      {job.requirements.map((req, index) => (
-                        <li key={index}>{req}</li>
-                      ))}
-                    </ul>
+
+                    <div className="mt-4 lg:mt-0 lg:ml-6">
+                      <Button className="bg-green-600 hover:bg-green-700 text-white">
+                        Apply Now
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -301,66 +225,81 @@ export default function Careers() {
       </section>
 
       {/* Application Process */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Hiring Process</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We've designed our process to be thorough yet respectful of your time.
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Our Hiring Process
+            </h2>
+            <p className="text-lg text-slate-300">
+              We believe in a fair, transparent, and efficient hiring process
             </p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-600 font-bold">1</span>
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">1</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Application</h3>
-              <p className="text-gray-600">Submit your application and we'll review it within 48 hours</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Apply</h3>
+              <p className="text-slate-300 text-sm">
+                Submit your application with CV and cover letter
+              </p>
             </div>
+
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-600 font-bold">2</span>
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">2</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Phone Screening</h3>
-              <p className="text-gray-600">Brief call to discuss your background and interest</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Screen</h3>
+              <p className="text-slate-300 text-sm">
+                Initial call with HR to discuss your background and interests
+              </p>
             </div>
+
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-600 font-bold">3</span>
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">3</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Technical Interview</h3>
-              <p className="text-gray-600">Deep dive into your technical skills and experience</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Interview</h3>
+              <p className="text-slate-300 text-sm">
+                Technical and cultural fit interviews with the team
+              </p>
             </div>
+
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-600 font-bold">4</span>
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">4</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Final Interview</h3>
-              <p className="text-gray-600">Meet the team and discuss culture fit</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Offer</h3>
+              <p className="text-slate-300 text-sm">
+                Receive your offer and join our amazing team
+              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-green-600 to-green-800 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Join Our Mission?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Don't see the perfect role? We're always looking for exceptional talent.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-green-600 hover:bg-gray-100">
-              <Users className="w-5 h-5 mr-2" />
-              Browse All Positions
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-              <Heart className="w-5 h-5 mr-2" />
-              Send Us Your CV
-            </Button>
-          </div>
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto text-center">
+          <Card className="bg-gradient-to-r from-green-600 to-blue-600 border-0">
+            <CardContent className="p-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                Don't See Your Perfect Role?
+              </h2>
+              <p className="text-lg text-white/90 mb-6 max-w-2xl mx-auto">
+                We're always looking for exceptional talent. Send us your CV and let us know how you'd like to contribute to the future of finance.
+              </p>
+              <Button size="lg" variant="secondary" className="bg-white text-slate-900 hover:bg-slate-100">
+                Send Us Your CV
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </div>
   );
-}
+};
+
+export default Careers;
