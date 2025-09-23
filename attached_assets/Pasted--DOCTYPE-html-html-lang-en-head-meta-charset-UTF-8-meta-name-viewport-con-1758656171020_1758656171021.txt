@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Crypto App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .balance {
+            margin: 10px 0;
+        }
+        .balance h2 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .balance p {
+            margin: 0;
+            color: green;
+        }
+        .trade-button {
+            background-color: #00cc88;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .promotions {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px;
+            gap: 10px;
+        }
+        .promo-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .promo-card img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .top-movers {
+            background-color: white;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .top-movers h3 {
+            margin: 0;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .tabs button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 20px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+        .tabs button.active {
+            background-color: black;
+            color: white;
+        }
+        .movers-list {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+        }
+        .mover-card {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        .bottom-nav a {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
+        .bottom-nav a.active {
+            color: #00cc88;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hallo Heike!</h1>
+        <div class="balance">
+            <h2>13,79 €</h2>
+            <p>↗ 2,00 % in 1 Tag</p>
+        </div>
+        <button class="trade-button">Trade</button>
+    </header>
+
+    <section class="promotions">
+        <div class="promo-card">
+            <img src="placeholder.jpg" alt="Bitcoin-Allzeithoch">
+            <p>Bitcoin-Allzeithoch</p>
+        </div>
+        <div class="promo-card">
+            <img src="placeholder.jpg" alt="Gewinne einen ganzen Bitcoin">
+            <p>Gewinne einen ganzen Bitcoin</p>
+        </div>
+        <div class="promo-card">
+            <img src="placeholder.jpg" alt="Bitpanda">
+            <p>Bitpanda</p>
+        </div>
+    </section>
+
+    <section class="top-movers">
+        <h3>Top-Mover in 1 Tag</h3>
+        <div class="tabs">
+            <button class="active">Gewinner</button>
+            <button>Verlierer</button>
+        </div>
+        <div class="movers-list">
+            <div class="mover-card">
+                <p>🔄 80,42%</p>
+                <h4>ZERO</h4>
+                <p>ZeroLend</p>
+            </div>
+            <div class="mover-card">
+                <p>🔄 54,60%</p>
+                <h4>REZ</h4>
+                <p>Renzo</p>
+            </div>
+            <div class="mover-card">
+                <p>🔄 32,00%</p>
+                <h4>COW</h4>
+                <p>CoW Protocol</p>
+            </div>
+        </div>
+    </section>
+
+    <nav class="bottom-nav">
+        <a href="#" class="active">Home</a>
+        <a href="#">Portfolio</a>
+        <a href="#">Trade</a>
+        <a href="#">Entdecken</a>
+        <a href="#">Profil</a>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tabs button');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

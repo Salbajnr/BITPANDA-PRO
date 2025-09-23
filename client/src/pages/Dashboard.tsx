@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-<<<<<<< HEAD
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -28,10 +27,6 @@ import { PriceAlertsList } from '@/components/PriceAlertsList';
 import RealTimePriceWidget from "@/components/RealTimePriceWidget";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/ThemeToggle";
-=======
-import { TrendingUp, TrendingDown } from "lucide-react";
-import { Link } from "wouter";
->>>>>>> 5ac6968446e6f8f183bb8ebca8eaf9ecd4179c2a
 
 interface PortfolioData {
   portfolio: {
@@ -52,12 +47,9 @@ interface PortfolioData {
 
 interface TopMover {
   id: string;
-<<<<<<< HEAD
-  title: string;
-  content: string;
-  category: string;
-  createdAt: string;
-  imageUrl?: string;
+  symbol: string;
+  name: string;
+  change: number;
 }
 
 // Dashboard Sidebar Component
@@ -291,11 +283,6 @@ function DashboardHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => voi
       </div>
     </header>
   );
-=======
-  symbol: string;
-  name: string;
-  change: number;
->>>>>>> 5ac6968446e6f8f183bb8ebca8eaf9ecd4179c2a
 }
 
 export default function Dashboard() {
