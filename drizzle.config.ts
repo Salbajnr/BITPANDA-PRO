@@ -11,10 +11,7 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    connectionString: databaseUrl,
-    ssl: {
-      rejectUnauthorized: false
-    }
+    url: databaseUrl,
   },
   verbose: true,
   strict: true,
