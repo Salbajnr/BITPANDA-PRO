@@ -66,6 +66,7 @@ import DualMarkets from "@/pages/DualMarkets";
 // Admin Pages
 import AdminBalanceManagement from "@/pages/AdminBalanceManagement";
 import AdminDepositManagement from "@/pages/AdminDepositManagement";
+import AdminUsers from "@/pages/AdminUsers";
 
 // Lazy loaded components
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
@@ -209,7 +210,7 @@ export default function App() {
             {/* Admin Routes */}
             <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/dashboard" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/admin/users" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/users" component={() => <AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/admin/news" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
             <Route path="/admin/news-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
             <Route path="/admin/balances" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />

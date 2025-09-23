@@ -2,7 +2,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { PageHeader } from "@/components/PageHeader";
+import { StatCard } from "@/components/StatCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,7 +57,7 @@ function BottomNavigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
       <div className="flex justify-around items-center py-2 px-4 max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
@@ -65,8 +68,8 @@ function BottomNavigation() {
               to={item.id}
               className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
                 isActive 
-                  ? "text-[#00cc88]" 
-                  : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon className="h-5 w-5 mb-1" />
@@ -137,57 +140,70 @@ export default function Dashboard() {
   const losers = topMovers.filter(m => m.change < 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-20">
-      {/* Header - Portfolio Value */}
-      <div className="bg-white dark:bg-slate-900 p-4 text-center relative">
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-          Hello {user?.firstName || 'Trader'}!
-        </h1>
-        
-        <div className="mb-4">
-          <div className="flex items-center justify-center space-x-2">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-              {showBalance ? `€${portfolioValue}` : "••••••"}
-            </h2>
-            <button
-              onClick={() => setShowBalance(!showBalance)}
-              className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
-              data-testid="toggle-balance"
-            >
-              {showBalance ? (
-                <Eye className="h-5 w-5 text-slate-400" />
-              ) : (
-                <EyeOff className="h-5 w-5 text-slate-400" />
-              )}
-            </button>
-          </div>
-          
-          <div className="flex items-center justify-center mt-2">
-            {portfolioChange >= 0 ? (
-              <TrendingUp className="h-4 w-4 text-[#00cc88] mr-1" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-            )}
-            <span className={`text-sm ${portfolioChange >= 0 ? 'text-[#00cc88]' : 'text-red-500'}`}>
-              {portfolioChange >= 0 ? '↗' : '↘'} {Math.abs(portfolioChange)}% in 1 Tag
-            </span>
-          </div>
-        </div>
+    <DashboardLayout showTicker={true}>
+      <PageHeader
+        title={`Hello ${user?.firstName || 'Trader'}!`}
+        description="Welcome to your trading dashboard"
+        actions={
+          <Button
+            onClick={() => setIsHidden(!isHidden)}
+            variant="outline"
+            data-testid="button-hide"
+          >
+            {isHidden ? 'Show' : 'Hide'}
+          </Button>
+        }
+      />
 
-        <Button 
-          className="w-full bg-[#00cc88] hover:bg-[#00b377] text-white font-medium py-3 rounded-lg"
-          data-testid="trade-button"
-        >
-          Trade
-        </Button>
+      {/* Portfolio Statistics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <StatCard
+          title="Portfolio Value"
+          value={
+            <div className="flex items-center gap-2">
+              <span>{showBalance ? `€${portfolioValue}` : "••••••"}</span>
+              <button
+                onClick={() => setShowBalance(!showBalance)}
+                className="p-1 hover:bg-muted rounded"
+                data-testid="toggle-balance"
+              >
+                {showBalance ? (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                )}
+              </button>
+            </div>
+          }
+          icon={Wallet}
+          change={{
+            value: `${Math.abs(portfolioChange)}%`,
+            trend: portfolioChange >= 0 ? 'up' : 'down'
+          }}
+          description="24h change"
+        />
+        <StatCard
+          title="Available Cash"
+          value={`€${availableBalance}`}
+          icon={DollarSign}
+          description="Ready to trade"
+        />
+        <StatCard
+          title="Active Holdings"
+          value={portfolioData?.holdings?.length?.toString() || "0"}
+          icon={BarChart3}
+          description="Asset positions"
+        />
+      </div>
 
-        <button
-          onClick={() => setIsHidden(!isHidden)}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-sm"
-          data-testid="button-hide"
-        >
-          {isHidden ? 'Show' : 'Hide'}
-        </button>
+      {/* Quick Trade Button */}
+      <div className="mb-6">
+        <Link to="/trading">
+          <Button className="w-full sm:w-auto" data-testid="trade-button">
+            <Activity className="mr-2 h-4 w-4" />
+            Start Trading
+          </Button>
+        </Link>
       </div>
 
       {/* Portfolio Chart Placeholder */}
