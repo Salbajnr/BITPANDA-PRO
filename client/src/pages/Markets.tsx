@@ -1,46 +1,171 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RefreshCw, TrendingUp, TrendingDown, Star, DollarSign } from "lucide-react";
+import { getCryptoLogo } from "@/components/CryptoLogos";
 import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
-import { getCryptoLogo } from "@/components/CryptoLogos";
-import {
-  TrendingUp, TrendingDown, Search, RefreshCw,
-  Bitcoin, Star, Eye
-} from "lucide-react";
+
+interface CryptoData {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  price_change_percentage_24h: number;
+  market_cap: number;
+  total_volume: number;
+  image?: string;
+}
+
+interface MetalData {
+  id: string;
+  symbol: string;
+  name: string;
+  current_price: number;
+  price_change_percentage_24h: number;
+  unit: string;
+}
 
 export default function Markets() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("crypto");
 
   // Fetch crypto data
-  const { data: cryptoData, isLoading, refetch } = useQuery({
+  const { data: cryptoResponse, isLoading: cryptoLoading, refetch: refetchCrypto } = useQuery({
     queryKey: ['/api/crypto/market-data'],
     refetchInterval: 30000,
   });
 
-  // Filter data based on search
-  const filteredData = cryptoData?.filter((item: any) => 
-    item.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // Fetch metals data
+  const { data: metalsData, isLoading: metalsLoading, refetch: refetchMetals } = useQuery({
+    queryKey: ['/api/metals/market-data'],
+    refetchInterval: 60000,
+  });
 
-  const formatPrice = (price: number) => {
-    return `$${price.toLocaleString()}`;
+  // Extract crypto data from response object
+  const cryptoData: CryptoData[] = cryptoResponse?.data || [];
+  
+  // Filter and sort crypto data
+  const topCryptos = Array.isArray(cryptoData) ? 
+    cryptoData.slice(0, 50).sort((a, b) => b.market_cap - a.market_cap) : [];
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   };
 
-  const formatMarketCap = (marketCap: number) => {
-    if (marketCap >= 1e12) {
-      return `$${(marketCap / 1e12).toFixed(2)}T`;
-    } else if (marketCap >= 1e9) {
-      return `$${(marketCap / 1e9).toFixed(2)}B`;
-    } else if (marketCap >= 1e6) {
-      return `$${(marketCap / 1e6).toFixed(2)}M`;
-    }
-    return `$${marketCap.toLocaleString()}`;
+  const formatMarketCap = (value: number) => {
+    if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+    return formatCurrency(value);
   };
+
+  const CryptoCard = ({ crypto }: { crypto: CryptoData }) => (
+    <Card className="hover:shadow-lg transition-shadow border-gray-200">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <img 
+              src={crypto.image || getCryptoLogo(crypto.symbol)} 
+              alt={crypto.name} 
+              className="w-10 h-10 rounded-full"
+              onError={(e) => {
+                e.currentTarget.src = getCryptoLogo(crypto.symbol);
+              }}
+            />
+            <div>
+              <h3 className="font-semibold text-gray-900">{crypto.name}</h3>
+              <p className="text-sm text-gray-500">{crypto.symbol?.toUpperCase()}</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm">
+            <Star className="w-4 h-4" />
+          </Button>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Price</span>
+            <span className="font-bold text-lg">{formatCurrency(crypto.current_price)}</span>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">24h Change</span>
+            <div className={`flex items-center space-x-1 ${
+              crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-500'
+            }`}>
+              {crypto.price_change_percentage_24h >= 0 ? 
+                <TrendingUp className="w-4 h-4" /> : 
+                <TrendingDown className="w-4 h-4" />
+              }
+              <span className="font-medium">
+                {Math.abs(crypto.price_change_percentage_24h).toFixed(2)}%
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Market Cap</span>
+            <span className="font-medium">{formatMarketCap(crypto.market_cap)}</span>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Volume (24h)</span>
+            <span className="font-medium">{formatMarketCap(crypto.total_volume)}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const MetalCard = ({ metal }: { metal: MetalData }) => (
+    <Card className="hover:shadow-lg transition-shadow border-gray-200">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">{metal.name}</h3>
+              <p className="text-sm text-gray-500">{metal.symbol}</p>
+            </div>
+          </div>
+          <Badge variant="secondary">{metal.unit}</Badge>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Price per {metal.unit}</span>
+            <span className="font-bold text-lg">{formatCurrency(metal.current_price)}</span>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">24h Change</span>
+            <div className={`flex items-center space-x-1 ${
+              metal.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-500'
+            }`}>
+              {metal.price_change_percentage_24h >= 0 ? 
+                <TrendingUp className="w-4 h-4" /> : 
+                <TrendingDown className="w-4 h-4" />
+              }
+              <span className="font-medium">
+                {Math.abs(metal.price_change_percentage_24h).toFixed(2)}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -52,149 +177,74 @@ export default function Markets() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-black mb-4">
-                Crypto Markets
-              </h1>
+              <h1 className="text-4xl font-bold text-black mb-4">Markets Overview</h1>
               <p className="text-xl text-gray-600">
-                Live cryptocurrency prices and market data
+                Real-time prices for cryptocurrencies and precious metals
               </p>
             </div>
-            <div className="flex space-x-3">
-              <Button 
-                onClick={() => refetch()} 
-                variant="outline"
-                className="border-green-500 text-green-600 hover:bg-green-50"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
-            </div>
+            <Button 
+              onClick={() => {
+                refetchCrypto();
+                refetchMetals();
+              }} 
+              variant="outline"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
           </div>
         </div>
 
-        {/* Search */}
-        <Card className="border border-gray-200 mb-6">
-          <CardContent className="p-6">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search cryptocurrencies..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-gray-300 focus:border-green-500"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Markets Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="crypto">Cryptocurrencies</TabsTrigger>
+            <TabsTrigger value="metals">Precious Metals</TabsTrigger>
+          </TabsList>
 
-        {/* Market Table */}
-        {isLoading ? (
-          <div className="text-center py-12">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-green-500" />
-            <p className="text-gray-600">Loading market data...</p>
-          </div>
-        ) : (
-          <Card className="border border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-black">
-                Cryptocurrency Markets
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">#</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Asset</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Price</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">24h Change</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Market Cap</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Volume</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredData.map((asset: any, index: number) => (
-                      <tr key={asset.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4 text-gray-500">
-                          {index + 1}
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center space-x-3">
-                            <img 
-                              src={asset.image || getCryptoLogo(asset.symbol)} 
-                              alt={asset.symbol}
-                              className="w-8 h-8"
-                            />
-                            <div>
-                              <div className="font-medium text-black">{asset.symbol}</div>
-                              <div className="text-sm text-gray-500">{asset.name}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="font-medium text-black">
-                            {formatPrice(asset.current_price)}
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className={`flex items-center space-x-1 ${
-                            asset.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {asset.price_change_percentage_24h >= 0 ? (
-                              <TrendingUp className="w-4 h-4" />
-                            ) : (
-                              <TrendingDown className="w-4 h-4" />
-                            )}
-                            <span className="font-medium">
-                              {asset.price_change_percentage_24h >= 0 ? '+' : ''}
-                              {asset.price_change_percentage_24h.toFixed(2)}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-gray-600">
-                          {asset.market_cap ? formatMarketCap(asset.market_cap) : 'N/A'}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600">
-                          {asset.total_volume ? formatMarketCap(asset.total_volume) : 'N/A'}
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="border-green-500 text-green-600 hover:bg-green-50"
-                            >
-                              Trade
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              className="text-gray-600 hover:text-black"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* Crypto Tab */}
+          <TabsContent value="crypto">
+            {cryptoLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(12)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-20 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {topCryptos.map((crypto) => (
+                  <CryptoCard key={crypto.id} crypto={crypto} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-              {filteredData.length === 0 && (
-                <div className="text-center py-12">
-                  <Search className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-xl font-semibold text-black mb-2">No Assets Found</h3>
-                  <p className="text-gray-600">
-                    Try adjusting your search criteria.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+          {/* Metals Tab */}
+          <TabsContent value="metals">
+            {metalsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-20 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.isArray(metalsData) && metalsData.map((metal: MetalData) => (
+                  <MetalCard key={metal.id} metal={metal} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

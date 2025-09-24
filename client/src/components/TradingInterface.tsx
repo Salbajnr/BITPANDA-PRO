@@ -114,7 +114,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
             }),
             credentials: 'include',
           });
-          
+
           if (response.ok) {
             const feeData = await response.json();
             setFees({
@@ -126,22 +126,27 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
           console.error('Failed to calculate fees:', error);
         }
       };
-      
+
       calculateFees();
     }
   }, [amount, limitPrice, orderType, currentPrice, tradeType]);
 
-  const handleTrade = (type: 'buy' | 'sell') => {
-    if (!amount || parseFloat(amount) <= 0) {
+  const handleTrade = async () => {
+    const selectedCrypto = crypto; // Use the crypto prop directly
+    const amountNum = parseFloat(amount);
+    const priceNum = orderType === 'market' ? currentPrice : parseFloat(limitPrice || "0"); // Use limitPrice for limit orders
+
+    // Basic validation
+    if (!selectedCrypto || !amountNum || amountNum <= 0) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount",
+        title: "Invalid Input",
+        description: "Please enter a valid amount greater than 0",
         variant: "destructive",
       });
       return;
     }
 
-    if (orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)) {
+    if (orderType === 'limit' && (!limitPrice || parseFloat(limitPrice) <= 0)) {
       toast({
         title: "Invalid Price",
         description: "Please enter a valid limit price",
@@ -168,17 +173,99 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
       return;
     }
 
-    tradeMutation.mutate({
-      type,
-      symbol: crypto.symbol,
-      name: crypto.name,
-      amount,
-      price: orderType === "market" ? currentPrice.toString() : limitPrice,
-      orderType,
-      stopLoss: useStopLoss ? stopLoss : undefined,
-      takeProfit: useTakeProfit ? takeProfit : undefined,
-      slippage,
-    });
+    const total = amountNum * priceNum;
+
+    // Validate minimum trade value (e.g., $10)
+    if (total < 10) {
+      toast({
+        title: "Minimum Trade Value",
+        description: "Minimum trade value is $10",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for sufficient funds (buy orders)
+    if (tradeType === 'buy') {
+      // TODO: Get user's available cash from portfolio
+      const availableCash = 10000; // Placeholder
+      if (total > availableCash) {
+        toast({
+          title: "Insufficient Funds",
+          description: `You need $${total.toFixed(2)} but only have $${availableCash.toFixed(2)}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Check for sufficient holdings (sell orders)
+    if (tradeType === 'sell') {
+      // TODO: Get user's holdings for this crypto
+      const holdings = 0; // Placeholder
+      if (amountNum > holdings) {
+        toast({
+          title: "Insufficient Holdings",
+          description: `You're trying to sell ${amountNum} ${selectedCrypto.symbol} but only have ${holdings}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setIsLoading(true); // Use isLoading for the mutation
+
+    try {
+      const response = await fetch('/api/trading/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          symbol: selectedCrypto.symbol,
+          type: tradeType,
+          orderType,
+          amount: amountNum.toString(),
+          price: priceNum.toString(),
+          stopLoss: useStopLoss ? stopLoss : undefined,
+          takeProfit: useTakeProfit ? takeProfit : undefined,
+          slippage,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Trade Executed Successfully",
+          description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${amountNum} ${selectedCrypto.symbol} at $${result.executionPrice}`,
+        });
+
+        // Reset form
+        setAmount("");
+        setLimitPrice("");
+        setStopLoss("");
+        setTakeProfit("");
+        setUseStopLoss(false);
+        setUseTakeProfit(false);
+
+        // Refresh portfolio data
+        queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to execute trade');
+      }
+    } catch (error) {
+      console.error('Trading error:', error);
+      toast({
+        title: "Trade Failed",
+        description: error instanceof Error ? error.message : 'An error occurred while executing the trade',
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false); // Set isLoading to false
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -416,17 +503,17 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
               </div>
 
               <Button
-                onClick={() => handleTrade(tradeType)}
-                disabled={tradeMutation.isPending || !amount || (orderType === 'limit' && !limitPrice) || (useStopLoss && !stopLoss) || (useTakeProfit && !takeProfit) }
+                onClick={handleTrade}
+                disabled={isLoading || !amount || (orderType === 'limit' && !limitPrice) || (orderType === "stop_loss" && useStopLoss && !stopLoss) || (orderType === "take_profit" && useTakeProfit && !takeProfit)}
                 className={`w-full ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
                 data-testid={tradeType === 'buy' ? "button-execute-buy" : "button-execute-sell"}
               >
-                {tradeMutation.isPending ? (
+                {isLoading ? (
                   <Activity className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <DollarSign className="h-4 w-4 mr-2" />
                 )}
-                {tradeMutation.isPending ? 'Processing...' : `${tradeType.toUpperCase()} ${crypto.symbol.toUpperCase()}`}
+                {isLoading ? 'Processing...' : `${tradeType.toUpperCase()} ${crypto.symbol.toUpperCase()}`}
               </Button>
             </div>
           </TabsContent>
