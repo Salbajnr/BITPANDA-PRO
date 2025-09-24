@@ -77,6 +77,7 @@ const AdminChatManagement = lazy(() => import("./pages/AdminChatManagement"));
 const AdminNewsManagement = lazy(() => import("./pages/AdminNewsManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
 const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonitor"));
+import KycVerification from "@/pages/KycVerification";
 
 // Loading component for lazy routes
 function LoadingSpinner() {

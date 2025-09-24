@@ -254,6 +254,71 @@ class RealTimePriceService extends EventEmitter {
     console.log('⚡ Starting HTTP price fetching as fallback...');
     // The interval is already set in startPriceUpdates. This method mainly serves to log and confirm the fallback.
   }
+
+  // WebSocket reconnection logic
+  private connectWebSocketWithRetry(): void {
+    if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
+      console.error('Max WebSocket reconnect attempts reached. Falling back to HTTP.');
+      this.startHttpPriceFetching();
+      return;
+    }
+
+    this.ws = new WebSocket('wss://ws-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest');
+
+    this.ws.onopen = () => {
+      console.log('✅ WebSocket connected successfully.');
+      this.isConnected = true;
+      this.reconnectAttempts = 0; // Reset attempts on successful connection
+      this.emit('connected');
+      // Subscribe to initial symbols if any
+      this.subscriptions.forEach((sub, clientId) => {
+        this.sendSubscription(clientId, sub.symbols);
+      });
+    };
+
+    this.ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data as string);
+        if (message.type === 'price_update') {
+          const updates: PriceUpdate[] = message.data;
+          updates.forEach(update => {
+            this.priceCache.set(update.symbol, update);
+            this.broadcastPriceUpdate(update); // Broadcast to internal subscribers
+          });
+          this.emit('pricesReceived', updates);
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    };
+
+    this.ws.onclose = (event) => {
+      console.log(`❌ WebSocket disconnected: ${event.code} ${event.reason}`);
+      this.isConnected = false;
+      this.emit('disconnected');
+      // Attempt to reconnect
+      this.reconnectAttempts++;
+      setTimeout(() => this.connectWebSocketWithRetry(), this.RECONNECT_DELAY);
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      // The 'onclose' event will typically follow, triggering reconnection
+    };
+  }
+
+  private sendSubscription(clientId: string, symbols: string[]): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      const message = {
+        type: 'subscribe',
+        symbols: symbols,
+        clientId: clientId
+      };
+      this.sendToClient(this.ws, message);
+    } else {
+      console.warn(`Cannot subscribe for ${clientId}: WebSocket not open.`);
+    }
+  }
 }
 
 export const realTimePriceService = new RealTimePriceService();

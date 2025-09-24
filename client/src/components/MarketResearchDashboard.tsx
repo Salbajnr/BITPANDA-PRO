@@ -116,7 +116,29 @@ export default function MarketResearchDashboard() {
 
   const fetchMarketData = async () => {
     try {
-      // Mock data - replace with actual API calls
+      // Fetch real data from API
+      const [reportsRes, insightsRes, podcastsRes] = await Promise.all([
+        fetch('/api/research/reports'),
+        fetch('/api/research/insights'),
+        fetch('/api/research/podcasts')
+      ]);
+      
+      if (reportsRes.ok) {
+        const reportsData = await reportsRes.json();
+        setReports(reportsData.reports || []);
+      }
+      
+      if (insightsRes.ok) {
+        const insightsData = await insightsRes.json();
+        setInsights(insightsData.insights || []);
+      }
+      
+      if (podcastsRes.ok) {
+        const podcastsData = await podcastsRes.json();
+        setPodcasts(podcastsData.podcasts || []);
+      }
+      
+      // Fallback to mock data if API fails
       setReports([
         {
           id: '1',

@@ -50,10 +50,12 @@ export default function Markets() {
 
   // Filter and sort crypto data
   const cryptoArray = Array.isArray(cryptoData) ? cryptoData : [];
-  const filteredCryptos = cryptoArray.filter((crypto: any) => 
-    crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCryptos = searchTerm && Array.isArray(cryptoData)
+    ? cryptoData.filter((coin: any) =>
+        coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : Array.isArray(cryptoData) ? cryptoData : [];
 
   const topCryptos = filteredCryptos.slice(0, 50).sort((a, b) => b.market_cap - a.market_cap);
 
