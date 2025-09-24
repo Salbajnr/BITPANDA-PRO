@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import api from "./api"; // Assuming 'api' is imported from a local file for making requests
 
 interface TickerItem {
   symbol: string;
@@ -12,14 +13,16 @@ export default function LiveTicker() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Fetch crypto data for ticker
-  const { data: cryptoData } = useQuery({
+  const { data: cryptoData, isError: cryptoIsError, isLoading: cryptoIsLoading } = useQuery<TickerItem[]>({
     queryKey: ['/api/crypto/market-data'],
+    queryFn: () => api.get('/api/crypto/market-data'),
     refetchInterval: 30000,
   });
 
   // Fetch metals data for ticker
-  const { data: metalsData } = useQuery({
+  const { data: metalsData, isError: metalsIsError, isLoading: metalsIsLoading } = useQuery<TickerItem[]>({
     queryKey: ['/api/metals/market-data'],
+    queryFn: () => api.get('/api/metals/market-data'),
     refetchInterval: 60000,
   });
 
@@ -32,7 +35,7 @@ export default function LiveTicker() {
   // Auto-scroll through ticker items
   useEffect(() => {
     if (tickerItems.length === 0) return;
-    
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % tickerItems.length);
     }, 3000);
@@ -40,11 +43,32 @@ export default function LiveTicker() {
     return () => clearInterval(interval);
   }, [tickerItems.length]);
 
+  if (cryptoIsLoading || metalsIsLoading) {
+    return (
+      <div className="bg-gray-50 border-b border-gray-200 py-2 px-4">
+        <div className="flex items-center justify-center text-gray-500 text-sm">
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-green-600 mr-2"></div>
+          Loading market data...
+        </div>
+      </div>
+    );
+  }
+
+  if (cryptoIsError || metalsIsError) {
+    return (
+      <div className="bg-red-50 border-b border-red-200 py-2 px-4">
+        <div className="flex items-center justify-center text-red-600 text-sm">
+          <span>Market data temporarily unavailable</span>
+        </div>
+      </div>
+    );
+  }
+
   if (tickerItems.length === 0) {
     return (
       <div className="bg-black text-white py-2 overflow-hidden">
         <div className="animate-pulse flex items-center justify-center">
-          <span className="text-sm">Loading market data...</span>
+          <span className="text-sm">No market data available</span>
         </div>
       </div>
     );
@@ -60,10 +84,10 @@ export default function LiveTicker() {
             <span className="text-white font-medium">
               ${typeof item.current_price === 'number' ? item.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
             </span>
-            <span 
+            <span
               className={`text-xs font-medium ${
-                (item.price_change_percentage_24h || 0) >= 0 
-                  ? 'text-green-400' 
+                (item.price_change_percentage_24h || 0) >= 0
+                  ? 'text-green-400'
                   : 'text-red-400'
               }`}
             >

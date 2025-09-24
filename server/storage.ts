@@ -55,8 +55,9 @@ import {
   type InsertUserPreferences
 } from '@shared/schema';
 import { db } from "./db";
-import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray } from "drizzle-orm";
+import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray, ne } from "drizzle-orm";
 import { hashPassword } from "./simple-auth";
+import crypto from 'crypto';
 
 export interface IStorage {
   // User operations
@@ -3125,7 +3126,7 @@ export class DatabaseStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     // Store in transactions table with advanced order type
     const [transaction] = await db
       .insert(transactions)
@@ -3177,9 +3178,6 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return order;
-  }
-
-    return stats;
   }
 
   // Added updateTransaction method

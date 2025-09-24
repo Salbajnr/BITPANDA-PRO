@@ -55,14 +55,20 @@ export default function Markets() {
       cryptoData = cryptoResponse.data;
     } else if (typeof cryptoResponse === 'object') {
       // If it's an object with crypto data directly
-      cryptoData = Object.values(cryptoResponse).filter((item: any) => 
+      const values = Object.values(cryptoResponse);
+      cryptoData = values.filter((item: any) => 
         item && typeof item === 'object' && item.symbol && item.current_price
       ) as CryptoData[];
     }
   }
 
+  // Ensure cryptoData is always an array
+  if (!Array.isArray(cryptoData)) {
+    cryptoData = [];
+  }
+
   // Filter and sort crypto data
-  const filteredCryptos = searchTerm ? 
+  const filteredCryptos = searchTerm && cryptoData.length > 0 ? 
     cryptoData.filter((coin: CryptoData) =>
       coin.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       coin.symbol?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -237,12 +243,41 @@ export default function Markets() {
             {cryptoLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(12)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
+                  <Card key={i} className="animate-pulse border-gray-200">
                     <CardContent className="p-6">
-                      <div className="h-20 bg-gray-200 rounded"></div>
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        <div className="space-y-2 flex-1">
+                          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                          <div className="h-3 bg-gray-100 rounded w-1/3"></div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                        <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            ) : topCryptos.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-6xl mb-4">📊</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No Data Available</h3>
+                <p className="text-gray-500 mb-4">
+                  {searchTerm ? 'No cryptocurrencies match your search.' : 'Unable to load market data at this time.'}
+                </p>
+                <Button 
+                  onClick={() => {
+                    refetchCrypto();
+                    setSearchTerm('');
+                  }}
+                  variant="outline"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

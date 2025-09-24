@@ -113,9 +113,22 @@ export default function Dashboard() {
   if (authLoading || portfolioLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00cc88] mx-auto"></div>
-          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading dashboard...</p>
+        <div className="text-center max-w-md">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-[#00cc88] mx-auto"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#00cc88] animate-pulse"></div>
+          </div>
+          <h3 className="mt-6 text-lg font-semibold text-slate-700 dark:text-slate-300">
+            Loading your dashboard
+          </h3>
+          <p className="mt-2 text-slate-500 dark:text-slate-400">
+            Preparing your trading environment...
+          </p>
+          <div className="mt-4 flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-[#00cc88] rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-[#00cc88] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-[#00cc88] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
         </div>
       </div>
     );

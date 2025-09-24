@@ -145,7 +145,7 @@ export default function Trading() {
   const handleTrade = async () => {
     if (!user) {
       toast({
-        title: "Login Required",
+        title: "🔐 Authentication Required",
         description: "Please login to start trading",
         variant: "destructive",
       });
@@ -155,8 +155,17 @@ export default function Trading() {
 
     if (!amount || parseFloat(amount) <= 0) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount",
+        title: "❌ Invalid Amount",
+        description: "Please enter a valid trading amount greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (parseFloat(amount) < 0.001) {
+      toast({
+        title: "⚠️ Minimum Amount",
+        description: "Minimum trading amount is 0.001",
         variant: "destructive",
       });
       return;

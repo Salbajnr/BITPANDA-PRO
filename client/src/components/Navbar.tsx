@@ -121,23 +121,23 @@ export default function Navbar() {
                           <Coins className="w-4 h-4 text-green-600" />
                           Cryptocurrencies
                         </div>
-                        <MenubarItem
-                          className="p-0 cursor-pointer"
-                          onClick={() => navigate('/markets')}
-                        >
-                          <div className="w-full block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                        <MenubarItem className="p-0">
+                          <button 
+                            onClick={() => navigate('/markets')}
+                            className="w-full text-left block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
+                          >
                             <div className="font-medium text-foreground">Markets</div>
                             <div className="text-xs text-muted-foreground">Trade 600+ cryptocurrencies</div>
-                          </div>
+                          </button>
                         </MenubarItem>
-                        <MenubarItem
-                          className="p-0 cursor-pointer"
-                          onClick={() => navigate('/dual-markets')}
-                        >
-                          <div className="w-full block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                        <MenubarItem className="p-0">
+                          <button 
+                            onClick={() => navigate('/dual-markets')}
+                            className="w-full text-left block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
+                          >
                             <div className="font-medium text-foreground">Crypto Indices</div>
                             <div className="text-xs text-muted-foreground">Diversified crypto portfolios</div>
-                          </div>
+                          </button>
                         </MenubarItem>
                       </div>
                       <div className="space-y-1">
@@ -365,19 +365,27 @@ export default function Navbar() {
           <ScrollArea className="h-[calc(100vh-4rem)] w-full">
             <div className="px-4 pt-4 pb-6 space-y-6 bg-background/98 backdrop-blur-xl">
               {/* Quick Actions Bar */}
-              <div className="flex items-center gap-2 mb-4">
-                <Link to="/trading" onClick={() => setIsMobileMenuOpen(false)} className="flex-1">
-                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2 rounded-xl">
-                    <BarChart3 className="w-4 h-4" />
-                    Trading
-                  </Button>
-                </Link>
-                <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex-1">
-                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2 rounded-xl">
-                    <Wallet className="w-4 h-4" />
-                    Portfolio
-                  </Button>
-                </Link>
+              <div className="flex items-center gap-2 mb-6">
+                <button 
+                  onClick={() => {
+                    navigate('/trading');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium transition-all duration-200 hover:from-green-600 hover:to-green-700 active:scale-95"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Trade Now
+                </button>
+                <button 
+                  onClick={() => {
+                    navigate('/dashboard');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-700 rounded-xl font-medium transition-all duration-200 hover:bg-blue-100 active:scale-95 border border-blue-200"
+                >
+                  <Wallet className="w-4 h-4" />
+                  Portfolio
+                </button>
               </div>
 
               {/* Collapsible Invest Section */}

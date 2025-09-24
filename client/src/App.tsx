@@ -52,6 +52,7 @@ import Press from "@/pages/Press";
 import Imprint from "@/pages/Imprint";
 import Tutorials from "@/pages/Tutorials";
 import { lazy, Suspense } from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Additional pages imported in the changes
 import Analytics from "@/pages/Analytics";
@@ -149,9 +150,10 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LanguageProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <LanguageProvider>
           <Switch>
             {/* Public Routes */}
             <Route path="/" component={() => <PublicLayout><Landing /></PublicLayout>} />
@@ -244,5 +246,6 @@ export default function App() {
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
