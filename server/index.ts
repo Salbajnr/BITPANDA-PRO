@@ -19,6 +19,7 @@ import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
 import kycRoutes from './kyc-routes';
+import marketResearchRoutes from './market-research-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -128,6 +129,7 @@ app.use((req, res, next) => {
     app.use('/api/portfolio', portfolioRoutes);
     app.use('/api/portfolio/analytics', portfolioAnalyticsRoutes);
     app.use('/api/news', newsRoutes);
+    app.use('/api/research', marketResearchRoutes);
     app.use('/api/kyc', kycRoutes);
 
     // importantly only setup vite in development and after
@@ -171,6 +173,7 @@ app.use((req, res, next) => {
 💎 Crypto Data: /api/crypto
 💍 Precious Metals: /api/metals
 📰 News: /api/news
+🔍 Market Research: /api/research
 💸 Withdrawals: /api/withdrawals
 📡 WebSocket: ws://0.0.0.0:${port}/ws
 `);

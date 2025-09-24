@@ -72,6 +72,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
     { href: "/notifications", label: "Notifications", icon: Bell },
     { href: "/alerts", label: "Price Alerts", icon: Activity },
     { href: "/news", label: "News", icon: Newspaper },
+    { href: "/research", label: "Research", icon: BarChart3 },
     { href: "/settings", label: "Settings", icon: User },
     { href: "/help", label: "Help", icon: Shield },
   ];
@@ -152,6 +153,14 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
                   </Link>
                 );
               })}
+              {/* Added News Management Link */}
+              <SidebarMenuButton 
+                isActive={currentPath === '/admin/news-management'}
+                onClick={() => navigate('/admin/news-management')}
+              >
+                <Newspaper className="mr-2 h-4 w-4" />
+                News Management
+              </SidebarMenuButton>
             </nav>
           </div>
         )}
