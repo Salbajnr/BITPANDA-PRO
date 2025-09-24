@@ -102,9 +102,11 @@ export default function Dashboard() {
         description: "Please log in to access your dashboard",
         variant: "destructive",
       });
-      setTimeout(() => {
+      // Use navigate instead of window.location
+      const timer = setTimeout(() => {
         window.location.href = "/auth";
       }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [user, authLoading, toast]);
 

@@ -26,7 +26,7 @@ export async function setupVite(app: Express, server: Server) {
       server,
       host: '0.0.0.0',
       port: 5173,
-      clientPort: 443
+      clientPort: process.env.NODE_ENV === 'development' ? 5173 : 443
     },
     allowedHosts: true as const,
   };

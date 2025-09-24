@@ -61,29 +61,21 @@ export default function Auth() {
   const queryClient = useQueryClient();
   const { user, isLoading: authLoading } = useAuth(); // Renamed isLoading to authLoading for clarity
 
-  // Prevent redirect during render
+  // Handle redirect in useEffect to avoid setState during render
   useEffect(() => {
     if (!authLoading && user) {
-      if (user.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      const redirectPath = user.role === 'admin' ? '/admin' : '/dashboard';
+      navigate(redirectPath);
     }
   }, [user, authLoading, navigate]);
 
-  // Loading state while checking auth
-  if (authLoading) {
+  // Show loading while checking auth or if user exists (redirect will happen)
+  if (authLoading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
-  }
-
-  // Don't render if user is authenticated (redirect will happen in useEffect)
-  if (user) {
-    return null;
   }
 
   const userLoginMutation = useMutation({
