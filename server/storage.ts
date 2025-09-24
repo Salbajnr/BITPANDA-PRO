@@ -3116,6 +3116,72 @@ export class DatabaseStorage implements IStorage {
     return stats;
   }
 
+  // Advanced order management
+  async createAdvancedOrder(orderData: any) {
+    const db = this.ensureDb();
+    const order = {
+      id: crypto.randomUUID(),
+      ...orderData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Store in transactions table with advanced order type
+    const [transaction] = await db
+      .insert(transactions)
+      .values({
+        userId: orderData.userId,
+        symbol: orderData.symbol,
+        type: orderData.side,
+        amount: orderData.amount.toString(),
+        price: (orderData.limitPrice || orderData.triggerPrice || 0).toString(),
+        total: (orderData.amount * (orderData.limitPrice || orderData.triggerPrice || 0)).toString(),
+        status: 'pending',
+        orderType: orderData.type,
+        stopLoss: orderData.triggerPrice?.toString(),
+        takeProfit: orderData.limitPrice?.toString()
+      })
+      .returning();
+
+    return transaction;
+  }
+
+  async getActiveAdvancedOrders(userId: string) {
+    const db = this.ensureDb();
+    const userTransactions = await db
+      .select()
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.status, 'pending'),
+        ne(transactions.orderType, 'market')
+      ))
+      .orderBy(desc(transactions.createdAt));
+
+    return userTransactions;
+  }
+
+  async cancelAdvancedOrder(orderId: string, userId: string) {
+    const db = this.ensureDb();
+    const [order] = await db
+      .update(transactions)
+      .set({ 
+        status: 'cancelled',
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(transactions.id, parseInt(orderId)),
+        eq(transactions.userId, userId),
+        eq(transactions.status, 'pending')
+      ))
+      .returning();
+
+    return order;
+  }
+
+    return stats;
+  }
+
   // Added updateTransaction method
   async updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined> {
     const db = this.ensureDb();

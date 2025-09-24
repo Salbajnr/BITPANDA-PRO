@@ -225,13 +225,20 @@ class PriceMonitorService {
     const targetPrice = parseFloat(alert.targetPrice);
     const lastPrice = this.lastPrices.get(alert.symbol);
 
+    // For first time checking, compare current price directly with target
+    if (lastPrice === undefined) {
+      this.lastPrices.set(alert.symbol, currentPrice);
+      
+      // Trigger immediately if condition is already met
+      if (alert.condition === 'above') {
+        return currentPrice > targetPrice;
+      } else {
+        return currentPrice < targetPrice;
+      }
+    }
+
     // Update last known price
     this.lastPrices.set(alert.symbol, currentPrice);
-
-    // Don't trigger on first check if we don't have a previous price
-    if (lastPrice === undefined) {
-      return false;
-    }
 
     // Check if price crossed the threshold
     if (alert.condition === 'above') {

@@ -45,19 +45,30 @@ export default function Markets() {
     refetchInterval: 60000,
   });
 
-  // Extract crypto data from response object
-  const cryptoData: CryptoData[] = cryptoResponse?.data || [];
+  // Extract crypto data from response object - handle different response formats
+  let cryptoData: CryptoData[] = [];
+  
+  if (cryptoResponse) {
+    if (Array.isArray(cryptoResponse)) {
+      cryptoData = cryptoResponse;
+    } else if (cryptoResponse.data && Array.isArray(cryptoResponse.data)) {
+      cryptoData = cryptoResponse.data;
+    } else if (typeof cryptoResponse === 'object') {
+      // If it's an object with crypto data directly
+      cryptoData = Object.values(cryptoResponse).filter((item: any) => 
+        item && typeof item === 'object' && item.symbol && item.current_price
+      ) as CryptoData[];
+    }
+  }
 
   // Filter and sort crypto data
-  const cryptoArray = Array.isArray(cryptoData) ? cryptoData : [];
-  const filteredCryptos = searchTerm && Array.isArray(cryptoData)
-    ? cryptoData.filter((coin: any) =>
-        coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : Array.isArray(cryptoData) ? cryptoData : [];
+  const filteredCryptos = searchTerm ? 
+    cryptoData.filter((coin: CryptoData) =>
+      coin.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      coin.symbol?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) : cryptoData;
 
-  const topCryptos = filteredCryptos.slice(0, 50).sort((a, b) => b.market_cap - a.market_cap);
+  const topCryptos = filteredCryptos.slice(0, 50).sort((a, b) => (b.market_cap || 0) - (a.market_cap || 0));
 
 
   const formatCurrency = (value: number) => {

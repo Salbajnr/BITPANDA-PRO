@@ -90,6 +90,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // News routes
   app.use('/api/news', newsRoutes);
 
+  // Market research routes
+  const marketResearchRoutes = (await import('./market-research-routes')).default;
+  app.use('/api/research', marketResearchRoutes);
+
   // Staking routes
   const stakingRoutes = (await import('./staking-routes')).default;
   app.use('/api/staking', stakingRoutes);
@@ -653,6 +657,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat routes
   const chatRoutes = (await import('./chat-routes')).default;
   app.use('/api/support/chat', chatRoutes);
+
+  // KYC routes
+  const kycRoutes = (await import('./kyc-routes')).default;
+  app.use('/api/kyc', kycRoutes);
 
   // Upload routes
   const uploadRoutes = (await import('./upload-routes')).default;

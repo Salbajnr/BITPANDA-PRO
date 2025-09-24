@@ -232,15 +232,14 @@ class RealTimePriceService extends EventEmitter {
     try {
       console.log('🔌 Connecting to price feed...');
 
-      // Use a more reliable WebSocket endpoint or disable for now
-      // this.ws = new WebSocket('wss://ws-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest');
-
-      // Temporarily disable WebSocket price feed due to connection issues
-      console.log('⚠️ WebSocket price feed temporarily disabled due to connection issues');
-      this.isConnected = false;
-
-      // Use HTTP API fallback instead
-      this.startHttpPriceFetching();
+      // Try connecting to a reliable WebSocket endpoint
+      if (this.connectionAttempts < this.MAX_RECONNECT_ATTEMPTS) {
+        this.connectWebSocketWithRetry();
+      } else {
+        console.log('⚠️ WebSocket price feed disabled after max attempts, using HTTP fallback');
+        this.isConnected = false;
+        this.startHttpPriceFetching();
+      }
 
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);

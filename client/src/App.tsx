@@ -78,6 +78,7 @@ const AdminNewsManagement = lazy(() => import("./pages/AdminNewsManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
 const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonitor"));
 import KycVerification from "@/pages/KycVerification";
+import MarketResearchDashboard from "@/components/MarketResearchDashboard";
 
 // Loading component for lazy routes
 function LoadingSpinner() {
@@ -158,7 +159,7 @@ export default function App() {
             <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
             <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
             <Route path="/news" component={() => <PublicLayout><News /></PublicLayout>} />
-            <Route path="/research" component={() => <PublicLayout><lazy(() => import('./components/MarketResearchDashboard'))().default()</PublicLayout>} />
+            <Route path="/research" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><MarketResearchDashboard /></Suspense></PublicLayout>} />
             <Route path="/about" component={() => <PublicLayout><About /></PublicLayout>} />
             <Route path="/features" component={() => <PublicLayout><Features /></PublicLayout>} />
             <Route path="/help" component={() => <PublicLayout><Help /></PublicLayout>} />

@@ -276,6 +276,105 @@ router.post('/calculate-fees', (req: Request, res: Response) => {
   }
 });
 
+// Advanced order types
+const advancedOrderSchema = z.object({
+  symbol: z.string(),
+  type: z.enum(['limit', 'stop_loss', 'take_profit', 'trailing_stop']),
+  side: z.enum(['buy', 'sell']),
+  amount: z.number().min(0),
+  triggerPrice: z.number().optional(),
+  limitPrice: z.number().optional(),
+  trailingAmount: z.number().optional(),
+  timeInForce: z.enum(['GTC', 'IOC', 'FOK']).default('GTC'),
+  leverage: z.number().min(1).max(10).default(1)
+});
+
+// Create advanced order
+router.post('/advanced-order', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const orderData = advancedOrderSchema.parse(req.body);
+    
+    const portfolio = await storage.getPortfolio(userId);
+    if (!portfolio) {
+      return res.status(404).json({ message: "Portfolio not found" });
+    }
+
+    // Create advanced order record
+    const order = await storage.createAdvancedOrder({
+      userId,
+      ...orderData,
+      status: 'pending',
+      createdAt: new Date()
+    });
+
+    res.json(order);
+  } catch (error) {
+    console.error("Create advanced order error:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+    }
+    res.status(500).json({ message: "Failed to create advanced order" });
+  }
+});
+
+// Get active advanced orders
+router.get('/orders/active', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const orders = await storage.getActiveAdvancedOrders(userId);
+    res.json(orders);
+  } catch (error) {
+    console.error("Get active orders error:", error);
+    res.status(500).json({ message: "Failed to fetch active orders" });
+  }
+});
+
+// Cancel advanced order
+router.delete('/orders/:orderId/cancel', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user!.id;
+    
+    await storage.cancelAdvancedOrder(orderId, userId);
+    res.json({ message: "Order cancelled successfully" });
+  } catch (error) {
+    console.error("Cancel order error:", error);
+    res.status(500).json({ message: "Failed to cancel order" });
+  }
+});
+
+// Get order book
+router.get('/orderbook/:symbol', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { symbol } = req.params;
+    
+    // Mock order book data - in production, this would come from exchange API
+    const orderBook = {
+      symbol: symbol.toUpperCase(),
+      bids: [
+        ['67500.00', '0.5'],
+        ['67450.00', '1.2'],
+        ['67400.00', '0.8'],
+        ['67350.00', '2.1'],
+        ['67300.00', '1.5']
+      ],
+      asks: [
+        ['67550.00', '0.7'],
+        ['67600.00', '1.1'],
+        ['67650.00', '0.9'],
+        ['67700.00', '1.8'],
+        ['67750.00', '2.3']
+      ]
+    };
+    
+    res.json(orderBook);
+  } catch (error) {
+    console.error("Get order book error:", error);
+    res.status(500).json({ message: "Failed to fetch order book" });
+  }
+});
+
 // Get pending orders
 router.get('/orders/pending', requireAuth, async (req: Request, res: Response) => {
   try {
