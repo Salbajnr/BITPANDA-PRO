@@ -67,6 +67,7 @@ import DualMarkets from "@/pages/DualMarkets";
 import AdminBalanceManagement from "@/pages/AdminBalanceManagement";
 import AdminDepositManagement from "@/pages/AdminDepositManagement";
 import AdminUsers from "@/pages/AdminUsers";
+import AdminKycManagement from "@/pages/AdminKycManagement";
 
 // Lazy loaded components
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
@@ -207,11 +208,14 @@ export default function App() {
             <Route path="/api-management" component={() => <ProtectedRoute><APIManagement /></ProtectedRoute>} />
             <Route path="/settings" component={() => <ProtectedRoute><UserSettings /></ProtectedRoute>} />
 
+            {/* KYC Verification Route */}
+            <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
+
             {/* Admin Routes */}
             <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/dashboard" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" component={() => <AdminRoute><AdminUsers /></AdminRoute>} />
-            <Route path="/admin/kyc" component={() => <AdminRoute><lazy(() => import("./pages/AdminKycManagement")) /></AdminRoute>} />
+            <Route path="/admin/kyc" component={() => <AdminRoute><AdminKycManagement /></AdminRoute>} />
             <Route path="/admin/balance" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
             <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
             <Route path="/admin/news" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />

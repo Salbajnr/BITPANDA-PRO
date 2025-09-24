@@ -19,7 +19,7 @@ externalPort = 80
 PORT = "5000"
 
 [workflows]
-runButton = "Start Fixed White Screen Server"
+runButton = "Start Complete KYC Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -405,6 +405,23 @@ args = "npm run dev"
 
 [[workflows.workflow]]
 name = "Start Fixed White Screen Server"
+author = 47931502
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5000\" || pkill -f \"tsx.*server\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 3"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Start Complete KYC Server"
 author = 47931502
 mode = "sequential"
 

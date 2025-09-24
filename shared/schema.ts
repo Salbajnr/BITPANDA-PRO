@@ -570,7 +570,7 @@ export type InsertOtpToken = z.infer<typeof insertOtpTokenSchema>;
 
 // KYC types
 export type KycVerification = typeof kycVerifications.$inferSelect;
-export type InsertKycVerification = z.infer<typeof insertKycVerificationSchema>;
+export type InsertKycVerification = typeof kycVerifications.$inferInsert;
 
 // Support types
 export type SupportTicket = typeof supportTickets.$inferSelect;
@@ -586,4 +586,4 @@ export type InsertLiveChatMessage = z.infer<typeof insertLiveChatMessageSchema>;
 
 // User preferences types
 export type UserPreferences = typeof userPreferences.$inferSelect;
-export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type InsertUserPreferences = typeof userPreferences.$inferInsert;

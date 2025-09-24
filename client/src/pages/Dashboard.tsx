@@ -13,7 +13,7 @@ import {
   Wallet, TrendingUp, TrendingDown, ArrowUp, ArrowDown,
   Plus, Minus, RefreshCw, DollarSign, Send, 
   Home, BarChart3, Activity, Search, User,
-  Eye, EyeOff, ChevronRight
+  Eye, EyeOff, ChevronRight, ShieldCheckIcon, ArrowUpIcon
 } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { Redirect } from "wouter";
@@ -225,14 +225,14 @@ export default function Dashboard() {
             </div>
             <p className="text-sm font-medium text-slate-900 dark:text-white">Buy</p>
           </Link>
-          
+
           <Link to="/withdrawals" className="text-center" data-testid="link-sell">
             <div className="w-16 h-16 bg-[#00cc88] rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
               <Minus className="h-6 w-6 text-white" />
             </div>
             <p className="text-sm font-medium text-slate-900 dark:text-white">Sell</p>
           </Link>
-          
+
           <Link to="/trading" className="text-center" data-testid="link-swap">
             <div className="w-16 h-16 bg-[#00cc88] rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
               <RefreshCw className="h-6 w-6 text-white" />
@@ -251,7 +251,7 @@ export default function Dashboard() {
             </div>
             <p className="text-sm font-medium text-slate-900 dark:text-white">Savings Plan</p>
           </Link>
-          
+
           <Link to="/staking" className="text-center" data-testid="link-staking">
             <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
               <span className="text-lg">%</span>
@@ -270,9 +270,9 @@ export default function Dashboard() {
           </div>
           <Wallet className="h-6 w-6 text-[#00cc88]" />
         </div>
-        
+
         <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">€{availableBalance}</h3>
-        
+
         <div className="grid grid-cols-3 gap-4">
           <Link to="/deposits" className="text-center" data-testid="link-deposit">
             <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -280,14 +280,14 @@ export default function Dashboard() {
             </div>
             <p className="text-xs font-medium text-slate-900 dark:text-white">Deposit</p>
           </Link>
-          
+
           <Link to="/withdrawals" className="text-center" data-testid="link-withdraw">
             <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
               <span className="text-lg">💸</span>
             </div>
             <p className="text-xs font-medium text-slate-900 dark:text-white">Withdraw</p>
           </Link>
-          
+
           <Link to="/trading" className="text-center" data-testid="link-send">
             <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
               <Send className="h-4 w-4 text-slate-600 dark:text-slate-400" />
@@ -295,7 +295,7 @@ export default function Dashboard() {
             <p className="text-xs font-medium text-slate-900 dark:text-white">Send</p>
           </Link>
         </div>
-        
+
         <Button 
           variant="outline" 
           className="w-full mt-4 text-[#00cc88] border-[#00cc88] hover:bg-[#00cc88] hover:text-white"
@@ -320,7 +320,7 @@ export default function Dashboard() {
               Get Started →
             </Button>
           </div>
-          
+
           <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg">
             <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">
               Earn up to 30% rewards by staking your assets
@@ -342,13 +342,13 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
             Top Movers in 1 Day
           </h3>
-          
+
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "winners" | "losers")}>
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="winners" data-testid="tab-winners">Winners</TabsTrigger>
               <TabsTrigger value="losers" data-testid="tab-losers">Losers</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="winners">
               <div className="space-y-3">
                 {winners.map((mover) => (
@@ -373,7 +373,7 @@ export default function Dashboard() {
                 ))}
               </div>
             </TabsContent>
-            
+
             <TabsContent value="losers">
               <div className="space-y-3">
                 {losers.map((mover) => (

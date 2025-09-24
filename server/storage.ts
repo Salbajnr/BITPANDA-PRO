@@ -255,6 +255,7 @@ export interface IStorage {
     search?: string;
   }): Promise<{ verifications: any[], pagination: { page: number, limit: number, total: number, pages: number } }>;
   getKycStatistics(): Promise<{ total: number; pending: number; underReview: number; approved: number; rejected: number; approvalRate: number }>;
+  logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2098,6 +2099,178 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error calculating withdrawal fees:", error);
       return 25; // Default fee
+    }
+  }
+
+  // KYC Verification methods implementation
+  async createKycVerification(data: InsertKycVerification): Promise<KycVerification> {
+    try {
+      const db = this.ensureDb();
+      const [kyc] = await db.insert(kycVerifications).values(data).returning();
+      return kyc;
+    } catch (error) {
+      console.error("Error creating KYC verification:", error);
+      throw error;
+    }
+  }
+
+  async getKycVerification(userId: string): Promise<KycVerification | null> {
+    try {
+      const db = this.ensureDb();
+      const [kyc] = await db
+        .select()
+        .from(kycVerifications)
+        .where(eq(kycVerifications.userId, userId))
+        .limit(1);
+      return kyc || null;
+    } catch (error) {
+      console.error("Error fetching KYC verification:", error);
+      return null;
+    }
+  }
+
+  async getKycVerificationById(id: string): Promise<KycVerification | null> {
+    try {
+      const db = this.ensureDb();
+      const [kyc] = await db
+        .select()
+        .from(kycVerifications)
+        .where(eq(kycVerifications.id, id))
+        .limit(1);
+      return kyc || null;
+    } catch (error) {
+      console.error("Error fetching KYC verification by ID:", error);
+      return null;
+    }
+  }
+
+  async updateKycVerification(id: string, data: Partial<InsertKycVerification>): Promise<KycVerification> {
+    try {
+      const db = this.ensureDb();
+      const [kyc] = await db
+        .update(kycVerifications)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(kycVerifications.id, id))
+        .returning();
+      return kyc;
+    } catch (error) {
+      console.error("Error updating KYC verification:", error);
+      throw error;
+    }
+  }
+
+  async getAllKycVerifications(options: {
+    page?: number;
+    limit?: number;
+    status?: 'pending' | 'under_review' | 'approved' | 'rejected';
+    search?: string;
+  }): Promise<{ verifications: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
+    try {
+      const { page = 1, limit = 20, status, search } = options;
+      const offset = (page - 1) * limit;
+      const db = this.ensureDb();
+
+      let query = db
+        .select({
+          kyc: kycVerifications,
+          user: {
+            id: users.id,
+            email: users.email,
+            username: users.username,
+            firstName: users.firstName,
+            lastName: users.lastName
+          }
+        })
+        .from(kycVerifications)
+        .leftJoin(users, eq(kycVerifications.userId, users.id));
+
+      const conditions = [];
+      if (status) {
+        conditions.push(eq(kycVerifications.status, status));
+      }
+      if (search) {
+        conditions.push(
+          or(
+            ilike(kycVerifications.firstName, `%${search}%`),
+            ilike(kycVerifications.lastName, `%${search}%`),
+            ilike(users.email, `%${search}%`),
+            ilike(users.username, `%${search}%`)
+          )
+        );
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      const verifications = await query
+        .orderBy(desc(kycVerifications.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      // Get total count
+      let countQuery = db.select({ count: count() }).from(kycVerifications);
+      if (status) {
+        countQuery = countQuery.where(eq(kycVerifications.status, status));
+      }
+
+      const totalResult = await countQuery;
+      const total = totalResult[0]?.count || 0;
+
+      return {
+        verifications: verifications.map(row => ({
+          ...row.kyc,
+          userEmail: row.user?.email,
+          userUsername: row.user?.username
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      };
+    } catch (error) {
+      console.error("Error fetching all KYC verifications:", error);
+      return {
+        verifications: [],
+        pagination: { page: 1, limit: 20, total: 0, pages: 0 }
+      };
+    }
+  }
+
+  async getKycStatistics(): Promise<{ total: number; pending: number; underReview: number; approved: number; rejected: number; approvalRate: number }> {
+    try {
+      const db = this.ensureDb();
+
+      const [total] = await db.select({ count: count() }).from(kycVerifications);
+      const [pending] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'pending'));
+      const [underReview] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'under_review'));
+      const [approved] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'approved'));
+      const [rejected] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'rejected'));
+
+      const totalCount = Number(total.count);
+      const approvedCount = Number(approved.count);
+      const approvalRate = totalCount > 0 ? (approvedCount / totalCount) * 100 : 0;
+
+      return {
+        total: totalCount,
+        pending: Number(pending.count),
+        underReview: Number(underReview.count),
+        approved: approvedCount,
+        rejected: Number(rejected.count),
+        approvalRate: Math.round(approvalRate * 100) / 100
+      };
+    } catch (error) {
+      console.error("Error fetching KYC statistics:", error);
+      return {
+        total: 0,
+        pending: 0,
+        underReview: 0,
+        approved: 0,
+        rejected: 0,
+        approvalRate: 0
+      };
     }
   }
 

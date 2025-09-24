@@ -297,6 +297,7 @@ export default function AdminDashboard() {
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard Overview', icon: PieChart },
     { id: 'users', label: 'User Management', icon: Users },
+    { id: 'kyc', label: 'KYC Management', icon: ShieldCheck },
     { id: 'transactions', label: 'Transaction Control', icon: Activity },
     { id: 'analytics', label: 'Platform Analytics', icon: TrendingUp },
     { id: 'system-health', label: 'System Health', icon: Activity },
@@ -395,6 +396,9 @@ export default function AdminDashboard() {
                   </a>
                   <a href="/admin/withdrawal-management" className="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-lg hover:bg-purple-200 transition-colors">
                     Withdrawals
+                  </a>
+                  <a href="/admin/kyc" className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-lg hover:bg-green-200 transition-colors">
+                    KYC Management
                   </a>
                 </div>
               </div>
@@ -1237,11 +1241,52 @@ export default function AdminDashboard() {
             {/* KYC Section */}
             {activeSection === 'kyc' && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">KYC Verification Management</h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">KYC Verification Management</h2>
+                  <Button onClick={() => window.open('/admin/kyc', '_blank')} className="bg-green-500 hover:bg-green-600">
+                    <ShieldCheck className="h-4 w-4 mr-2" />
+                    Open Full KYC Management
+                  </Button>
+                </div>
+                
                 <Card>
+                  <CardHeader>
+                    <CardTitle>KYC Overview</CardTitle>
+                    <CardDescription>
+                      Manage user identity verification requests and compliance
+                    </CardDescription>
+                  </CardHeader>
                   <CardContent>
-                    {/* KYC review table/list will go here */}
-                    <p className="text-gray-500">KYC review functionality is being developed.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <FileText className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-sm text-gray-600">Pending</div>
+                      </div>
+                      <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                        <Clock className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-sm text-gray-600">Under Review</div>
+                      </div>
+                      <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <CheckCircleIcon className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-sm text-gray-600">Approved</div>
+                      </div>
+                      <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <XCircleIcon className="h-8 w-8 mx-auto mb-2 text-red-500" />
+                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-sm text-gray-600">Rejected</div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center py-8">
+                      <ShieldCheck className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                      <p className="text-slate-500 mb-4">No KYC verifications pending review</p>
+                      <Button onClick={() => window.open('/admin/kyc', '_blank')} variant="outline">
+                        Open Full KYC Management Portal
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
