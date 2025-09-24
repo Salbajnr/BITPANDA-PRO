@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +31,7 @@ interface MetalData {
 
 export default function Markets() {
   const [activeTab, setActiveTab] = useState("crypto");
+  const [searchTerm, setSearchTerm] = useState(""); // State for search
 
   // Fetch crypto data
   const { data: cryptoResponse, isLoading: cryptoLoading, refetch: refetchCrypto } = useQuery({
@@ -47,10 +47,16 @@ export default function Markets() {
 
   // Extract crypto data from response object
   const cryptoData: CryptoData[] = cryptoResponse?.data || [];
-  
+
   // Filter and sort crypto data
-  const topCryptos = Array.isArray(cryptoData) ? 
-    cryptoData.slice(0, 50).sort((a, b) => b.market_cap - a.market_cap) : [];
+  const cryptoArray = Array.isArray(cryptoData) ? cryptoData : [];
+  const filteredCryptos = cryptoArray.filter((crypto: any) => 
+    crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const topCryptos = filteredCryptos.slice(0, 50).sort((a, b) => b.market_cap - a.market_cap);
+
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -90,13 +96,13 @@ export default function Markets() {
             <Star className="w-4 h-4" />
           </Button>
         </div>
-        
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Price</span>
             <span className="font-bold text-lg">{formatCurrency(crypto.current_price)}</span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">24h Change</span>
             <div className={`flex items-center space-x-1 ${
@@ -111,12 +117,12 @@ export default function Markets() {
               </span>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Market Cap</span>
             <span className="font-medium">{formatMarketCap(crypto.market_cap)}</span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Volume (24h)</span>
             <span className="font-medium">{formatMarketCap(crypto.total_volume)}</span>
@@ -141,13 +147,13 @@ export default function Markets() {
           </div>
           <Badge variant="secondary">{metal.unit}</Badge>
         </div>
-        
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Price per {metal.unit}</span>
             <span className="font-bold text-lg">{formatCurrency(metal.current_price)}</span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">24h Change</span>
             <div className={`flex items-center space-x-1 ${
@@ -171,7 +177,7 @@ export default function Markets() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <LiveTicker />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -182,17 +188,27 @@ export default function Markets() {
                 Real-time prices for cryptocurrencies and precious metals
               </p>
             </div>
-            <Button 
-              onClick={() => {
-                refetchCrypto();
-                refetchMetals();
-              }} 
-              variant="outline"
-              className="border-blue-500 text-blue-600 hover:bg-blue-50"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
+            <div className="flex items-center space-x-4">
+              {/* Search Input */}
+              <input
+                type="text"
+                placeholder="Search crypto..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <Button 
+                onClick={() => {
+                  refetchCrypto();
+                  refetchMetals();
+                }} 
+                variant="outline"
+                className="border-blue-500 text-blue-600 hover:bg-blue-50"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
 

@@ -87,6 +87,7 @@ export interface IStorage {
   getAllTransactions(params: { page: number, limit: number, userId?: string, type?: string }): Promise<{ transactions: Transaction[], total: number }>;
   reverseTransaction(transactionId: string, adminId: string, reason: string): Promise<Transaction>;
   getUserTransactionCount(userId: string): Promise<number>;
+  updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined>; // Added for admin feature
 
   // Admin operations
   getAllUsers(): Promise<User[]>;
@@ -181,6 +182,15 @@ export interface IStorage {
   // Audit operations
   // logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void>;
   // getAuditLogs(params: { page: number, limit: number, action?: string }): Promise<{ logs: any[], total: number }>;
+  logAdminAction(action: { // Updated signature to match implementation
+    adminId: string;
+    action: string;
+    targetId?: string;
+    targetUserId?: string;
+    details?: any;
+    timestamp: Date;
+  }): Promise<void>;
+
 
   // User Preferences operations
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
@@ -2476,7 +2486,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, ipAddress: string, userAgent: string }): Promise<void> {
+  async logAdminAction(action: { adminId: string, action: string, targetId?: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void> {
     try {
       // This would save to an audit_logs table
       // For now, just log to console
@@ -2491,8 +2501,8 @@ export class DatabaseStorage implements IStorage {
       //   action: action.action,
       //   targetId: action.targetUserId || 'N/A',
       //   details: action.details || {},
-      //   ipAddress: action.ipAddress || '',
-      //   userAgent: action.userAgent || ''
+      //   ipAddress: '', // IP address should ideally be passed or obtained from request context
+      //   userAgent: '' // User agent should ideally be passed or obtained from request context
       // });
 
     } catch (error) {
@@ -2744,8 +2754,7 @@ export class DatabaseStorage implements IStorage {
         action: 'transaction_status_update',
         targetId: transactionId,
         details: { status, reason, userId: updatedTransaction[0]?.userId },
-        ipAddress: '', // IP address should ideally be passed or obtained from request context
-        userAgent: '' // User agent should ideally be passed or obtained from request context
+        timestamp: new Date()
       });
 
       return true;
@@ -2948,7 +2957,7 @@ export class DatabaseStorage implements IStorage {
 
   async calculateTradingFees(amount: number, type: string, orderType: string): Promise<number> {
     console.log(`Calculating fees for amount: ${amount}, type: ${type}, orderType: ${orderType}`);
-    // TODO: Implement fee calculation logic based on trading volume, order type, user tier, etc.
+    // TODO: Implement fee calculation logic based on trading volume, user tier, etc.
     let feePercentage = 0.001; // Default 0.1% fee
     if (orderType === 'limit') {
       feePercentage = 0.0008; // Lower fee for limit orders
@@ -3105,6 +3114,54 @@ export class DatabaseStorage implements IStorage {
     stats.approvalRate = processed > 0 ? (stats.approved / processed) * 100 : 0;
 
     return stats;
+  }
+
+  // Added updateTransaction method
+  async updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined> {
+    const db = this.ensureDb();
+    const [updatedTransaction] = await db
+      .update(transactions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(transactions.id, transactionId))
+      .returning();
+    return updatedTransaction;
+  }
+
+  // Added logAdminAction method (placeholder for audit log creation)
+  async logAdminAction(action: {
+    adminId: string;
+    action: string;
+    targetId?: string;
+    targetUserId?: string;
+    details?: any;
+    timestamp: Date;
+  }): Promise<void> {
+    // In a real implementation, this would save to an audit log table
+    console.log('Admin action logged:', {
+      ...action,
+      timestamp: action.timestamp.toISOString()
+    });
+
+    // Placeholder for actual audit log creation if using a real DB
+    // For example, if you have an auditLogs table:
+    // await this.db.insert(auditLogs).values({
+    //   adminId: action.adminId,
+    //   action: action.action,
+    //   targetId: action.targetId || action.targetUserId || null,
+    //   details: action.details || {},
+    //   timestamp: action.timestamp,
+    //   // ipAddress and userAgent would need to be passed in or obtained from context
+    // });
+  }
+
+  // Existing getAuditLogs method from the original code
+  async getAuditLogs(filters: any = {}): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
+    // In a real implementation, this would query from an audit_logs table
+    // For now, return empty results
+    return {
+      logs: [],
+      pagination: { page: 1, limit: 50, total: 0, pages: 0 }
+    };
   }
 }
 

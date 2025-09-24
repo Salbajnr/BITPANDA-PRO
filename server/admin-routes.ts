@@ -702,6 +702,129 @@ router.post('/force-logout', requireAuth, requireAdmin, async (req: Request, res
   }
 });
 
+// Transaction Management and Monitoring
+router.get('/transactions/stats', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const range = req.query.range as string || '7d';
+    const transactions = await storage.getAllTransactions({ page: 1, limit: 10000 });
+    
+    // Calculate statistics
+    const now = new Date();
+    const rangeStart = new Date();
+    
+    switch (range) {
+      case '1d':
+        rangeStart.setDate(now.getDate() - 1);
+        break;
+      case '7d':
+        rangeStart.setDate(now.getDate() - 7);
+        break;
+      case '30d':
+        rangeStart.setDate(now.getDate() - 30);
+        break;
+      case '90d':
+        rangeStart.setDate(now.getDate() - 90);
+        break;
+    }
+
+    const filteredTransactions = transactions.transactions.filter(tx => 
+      new Date(tx.createdAt) >= rangeStart
+    );
+
+    const totalVolume = filteredTransactions.reduce((sum, tx) => sum + parseFloat(tx.total || '0'), 0);
+    const pendingTransactions = filteredTransactions.filter(tx => tx.status === 'pending').length;
+    const failedTransactions = filteredTransactions.filter(tx => tx.status === 'failed').length;
+    const suspiciousTransactions = filteredTransactions.filter(tx => 
+      parseFloat(tx.total || '0') > 10000 || tx.createdAt > new Date(Date.now() - 60000).toISOString()
+    ).length;
+
+    // Calculate top trading pairs
+    const pairVolumes = new Map();
+    filteredTransactions.forEach(tx => {
+      if (tx.symbol) {
+        const existing = pairVolumes.get(tx.symbol) || { volume: 0, count: 0 };
+        pairVolumes.set(tx.symbol, {
+          volume: existing.volume + parseFloat(tx.total || '0'),
+          count: existing.count + 1
+        });
+      }
+    });
+
+    const topTradingPairs = Array.from(pairVolumes.entries())
+      .map(([symbol, data]) => ({ symbol, ...data }))
+      .sort((a, b) => b.volume - a.volume)
+      .slice(0, 10);
+
+    const stats = {
+      totalVolume,
+      totalTransactions: filteredTransactions.length,
+      pendingTransactions,
+      failedTransactions,
+      suspiciousTransactions,
+      dailyVolume: totalVolume / (range === '1d' ? 1 : parseInt(range)),
+      topTradingPairs
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Get transaction stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch transaction statistics' });
+  }
+});
+
+router.post('/transactions/:transactionId/flag', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { transactionId } = req.params;
+    const { flagged, notes } = req.body;
+
+    // Update transaction with flag status
+    await storage.updateTransaction(transactionId, { 
+      flagged, 
+      notes: notes || `Transaction ${flagged ? 'flagged' : 'unflagged'} by admin`,
+      updatedAt: new Date().toISOString()
+    });
+
+    await storage.logAdminAction({
+      adminId: req.user!.id,
+      action: 'flag_transaction',
+      targetId: transactionId,
+      details: { flagged, notes },
+      timestamp: new Date()
+    });
+
+    res.json({ message: 'Transaction flag status updated' });
+  } catch (error) {
+    console.error('Flag transaction error:', error);
+    res.status(500).json({ message: 'Failed to flag transaction' });
+  }
+});
+
+router.post('/transactions/:transactionId/suspend', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { transactionId } = req.params;
+    const { reason } = req.body;
+
+    await storage.updateTransaction(transactionId, { 
+      status: 'suspended',
+      notes: reason,
+      updatedAt: new Date().toISOString()
+    });
+
+    await storage.logAdminAction({
+      adminId: req.user!.id,
+      action: 'suspend_transaction',
+      targetId: transactionId,
+      details: { reason },
+      timestamp: new Date()
+    });
+
+    res.json({ message: 'Transaction suspended successfully' });
+  } catch (error) {
+    console.error('Suspend transaction error:', error);
+    res.status(500).json({ message: 'Failed to suspend transaction' });
+  }
+});
+
 // Audit Logs
 router.get('/audit-logs', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {

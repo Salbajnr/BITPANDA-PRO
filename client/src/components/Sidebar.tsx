@@ -19,7 +19,9 @@ import {
   Target,
   Key,
   Activity,
-  AlertTriangle
+  AlertTriangle,
+  ArrowDownLeft,
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -75,11 +77,14 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
   ];
 
   const adminItems = [
-    { href: "/admin/dashboard", label: "Admin Dashboard", icon: BarChart3 },
-    { href: "/admin/users", label: "Manage Users", icon: Users },
-    { href: "/admin/news", label: "News Management", icon: Newspaper },
-    { href: "/admin/balances", label: "Balance Management", icon: DollarSign },
-    { href: "/admin/deposits", label: "Deposit Management", icon: Wallet },
+    { href: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
+    { href: "/admin/users", label: "User Management", icon: Users },
+    { href: "/admin/kyc", label: "KYC Management", icon: ShieldCheck },
+    { href: "/admin/transactions", label: "Transaction Monitor", icon: Activity },
+    { href: "/admin/deposits", label: "Deposits", icon: DollarSign },
+    { href: "/admin/withdrawals", label: "Withdrawals", icon: ArrowDownLeft },
+    { href: "/admin/balance-management", label: "Balance Management", icon: Wallet },
+    { href: "/admin/news-management", label: "News Management", icon: FileText },
   ];
 
   // Placeholder for currentPath and navigate if not defined in the original context

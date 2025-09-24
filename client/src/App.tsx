@@ -72,10 +72,11 @@ import AdminKycManagement from "@/pages/AdminKycManagement";
 // Lazy loaded components
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
 const MetalsTrading = lazy(() => import("./pages/MetalsTrading"));
-const AdminMetalsManagement = lazy(() => import("./pages/AdminMetalsManagement"));
+const AdminMetalsManagement = lazy(() => import("@/pages/AdminMetalsManagement"));
 const AdminChatManagement = lazy(() => import("./pages/AdminChatManagement"));
 const AdminNewsManagement = lazy(() => import("./pages/AdminNewsManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
+const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonitor"));
 
 // Loading component for lazy routes
 function LoadingSpinner() {
@@ -230,6 +231,7 @@ export default function App() {
             <Route path="/admin/chat-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense></AdminRoute>} />
             <Route path="/admin/metals" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
             <Route path="/admin/metals-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
+            <Route path="/admin/transactions" component={() => <AdminRoute><AdminTransactionMonitor /></AdminRoute>} />
 
             {/* 404 Route */}
             <Route component={NotFound} />
