@@ -520,16 +520,102 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
             <div className="col-span-2">
-              <img 
-                src="https://cdn.bitpanda.com/media/New%20navigation_Rebrand%203.0/Bitpanda_EN_trimmed.png" 
-                alt="Bitpanda logo" 
-                className="w-32 mb-6"
-              />
-              <p className="text-gray-300 mb-6">
-                Bitpanda Stocks enables investing in fractional stocks. Fractional stocks in Europe are always enabled via a contract which replicates the underlying stock or ETF (financial instruments pursuant to section 1 item 7 lit. d WAG 2018). Investing in stocks and ETFs carries risks. For more details see the prospectus at bitpanda.com.
+              <div className="flex items-center space-x-3 mb-6">
+                <img 
+                  src="https://cdn.bitpanda.com/media/New%20navigation_Rebrand%203.0/Bitpanda_EN_trimmed.png" 
+                  alt="Bitpanda logo" 
+                  className="w-8 h-8 rounded-full"
+                />
+                <span className="text-2xl font-bold text-white">BITPANDA PRO</span>
+              </div>
+              <p className="text-gray-300 mb-6 text-sm leading-relaxed">
+                Europe's leading cryptocurrency trading platform. Regulated, secure, and trusted by millions of users across the continent. Start your investment journey with confidence.
               </p>
+              <div className="flex space-x-4 mb-6">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Globe className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <TrendingUp className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Shield className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Users className="w-5 h-5" />
+                </a>
+              </div>
             </div>
-            {/* Other footer sections as per original */}
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Platform</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="/trading" className="hover:text-white transition-colors">Trading</Link></li>
+                <li><Link href="/markets" className="hover:text-white transition-colors">Markets</Link></li>
+                <li><Link href="/portfolio" className="hover:text-white transition-colors">Portfolio</Link></li>
+                <li><Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link></li>
+                <li><Link href="/api" className="hover:text-white transition-colors">API</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Invest</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="/stocks" className="hover:text-white transition-colors">Stocks</Link></li>
+                <li><Link href="/etfs" className="hover:text-white transition-colors">ETFs</Link></li>
+                <li><Link href="/crypto-indices" className="hover:text-white transition-colors">Crypto Indices</Link></li>
+                <li><Link href="/precious-metals" className="hover:text-white transition-colors">Precious Metals</Link></li>
+                <li><Link href="/savings-plans" className="hover:text-white transition-colors">Savings Plans</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-lg mb-4 text-white">Support</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="/help-center" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link href="/academy" className="hover:text-white transition-colors">Academy</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="/security" className="hover:text-white transition-colors">Security</Link></li>
+                <li><Link href="/investor-protection" className="hover:text-white transition-colors">Investor Protection</Link></li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Bottom Footer */}
+          <div className="border-t border-gray-800 mt-12 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-6 text-sm text-gray-400">
+                  <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+                  <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+                  <Link href="/user-agreement" className="hover:text-white transition-colors">User Agreement</Link>
+                  <Link href="/imprint" className="hover:text-white transition-colors">Imprint</Link>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  BITPANDA PRO Technology GmbH is licensed and regulated by the Austrian Financial Market Authority (FMA). 
+                  Investing in digital assets involves significant risk and may result in total loss. Past performance is not indicative of future results.
+                </p>
+              </div>
+              
+              <div className="text-right">
+                <p className="text-sm text-gray-400 mb-2">
+                  © {new Date().getFullYear()} BITPANDA PRO Technology GmbH
+                </p>
+                <p className="text-xs text-gray-500">
+                  Campus 2, Jakov-Lind-Straße 2, 1020 Vienna, Austria
+                </p>
+                <div className="flex justify-end items-center mt-4 space-x-4">
+                  <Badge variant="secondary" className="text-xs">
+                    <Shield className="w-3 h-3 mr-1" />
+                    FMA Regulated
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    <Award className="w-3 h-3 mr-1" />
+                    ISO 27001
+                  </Badge>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
