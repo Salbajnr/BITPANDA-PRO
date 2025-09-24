@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,7 @@ interface RegisterData {
 }
 
 export default function Auth() {
-  const [, setLocation] = useLocation();
+  const [, navigate] = useLocation(); // Renamed from setLocation to navigate for clarity
   const [showPassword, setShowPassword] = useState(false);
   const [userLoginForm, setUserLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
 
@@ -59,11 +59,30 @@ export default function Auth() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth(); // Renamed isLoading to authLoading for clarity
 
-  // Redirect if already logged in
+  // Prevent redirect during render
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [user, authLoading, navigate]);
+
+  // Loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Don't render if user is authenticated (redirect will happen in useEffect)
   if (user) {
-    setLocation(user.role === 'admin' ? '/admin' : '/dashboard');
     return null;
   }
 
@@ -78,7 +97,7 @@ export default function Auth() {
         title: "Login successful",
         description: `Welcome back, ${data.user.firstName}!`,
       });
-      setLocation('/dashboard');
+      navigate('/dashboard'); // Use navigate
     },
     onError: (error: any) => {
       toast({
@@ -100,7 +119,7 @@ export default function Auth() {
         description: "Please check your email to verify your account.",
       });
       // Redirect to OTP verification page
-      setLocation(`/verify-otp/registration/${encodeURIComponent(data.user.email)}`);
+      navigate(`/verify-otp/registration/${encodeURIComponent(data.user.email)}`); // Use navigate
     },
     onError: (error: any) => {
       toast({

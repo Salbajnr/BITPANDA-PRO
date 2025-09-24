@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
-function Navbar() {
+export default function Navbar() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, navigate] = useLocation();
@@ -530,5 +530,3 @@ function Navbar() {
     </nav>
   );
 }
-
-export default Navbar;
