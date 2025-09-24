@@ -63,12 +63,12 @@ class PriceMonitorService {
 
   private startConnectionWithDelay() {
     // Wait 5 seconds before attempting to connect to external services
-    setTimeout(() => {
-      this.connect();
+    setTimeout(async () => {
+      await this.connect();
     }, 5000);
   }
 
-  private connect() {
+  private async connect() {
     if (this.connectionAttempts >= this.maxConnectionAttempts) {
       console.log('⚠️  Max connection attempts reached for price feed. Running in fallback mode.');
       return;
@@ -131,8 +131,8 @@ class PriceMonitorService {
     if (this.reconnectInterval) {
       clearInterval(this.reconnectInterval);
     }
-    this.reconnectInterval = setInterval(() => {
-      this.connect();
+    this.reconnectInterval = setInterval(async () => {
+      await this.connect();
     }, 5000); // Try to reconnect every 5 seconds
   }
 
