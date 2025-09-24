@@ -242,6 +242,19 @@ export interface IStorage {
   executeTrade(tradeData: any): Promise<any>;
   getOpenOrders(userId: string): Promise<any[]>;
   getOrderHistory(userId: string): Promise<any[]>;
+
+  // KYC Verification methods
+  createKycVerification(data: InsertKycVerification): Promise<KycVerification>;
+  getKycVerification(userId: string): Promise<KycVerification | null>;
+  getKycVerificationById(id: string): Promise<KycVerification | null>;
+  updateKycVerification(id: string, data: Partial<InsertKycVerification>): Promise<KycVerification>;
+  getAllKycVerifications(options: {
+    page?: number;
+    limit?: number;
+    status?: 'pending' | 'under_review' | 'approved' | 'rejected';
+    search?: string;
+  }): Promise<{ verifications: any[], pagination: { page: number, limit: number, total: number, pages: number } }>;
+  getKycStatistics(): Promise<{ total: number; pending: number; underReview: number; approved: number; rejected: number; approvalRate: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2783,6 +2796,134 @@ export class DatabaseStorage implements IStorage {
     console.log(`Fetching order history for user: ${userId}`);
     // TODO: Implement fetching of order history from a database
     return [];
+  }
+
+  // KYC Verification methods
+  async createKycVerification(data: InsertKycVerification): Promise<KycVerification> {
+    const db = this.ensureDb();
+    const [result] = await db.insert(kycVerifications).values({
+      ...data,
+      status: 'pending', // Default status
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    return result;
+  }
+
+  async getKycVerification(userId: string): Promise<KycVerification | null> {
+    const db = this.ensureDb();
+    const [result] = await db.select().from(kycVerifications)
+      .where(eq(kycVerifications.userId, userId))
+      .limit(1);
+    return result || null;
+  }
+
+  async getKycVerificationById(id: string): Promise<KycVerification | null> {
+    const db = this.ensureDb();
+    const [result] = await db.select().from(kycVerifications)
+      .where(eq(kycVerifications.id, id))
+      .limit(1);
+    return result || null;
+  }
+
+  async updateKycVerification(id: string, data: Partial<InsertKycVerification>): Promise<KycVerification> {
+    const db = this.ensureDb();
+    const result = await db.update(kycVerifications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(kycVerifications.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getAllKycVerifications(options: {
+    page?: number;
+    limit?: number;
+    status?: 'pending' | 'under_review' | 'approved' | 'rejected';
+    search?: string;
+  } = {}): Promise<{ verifications: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
+    const { page = 1, limit = 20, status, search } = options;
+    const db = this.ensureDb();
+
+    let baseQuery = db.select({
+      id: kycVerifications.id,
+      userId: kycVerifications.userId,
+      firstName: kycVerifications.firstName,
+      lastName: kycVerifications.lastName,
+      nationality: kycVerifications.nationality,
+      documentType: kycVerifications.documentType,
+      status: kycVerifications.status,
+      createdAt: kycVerifications.createdAt,
+      reviewedAt: kycVerifications.reviewedAt,
+      rejectionReason: kycVerifications.rejectionReason,
+      // Join user data
+      userEmail: users.email,
+      userUsername: users.username,
+    })
+    .from(kycVerifications)
+    .leftJoin(users, eq(kycVerifications.userId, users.id));
+
+    const conditions = [];
+    if (status) {
+      conditions.push(eq(kycVerifications.status, status as any));
+    }
+
+    if (conditions.length > 0) {
+      baseQuery = baseQuery.where(and(...conditions));
+    }
+
+    // Count for pagination
+    let countQuery = db.select({ count: count() }).from(kycVerifications);
+    if (status) {
+      countQuery = countQuery.where(eq(kycVerifications.status, status as any));
+    }
+    const [{ count: totalCount }] = await countQuery;
+
+    // Apply search filter on results
+    let results = await baseQuery.orderBy(desc(kycVerifications.createdAt));
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      results = results.filter(kyc =>
+        kyc.firstName?.toLowerCase().includes(searchLower) ||
+        kyc.lastName?.toLowerCase().includes(searchLower) ||
+        kyc.userEmail?.toLowerCase().includes(searchLower) ||
+        kyc.userUsername?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedResults = results.slice(startIndex, endIndex);
+
+    return {
+      verifications: paginatedResults,
+      pagination: {
+        page,
+        limit,
+        total: results.length, // Total after search filter
+        pages: Math.ceil(results.length / limit)
+      }
+    };
+  }
+
+  async getKycStatistics() {
+    const db = this.ensureDb();
+    const allKyc = await db.select().from(kycVerifications);
+
+    const stats = {
+      total: allKyc.length,
+      pending: allKyc.filter(k => k.status === 'pending').length,
+      underReview: allKyc.filter(k => k.status === 'under_review').length,
+      approved: allKyc.filter(k => k.status === 'approved').length,
+      rejected: allKyc.filter(k => k.status === 'rejected').length,
+    };
+
+    // Calculate approval rate
+    const processed = stats.approved + stats.rejected;
+    stats.approvalRate = processed > 0 ? (stats.approved / processed) * 100 : 0;
+
+    return stats;
   }
 }
 

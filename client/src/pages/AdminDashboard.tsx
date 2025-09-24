@@ -18,7 +18,7 @@ import {
   Activity, MessageCircle, PieChart, Clock, ChevronLeft, ChevronRight,
   MoreHorizontal, Sun, Moon, Ban, RotateCcw, Eye, Download,
   AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard, Save, UserPlus,
-  FileText, Banknote, Award
+  FileText, Banknote, Award, ShieldCheck
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
 import AdminSystemHealthMonitor from '@/components/AdminSystemHealthMonitor';
@@ -1234,8 +1234,21 @@ export default function AdminDashboard() {
             {/* Quick Actions Section */}
             {activeSection === 'quick-actions' && <AdminQuickActions />}
 
+            {/* KYC Section */}
+            {activeSection === 'kyc' && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">KYC Verification Management</h2>
+                <Card>
+                  <CardContent>
+                    {/* KYC review table/list will go here */}
+                    <p className="text-gray-500">KYC review functionality is being developed.</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Default/Placeholder Section */}
-            {!['dashboard', 'users', 'transactions', 'analytics', 'system-health', 'user-activity', 'quick-actions', 'security', 'system'].includes(activeSection) && (
+            {!['dashboard', 'users', 'transactions', 'analytics', 'system-health', 'user-activity', 'quick-actions', 'security', 'system', 'kyc'].includes(activeSection) && (
               <Card>
                 <CardHeader>
                   <CardTitle>{sidebarItems.find(item => item.id === activeSection)?.label || 'Section'}</CardTitle>

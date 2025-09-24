@@ -18,6 +18,7 @@ import withdrawalRoutes from "./withdrawal-routes";
 import portfolioAnalyticsRoutes from './portfolio-analytics-routes';
 import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
+import kycRoutes from './kyc-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -127,6 +128,7 @@ app.use((req, res, next) => {
     app.use('/api/portfolio', portfolioRoutes);
     app.use('/api/portfolio/analytics', portfolioAnalyticsRoutes);
     app.use('/api/news', newsRoutes);
+    app.use('/api/kyc', kycRoutes);
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route

@@ -211,6 +211,9 @@ export default function App() {
             <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/dashboard" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" component={() => <AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/kyc" component={() => <AdminRoute><lazy(() => import("./pages/AdminKycManagement")) /></AdminRoute>} />
+            <Route path="/admin/balance" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
+            <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
             <Route path="/admin/news" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
             <Route path="/admin/news-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
             <Route path="/admin/balances" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />

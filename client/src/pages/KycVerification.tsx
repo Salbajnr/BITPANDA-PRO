@@ -61,13 +61,20 @@ export default function KycVerification() {
     queryKey: ["/api/kyc/status"],
     retry: false,
     enabled: !!user,
+    meta: {
+      errorMessage: "No KYC verification found"
+    }
   });
 
   const submitKycMutation = useMutation({
     mutationFn: (data: KycData) =>
       apiRequest('/api/kyc/submit', { 
         method: 'POST', 
-        body: data 
+        body: {
+          ...data,
+          documentFrontImageUrl: 'placeholder-front.jpg',
+          selfieImageUrl: 'placeholder-selfie.jpg'
+        }
       }),
     onSuccess: () => {
       toast({
@@ -221,7 +228,7 @@ export default function KycVerification() {
             {existingKyc.status === 'rejected' && (
               <div className="flex justify-center">
                 <Button 
-                  onClick={() => window.location.reload()}
+                  onClick={() => setCurrentStep(1)}
                   data-testid="button-resubmit-kyc"
                 >
                   Resubmit Verification
