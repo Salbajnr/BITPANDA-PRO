@@ -23,6 +23,13 @@ import {
   Chrome
 } from "lucide-react";
 
+// Assuming Navbar is a default export, this import should be adjusted if not.
+// If Navbar was intended to be imported, the original code was missing its import.
+// For the purpose of this fix, I will assume the import was intended and correctly
+// formatted for a default export. If it was a named export, the original code
+// would have had an issue with the export in Navbar.tsx itself.
+// import Navbar from "@/components/Navbar.tsx"; // Uncomment and adjust path if Navbar is needed here.
+
 interface LoginData {
   emailOrUsername: string;
   password: string;

@@ -15,7 +15,7 @@ import {
   Home, BarChart3, Activity, Search, User,
   Eye, EyeOff, ChevronRight
 } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 import { Redirect } from "wouter";
 
 interface PortfolioData {
@@ -65,8 +65,8 @@ function BottomNavigation() {
           return (
             <Link
               key={item.id}
-              to={item.id}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
+              href={item.id}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors cursor-pointer ${
                 isActive 
                   ? "text-primary" 
                   : "text-muted-foreground hover:text-foreground"
