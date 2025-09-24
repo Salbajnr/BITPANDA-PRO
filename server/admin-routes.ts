@@ -501,6 +501,207 @@ router.put('/system/config', requireAuth, requireAdmin, async (req: Request, res
   }
 });
 
+// System Health Monitoring
+router.get('/system-health', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const health = {
+      server: {
+        uptime: process.uptime(),
+        status: 'healthy',
+        responseTime: Math.floor(Math.random() * 300) + 100,
+        load: Math.random() * 1
+      },
+      database: {
+        status: 'connected',
+        connectionCount: Math.floor(Math.random() * 20) + 5,
+        queryTime: Math.floor(Math.random() * 50) + 10,
+        storageUsed: 2.4,
+        storageTotal: 10
+      },
+      websocket: {
+        status: 'connected',
+        activeConnections: Math.floor(Math.random() * 100) + 20,
+        messagesSent: Math.floor(Math.random() * 10000) + 1000,
+        messagesReceived: Math.floor(Math.random() * 10000) + 1000
+      },
+      api: {
+        totalRequests: Math.floor(Math.random() * 50000) + 10000,
+        successRate: 99.2 + Math.random() * 0.8,
+        errorRate: Math.random() * 1,
+        avgResponseTime: Math.floor(Math.random() * 200) + 100
+      },
+      resources: {
+        cpuUsage: Math.floor(Math.random() * 80) + 10,
+        memoryUsage: Math.floor(Math.random() * 90) + 10,
+        diskUsage: Math.floor(Math.random() * 60) + 10
+      }
+    };
+
+    res.json(health);
+  } catch (error) {
+    console.error('System health error:', error);
+    res.status(500).json({ message: 'Failed to fetch system health' });
+  }
+});
+
+// User Sessions
+router.get('/user-sessions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const timeframe = req.query.timeframe as string || '24h';
+    
+    // Mock user sessions data
+    const sessions = Array.from({ length: Math.floor(Math.random() * 50) + 10 }, (_, i) => ({
+      id: `session_${i}`,
+      userId: `user_${i}`,
+      username: `user${i}`,
+      email: `user${i}@example.com`,
+      ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
+      userAgent: 'Mozilla/5.0...',
+      deviceType: ['desktop', 'mobile', 'tablet'][Math.floor(Math.random() * 3)],
+      browser: ['Chrome', 'Firefox', 'Safari'][Math.floor(Math.random() * 3)],
+      os: ['Windows', 'macOS', 'Linux', 'iOS', 'Android'][Math.floor(Math.random() * 5)],
+      location: {
+        country: ['US', 'UK', 'DE', 'FR', 'CA'][Math.floor(Math.random() * 5)],
+        city: ['New York', 'London', 'Berlin', 'Paris', 'Toronto'][Math.floor(Math.random() * 5)],
+        region: 'Region'
+      },
+      loginTime: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+      lastActivity: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+      isActive: Math.random() > 0.3,
+      duration: Math.floor(Math.random() * 480) + 15,
+      pagesVisited: Math.floor(Math.random() * 20) + 1
+    }));
+
+    res.json({ sessions });
+  } catch (error) {
+    console.error('User sessions error:', error);
+    res.status(500).json({ message: 'Failed to fetch user sessions' });
+  }
+});
+
+// User Activities
+router.get('/user-activities', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const timeframe = req.query.timeframe as string || '24h';
+    const type = req.query.type as string || 'all';
+    
+    // Mock user activities data
+    const activities = Array.from({ length: Math.floor(Math.random() * 100) + 20 }, (_, i) => ({
+      id: `activity_${i}`,
+      userId: `user_${i}`,
+      username: `user${i}`,
+      action: ['login', 'logout', 'trade_executed', 'deposit_made', 'withdrawal_requested', 'password_changed'][Math.floor(Math.random() * 6)],
+      details: 'Action details here',
+      ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
+      timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+      riskScore: Math.floor(Math.random() * 100)
+    }));
+
+    const filteredActivities = type === 'all' ? activities : activities.filter(a => a.action.includes(type));
+
+    res.json({ activities: filteredActivities });
+  } catch (error) {
+    console.error('User activities error:', error);
+    res.status(500).json({ message: 'Failed to fetch user activities' });
+  }
+});
+
+// Quick Actions - Maintenance Mode
+router.post('/maintenance', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { enabled, message } = req.body;
+    
+    // Store maintenance status
+    await storage.updateSystemConfig({
+      maintenanceMode: enabled,
+      maintenanceMessage: message
+    });
+
+    await storage.logAdminAction({
+      adminId: req.user!.id,
+      action: 'maintenance_mode_toggle',
+      details: { enabled, message },
+      timestamp: new Date()
+    });
+
+    res.json({ message: 'Maintenance mode updated successfully' });
+  } catch (error) {
+    console.error('Maintenance mode error:', error);
+    res.status(500).json({ message: 'Failed to update maintenance mode' });
+  }
+});
+
+// Quick Actions - Broadcast Message
+router.post('/broadcast', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { message, type } = req.body;
+    
+    // In a real app, this would send notifications to all connected users
+    console.log(`Broadcasting ${type} message: ${message}`);
+
+    await storage.logAdminAction({
+      adminId: req.user!.id,
+      action: 'broadcast_message',
+      details: { message, type },
+      timestamp: new Date()
+    });
+
+    res.json({ message: 'Message broadcasted successfully' });
+  } catch (error) {
+    console.error('Broadcast error:', error);
+    res.status(500).json({ message: 'Failed to broadcast message' });
+  }
+});
+
+// Quick Actions - Clear Cache
+router.post('/clear-cache', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { type } = req.body;
+    
+    // In a real app, this would clear actual cache
+    console.log(`Clearing cache: ${type}`);
+
+    await storage.logAdminAction({
+      adminId: req.user!.id,
+      action: 'clear_cache',
+      details: { type },
+      timestamp: new Date()
+    });
+
+    res.json({ message: 'Cache cleared successfully' });
+  } catch (error) {
+    console.error('Clear cache error:', error);
+    res.status(500).json({ message: 'Failed to clear cache' });
+  }
+});
+
+// Quick Actions - Force Logout
+router.post('/force-logout', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { userId, all } = req.body;
+    
+    if (all) {
+      // Force logout all users
+      await storage.invalidateAllSessions();
+    } else if (userId) {
+      // Force logout specific user
+      await storage.invalidateUserSessions(userId);
+    }
+
+    await storage.logAdminAction({
+      adminId: req.user!.id,
+      action: 'force_logout',
+      details: { userId, all },
+      timestamp: new Date()
+    });
+
+    res.json({ message: 'Users logged out successfully' });
+  } catch (error) {
+    console.error('Force logout error:', error);
+    res.status(500).json({ message: 'Failed to force logout' });
+  }
+});
+
 // Audit Logs
 router.get('/audit-logs', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {

@@ -21,6 +21,9 @@ import {
   FileText, Banknote, Award
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
+import AdminSystemHealthMonitor from '@/components/AdminSystemHealthMonitor';
+import AdminUserActivityTracker from '@/components/AdminUserActivityTracker';
+import AdminQuickActions from '@/components/AdminQuickActions';
 
 interface User {
   id: string;
@@ -296,6 +299,9 @@ export default function AdminDashboard() {
     { id: 'users', label: 'User Management', icon: Users },
     { id: 'transactions', label: 'Transaction Control', icon: Activity },
     { id: 'analytics', label: 'Platform Analytics', icon: TrendingUp },
+    { id: 'system-health', label: 'System Health', icon: Activity },
+    { id: 'user-activity', label: 'User Activity', icon: Users },
+    { id: 'quick-actions', label: 'Quick Actions', icon: CheckSquare },
     { id: 'security', label: 'Security Center', icon: Shield },
     { id: 'system', label: 'System Settings', icon: Settings },
   ];
@@ -1219,8 +1225,17 @@ export default function AdminDashboard() {
               </div>
             )}
 
+            {/* System Health Section */}
+            {activeSection === 'system-health' && <AdminSystemHealthMonitor />}
+
+            {/* User Activity Section */}
+            {activeSection === 'user-activity' && <AdminUserActivityTracker />}
+
+            {/* Quick Actions Section */}
+            {activeSection === 'quick-actions' && <AdminQuickActions />}
+
             {/* Default/Placeholder Section */}
-            {!['dashboard', 'users', 'transactions', 'analytics', 'security', 'system'].includes(activeSection) && (
+            {!['dashboard', 'users', 'transactions', 'analytics', 'system-health', 'user-activity', 'quick-actions', 'security', 'system'].includes(activeSection) && (
               <Card>
                 <CardHeader>
                   <CardTitle>{sidebarItems.find(item => item.id === activeSection)?.label || 'Section'}</CardTitle>
