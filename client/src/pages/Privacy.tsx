@@ -1,5 +1,5 @@
 
-import { Navbar } from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Database, Cookie, Mail, Phone } from "lucide-react";
 
