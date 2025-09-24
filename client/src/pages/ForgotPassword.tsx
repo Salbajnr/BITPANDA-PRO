@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -52,7 +51,7 @@ export default function ForgotPassword() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
             <CardHeader className="text-center">
@@ -77,7 +76,7 @@ export default function ForgotPassword() {
                   The reset link expires in 1 hour
                 </p>
               </div>
-              
+
               <div className="flex flex-col space-y-3">
                 <Button
                   onClick={() => forgotPasswordMutation.mutate(email)}
@@ -88,7 +87,7 @@ export default function ForgotPassword() {
                 >
                   {forgotPasswordMutation.isPending ? "Resending..." : "Resend Email"}
                 </Button>
-                
+
                 <Link href="/auth">
                   <Button 
                     variant="ghost" 
@@ -108,7 +107,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back to login link */}
         <div className="mb-6">
@@ -150,7 +149,7 @@ export default function ForgotPassword() {
                   />
                 </div>
               </div>
-              
+
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
@@ -160,7 +159,7 @@ export default function ForgotPassword() {
                 {forgotPasswordMutation.isPending ? "Sending..." : "Send Reset Link"}
               </Button>
             </form>
-            
+
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-400">
                 Remember your password?{" "}

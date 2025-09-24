@@ -169,7 +169,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-900 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(34,197,94,0.1),transparent)]" />
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
@@ -202,7 +202,7 @@ export default function Auth() {
                 <div className="absolute inset-0 bg-green-400/20 rounded-full blur-xl animate-pulse" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                   BITPANDA PRO
                 </h1>
                 <div className="flex items-center justify-center mt-1">
@@ -211,20 +211,20 @@ export default function Auth() {
                 </div>
               </div>
             </div>
-            <p className="text-slate-400 text-lg">Your gateway to crypto trading</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">Your gateway to crypto trading</p>
           </div>
 
           {/* Main Auth Card */}
-          <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/50 shadow-2xl ring-1 ring-slate-700/20">
+          <Card className="bg-white dark:bg-slate-800/40 backdrop-blur-xl border-slate-200 dark:border-slate-700/50 shadow-xl dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700/20">
             <CardHeader className="text-center pb-6">
-              <CardTitle className="text-2xl text-white font-bold">Welcome Back</CardTitle>
-              <CardDescription className="text-slate-400 text-base">
+              <CardTitle className="text-2xl text-gray-900 dark:text-white font-bold">Welcome Back</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
                 Access your trading dashboard
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-700/30 backdrop-blur-sm border border-slate-600/50">
+                <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 dark:bg-slate-700/30 backdrop-blur-sm border border-slate-200 dark:border-slate-600/50">
                   <TabsTrigger 
                     value="login" 
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
@@ -244,7 +244,7 @@ export default function Auth() {
                 <TabsContent value="login" className="space-y-6">
                   <form onSubmit={handleUserLogin} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="emailOrUsername" className="text-slate-300 font-medium">
+                      <Label htmlFor="emailOrUsername" className="text-gray-700 dark:text-slate-300 font-medium">
                         Email or Username
                       </Label>
                       <div className="relative group">
@@ -255,14 +255,14 @@ export default function Auth() {
                           placeholder="Enter your email or username"
                           value={userLoginForm.emailOrUsername}
                           onChange={(e) => setUserLoginForm({ ...userLoginForm, emailOrUsername: e.target.value })}
-                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="text-slate-300 font-medium">
+                      <Label htmlFor="password" className="text-gray-700 dark:text-slate-300 font-medium">
                         Password
                       </Label>
                       <div className="relative group">
@@ -273,7 +273,7 @@ export default function Auth() {
                           placeholder="Enter your password"
                           value={userLoginForm.password}
                           onChange={(e) => setUserLoginForm({ ...userLoginForm, password: e.target.value })}
-                          className="pl-10 pr-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          className="pl-10 pr-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                           required
                         />
                         <button
@@ -291,7 +291,7 @@ export default function Auth() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-green-400 hover:text-green-300 hover:bg-green-400/10 p-0 h-auto font-medium"
+                          className="text-green-500 hover:text-green-600 hover:bg-green-100 p-0 h-auto font-medium"
                         >
                           Forgot password?
                         </Button>
@@ -319,10 +319,10 @@ export default function Auth() {
                     {/* Divider */}
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-gray-300 dark:border-slate-600/50" />
+                        <span className="w-full border-t border-slate-300 dark:border-slate-600/50" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-white/90 dark:bg-slate-800/40 px-2 text-gray-500 dark:text-slate-400">Or continue with</span>
+                        <span className="bg-white dark:bg-slate-800/40 px-2 text-slate-500 dark:text-slate-400">Or continue with</span>
                       </div>
                     </div>
 
@@ -331,7 +331,7 @@ export default function Auth() {
                       type="button"
                       variant="outline"
                       onClick={handleGoogleAuth}
-                      className="w-full h-12 border-slate-600/50 bg-slate-700/20 hover:bg-slate-700/40 text-slate-300 hover:text-white transition-all duration-300"
+                      className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
                     >
                       <Chrome className="w-5 h-5 mr-2" />
                       Sign in with Google
@@ -343,7 +343,7 @@ export default function Auth() {
                   <form onSubmit={handleRegister} className="space-y-5">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-slate-300 font-medium">
+                        <Label htmlFor="firstName" className="text-gray-700 dark:text-slate-300 font-medium">
                           First Name *
                         </Label>
                         <div className="relative group">
@@ -354,14 +354,14 @@ export default function Auth() {
                             placeholder="John"
                             value={registerForm.firstName}
                             onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
-                            className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                            className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                             required
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-slate-300 font-medium">
+                        <Label htmlFor="lastName" className="text-gray-700 dark:text-slate-300 font-medium">
                           Last Name *
                         </Label>
                         <Input
@@ -370,14 +370,14 @@ export default function Auth() {
                           placeholder="Doe"
                           value={registerForm.lastName}
                           onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
-                          className="h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          className="h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="username" className="text-slate-300 font-medium">
+                      <Label htmlFor="username" className="text-gray-700 dark:text-slate-300 font-medium">
                         Username *
                       </Label>
                       <div className="relative group">
@@ -388,14 +388,14 @@ export default function Auth() {
                           placeholder="johndoe"
                           value={registerForm.username}
                           onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
-                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-slate-300 font-medium">
+                      <Label htmlFor="email" className="text-gray-700 dark:text-slate-300 font-medium">
                         Email *
                       </Label>
                       <div className="relative group">
@@ -406,14 +406,14 @@ export default function Auth() {
                           placeholder="john@example.com"
                           value={registerForm.email}
                           onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
-                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-slate-300 font-medium">
+                      <Label htmlFor="phone" className="text-gray-700 dark:text-slate-300 font-medium">
                         Phone (Optional)
                       </Label>
                       <div className="relative group">
@@ -424,13 +424,13 @@ export default function Auth() {
                           placeholder="+1 (555) 123-4567"
                           value={registerForm.phone}
                           onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
-                          className="pl-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="register-password" className="text-slate-300 font-medium">
+                      <Label htmlFor="register-password" className="text-gray-700 dark:text-slate-300 font-medium">
                         Password *
                       </Label>
                       <div className="relative group">
@@ -441,7 +441,7 @@ export default function Auth() {
                           placeholder="Create a strong password (min. 6 characters)"
                           value={registerForm.password}
                           onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-                          className="pl-10 pr-10 h-12 bg-slate-700/30 border-slate-600/50 text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          className="pl-10 pr-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
                           required
                           minLength={6}
                         />
@@ -455,15 +455,15 @@ export default function Auth() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-700/20 rounded-lg p-4 border border-slate-600/30">
-                      <p className="text-xs text-slate-400 font-medium mb-2">Password requirements:</p>
-                      <ul className="text-xs text-slate-400 space-y-1">
+                    <div className="bg-slate-50 dark:bg-slate-800/40 rounded-lg p-4 border border-slate-200 dark:border-slate-600/30">
+                      <p className="text-xs text-gray-700 dark:text-slate-400 font-medium mb-2">Password requirements:</p>
+                      <ul className="text-xs text-gray-600 dark:text-slate-400 space-y-1">
                         <li className="flex items-center">
-                          <CheckCircle className="w-3 h-3 text-green-400 mr-2" />
+                          <CheckCircle className="w-3 h-3 text-green-500 mr-2" />
                           At least 6 characters long
                         </li>
                         <li className="flex items-center">
-                          <CheckCircle className="w-3 h-3 text-green-400 mr-2" />
+                          <CheckCircle className="w-3 h-3 text-green-500 mr-2" />
                           Mix of letters and numbers recommended
                         </li>
                       </ul>
@@ -490,10 +490,10 @@ export default function Auth() {
                     {/* Divider */}
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-gray-300 dark:border-slate-600/50" />
+                        <span className="w-full border-t border-slate-300 dark:border-slate-600/50" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-white/90 dark:bg-slate-800/40 px-2 text-gray-500 dark:text-slate-400">Or continue with</span>
+                        <span className="bg-white dark:bg-slate-800/40 px-2 text-slate-500 dark:text-slate-400">Or continue with</span>
                       </div>
                     </div>
 
@@ -502,7 +502,7 @@ export default function Auth() {
                       type="button"
                       variant="outline"
                       onClick={handleGoogleAuth}
-                      className="w-full h-12 border-slate-600/50 bg-slate-700/20 hover:bg-slate-700/40 text-slate-300 hover:text-white transition-all duration-300"
+                      className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
                     >
                       <Chrome className="w-5 h-5 mr-2" />
                       Sign up with Google
@@ -512,14 +512,14 @@ export default function Auth() {
               </Tabs>
 
               {/* Security Notice */}
-              <div className="bg-gradient-to-r from-blue-900/20 to-green-900/20 border border-blue-800/30 rounded-lg p-4 backdrop-blur-sm">
+              <div className="bg-gradient-to-r from-blue-50/50 to-green-50/50 border border-blue-200 dark:border-blue-800/30 rounded-lg p-4 backdrop-blur-sm">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Shield className="w-4 h-4 text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-blue-300 font-medium mb-1">Secure & Professional</p>
-                    <p className="text-xs text-blue-400/80 leading-relaxed">
+                    <p className="text-sm text-blue-600 dark:text-blue-300 font-medium mb-1">Secure & Professional</p>
+                    <p className="text-xs text-blue-500/80 dark:text-blue-400/80 leading-relaxed">
                       Your data is protected with enterprise-grade security. Experience professional crypto trading with BITPANDA PRO.
                     </p>
                   </div>

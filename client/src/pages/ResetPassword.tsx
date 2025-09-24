@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -14,7 +13,7 @@ export default function ResetPassword() {
   const { token } = useParams<{ token: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +44,7 @@ export default function ResetPassword() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!password || !confirmPassword) {
       toast({
         title: "All fields required",
@@ -91,7 +90,7 @@ export default function ResetPassword() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
             <CardHeader className="text-center">
@@ -113,7 +112,7 @@ export default function ResetPassword() {
                     You can now sign in with your new password
                   </p>
                 </div>
-                
+
                 <Button 
                   onClick={handleGoToLogin}
                   className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
@@ -130,7 +129,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back button */}
         <div className="mb-6">
@@ -207,7 +206,7 @@ export default function ResetPassword() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-3 bg-slate-700/30 rounded-lg">
                 <p className="text-xs text-slate-400 mb-2">Password requirements:</p>
                 <ul className="list-disc ml-4 space-y-0.5 text-xs text-slate-400">
@@ -219,7 +218,7 @@ export default function ResetPassword() {
                   </li>
                 </ul>
               </div>
-              
+
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
@@ -229,7 +228,7 @@ export default function ResetPassword() {
                 {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
               </Button>
             </form>
-            
+
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-400">
                 Remember your password?{" "}

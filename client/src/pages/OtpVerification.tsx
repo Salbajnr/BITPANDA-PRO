@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -14,7 +13,7 @@ export default function OtpVerification() {
   const { type, email } = useParams<{ type: string; email: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [isSuccess, setIsSuccess] = useState(false);
@@ -30,9 +29,9 @@ export default function OtpVerification() {
 
   const verifyOtpMutation = useMutation({
     mutationFn: (data: { email: string; token: string; type: string }) =>
-      apiRequest('/api/auth/verify-otp', { 
-        method: 'POST', 
-        body: data 
+      apiRequest('/api/auth/verify-otp', {
+        method: 'POST',
+        body: data
       }),
     onSuccess: () => {
       setIsSuccess(true);
@@ -52,9 +51,9 @@ export default function OtpVerification() {
 
   const resendOtpMutation = useMutation({
     mutationFn: (data: { email: string; type: string }) =>
-      apiRequest('/api/auth/resend-otp', { 
-        method: 'POST', 
-        body: data 
+      apiRequest('/api/auth/resend-otp', {
+        method: 'POST',
+        body: data
       }),
     onSuccess: () => {
       setTimeLeft(300); // Reset timer
@@ -75,7 +74,7 @@ export default function OtpVerification() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!otp || otp.length !== 6) {
       toast({
         title: "Invalid OTP",
@@ -94,9 +93,9 @@ export default function OtpVerification() {
       return;
     }
 
-    verifyOtpMutation.mutate({ 
-      email: decodedEmail, 
-      token: otp, 
+    verifyOtpMutation.mutate({
+      email: decodedEmail,
+      token: otp,
       type: type as 'registration' | 'password_reset' | '2fa'
     });
   };
@@ -111,8 +110,8 @@ export default function OtpVerification() {
       return;
     }
 
-    resendOtpMutation.mutate({ 
-      email: decodedEmail, 
+    resendOtpMutation.mutate({
+      email: decodedEmail,
       type: type as 'registration' | 'password_reset' | '2fa'
     });
   };
@@ -161,7 +160,7 @@ export default function OtpVerification() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700/50 shadow-2xl">
             <CardHeader className="text-center">
@@ -184,8 +183,8 @@ export default function OtpVerification() {
                     {type === '2fa' && "You can now access your account"}
                   </p>
                 </div>
-                
-                <Button 
+
+                <Button
                   onClick={handleContinue}
                   className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   data-testid="button-continue"
@@ -201,7 +200,7 @@ export default function OtpVerification() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back button */}
         <div className="mb-6">
@@ -258,9 +257,9 @@ export default function OtpVerification() {
                   </p>
                 )}
               </div>
-              
-              <Button 
-                type="submit" 
+
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                 disabled={verifyOtpMutation.isPending || otp.length !== 6}
                 data-testid="button-verify-otp"
@@ -268,7 +267,7 @@ export default function OtpVerification() {
                 {verifyOtpMutation.isPending ? "Verifying..." : "Verify Code"}
               </Button>
             </form>
-            
+
             <div className="mt-6 space-y-3">
               <div className="text-center">
                 <Button
