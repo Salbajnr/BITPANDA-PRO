@@ -62,17 +62,33 @@ export const requireAdmin = async (req: any, res: any, next: any) => {
 
 export const loadUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if ((req.session as any)?.userId) {
-      const user = await storage.getUser((req.session as any).userId);
+    const sessionData = req.session as any;
+    
+    if (sessionData?.userId) {
+      const user = await storage.getUser(sessionData.userId);
+      
       if (user && user.isActive) {
-        (req as any).user = user;
+        (req as any).user = {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+          isActive: user.isActive,
+          firstName: user.firstName,
+          lastName: user.lastName
+        };
       } else if (user && !user.isActive) {
         // Clear session if user is inactive
-        req.session?.destroy(() => {});
+        req.session?.destroy((err) => {
+          if (err) {
+            console.error('Error destroying session:', err);
+          }
+        });
       }
     }
   } catch (error) {
     console.error("Error loading user:", error);
+    // Don't fail the request, just continue without user
   }
   next();
 };

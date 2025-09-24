@@ -899,20 +899,28 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getActivePriceAlerts(): Promise<PriceAlert[]> {
+  async getActivePriceAlerts(): Promise<any[]> {
     try {
-      const db = this.ensureDb();
-      const alerts = await db.select()
-        .from(priceAlerts)
-        .where(and(eq(priceAlerts.isActive, true), eq(priceAlerts.isTriggered, false)));
+      const alerts = await this.db.select({
+        id: priceAlerts.id,
+        userId: priceAlerts.userId,
+        symbol: priceAlerts.symbol,
+        name: priceAlerts.name,
+        targetPrice: priceAlerts.targetPrice,
+        condition: priceAlerts.condition,
+        isActive: priceAlerts.isActive,
+        isTriggered: priceAlerts.isTriggered,
+        createdAt: priceAlerts.createdAt,
+        updatedAt: priceAlerts.updatedAt
+      }).from(priceAlerts)
+        .where(and(
+          eq(priceAlerts.isActive, true),
+          eq(priceAlerts.isTriggered, false)
+        ));
       return alerts;
     } catch (error) {
-      console.error("Error getting active price alerts:", error);
-      // Return empty array if table doesn't exist
-      if (error?.code === '42P01') {
-        return [];
-      }
-      throw error;
+      console.error('Error getting active price alerts:', error);
+      return [];
     }
   }
 

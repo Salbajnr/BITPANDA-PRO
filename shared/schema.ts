@@ -346,7 +346,7 @@ export const priceAlerts = pgTable("price_alerts", {
   name: text("name").notNull(),
   targetPrice: text("target_price").notNull(),
   condition: text("condition").notNull(), // 'above' or 'below'
-  message: text("message"),
+  message: text("message").default(''),
   isActive: boolean("is_active").default(true),
   isTriggered: boolean("is_triggered").default(false),
   createdAt: timestamp("created_at").defaultNow(),

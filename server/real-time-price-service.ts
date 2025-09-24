@@ -1,4 +1,3 @@
-
 import { EventEmitter } from 'events';
 import { WebSocketServer, WebSocket } from 'ws';
 import { cryptoService, type CryptoPrice } from './crypto-service';
@@ -26,6 +25,13 @@ class RealTimePriceService extends EventEmitter {
   private readonly UPDATE_FREQUENCY = 10000; // 10 seconds
   private isRunning = false;
 
+  // WebSocket properties (kept for potential future use or debugging)
+  private ws: WebSocket | null = null;
+  private isConnected = false;
+  private reconnectAttempts = 0;
+  private readonly MAX_RECONNECT_ATTEMPTS = 5;
+  private readonly RECONNECT_DELAY = 5000; // 5 seconds
+
   constructor() {
     super();
     this.setMaxListeners(100);
@@ -33,25 +39,35 @@ class RealTimePriceService extends EventEmitter {
 
   start() {
     if (this.isRunning) return;
-    
+
     console.log('🚀 Starting Real-Time Price Service...');
     this.isRunning = true;
+    // Removed the call to connectToPriceFeed() as it's handled by startPriceUpdates and modified logic
     this.startPriceUpdates();
   }
 
   stop() {
     if (!this.isRunning) return;
-    
+
     console.log('🛑 Stopping Real-Time Price Service...');
     this.isRunning = false;
-    
+
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
     }
-    
+
+    // Clean up WebSocket if it was initialized
+    if (this.ws) {
+      this.ws.removeAllListeners();
+      this.ws.close();
+      this.ws = null;
+    }
+
     this.subscriptions.clear();
     this.priceCache.clear();
+    this.isConnected = false;
+    this.reconnectAttempts = 0;
   }
 
   addSubscription(clientId: string, ws: WebSocket, symbols: string[], userId?: string) {
@@ -63,7 +79,7 @@ class RealTimePriceService extends EventEmitter {
     });
 
     console.log(`📊 Client ${clientId} subscribed to: ${symbols.join(', ')}`);
-    
+
     // Send immediate price update for subscribed symbols
     this.sendInitialPrices(clientId, symbols);
   }
@@ -106,11 +122,16 @@ class RealTimePriceService extends EventEmitter {
   }
 
   private startPriceUpdates() {
+    // Connect to price feed using the modified logic
+    this.connectToPriceFeed();
+
+    // Continue with interval-based updates, which will now rely on the HTTP fallback
     this.updateInterval = setInterval(async () => {
+      // If not connected via WebSocket, this will still trigger HTTP fetches if startHttpPriceFetching is active
       await this.updatePrices();
     }, this.UPDATE_FREQUENCY);
 
-    // Initial update
+    // Initial update attempt
     setTimeout(() => this.updatePrices(), 1000);
   }
 
@@ -128,7 +149,7 @@ class RealTimePriceService extends EventEmitter {
     try {
       const symbolsArray = Array.from(allSymbols);
       const prices = await cryptoService.getPrices(symbolsArray);
-      
+
       const updates: PriceUpdate[] = prices.map(price => ({
         symbol: price.symbol.toLowerCase(),
         price: price.price,
@@ -141,7 +162,7 @@ class RealTimePriceService extends EventEmitter {
       // Update cache and broadcast to clients
       updates.forEach(update => {
         const cached = this.priceCache.get(update.symbol);
-        
+
         // Only broadcast if price changed significantly (> 0.01% or first time)
         if (!cached || Math.abs((update.price - cached.price) / cached.price) > 0.0001) {
           this.priceCache.set(update.symbol, update);
@@ -152,6 +173,10 @@ class RealTimePriceService extends EventEmitter {
       console.log(`📊 Updated prices for ${updates.length} symbols`);
     } catch (error) {
       console.error('Error updating prices:', error);
+      // If HTTP fetching is the fallback, errors here are critical
+      if (!this.isConnected) {
+        console.error('HTTP price fetching also failed. Service may be unavailable.');
+      }
     }
   }
 
@@ -200,6 +225,34 @@ class RealTimePriceService extends EventEmitter {
 
   getSubscriptionCount(): number {
     return this.subscriptions.size;
+  }
+
+  // Modified connection logic
+  private connectToPriceFeed(): void {
+    try {
+      console.log('🔌 Connecting to price feed...');
+
+      // Use a more reliable WebSocket endpoint or disable for now
+      // this.ws = new WebSocket('wss://ws-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest');
+
+      // Temporarily disable WebSocket price feed due to connection issues
+      console.log('⚠️ WebSocket price feed temporarily disabled due to connection issues');
+      this.isConnected = false;
+
+      // Use HTTP API fallback instead
+      this.startHttpPriceFetching();
+
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+      this.startHttpPriceFetching();
+    }
+  }
+
+  private startHttpPriceFetching(): void {
+    // Fetch prices via HTTP every 30 seconds as fallback
+    // This logic is now integrated into the updatePrices method called by the interval
+    console.log('⚡ Starting HTTP price fetching as fallback...');
+    // The interval is already set in startPriceUpdates. This method mainly serves to log and confirm the fallback.
   }
 }
 

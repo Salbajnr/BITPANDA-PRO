@@ -136,12 +136,12 @@ class PriceMonitorService {
     }, 5000); // Try to reconnect every 5 seconds
   }
 
-  async checkPriceAlerts() {
+  private async checkPriceAlerts(): Promise<void> {
     try {
       // Get all active alerts
       const alerts = await storage.getActivePriceAlerts();
 
-      if (alerts.length === 0) {
+      if (!alerts || alerts.length === 0) {
         return;
       }
 
@@ -158,11 +158,15 @@ class PriceMonitorService {
 
       // Check each alert
       for (const alert of alerts) {
-        const coinGeckoId = this.getCoinGeckoId(alert.symbol);
-        const currentPrice = prices[coinGeckoId]?.usd;
+        try {
+          const coinGeckoId = this.getCoinGeckoId(alert.symbol);
+          const currentPrice = prices[coinGeckoId]?.usd;
 
-        if (currentPrice && this.shouldTriggerAlert(alert, currentPrice)) {
-          await this.triggerAlert(alert, currentPrice);
+          if (currentPrice && this.shouldTriggerAlert(alert, currentPrice)) {
+            await this.triggerAlert(alert, currentPrice);
+          }
+        } catch (alertError) {
+          console.error(`Error processing alert ${alert.id}:`, alertError);
         }
       }
 
