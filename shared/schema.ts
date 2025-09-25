@@ -10,6 +10,7 @@ import {
   timestamp,
   varchar,
   numeric, // Import numeric type
+  integer, // Import integer type
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -300,11 +301,12 @@ export const liveChatSessions = pgTable("live_chat_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   agentId: varchar("agent_id").references(() => users.id),
+  agentName: varchar("agent_name"),
   status: varchar("status").default('waiting').notNull(), // 'waiting', 'active', 'ended'
   subject: varchar("subject"),
   startedAt: timestamp("started_at").defaultNow(),
   endedAt: timestamp("ended_at"),
-  rating: decimal("rating", { precision: 2, scale: 1 }), // 1.0 to 5.0
+  rating: integer("rating"), // 1-5 stars
   feedback: text("feedback"),
 });
 
@@ -524,7 +526,7 @@ export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
-// Portfolio types  
+// Portfolio types
 export type Portfolio = typeof portfolios.$inferSelect;
 export type InsertPortfolio = z.infer<typeof insertPortfolioSchema>;
 

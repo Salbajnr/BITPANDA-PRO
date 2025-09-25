@@ -20,6 +20,7 @@ import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
 import kycRoutes from './kyc-routes';
 import marketResearchRoutes from './market-research-routes';
+import chatRoutes from './chat-routes';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -131,6 +132,7 @@ app.use((req, res, next) => {
     app.use('/api/news', newsRoutes);
     app.use('/api/research', marketResearchRoutes);
     app.use('/api/kyc', kycRoutes);
+    app.use('/api/support/chat', chatRoutes);
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route
@@ -179,7 +181,7 @@ app.use((req, res, next) => {
 `);
     });
 
-    // Initialize WebSocket servers for real-time updates (after server is listening)
+    // Initialize WebSocket servers
     webSocketManager.initialize(server);
     chatWebSocketManager.initialize(server);
 

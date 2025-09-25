@@ -43,11 +43,7 @@ class WebSocketManager {
       noServer: true
     });
 
-    // Remove existing upgrade listeners for this path only
-    const existingListeners = server.listeners('upgrade');
-    existingListeners.forEach(listener => {
-      server.removeListener('upgrade', listener);
-    });
+    // Handle multiple WebSocket paths
 
     // Handle upgrade with path checking
     server.on('upgrade', (request, socket, head) => {

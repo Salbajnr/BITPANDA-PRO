@@ -1515,6 +1515,170 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
 
+      return message;
+    } catch (error) {
+      console.error("Error creating chat message:", error);
+      throw error;
+    }
+  }
+
+  async updateChatSessionStatus(sessionId: string, status: string, agentId?: string): Promise<void> {
+    try {
+      const db = this.ensureDb();
+      await db
+        .update(liveChatSessions)
+        .set({ 
+          status, 
+          agentId,
+          endedAt: status === 'ended' ? new Date() : undefined
+        })
+        .where(eq(liveChatSessions.id, sessionId));
+    } catch (error) {
+      console.error("Error updating chat session status:", error);
+      throw error;
+    }
+  }
+
+  async endChatSession(sessionId: string): Promise<void> {
+    try {
+      const db = this.ensureDb();
+      await db
+        .update(liveChatSessions)
+        .set({ 
+          status: 'ended',
+          endedAt: new Date()
+        })
+        .where(eq(liveChatSessions.id, sessionId));
+    } catch (error) {
+      console.error("Error ending chat session:", error);
+      throw error;
+    }
+  }
+
+  async getChatSessions(options: any): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      let query = db
+        .select({
+          id: liveChatSessions.id,
+          userId: liveChatSessions.userId,
+          agentId: liveChatSessions.agentId,
+          status: liveChatSessions.status,
+          subject: liveChatSessions.subject,
+          startedAt: liveChatSessions.startedAt,
+          endedAt: liveChatSessions.endedAt,
+          user: {
+            username: users.username,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName
+          }
+        })
+        .from(liveChatSessions)
+        .leftJoin(users, eq(liveChatSessions.userId, users.id));
+
+      if (options.status) {
+        query = query.where(eq(liveChatSessions.status, options.status));
+      }
+
+      const sessions = await query
+        .orderBy(liveChatSessions.startedAt)
+        .limit(options.limit || 20)
+        .offset((options.page - 1) * (options.limit || 20));
+
+      return { sessions };
+    } catch (error) {
+      console.error("Error fetching chat sessions:", error);
+      return { sessions: [] };
+    }
+  }
+
+  async assignChatSession(sessionId: string, agentId: string, agentName: string): Promise<void> {
+    try {
+      const db = this.ensureDb();
+      await db
+        .update(liveChatSessions)
+        .set({ 
+          agentId,
+          status: 'active'
+        })
+        .where(eq(liveChatSessions.id, sessionId));
+    } catch (error) {
+      console.error("Error assigning chat session:", error);
+      throw error;
+    }
+  }
+
+  async notifyAdminsNewChatSession(session: any): Promise<void> {
+    // This would typically send notifications to online admins
+    console.log(`New chat session created: ${session.id}`);
+  }
+
+  async rateChatSession(sessionId: string, rating: number, feedback?: string): Promise<void> {
+    try {
+      const db = this.ensureDb();
+      await db
+        .update(liveChatSessions)
+        .set({ rating, feedback })
+        .where(eq(liveChatSessions.id, sessionId));
+    } catch (error) {
+      console.error("Error rating chat session:", error);
+      throw error;
+    }
+
+      return session;
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+      throw error;
+    }
+  }
+
+  async getChatSession(sessionId: string): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      const [session] = await db
+        .select()
+        .from(liveChatSessions)
+        .where(eq(liveChatSessions.id, sessionId))
+        .limit(1);
+
+      return session;
+    } catch (error) {
+      console.error("Error fetching chat session:", error);
+      return null;
+    }
+  }
+
+  async getChatMessages(sessionId: string): Promise<any[]> {
+    try {
+      const db = this.ensureDb();
+      const messages = await db
+        .select()
+        .from(liveChatMessages)
+        .where(eq(liveChatMessages.sessionId, sessionId))
+        .orderBy(liveChatMessages.createdAt);
+
+      return messages;
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      return [];
+    }
+  }
+
+  async createChatMessage(data: any): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      const [message] = await db
+        .insert(liveChatMessages)
+        .values({
+          sessionId: data.sessionId,
+          senderId: data.senderId,
+          message: data.message,
+          messageType: data.messageType || 'text',
+          attachmentUrl: data.attachmentUrl
+        })
+        .returning();
+
       return {
         ...message,
         senderName: data.senderName,
