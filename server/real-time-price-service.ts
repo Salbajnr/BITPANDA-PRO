@@ -22,14 +22,14 @@ class RealTimePriceService extends EventEmitter {
   private subscriptions = new Map<string, PriceSubscription>();
   private priceCache = new Map<string, PriceUpdate>();
   private updateInterval: NodeJS.Timeout | null = null;
-  private readonly UPDATE_FREQUENCY = 10000; // 10 seconds
+  private readonly UPDATE_FREQUENCY = 30000; // 30 seconds (reduced frequency)
   private isRunning = false;
 
   // WebSocket properties (kept for potential future use or debugging)
   private ws: WebSocket | null = null;
   private isConnected = false;
   private reconnectAttempts = 0;
-  private readonly MAX_RECONNECT_ATTEMPTS = 5;
+  private readonly MAX_RECONNECT_ATTEMPTS = 2; // Reduced attempts
   private readonly RECONNECT_DELAY = 5000; // 5 seconds
 
   constructor() {
@@ -227,22 +227,18 @@ class RealTimePriceService extends EventEmitter {
     return this.subscriptions.size;
   }
 
-  // Modified connection logic
+  // Modified connection logic - Use HTTP-only for Replit environment
   private connectToPriceFeed(): void {
     try {
       console.log('🔌 Connecting to price feed...');
-
-      // Try connecting to a reliable WebSocket endpoint
-      if (this.connectionAttempts < this.MAX_RECONNECT_ATTEMPTS) {
-        this.connectWebSocketWithRetry();
-      } else {
-        console.log('⚠️ WebSocket price feed disabled after max attempts, using HTTP fallback');
-        this.isConnected = false;
-        this.startHttpPriceFetching();
-      }
+      
+      // For Replit environment, use HTTP-only mode for better reliability
+      console.log('⚡ Using HTTP-only mode for price updates (more reliable in cloud environments)');
+      this.isConnected = false;
+      this.startHttpPriceFetching();
 
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      console.error('Failed to create price feed connection:', error);
       this.startHttpPriceFetching();
     }
   }
