@@ -18,12 +18,15 @@ import {
   Activity, MessageCircle, PieChart, Clock, ChevronLeft, ChevronRight,
   MoreHorizontal, Sun, Moon, Ban, RotateCcw, Eye, Download,
   AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard, Save, UserPlus,
-  FileText, Banknote, Award, ShieldCheck
+  FileText, Banknote, Award, ShieldCheck, Mail, XCircle, CheckCircleIcon, XCircleIcon
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
 import AdminSystemHealthMonitor from '@/components/AdminSystemHealthMonitor';
 import AdminUserActivityTracker from '@/components/AdminUserActivityTracker';
 import AdminQuickActions from '@/components/AdminQuickActions';
+import AdminRiskManagement from '@/components/AdminRiskManagement'; // Assuming this component exists
+import AdminComplianceDashboard from '@/components/AdminComplianceDashboard'; // Assuming this component exists
+import AdminServerMonitoring from '@/components/AdminServerMonitoring'; // Assuming this component exists
 
 interface User {
   id: string;
@@ -305,6 +308,11 @@ export default function AdminDashboard() {
     { id: 'quick-actions', label: 'Quick Actions', icon: CheckSquare },
     { id: 'security', label: 'Security Center', icon: Shield },
     { id: 'system', label: 'System Settings', icon: Settings },
+    { id: 'api-management', label: 'API Management', icon: CreditCard },
+    { id: 'risk-management', label: 'Risk Management', icon: Shield },
+    { id: 'compliance', label: 'Compliance', icon: Award },
+    { id: 'server-monitoring', label: 'Server Monitoring', icon: Monitor },
+    { id: 'audit-logs', label: 'Audit Logs', icon: FileText },
   ];
 
   const usersList = (usersData as any)?.users || [];
@@ -946,7 +954,7 @@ export default function AdminDashboard() {
                                         Reverse Transaction
                                       </Button>
                                     </DialogFooter>
-                                  </DialogContent>
+                                  </Dialog>
                                 </Dialog>
                               </td>
                             </tr>
@@ -1049,59 +1057,101 @@ export default function AdminDashboard() {
             {/* Security Center Section */}
             {activeSection === 'security' && (
               <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Security Center</CardTitle>
-                    <CardDescription>Monitor security events and manage access</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Login Activity</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span>Successful Logins (24h)</span>
-                              <Badge className="bg-green-100 text-green-800">1,256</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Failed Logins (24h)</span>
-                              <Badge className="bg-red-100 text-red-800">15</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Suspicious Activity</span>
-                              <Badge className="bg-yellow-100 text-yellow-800">3</Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-red-100">Security Alerts</p>
+                          <p className="text-3xl font-bold">3</p>
+                        </div>
+                        <AlertTriangle className="h-12 w-12 text-red-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Account Actions</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span>Password Resets</span>
-                              <Badge variant="outline">5</Badge>
+                  <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-orange-100">Failed Logins</p>
+                          <p className="text-3xl font-bold">47</p>
+                        </div>
+                        <Lock className="h-12 w-12 text-orange-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-green-100">Active Sessions</p>
+                          <p className="text-3xl font-bold">1,247</p>
+                        </div>
+                        <UserCheck className="h-12 w-12 text-green-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recent Security Events</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {[
+                          { event: 'Multiple failed login attempts', user: 'user@example.com', time: '2 minutes ago', severity: 'high' },
+                          { event: 'Unusual login location', user: 'jane@example.com', time: '15 minutes ago', severity: 'medium' },
+                          { event: 'Password changed', user: 'admin@example.com', time: '1 hour ago', severity: 'low' },
+                          { event: 'Large withdrawal attempted', user: 'trader@example.com', time: '2 hours ago', severity: 'high' },
+                        ].map((item, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-3 h-3 rounded-full ${
+                                item.severity === 'high' ? 'bg-red-500' :
+                                item.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                              }`}></div>
+                              <div>
+                                <p className="font-medium">{item.event}</p>
+                                <p className="text-sm text-slate-500">{item.user}</p>
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span>Email Verifications</span>
-                              <Badge variant="outline">120</Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Account Lockouts</span>
-                              <Badge className="bg-red-100 text-red-800">2</Badge>
-                            </div>
+                            <span className="text-xs text-slate-500">{item.time}</span>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Security Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <Button className="w-full justify-start" variant="outline">
+                          <Ban className="h-4 w-4 mr-2" />
+                          Suspend Suspicious Account
+                        </Button>
+                        <Button className="w-full justify-start" variant="outline">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Enable 2FA for All Users
+                        </Button>
+                        <Button className="w-full justify-start" variant="outline">
+                          <Lock className="h-4 w-4 mr-2" />
+                          Force Password Reset
+                        </Button>
+                        <Button className="w-full justify-start" variant="outline">
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Review KYC Documents
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             )}
 
@@ -1230,13 +1280,325 @@ export default function AdminDashboard() {
             )}
 
             {/* System Health Section */}
-            {activeSection === 'system-health' && <AdminSystemHealthMonitor />}
+            {activeSection === 'system-health' && (
+              <AdminSystemHealthMonitor />
+            )}
+
+            {/* Server Monitoring Section */}
+            {activeSection === 'server-monitoring' && (
+              <AdminServerMonitoring />
+            )}
 
             {/* User Activity Section */}
             {activeSection === 'user-activity' && <AdminUserActivityTracker />}
 
             {/* Quick Actions Section */}
             {activeSection === 'quick-actions' && <AdminQuickActions />}
+
+            {/* API Management Section */}
+            {activeSection === 'api-management' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Active API Keys</p>
+                          <p className="text-3xl font-bold">247</p>
+                        </div>
+                        <CreditCard className="h-8 w-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">API Calls Today</p>
+                          <p className="text-3xl font-bold">1.2M</p>
+                        </div>
+                        <Activity className="h-8 w-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Rate Limited</p>
+                          <p className="text-3xl font-bold">12</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-yellow-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Error Rate</p>
+                          <p className="text-3xl font-bold">0.2%</p>
+                        </div>
+                        <XCircle className="h-8 w-8 text-red-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top API Endpoints</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {[
+                          { endpoint: '/api/crypto/market-data', calls: '245K', avgTime: '120ms' },
+                          { endpoint: '/api/portfolio', calls: '189K', avgTime: '340ms' },
+                          { endpoint: '/api/trading/order', calls: '156K', avgTime: '450ms' },
+                          { endpoint: '/api/user/auth', calls: '98K', avgTime: '230ms' },
+                          { endpoint: '/api/admin/users', calls: '12K', avgTime: '180ms' }
+                        ].map((api, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                            <div>
+                              <p className="font-medium text-sm">{api.endpoint}</p>
+                              <p className="text-xs text-slate-500">{api.calls} calls today</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">{api.avgTime}</p>
+                              <p className="text-xs text-slate-500">avg response</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>API Key Management</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <Button className="w-full justify-start" variant="outline">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Generate New API Key
+                        </Button>
+                        <Button className="w-full justify-start" variant="outline">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View API Documentation
+                        </Button>
+                        <Button className="w-full justify-start" variant="outline">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Configure Rate Limits
+                        </Button>
+                        <Button className="w-full justify-start" variant="outline">
+                          <Ban className="h-4 w-4 mr-2" />
+                          Revoke Suspended Keys
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {/* Notification Center Section */}
+            {activeSection === 'notifications' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Pending Notifications</p>
+                          <p className="text-3xl font-bold">47</p>
+                        </div>
+                        <Bell className="h-8 w-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Sent Today</p>
+                          <p className="text-3xl font-bold">1,247</p>
+                        </div>
+                        <Mail className="h-8 w-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Failed Delivery</p>
+                          <p className="text-3xl font-bold">12</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-red-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Broadcast Notification</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="notification-type">Notification Type</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select notification type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="system">System Maintenance</SelectItem>
+                            <SelectItem value="security">Security Alert</SelectItem>
+                            <SelectItem value="promotion">Promotion</SelectItem>
+                            <SelectItem value="update">Platform Update</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="notification-title">Title</Label>
+                        <Input placeholder="Enter notification title..." />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="notification-message">Message</Label>
+                        <Textarea placeholder="Enter notification message..." rows={4} />
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <Button className="flex-1">
+                          <Bell className="h-4 w-4 mr-2" />
+                          Send to All Users
+                        </Button>
+                        <Button variant="outline" className="flex-1">
+                          <Users className="h-4 w-4 mr-2" />
+                          Send to Specific Users
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Audit Logs Section */}
+            {activeSection === 'audit-logs' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Audit Logs</h2>
+                  <div className="flex space-x-3">
+                    <Select>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by action" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Actions</SelectItem>
+                        <SelectItem value="login">User Login</SelectItem>
+                        <SelectItem value="trade">Trading</SelectItem>
+                        <SelectItem value="admin">Admin Actions</SelectItem>
+                        <SelectItem value="security">Security Events</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Logs
+                    </Button>
+                  </div>
+                </div>
+
+                <Card>
+                  <CardContent className="p-0">
+                    <div className="space-y-1">
+                      {[
+                        { 
+                          timestamp: '2024-01-15 14:30:25', 
+                          user: 'admin@bitpanda.com', 
+                          action: 'User balance adjusted', 
+                          details: 'Added $1,000 to user john@example.com',
+                          severity: 'medium',
+                          ip: '192.168.1.100'
+                        },
+                        { 
+                          timestamp: '2024-01-15 14:28:12', 
+                          user: 'jane@example.com', 
+                          action: 'Large withdrawal initiated', 
+                          details: 'Withdrawal of $50,000 to bank account',
+                          severity: 'high',
+                          ip: '203.0.113.45'
+                        },
+                        { 
+                          timestamp: '2024-01-15 14:25:08', 
+                          user: 'trader@example.com', 
+                          action: 'Multiple failed login attempts', 
+                          details: '5 consecutive failed login attempts',
+                          severity: 'high',
+                          ip: '198.51.100.22'
+                        },
+                        { 
+                          timestamp: '2024-01-15 14:20:33', 
+                          user: 'admin@bitpanda.com', 
+                          action: 'KYC document approved', 
+                          details: 'Approved KYC for user mike@example.com',
+                          severity: 'low',
+                          ip: '192.168.1.100'
+                        },
+                        { 
+                          timestamp: '2024-01-15 14:15:17', 
+                          user: 'system', 
+                          action: 'Automated price update', 
+                          details: 'Updated market prices for 150 cryptocurrencies',
+                          severity: 'low',
+                          ip: 'internal'
+                        }
+                      ].map((log, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800 border-b">
+                          <div className="flex items-center space-x-4">
+                            <div className={`w-3 h-3 rounded-full ${
+                              log.severity === 'high' ? 'bg-red-500' :
+                              log.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                            }`}></div>
+                            <div>
+                              <p className="font-medium">{log.action}</p>
+                              <p className="text-sm text-slate-500">{log.details}</p>
+                              <p className="text-xs text-slate-400">{log.user} • {log.ip}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium">{log.timestamp}</p>
+                            <Badge variant={log.severity === 'high' ? 'destructive' : log.severity === 'medium' ? 'secondary' : 'default'}>
+                              {log.severity}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Risk Management Section */}
+            {activeSection === 'risk-management' && (
+              <AdminRiskManagement />
+            )}
+
+            {/* Compliance Dashboard Section */}
+            {activeSection === 'compliance' && (
+              <AdminComplianceDashboard />
+            )}
 
             {/* KYC Section */}
             {activeSection === 'kyc' && (
@@ -1248,7 +1610,7 @@ export default function AdminDashboard() {
                     Open Full KYC Management
                   </Button>
                 </div>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle>KYC Overview</CardTitle>
@@ -1279,7 +1641,7 @@ export default function AdminDashboard() {
                         <div className="text-sm text-gray-600">Rejected</div>
                       </div>
                     </div>
-                    
+
                     <div className="text-center py-8">
                       <ShieldCheck className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                       <p className="text-slate-500 mb-4">No KYC verifications pending review</p>
@@ -1293,7 +1655,7 @@ export default function AdminDashboard() {
             )}
 
             {/* Default/Placeholder Section */}
-            {!['dashboard', 'users', 'transactions', 'analytics', 'system-health', 'user-activity', 'quick-actions', 'security', 'system', 'kyc'].includes(activeSection) && (
+            {!['dashboard', 'users', 'transactions', 'analytics', 'system-health', 'user-activity', 'quick-actions', 'security', 'system', 'api-management', 'risk-management', 'compliance', 'server-monitoring', 'audit-logs', 'kyc'].includes(activeSection) && (
               <Card>
                 <CardHeader>
                   <CardTitle>{sidebarItems.find(item => item.id === activeSection)?.label || 'Section'}</CardTitle>
