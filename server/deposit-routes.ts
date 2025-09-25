@@ -6,15 +6,9 @@ import multer from 'multer';
 import { nanoid } from 'nanoid';
 import { insertDepositSchema, insertSharedWalletAddressSchema } from '@shared/schema';
 
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    role: string;
-    isActive: boolean;
-  };
-}
+type AuthenticatedRequest = Request & { 
+  user: NonNullable<Express.User>
+};
 
 const router = Router();
 
