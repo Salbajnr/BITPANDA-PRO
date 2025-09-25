@@ -42,38 +42,52 @@ export const queryClient = new QueryClient({
   },
 });
 
-export const apiRequest = async (method: string, url: string, data?: any) => {
-  const options: RequestInit = {
+export async function apiRequest(
+  method: string,
+  url: string,
+  data?: any
+): Promise<any> {
+  const config: RequestInit = {
     method,
-    credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
+    credentials: "include",
   };
 
-  if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-    options.body = JSON.stringify(data);
+  if (data) {
+    config.body = JSON.stringify(data);
   }
 
-  const response = await fetch(url, options);
+  try {
+    const response = await fetch(url, config);
 
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('401: Unauthorized');
+    if (!response.ok) {
+      const errorData = await response.text();
+      let errorMessage;
+      try {
+        const parsed = JSON.parse(errorData);
+        errorMessage = parsed.message || parsed.error || "Request failed";
+      } catch {
+        errorMessage = errorData || "Request failed";
+      }
+      throw new Error(errorMessage);
     }
-    const errorText = await response.text();
-    let errorMessage;
+
+    const responseData = await response.text();
     try {
-      const errorData = JSON.parse(errorText);
-      errorMessage = errorData.message || `HTTP error! status: ${response.status}`;
+      return JSON.parse(responseData);
     } catch {
-      errorMessage = `HTTP error! status: ${response.status}`;
+      return responseData;
     }
-    throw new Error(errorMessage);
+  } catch (error) {
+    // Handle network errors or other fetch failures
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Network connection failed. Please check your internet connection.');
+    }
+    throw error;
   }
-
-  return response.json();
-};
+}
 
 // Export as default for backwards compatibility
 export default queryClient;

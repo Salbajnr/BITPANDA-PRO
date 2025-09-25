@@ -3,7 +3,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export function useAuth() {
   // Try to authenticate as admin first, then as user
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ["auth-user"],
     queryFn: async () => {
       // Try admin authentication first
@@ -21,12 +21,17 @@ export function useAuth() {
         }
       }
     },
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
 
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
+    error,
   };
 }

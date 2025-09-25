@@ -64,16 +64,33 @@ export default function Auth() {
   // Handle redirect in useEffect to avoid setState during render
   useEffect(() => {
     if (!authLoading && user) {
-      const redirectPath = user.role === 'admin' ? '/admin' : '/dashboard';
-      navigate(redirectPath);
+      // Add a small delay to prevent redirect issues
+      const timer = setTimeout(() => {
+        const redirectPath = user.role === 'admin' ? '/admin' : '/dashboard';
+        navigate(redirectPath);
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [user, authLoading, navigate]);
 
-  // Show loading while checking auth or if user exists (redirect will happen)
-  if (authLoading || user) {
+  // Show loading while checking auth
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // If user is already authenticated, show a brief loading before redirect
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Redirecting to dashboard...</p>
+        </div>
       </div>
     );
   }
