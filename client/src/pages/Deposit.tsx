@@ -78,29 +78,30 @@ export default function Deposit() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/deposits/generate-address', {
-        method: 'POST',
+      const response = await fetch('/api/deposits/wallet-addresses', {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({
-          paymentMethod: selectedMethod,
-          cryptocurrency: selectedCurrency,
-        }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        setDepositAddress(data.address);
-        setStep('get-address');
+        // Find the address for the selected cryptocurrency
+        const walletAddress = data.find((addr: any) => addr.symbol === selectedCurrency);
+        if (walletAddress) {
+          setDepositAddress(walletAddress.address);
+          setStep('get-address');
+        } else {
+          throw new Error(`No wallet address found for ${selectedCurrency}`);
+        }
       } else {
         throw new Error(data.error);
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to generate deposit address",
+        description: "Failed to get deposit address",
         variant: "destructive",
       });
     } finally {
@@ -144,18 +145,18 @@ export default function Deposit() {
     setLoading(true);
     try {
       const formData = new FormData();
+      formData.append('amount', depositAmount);
+      formData.append('currency', selectedCurrency);
       formData.append('paymentMethod', selectedMethod);
-      formData.append('cryptocurrency', selectedCurrency);
-      formData.append('depositAmount', depositAmount);
-      formData.append('depositAddress', depositAddress);
 
       if (proofType === 'file' && proofFile) {
-        formData.append('proofFile', proofFile);
+        formData.append('proofImage', proofFile);
       } else if (proofType === 'hash' && transactionHash) {
-        formData.append('transactionHash', transactionHash);
+        // For transaction hashes, we'll store it as admin notes for now
+        formData.append('adminNotes', `Transaction Hash: ${transactionHash}`);
       }
 
-      const response = await fetch('/api/deposits/create', {
+      const response = await fetch('/api/deposits', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -178,7 +179,7 @@ export default function Deposit() {
         setProofFile(null);
         setTransactionHash('');
       } else {
-        throw new Error(data.error);
+        throw new Error(data.error || data.message);
       }
     } catch (error) {
       toast({

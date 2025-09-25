@@ -49,7 +49,7 @@ export default function AdminDepositManagement() {
 
   const fetchDeposits = async () => {
     try {
-      const response = await fetch('/api/deposits/admin/all', {
+      const response = await fetch('/api/deposits/admin', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
@@ -73,13 +73,12 @@ export default function AdminDepositManagement() {
   const handleApprove = async (depositId: string) => {
     setProcessingId(depositId);
     try {
-      const response = await fetch(`/api/deposits/admin/${depositId}/review`, {
+      const response = await fetch(`/api/deposits/${depositId}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({ action: 'approve' }),
       });
 
       if (response.ok) {
@@ -114,14 +113,13 @@ export default function AdminDepositManagement() {
 
     setProcessingId(selectedDeposit.deposit.id);
     try {
-      const response = await fetch(`/api/deposits/admin/${selectedDeposit.deposit.id}/review`, {
+      const response = await fetch(`/api/deposits/${selectedDeposit.deposit.id}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ 
-          action: 'reject',
           rejectionReason: rejectionReason.trim(),
         }),
       });
