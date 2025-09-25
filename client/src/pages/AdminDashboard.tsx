@@ -18,7 +18,7 @@ import {
   Activity, MessageCircle, PieChart, Clock, ChevronLeft, ChevronRight,
   MoreHorizontal, Sun, Moon, Ban, RotateCcw, Eye, Download,
   AlertTriangle, UserCheck, Lock, Unlock, RefreshCw, CreditCard, Save, UserPlus,
-  FileText, Banknote, Award, ShieldCheck, Mail, XCircle, CheckCircleIcon, XCircleIcon
+  FileText, Banknote, Award, ShieldCheck, Mail, XCircle, CheckCircleIcon, XCircleIcon, Monitor
 } from "lucide-react";
 import logoPath from '@/assets/logo.jpeg';
 import AdminSystemHealthMonitor from '@/components/AdminSystemHealthMonitor';
@@ -954,7 +954,7 @@ export default function AdminDashboard() {
                                         Reverse Transaction
                                       </Button>
                                     </DialogFooter>
-                                  </Dialog>
+                                  </DialogContent>
                                 </Dialog>
                               </td>
                             </tr>
