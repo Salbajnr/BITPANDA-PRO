@@ -69,7 +69,7 @@ export default function Auth() {
         const redirectPath = user.role === 'admin' ? '/admin' : '/dashboard';
         navigate(redirectPath);
       }, 100);
-      
+
       return () => clearTimeout(timer);
     }
   }, [user, authLoading, navigate]);
