@@ -1,31 +1,26 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth } from './simple-auth';
-
-// Extend Express Request type
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        username: string;
-        role: string;
-      };
-    }
-  }
-}
-
-type AuthenticatedRequest = Request & { user: NonNullable<Request['user']> };
 import { storage } from './storage';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
+import { insertDepositSchema, insertSharedWalletAddressSchema } from '@shared/schema';
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    role: string;
+    isActive: boolean;
+  };
+}
 
 const router = Router();
 
-// Configure multer for file uploads
+// Configure multer for proof of payment uploads
 const upload = multer({
-  dest: 'uploads/',
+  dest: 'uploads/proofs/',
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
@@ -34,46 +29,99 @@ const upload = multer({
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'), false);
+      cb(null, false);
     }
   }
 });
 
+// Validation schemas
 const createDepositSchema = z.object({
-  amount: z.string(),
+  amount: z.string().transform((val) => parseFloat(val)),
   currency: z.string(),
-  paymentMethod: z.string(),
-  network: z.string().optional(),
+  symbol: z.string(), // Crypto symbol (BTC, ETH, etc.)
+  paymentMethod: z.enum(['binance', 'bybit', 'crypto_com', 'bank_transfer', 'other']),
 });
 
-// Create deposit request
-router.post('/', requireAuth, upload.single('screenshot'), async (req: AuthenticatedRequest, res) => {
+const approveDepositSchema = z.object({
+  approved: z.boolean(),
+  adminNotes: z.string().optional(),
+  rejectionReason: z.string().optional(),
+});
+
+const balanceAdjustmentSchema = z.object({
+  userId: z.string(),
+  adjustmentType: z.enum(['add', 'remove', 'set']),
+  amount: z.string().transform((val) => parseFloat(val)),
+  currency: z.string().default('USD'),
+  reason: z.string(),
+});
+
+// GET /api/deposits/wallet-addresses - Get shared wallet addresses for all cryptocurrencies
+router.get('/wallet-addresses', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const addresses = await storage.getSharedWalletAddresses();
+    res.json(addresses);
+  } catch (error) {
+    console.error("Get wallet addresses error:", error);
+    res.status(500).json({ message: "Failed to fetch wallet addresses" });
+  }
+});
+
+// POST /api/deposits - Create a new deposit request
+router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user.id;
     const depositData = createDepositSchema.parse(req.body);
 
     const deposit = await storage.createDeposit({
       userId,
-      amount: depositData.amount,
+      amount: depositData.amount.toString(),
       currency: depositData.currency,
+      assetType: 'crypto',
       paymentMethod: depositData.paymentMethod,
-      network: depositData.network || null,
-      screenshot: req.file?.filename || null,
       status: 'pending',
-      transactionId: nanoid(16),
     });
 
     res.json(deposit);
   } catch (error) {
     console.error("Create deposit error:", error);
-    res.status(500).json({ message: "Failed to create deposit" });
+    res.status(500).json({ message: "Failed to create deposit request" });
   }
 });
 
-// Get user deposits
-router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
+// POST /api/deposits/:id/proof - Upload proof of payment
+router.post('/:id/proof', requireAuth, upload.single('proof'), async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Verify this deposit belongs to the user
+    const deposit = await storage.getDepositById(id);
+    if (!deposit || deposit.userId !== userId) {
+      return res.status(404).json({ message: "Deposit not found" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Proof of payment image is required" });
+    }
+
+    // Update deposit with proof image URL
+    const updatedDeposit = await storage.updateDeposit(id, {
+      proofImageUrl: req.file.filename,
+      status: 'pending', // Ready for admin review
+    });
+
+    res.json(updatedDeposit);
+  } catch (error) {
+    console.error("Upload proof error:", error);
+    res.status(500).json({ message: "Failed to upload proof of payment" });
+  }
+});
+
+// GET /api/deposits - Get user's deposit history
+router.get('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user.id;
     const deposits = await storage.getUserDeposits(userId);
     res.json(deposits);
   } catch (error) {
@@ -82,11 +130,11 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get all deposits (admin only)
-router.get('/all', requireAuth, async (req: AuthenticatedRequest, res) => {
+// ADMIN ROUTES
+// GET /api/deposits/admin/all - Get all deposits for admin review
+router.get('/admin/all', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = await storage.getUser(req.user!.id);
-    if (!user || user.role !== 'admin') {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({ message: "Admin access required" });
     }
 
@@ -98,35 +146,128 @@ router.get('/all', requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Update deposit status (admin only)
-router.patch('/:id/status', requireAuth, async (req: AuthenticatedRequest, res) => {
+// POST /api/deposits/:id/approve - Admin approve/reject deposit
+router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = await storage.getUser(req.user!.id);
-    if (!user || user.role !== 'admin') {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({ message: "Admin access required" });
     }
 
     const { id } = req.params;
-    const { status, rejectionReason } = req.body;
+    const approvalData = approveDepositSchema.parse(req.body);
 
-    const deposit = await storage.updateDepositStatus(id, status, rejectionReason);
-
-    if (status === 'completed') {
-      // Update user portfolio
-      const portfolio = await storage.getPortfolio(deposit.userId);
-      if (portfolio) {
-        const newBalance = parseFloat(portfolio.availableCash) + parseFloat(deposit.amount);
-        await storage.updatePortfolio(portfolio.id, { 
-          availableCash: newBalance.toString(),
-          totalValue: newBalance.toString()
-        });
-      }
+    const deposit = await storage.getDepositById(id);
+    if (!deposit) {
+      return res.status(404).json({ message: "Deposit not found" });
     }
 
-    res.json(deposit);
+    // Update deposit status
+    const updatedDeposit = await storage.updateDeposit(id, {
+      status: approvalData.approved ? 'approved' : 'rejected',
+      adminNotes: approvalData.adminNotes,
+      rejectionReason: approvalData.rejectionReason,
+      approvedById: req.user.id,
+      approvedAt: new Date(),
+    });
+
+    // If approved, update user's balance (we'll implement manual balance adjustment)
+    if (approvalData.approved) {
+      // Note: Admin will manually adjust balance after approval
+      console.log(`Deposit ${id} approved. Admin should manually adjust user balance.`);
+    }
+
+    res.json(updatedDeposit);
   } catch (error) {
-    console.error("Update deposit status error:", error);
-    res.status(500).json({ message: "Failed to update deposit status" });
+    console.error("Approve deposit error:", error);
+    res.status(500).json({ message: "Failed to approve/reject deposit" });
+  }
+});
+
+// POST /api/deposits/admin/adjust-balance - Admin manually adjust user balance
+router.post('/admin/adjust-balance', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const adjustmentData = balanceAdjustmentSchema.parse(req.body);
+
+    // Create balance adjustment record
+    const adjustment = await storage.createBalanceAdjustment({
+      adminId: req.user.id,
+      targetUserId: adjustmentData.userId,
+      adjustmentType: adjustmentData.adjustmentType,
+      amount: adjustmentData.amount.toString(),
+      currency: adjustmentData.currency,
+      reason: adjustmentData.reason,
+    });
+
+    // Update user's portfolio balance
+    const portfolio = await storage.getPortfolio(adjustmentData.userId);
+    if (portfolio) {
+      let newBalance: number;
+      const currentBalance = parseFloat(portfolio.availableCash);
+      
+      switch (adjustmentData.adjustmentType) {
+        case 'add':
+          newBalance = currentBalance + adjustmentData.amount;
+          break;
+        case 'remove':
+          newBalance = currentBalance - adjustmentData.amount;
+          break;
+        case 'set':
+          newBalance = adjustmentData.amount;
+          break;
+        default:
+          throw new Error('Invalid adjustment type');
+      }
+
+      await storage.updatePortfolio(portfolio.id, {
+        availableCash: newBalance.toString(),
+        totalValue: newBalance.toString(),
+      });
+    }
+
+    res.json({
+      adjustment,
+      message: `Balance ${adjustmentData.adjustmentType === 'add' ? 'increased' : adjustmentData.adjustmentType === 'remove' ? 'decreased' : 'set'} successfully`,
+    });
+  } catch (error) {
+    console.error("Balance adjustment error:", error);
+    res.status(500).json({ message: "Failed to adjust balance" });
+  }
+});
+
+// GET /api/deposits/admin/balance-adjustments - Get balance adjustment history
+router.get('/admin/balance-adjustments', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const adjustments = await storage.getBalanceAdjustments();
+    res.json(adjustments);
+  } catch (error) {
+    console.error("Get balance adjustments error:", error);
+    res.status(500).json({ message: "Failed to fetch balance adjustments" });
+  }
+});
+
+// ADMIN WALLET MANAGEMENT
+// POST /api/deposits/admin/wallet-addresses - Add/update shared wallet address
+router.post('/admin/wallet-addresses', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const walletData = insertSharedWalletAddressSchema.parse(req.body);
+    const address = await storage.createOrUpdateSharedWalletAddress(walletData);
+    
+    res.json(address);
+  } catch (error) {
+    console.error("Create wallet address error:", error);
+    res.status(500).json({ message: "Failed to create wallet address" });
   }
 });
 

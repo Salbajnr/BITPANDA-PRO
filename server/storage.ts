@@ -18,6 +18,7 @@ import {
   liveChatSessions,
   liveChatMessages,
   userPreferences,
+  sharedWalletAddresses,
   type User,
   type Portfolio,
   type Holding,
@@ -52,7 +53,9 @@ import {
   type LiveChatMessage,
   type InsertLiveChatMessage,
   type UserPreferences,
-  type InsertUserPreferences
+  type InsertUserPreferences,
+  type SharedWalletAddress,
+  type InsertSharedWalletAddress
 } from '@shared/schema';
 import { db } from "./db";
 import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray, ne } from "drizzle-orm";
@@ -154,7 +157,13 @@ export interface IStorage {
   createDeposit(deposit: any): Promise<any>;
   getUserDeposits(userId: string, limit?: number): Promise<any[]>;
   getAllDeposits(): Promise<any[]>;
+  getDepositById(id: string): Promise<any>;
+  updateDeposit(id: string, updates: any): Promise<any>;
   updateDepositStatus(id: string, status: string, rejectionReason?: string): Promise<any>;
+
+  // Shared wallet address operations
+  getSharedWalletAddresses(): Promise<SharedWalletAddress[]>;
+  createOrUpdateSharedWalletAddress(address: InsertSharedWalletAddress): Promise<SharedWalletAddress>;
 
   // Withdrawal operations
   createWithdrawal(withdrawalData: any): Promise<any>;
@@ -1983,6 +1992,78 @@ export class DatabaseStorage implements IStorage {
       .where(eq(deposits.id, id))
       .returning();
     return result;
+  }
+
+  async getDepositById(id: string) {
+    const db = this.ensureDb();
+    const [result] = await db
+      .select()
+      .from(deposits)
+      .where(eq(deposits.id, id));
+    return result;
+  }
+
+  async updateDeposit(id: string, updates: any) {
+    const db = this.ensureDb();
+    const [result] = await db
+      .update(deposits)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(deposits.id, id))
+      .returning();
+    return result;
+  }
+
+  // Shared wallet address methods
+  async getSharedWalletAddresses(): Promise<SharedWalletAddress[]> {
+    try {
+      const db = this.ensureDb();
+      return await db
+        .select()
+        .from(sharedWalletAddresses)
+        .where(eq(sharedWalletAddresses.isActive, true))
+        .orderBy(sharedWalletAddresses.symbol);
+    } catch (error) {
+      console.error("Error fetching shared wallet addresses:", error);
+      return [];
+    }
+  }
+
+  async createOrUpdateSharedWalletAddress(addressData: InsertSharedWalletAddress): Promise<SharedWalletAddress> {
+    try {
+      const db = this.ensureDb();
+      
+      // Check if address for this symbol already exists
+      const [existing] = await db
+        .select()
+        .from(sharedWalletAddresses)
+        .where(eq(sharedWalletAddresses.symbol, addressData.symbol));
+
+      if (existing) {
+        // Update existing address
+        const [updated] = await db
+          .update(sharedWalletAddresses)
+          .set({
+            ...addressData,
+            updatedAt: new Date()
+          })
+          .where(eq(sharedWalletAddresses.symbol, addressData.symbol))
+          .returning();
+        return updated;
+      } else {
+        // Create new address
+        const [created] = await db
+          .insert(sharedWalletAddresses)
+          .values(addressData)
+          .returning();
+        return created;
+      }
+    } catch (error) {
+      console.error("Error creating/updating shared wallet address:", error);
+      throw error;
+    }
   }
 
   // Withdrawal methods

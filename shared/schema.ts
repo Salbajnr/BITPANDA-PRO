@@ -157,6 +157,18 @@ export const balanceAdjustments = pgTable('balance_adjustments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Shared wallet addresses - all users will use same addresses
+export const sharedWalletAddresses = pgTable('shared_wallet_addresses', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  symbol: text('symbol').notNull().unique(), // BTC, ETH, USDT, etc.
+  name: text('name').notNull(), // Bitcoin, Ethereum, Tether, etc.
+  address: text('address').notNull(),
+  network: text('network').notNull(), // mainnet, polygon, bsc, etc.
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // News articles
 export const newsArticles = pgTable("news_articles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -520,6 +532,12 @@ export const insertWithdrawalLimitSchema = createInsertSchema(withdrawalLimits).
   updatedAt: true,
 });
 
+export const insertSharedWalletAddressSchema = createInsertSchema(sharedWalletAddresses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 // User types
 export type UpsertUser = typeof users.$inferInsert;
@@ -554,6 +572,10 @@ export type InsertBalanceAdjustment = z.infer<typeof insertBalanceAdjustmentSche
 
 // Notification types
 export type Notification = typeof notifications.$inferSelect;
+
+// Shared wallet address types
+export type SharedWalletAddress = typeof sharedWalletAddresses.$inferSelect;
+export type InsertSharedWalletAddress = z.infer<typeof insertSharedWalletAddressSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Price alert types
