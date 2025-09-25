@@ -53,7 +53,31 @@ const balanceAdjustmentSchema = z.object({
 // GET /api/deposits/wallet-addresses - Get shared wallet addresses for all cryptocurrencies
 router.get('/wallet-addresses', requireAuth, async (req: Request, res: Response) => {
   try {
-    const addresses = await storage.getSharedWalletAddresses();
+    let addresses = await storage.getSharedWalletAddresses();
+    
+    // If no addresses exist, create default shared addresses
+    if (addresses.length === 0) {
+      const defaultAddresses = [
+        { symbol: 'BTC', name: 'Bitcoin', address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', network: 'mainnet' },
+        { symbol: 'ETH', name: 'Ethereum', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'mainnet' },
+        { symbol: 'USDT', name: 'Tether', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'ethereum' },
+        { symbol: 'BNB', name: 'Binance Coin', address: 'bnb1jw7qkv5r8x3v4x8wqnrzr2t8s5k6g3h7d2f1a0', network: 'bsc' },
+        { symbol: 'ADA', name: 'Cardano', address: 'addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj0vs2qd4a6gtajun6cjskw3', network: 'cardano' },
+        { symbol: 'SOL', name: 'Solana', address: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM', network: 'solana' },
+        { symbol: 'XRP', name: 'Ripple', address: 'rDNvpSjsGdPaAHWMKhv8iPtF3mBYYR2PpK', network: 'xrpl' },
+        { symbol: 'DOT', name: 'Polkadot', address: '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5', network: 'polkadot' },
+        { symbol: 'MATIC', name: 'Polygon', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'polygon' },
+        { symbol: 'LINK', name: 'Chainlink', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'ethereum' }
+      ];
+
+      // Create shared addresses
+      for (const addr of defaultAddresses) {
+        await storage.createOrUpdateSharedWalletAddress(addr);
+      }
+      
+      addresses = await storage.getSharedWalletAddresses();
+    }
+    
     res.json(addresses);
   } catch (error) {
     console.error("Get wallet addresses error:", error);
@@ -61,22 +85,36 @@ router.get('/wallet-addresses', requireAuth, async (req: Request, res: Response)
   }
 });
 
-// POST /api/deposits - Create a new deposit request
-router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+// POST /api/deposits - Create a new deposit request with proof
+router.post('/', requireAuth, upload.single('proof'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user.id;
-    const depositData = createDepositSchema.parse(req.body);
+    const { amount, currency, symbol, paymentMethod } = req.body;
+
+    if (!amount || !currency || !symbol || !paymentMethod) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    let proofImageUrl = null;
+    if (req.file) {
+      proofImageUrl = `/uploads/proofs/${req.file.filename}`;
+    }
 
     const deposit = await storage.createDeposit({
       userId,
-      amount: depositData.amount.toString(),
-      currency: depositData.currency,
+      amount: parseFloat(amount).toString(),
+      currency,
       assetType: 'crypto',
-      paymentMethod: depositData.paymentMethod,
+      paymentMethod,
       status: 'pending',
+      proofImageUrl,
     });
 
-    res.json(deposit);
+    res.json({ 
+      success: true, 
+      deposit,
+      message: "Deposit request submitted successfully. Please wait for admin approval."
+    });
   } catch (error) {
     console.error("Create deposit error:", error);
     res.status(500).json({ message: "Failed to create deposit request" });
@@ -140,7 +178,7 @@ router.get('/admin/all', requireAuth, async (req: AuthenticatedRequest, res: Res
   }
 });
 
-// POST /api/deposits/:id/approve - Admin approve/reject deposit
+// POST /api/deposits/:id/approve - Admin approve/reject deposit with automatic balance update
 router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (req.user.role !== 'admin') {
@@ -155,6 +193,10 @@ router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: 
       return res.status(404).json({ message: "Deposit not found" });
     }
 
+    if (deposit.status !== 'pending') {
+      return res.status(400).json({ message: "Deposit has already been processed" });
+    }
+
     // Update deposit status
     const updatedDeposit = await storage.updateDeposit(id, {
       status: approvalData.approved ? 'approved' : 'rejected',
@@ -164,13 +206,50 @@ router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: 
       approvedAt: new Date(),
     });
 
-    // If approved, update user's balance (we'll implement manual balance adjustment)
+    // If approved, automatically add funds to user's balance
     if (approvalData.approved) {
-      // Note: Admin will manually adjust balance after approval
-      console.log(`Deposit ${id} approved. Admin should manually adjust user balance.`);
+      const depositAmount = parseFloat(deposit.amount);
+      
+      // Create balance adjustment record
+      await storage.createBalanceAdjustment({
+        adminId: req.user.id,
+        targetUserId: deposit.userId,
+        adjustmentType: 'add',
+        amount: depositAmount.toString(),
+        currency: deposit.currency,
+        reason: `Approved deposit #${deposit.id}`,
+      });
+
+      // Update user's portfolio balance
+      let portfolio = await storage.getPortfolio(deposit.userId);
+      if (!portfolio) {
+        // Create portfolio if it doesn't exist
+        portfolio = await storage.createPortfolio({
+          userId: deposit.userId,
+          totalValue: depositAmount.toString(),
+          availableCash: depositAmount.toString()
+        });
+      } else {
+        // Update existing portfolio
+        const newAvailableCash = parseFloat(portfolio.availableCash) + depositAmount;
+        const newTotalValue = parseFloat(portfolio.totalValue) + depositAmount;
+
+        await storage.updatePortfolio(portfolio.id, {
+          availableCash: newAvailableCash.toString(),
+          totalValue: newTotalValue.toString()
+        });
+      }
+
+      console.log(`✅ Deposit ${id} approved and $${depositAmount} added to user ${deposit.userId} balance`);
     }
 
-    res.json(updatedDeposit);
+    res.json({
+      success: true,
+      deposit: updatedDeposit,
+      message: approvalData.approved 
+        ? `Deposit approved and $${deposit.amount} added to user balance` 
+        : "Deposit rejected"
+    });
   } catch (error) {
     console.error("Approve deposit error:", error);
     res.status(500).json({ message: "Failed to approve/reject deposit" });
@@ -262,6 +341,109 @@ router.post('/admin/wallet-addresses', requireAuth, async (req: AuthenticatedReq
   } catch (error) {
     console.error("Create wallet address error:", error);
     res.status(500).json({ message: "Failed to create wallet address" });
+  }
+});
+
+// ADMIN BALANCE MANIPULATION ENDPOINTS
+
+// POST /api/deposits/admin/manipulate-balance - Direct balance manipulation
+router.post('/admin/manipulate-balance', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const adjustmentData = balanceAdjustmentSchema.parse(req.body);
+
+    // Create balance adjustment record
+    const adjustment = await storage.createBalanceAdjustment({
+      adminId: req.user.id,
+      targetUserId: adjustmentData.userId,
+      adjustmentType: adjustmentData.adjustmentType,
+      amount: adjustmentData.amount.toString(),
+      currency: adjustmentData.currency,
+      reason: adjustmentData.reason || 'Admin balance manipulation',
+    });
+
+    // Update user's portfolio balance
+    let portfolio = await storage.getPortfolio(adjustmentData.userId);
+    if (!portfolio) {
+      // Create portfolio if it doesn't exist
+      portfolio = await storage.createPortfolio({
+        userId: adjustmentData.userId,
+        totalValue: adjustmentData.adjustmentType === 'set' ? adjustmentData.amount.toString() : '0',
+        availableCash: adjustmentData.adjustmentType === 'set' ? adjustmentData.amount.toString() : '0'
+      });
+    } else {
+      // Calculate new balance
+      let newBalance: number;
+      const currentBalance = parseFloat(portfolio.availableCash);
+      
+      switch (adjustmentData.adjustmentType) {
+        case 'add':
+          newBalance = currentBalance + parseFloat(adjustmentData.amount);
+          break;
+        case 'remove':
+          newBalance = Math.max(0, currentBalance - parseFloat(adjustmentData.amount));
+          break;
+        case 'set':
+          newBalance = parseFloat(adjustmentData.amount);
+          break;
+        default:
+          throw new Error('Invalid adjustment type');
+      }
+
+      await storage.updatePortfolio(portfolio.id, {
+        availableCash: newBalance.toString(),
+        totalValue: newBalance.toString(),
+      });
+    }
+
+    res.json({
+      success: true,
+      adjustment,
+      message: `Balance ${adjustmentData.adjustmentType}ed successfully`
+    });
+  } catch (error) {
+    console.error('Balance manipulation error:', error);
+    res.status(500).json({ message: 'Failed to manipulate balance' });
+  }
+});
+
+// GET /api/deposits/admin/user-balance/:userId - Get user's current balance
+router.get('/admin/user-balance/:userId', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const { userId } = req.params;
+    const portfolio = await storage.getPortfolio(userId);
+    const user = await storage.getUser(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      },
+      balance: portfolio ? {
+        availableCash: parseFloat(portfolio.availableCash),
+        totalValue: parseFloat(portfolio.totalValue)
+      } : {
+        availableCash: 0,
+        totalValue: 0
+      }
+    });
+  } catch (error) {
+    console.error('Get user balance error:', error);
+    res.status(500).json({ message: 'Failed to fetch user balance' });
   }
 });
 

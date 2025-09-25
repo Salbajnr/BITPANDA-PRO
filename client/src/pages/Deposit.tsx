@@ -96,7 +96,7 @@ export default function Deposit() {
           throw new Error(`No wallet address found for ${selectedCurrency}`);
         }
       } else {
-        throw new Error(data.error);
+        throw new Error(data.message || 'Failed to get wallet address');
       }
     } catch (error) {
       toast({
@@ -147,13 +147,16 @@ export default function Deposit() {
       const formData = new FormData();
       formData.append('amount', depositAmount);
       formData.append('currency', selectedCurrency);
+      formData.append('symbol', selectedCurrency);
       formData.append('paymentMethod', selectedMethod);
 
       if (proofType === 'file' && proofFile) {
-        formData.append('proofImage', proofFile);
+        formData.append('proof', proofFile);
       } else if (proofType === 'hash' && transactionHash) {
-        // For transaction hashes, we'll store it as admin notes for now
-        formData.append('adminNotes', `Transaction Hash: ${transactionHash}`);
+        // Create a text file with the transaction hash
+        const hashBlob = new Blob([`Transaction Hash: ${transactionHash}`], { type: 'text/plain' });
+        const hashFile = new File([hashBlob], 'transaction_hash.txt', { type: 'text/plain' });
+        formData.append('proof', hashFile);
       }
 
       const response = await fetch('/api/deposits', {
@@ -165,10 +168,10 @@ export default function Deposit() {
       });
 
       const data = await response.json();
-      if (response.ok) {
+      if (response.ok && data.success) {
         toast({
           title: "Success!",
-          description: "Deposit request submitted successfully",
+          description: data.message || "Deposit request submitted successfully",
         });
         // Reset form
         setStep('select-method');
@@ -179,7 +182,7 @@ export default function Deposit() {
         setProofFile(null);
         setTransactionHash('');
       } else {
-        throw new Error(data.error || data.message);
+        throw new Error(data.message || 'Failed to submit deposit');
       }
     } catch (error) {
       toast({

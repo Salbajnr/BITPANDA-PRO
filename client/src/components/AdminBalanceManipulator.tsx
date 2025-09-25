@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +21,11 @@ import {
   Users, 
   TrendingUp,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Search,
+  User,
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 
 interface User {
@@ -50,6 +53,20 @@ interface BalanceAdjustment {
   createdAt: string;
 }
 
+interface UserBalance {
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
+  balance: {
+    availableCash: number;
+    totalValue: number;
+  };
+}
+
 export default function AdminBalanceManipulator() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [adjustmentType, setAdjustmentType] = useState<'add' | 'remove' | 'set'>('add');
@@ -60,6 +77,9 @@ export default function AdminBalanceManipulator() {
   const [activeTab, setActiveTab] = useState('manipulate');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const [searchUserId, setLocalSearchUserId] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserBalance | null>(null);
 
   // Fetch users with portfolios
   const { data: users = [], isLoading: usersLoading } = useQuery({
@@ -75,7 +95,113 @@ export default function AdminBalanceManipulator() {
     retry: 1,
   });
 
-  const selectedUser = users.find((u: User) => u.id === selectedUserId);
+  // Search for user balance
+  const searchUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return apiRequest(`/api/deposits/admin/user-balance/${userId}`);
+    },
+    onSuccess: (data) => {
+      setSelectedUser(data);
+      toast({
+        title: "User Found",
+        description: `Found user: ${data.user.username}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "User not found or error fetching user data",
+        variant: "destructive",
+      });
+      setSelectedUser(null);
+    },
+  });
+
+  // Balance manipulation mutation
+  const manipulateBalanceMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/deposits/admin/manipulate-balance', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.message || "Balance updated successfully",
+      });
+      // Refresh user data
+      if (selectedUser) {
+        searchUserMutation.mutate(selectedUser.user.id);
+      }
+      // Reset form
+      setAmount('');
+      setReason('');
+      setCurrency('USD');
+      setAdjustmentType('add');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update balance",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSearchUser = () => {
+    if (!searchUserId.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a user ID or email",
+        variant: "destructive",
+      });
+      return;
+    }
+    searchUserMutation.mutate(searchUserId.trim());
+  };
+
+  const handleManipulateBalance = () => {
+    if (!selectedUser) {
+      toast({
+        title: "Error",
+        description: "Please select a user first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!reason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for this adjustment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    manipulateBalanceMutation.mutate({
+      userId: selectedUser.user.id,
+      adjustmentType,
+      amount,
+      currency,
+      reason: reason.trim(),
+    });
+  };
+
+  const selectedUserForIndividualAdjustment = users.find((u: User) => u.id === selectedUserId);
   const filteredUsers = users.filter((u: User) => 
     u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,6 +229,8 @@ export default function AdminBalanceManipulator() {
       setAmount('');
       setReason('');
       setSelectedUserId('');
+      setCurrency('USD');
+      setAdjustmentType('add');
     },
     onError: (error: any) => {
       toast({
@@ -141,7 +269,7 @@ export default function AdminBalanceManipulator() {
     },
   });
 
-  const handleBalanceAdjustment = () => {
+  const handleIndividualBalanceAdjustment = () => {
     if (!selectedUserId || !amount) {
       toast({
         title: "Invalid Input",
@@ -180,6 +308,7 @@ export default function AdminBalanceManipulator() {
 
   const formatAmount = (amount: string, currency: string) => {
     const num = parseFloat(amount);
+    if (isNaN(num)) return 'N/A';
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -223,7 +352,7 @@ export default function AdminBalanceManipulator() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Individual Balance Manipulation */}
+        {/* Individual Balance Manipulation (using original structure) */}
         <TabsContent value="manipulate" className="space-y-4">
           <Card>
             <CardHeader>
@@ -266,16 +395,16 @@ export default function AdminBalanceManipulator() {
               </div>
 
               {/* Selected User Info */}
-              {selectedUser && (
+              {selectedUserForIndividualAdjustment && (
                 <Alert className="bg-blue-50 border-blue-200">
                   <CheckCircle className="h-4 w-4 text-blue-600" />
                   <AlertDescription>
                     <div className="font-medium text-blue-800">
-                      {selectedUser.firstName} {selectedUser.lastName} (@{selectedUser.username})
+                      {selectedUserForIndividualAdjustment.firstName} {selectedUserForIndividualAdjustment.lastName} (@{selectedUserForIndividualAdjustment.username})
                     </div>
                     <div className="text-sm text-blue-600 mt-1">
-                      Current Balance: {formatAmount(selectedUser.portfolio?.totalValue || '0', 'USD')} |
-                      Available Cash: {formatAmount(selectedUser.portfolio?.availableCash || '0', 'USD')}
+                      Current Balance: {formatAmount(selectedUserForIndividualAdjustment.portfolio?.totalValue || '0', 'USD')} |
+                      Available Cash: {formatAmount(selectedUserForIndividualAdjustment.portfolio?.availableCash || '0', 'USD')}
                     </div>
                   </AlertDescription>
                 </Alert>
@@ -359,7 +488,7 @@ export default function AdminBalanceManipulator() {
 
               {/* Action Button */}
               <Button
-                onClick={handleBalanceAdjustment}
+                onClick={handleIndividualBalanceAdjustment}
                 disabled={balanceAdjustmentMutation.isPending || !selectedUserId || !amount}
                 className={`w-full py-3 font-medium transition-colors ${
                   adjustmentType === 'add'
@@ -411,8 +540,8 @@ export default function AdminBalanceManipulator() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {adjustmentsLoading ? (
-                <div className="text-center py-8">Loading adjustment history...</div>
+              {usersLoading ? ( // Using usersLoading as a proxy for initial data fetch for history
+                <div className="text-center py-8">Loading history...</div>
               ) : adjustments.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   No balance adjustments found
@@ -453,6 +582,201 @@ export default function AdminBalanceManipulator() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Admin Balance Manipulation (newly added component structure) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-600">
+            <Search className="h-5 w-5" />
+            Search User for Direct Manipulation
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex space-x-4">
+            <div className="flex-1">
+              <Label htmlFor="userId">User ID or Email</Label>
+              <Input
+                id="userId"
+                value={searchUserId}
+                onChange={(e) => setLocalSearchUserId(e.target.value)}
+                placeholder="Enter user ID or email address"
+                className="mt-1"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={handleSearchUser}
+                disabled={searchUserMutation.isPending}
+                className="mb-0"
+              >
+                {searchUserMutation.isPending ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Search className="h-4 w-4 mr-2" />
+                )}
+                Search
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Selected User Info for Direct Manipulation */}
+      {selectedUser && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              User Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-sm text-gray-500">User Details</Label>
+                  <div className="mt-1">
+                    <p className="font-semibold">{selectedUser.user.firstName} {selectedUser.user.lastName}</p>
+                    <p className="text-sm text-gray-600">@{selectedUser.user.username}</p>
+                    <p className="text-sm text-gray-600">{selectedUser.user.email}</p>
+                    <p className="text-xs text-gray-500 mt-1">ID: {selectedUser.user.id}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-sm text-gray-500">Current Balance</Label>
+                  <div className="mt-1 space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <span className="text-sm font-medium text-green-800">Available Cash</span>
+                      <span className="text-lg font-bold text-green-600">
+                        ${selectedUser.balance.availableCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium text-blue-800">Total Value</span>
+                      <span className="text-lg font-bold text-blue-600">
+                        ${selectedUser.balance.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Balance Manipulation (Direct) */}
+      {selectedUser && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <Settings className="h-5 w-5" />
+              Balance Manipulation
+              <Badge variant="destructive" className="ml-2">Admin Only</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="adjustmentType">Adjustment Type</Label>
+                  <Select value={adjustmentType} onValueChange={(value: any) => setAdjustmentType(value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="add">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          Add to Balance
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="remove">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-red-500" />
+                          Remove from Balance
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="set">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-blue-500" />
+                          Set Balance
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Enter amount"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="currency">Currency</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="reason">Reason (Required)</Label>
+                <Textarea
+                  id="reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Enter reason for balance adjustment..."
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h4 className="font-semibold text-red-800 mb-2">⚠️ Warning</h4>
+                <p className="text-sm text-red-700">
+                  This action will directly modify the user's balance without their knowledge or consent. 
+                  This should only be used for legitimate administrative purposes. All actions are logged.
+                </p>
+              </div>
+
+              <Button
+                onClick={handleManipulateBalance}
+                disabled={manipulateBalanceMutation.isPending || !amount || !reason.trim()}
+                className="w-full bg-red-600 hover:bg-red-700"
+              >
+                {manipulateBalanceMutation.isPending ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Settings className="h-4 w-4 mr-2" />
+                )}
+                {adjustmentType === 'add' && 'Add to Balance'}
+                {adjustmentType === 'remove' && 'Remove from Balance'}
+                {adjustmentType === 'set' && 'Set Balance'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

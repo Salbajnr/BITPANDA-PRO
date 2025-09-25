@@ -21,6 +21,8 @@ import newsRoutes from './news-routes';
 import kycRoutes from './kyc-routes';
 import marketResearchRoutes from './market-research-routes';
 import chatRoutes from './chat-routes';
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -117,6 +119,23 @@ app.use((req, res, next) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.warn('⚠️  Database seeding failed (this is normal if already seeded):', errorMessage);
     }
+
+    // Create uploads directory structure
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'proofs');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+      console.log('📁 Created uploads directory structure');
+    }
+
+    // Serve uploaded files (with basic security)
+    app.use('/uploads', (req, res, next) => {
+      // Basic security check - only serve files to authenticated users
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      next();
+    }, express.static(path.join(process.cwd(), 'uploads')));
 
     // ALL routes
     app.use('/api/crypto', cryptoRoutes);
