@@ -333,7 +333,7 @@ export default function MarketResearchDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -621,7 +621,7 @@ export default function MarketResearchDashboard() {
                       />
                       <Button
                         size="sm"
-                        className="absolute top-4 right-4 bg-black/50 hover:bg-black/70"
+                        className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 dark:bg-white/20 dark:hover:bg-white/30"
                         onClick={() => togglePodcast(podcast.id)}
                       >
                         {currentlyPlaying === podcast.id ? (

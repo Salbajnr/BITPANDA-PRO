@@ -287,7 +287,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ ...fullUser, portfolio });
+      // Remove sensitive data from response
+      const { password, ...safeUserData } = fullUser;
+
+      res.json({ 
+        ...safeUserData, 
+        portfolio,
+        lastLogin: new Date().toISOString(),
+        isAuthenticated: true
+      });
     } catch (error) {
       console.error("Admin user fetch error:", error);
       res.status(500).json({ message: "Failed to fetch admin user" });
@@ -317,7 +325,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ ...fullUser, portfolio });
+      // Remove sensitive data from response
+      const { password, ...safeUserData } = fullUser;
+
+      res.json({ 
+        ...safeUserData, 
+        portfolio,
+        lastLogin: new Date().toISOString(),
+        isAuthenticated: true
+      });
     } catch (error) {
       console.error("User fetch error:", error);
       res.status(500).json({ message: "Failed to fetch user" });

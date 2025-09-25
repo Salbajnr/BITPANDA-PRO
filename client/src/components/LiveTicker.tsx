@@ -66,7 +66,7 @@ export default function LiveTicker() {
 
   if (tickerItems.length === 0) {
     return (
-      <div className="bg-black text-white py-2 overflow-hidden">
+      <div className="bg-secondary dark:bg-gray-900 text-foreground py-2 overflow-hidden">
         <div className="animate-pulse flex items-center justify-center">
           <span className="text-sm">No market data available</span>
         </div>
@@ -75,7 +75,7 @@ export default function LiveTicker() {
   }
 
   return (
-    <div className="bg-black text-white py-3 overflow-hidden border-b border-gray-800">
+    <div className="bg-secondary dark:bg-gray-900 text-foreground py-3 overflow-hidden border-b border-border">
       <div className="animate-scroll-left whitespace-nowrap flex items-center">
         {/* Duplicate the ticker items for seamless loop */}
         {[...tickerItems, ...tickerItems, ...tickerItems].map((item, index) => (

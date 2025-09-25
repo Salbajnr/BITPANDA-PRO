@@ -279,7 +279,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
 
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-card border-border">
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center space-x-3">
           <img
@@ -288,13 +288,13 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
             className="h-8 w-8 rounded-full"
           />
           <div>
-            <CardTitle className="text-white">{crypto.name}</CardTitle>
-            <p className="text-sm text-gray-400 uppercase">{crypto.symbol}</p>
+            <CardTitle className="text-foreground">{crypto.name}</CardTitle>
+            <p className="text-sm text-muted-foreground uppercase">{crypto.symbol}</p>
           </div>
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-right">
-            <p className="text-lg font-bold text-white">
+            <p className="text-lg font-bold text-foreground">
               ${formatPrice(currentPrice)}
               {isConnected && (
                 <Badge variant="secondary" className="ml-2 text-xs">
@@ -317,7 +317,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
             data-testid="button-close-trading"
           >
             <X className="h-4 w-4" />
@@ -327,7 +327,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
 
       <CardContent className="space-y-6">
         <Tabs value={tradeType} onValueChange={(value: 'buy' | 'sell') => setTradeType(value)}>
-          <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+          <TabsList className="grid w-full grid-cols-2 bg-secondary">
             <TabsTrigger value="buy" className="data-[state=active]:bg-green-600" data-testid="button-buy-tab">
               Buy
             </TabsTrigger>
@@ -363,7 +363,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-background border-border text-foreground"
                     data-testid="input-trade-amount"
                   />
                 </div>
@@ -385,7 +385,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
                       else if (orderType === 'take_profit') setTakeProfit(e.target.value);
                     }}
                     disabled={orderType === 'market'}
-                    className="bg-gray-800 border-gray-700 text-white disabled:opacity-50"
+                    className="bg-background border-border text-foreground disabled:opacity-50"
                     data-testid={orderType === 'limit' ? "input-limit-price" : orderType === 'stop_loss' ? "input-stop-loss-price" : orderType === 'take_profit' ? "input-take-profit-price" : "input-price"}
                   />
                 </div>
@@ -413,7 +413,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
                     placeholder="Stop loss price"
                     value={stopLoss}
                     onChange={(e) => setStopLoss(e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-background border-border text-foreground"
                   />
                 )}
 
@@ -435,14 +435,14 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
                     placeholder="Take profit price"
                     value={takeProfit}
                     onChange={(e) => setTakeProfit(e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-background border-border text-foreground"
                   />
                 )}
 
                 <div>
                   <Label htmlFor="slippage" className="text-sm">Slippage Tolerance (%)</Label>
                   <Select value={slippage} onValueChange={setSlippage}>
-                    <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -463,7 +463,7 @@ export function TradingInterface({ crypto, onClose }: TradingInterfaceProps) {
                   placeholder="0.00"
                   value={displayTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   readOnly
-                  className="bg-gray-800 border-gray-700 text-white opacity-50 cursor-not-allowed"
+                  className="bg-background border-border text-foreground opacity-50 cursor-not-allowed"
                 />
               </div>
 
