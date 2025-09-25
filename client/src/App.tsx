@@ -81,6 +81,15 @@ const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonit
 import KycVerification from "@/pages/KycVerification";
 import MarketResearchDashboard from "@/components/MarketResearchDashboard";
 
+// Placeholder for the new LoadingScreen component
+// In a real application, this would be imported from a shared components directory
+const LoadingScreen = ({ message }: { message: string }) => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mb-4"></div>
+    <p className="text-lg text-foreground">{message}</p>
+  </div>
+);
+
 // Loading component for lazy routes
 function LoadingSpinner() {
   return (
@@ -116,11 +125,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingScreen message="Authenticating user..." />;
   }
 
   if (!user) {
@@ -134,11 +139,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingScreen message="Verifying admin access..." />;
   }
 
   if (!user || user.role !== 'admin') {
