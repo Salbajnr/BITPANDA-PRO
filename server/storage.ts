@@ -1625,12 +1625,6 @@ export class DatabaseStorage implements IStorage {
       console.error("Error rating chat session:", error);
       throw error;
     }
-
-      return session;
-    } catch (error) {
-      console.error("Error creating chat session:", error);
-      throw error;
-    }
   }
 
   async getChatSession(sessionId: string): Promise<any> {
