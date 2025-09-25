@@ -22,15 +22,8 @@ class RealTimePriceService extends EventEmitter {
   private subscriptions = new Map<string, PriceSubscription>();
   private priceCache = new Map<string, PriceUpdate>();
   private updateInterval: NodeJS.Timeout | null = null;
-  private readonly UPDATE_FREQUENCY = 30000; // 30 seconds (reduced frequency)
+  private readonly UPDATE_FREQUENCY = 15000; // 15 seconds for more responsive updates
   private isRunning = false;
-
-  // WebSocket properties (kept for potential future use or debugging)
-  private ws: WebSocket | null = null;
-  private isConnected = false;
-  private reconnectAttempts = 0;
-  private readonly MAX_RECONNECT_ATTEMPTS = 2; // Reduced attempts
-  private readonly RECONNECT_DELAY = 5000; // 5 seconds
 
   constructor() {
     super();
@@ -40,9 +33,8 @@ class RealTimePriceService extends EventEmitter {
   start() {
     if (this.isRunning) return;
 
-    console.log('🚀 Starting Real-Time Price Service...');
+    console.log('🚀 Starting Real-Time Price Service (HTTP mode for Replit)...');
     this.isRunning = true;
-    // Removed the call to connectToPriceFeed() as it's handled by startPriceUpdates and modified logic
     this.startPriceUpdates();
   }
 
@@ -57,17 +49,8 @@ class RealTimePriceService extends EventEmitter {
       this.updateInterval = null;
     }
 
-    // Clean up WebSocket if it was initialized
-    if (this.ws) {
-      this.ws.removeAllListeners();
-      this.ws.close();
-      this.ws = null;
-    }
-
     this.subscriptions.clear();
     this.priceCache.clear();
-    this.isConnected = false;
-    this.reconnectAttempts = 0;
   }
 
   addSubscription(clientId: string, ws: WebSocket, symbols: string[], userId?: string) {
@@ -122,17 +105,15 @@ class RealTimePriceService extends EventEmitter {
   }
 
   private startPriceUpdates() {
-    // Connect to price feed using the modified logic
-    this.connectToPriceFeed();
-
-    // Continue with interval-based updates, which will now rely on the HTTP fallback
+    // Start HTTP-based price updates
     this.updateInterval = setInterval(async () => {
-      // If not connected via WebSocket, this will still trigger HTTP fetches if startHttpPriceFetching is active
       await this.updatePrices();
     }, this.UPDATE_FREQUENCY);
 
-    // Initial update attempt
+    // Initial update
     setTimeout(() => this.updatePrices(), 1000);
+
+    console.log('⚡ Real-time price updates started (HTTP mode)');
   }
 
   private async updatePrices() {
@@ -163,20 +144,14 @@ class RealTimePriceService extends EventEmitter {
       updates.forEach(update => {
         const cached = this.priceCache.get(update.symbol);
 
-        // Only broadcast if price changed significantly (> 0.01% or first time)
-        if (!cached || Math.abs((update.price - cached.price) / cached.price) > 0.0001) {
-          this.priceCache.set(update.symbol, update);
-          this.broadcastPriceUpdate(update);
-        }
+        // Always broadcast to ensure clients get updates (even small changes)
+        this.priceCache.set(update.symbol, update);
+        this.broadcastPriceUpdate(update);
       });
 
       console.log(`📊 Updated prices for ${updates.length} symbols`);
     } catch (error) {
       console.error('Error updating prices:', error);
-      // If HTTP fetching is the fallback, errors here are critical
-      if (!this.isConnected) {
-        console.error('HTTP price fetching also failed. Service may be unavailable.');
-      }
     }
   }
 
@@ -225,45 +200,6 @@ class RealTimePriceService extends EventEmitter {
 
   getSubscriptionCount(): number {
     return this.subscriptions.size;
-  }
-
-  // Modified connection logic - Use HTTP-only for Replit environment
-  private connectToPriceFeed(): void {
-    try {
-      console.log('🔌 Initializing price feed service...');
-      
-      // For Replit environment, use HTTP-only mode for better reliability
-      console.log('⚡ Using HTTP-only mode for price updates (optimized for cloud environments)');
-      this.isConnected = true; // Set to true since we're using HTTP
-      // Don't attempt external WebSocket connections in Replit
-
-    } catch (error) {
-      console.error('Failed to initialize price feed service:', error);
-      this.isConnected = true; // Still set to true to use HTTP fallback
-    }
-  }
-
-  private startHttpPriceFetching(): void {
-    // Fetch prices via HTTP every 30 seconds as fallback
-    // This logic is now integrated into the updatePrices method called by the interval
-    console.log('⚡ Starting HTTP price fetching as fallback...');
-    // The interval is already set in startPriceUpdates. This method mainly serves to log and confirm the fallback.
-  }
-
-  // Removed problematic WebSocket connection attempts for Replit environment
-  // Using HTTP-only approach for better reliability
-
-  private sendSubscription(clientId: string, symbols: string[]): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      const message = {
-        type: 'subscribe',
-        symbols: symbols,
-        clientId: clientId
-      };
-      this.sendToClient(this.ws, message);
-    } else {
-      console.warn(`Cannot subscribe for ${clientId}: WebSocket not open.`);
-    }
   }
 }
 

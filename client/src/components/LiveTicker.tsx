@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
+import { useRealTimePrices } from "../hooks/useRealTimePrices";
 
 interface TickerItem {
   symbol: string;
@@ -26,9 +28,33 @@ export default function LiveTicker() {
     refetchInterval: 60000,
   });
 
-  // Combine and prepare ticker data
+  // Get real-time price updates for top crypto symbols
+  const topCryptoSymbols = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'MATIC', 'AVAX', 'LINK', 'UNI'];
+  
+  const { 
+    pricesMap: realTimePrices,
+    isConnected,
+    getPrice,
+    getChange
+  } = useRealTimePrices({
+    symbols: topCryptoSymbols,
+    enabled: true
+  });
+
+  // Combine and prepare ticker data with real-time updates
   const tickerItems: TickerItem[] = [
-    ...(Array.isArray(cryptoData) ? cryptoData.slice(0, 10) : []),
+    // Crypto data with real-time price updates
+    ...(Array.isArray(cryptoData) ? cryptoData.slice(0, 10).map(item => {
+      const realtimePrice = getPrice(item.symbol.toUpperCase());
+      const realtimeChange = getChange(item.symbol.toUpperCase());
+      
+      return {
+        ...item,
+        current_price: realtimePrice > 0 ? realtimePrice : item.current_price,
+        price_change_percentage_24h: realtimeChange !== 0 ? realtimeChange : item.price_change_percentage_24h
+      };
+    }) : []),
+    // Metals data (no real-time updates available)
     ...(Array.isArray(metalsData) ? metalsData.slice(0, 3) : [])
   ];
 
@@ -75,27 +101,43 @@ export default function LiveTicker() {
   }
 
   return (
-    <div className="bg-secondary dark:bg-gray-900 text-foreground py-3 overflow-hidden border-b border-border">
+    <div className="bg-secondary dark:bg-gray-900 text-foreground py-3 overflow-hidden border-b border-border relative">
+      {/* Real-time connection indicator */}
+      <div className="absolute top-1 right-2 z-10">
+        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-gray-400'} animate-pulse`} 
+             title={isConnected ? 'Real-time updates active' : 'Using cached data'}>
+        </div>
+      </div>
+
       <div className="animate-scroll-left whitespace-nowrap flex items-center">
         {/* Duplicate the ticker items for seamless loop */}
-        {[...tickerItems, ...tickerItems, ...tickerItems].map((item, index) => (
-          <span key={index} className="mx-8 inline-flex items-center space-x-2 text-sm">
-            <span className="font-semibold text-gray-100">{item.symbol}</span>
-            <span className="text-white font-medium">
-              ${typeof item.current_price === 'number' ? item.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+        {[...tickerItems, ...tickerItems, ...tickerItems].map((item, index) => {
+          const isPositive = (item.price_change_percentage_24h || 0) >= 0;
+          
+          return (
+            <span key={index} className="mx-8 inline-flex items-center space-x-2 text-sm">
+              <span className="font-semibold text-gray-100">{item.symbol}</span>
+              <span className="text-white font-medium">
+                ${typeof item.current_price === 'number' 
+                  ? item.current_price.toLocaleString(undefined, { 
+                      minimumFractionDigits: item.current_price < 1 ? 6 : 2, 
+                      maximumFractionDigits: item.current_price < 1 ? 6 : 2 
+                    }) 
+                  : '0.00'}
+              </span>
+              <span className={`text-xs font-medium flex items-center ${
+                isPositive ? 'text-green-400' : 'text-red-400'
+              }`}>
+                <span className="mr-1">{isPositive ? '▲' : '▼'}</span>
+                {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
+              </span>
+              {/* Show real-time indicator for crypto */}
+              {topCryptoSymbols.includes(item.symbol.toUpperCase()) && isConnected && (
+                <span className="text-xs text-blue-400 opacity-60">●</span>
+              )}
             </span>
-            <span
-              className={`text-xs font-medium ${
-                (item.price_change_percentage_24h || 0) >= 0
-                  ? 'text-green-400'
-                  : 'text-red-400'
-              }`}
-            >
-              {(item.price_change_percentage_24h || 0) >= 0 ? '▲' : '▼'}
-              {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
-            </span>
-          </span>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
