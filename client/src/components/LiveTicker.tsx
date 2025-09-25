@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import api from "./api"; // Assuming 'api' is imported from a local file for making requests
+import { api } from "../lib/api";
 
 interface TickerItem {
   symbol: string;

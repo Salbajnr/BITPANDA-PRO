@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw, TrendingUp, TrendingDown, Star, DollarSign } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
+import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
 
@@ -36,12 +37,14 @@ export default function Markets() {
   // Fetch crypto data
   const { data: cryptoResponse, isLoading: cryptoLoading, refetch: refetchCrypto } = useQuery({
     queryKey: ['/api/crypto/market-data'],
+    queryFn: () => api.get('/crypto/market-data'),
     refetchInterval: 30000,
   });
 
   // Fetch metals data
   const { data: metalsData, isLoading: metalsLoading, refetch: refetchMetals } = useQuery({
     queryKey: ['/api/metals/market-data'],
+    queryFn: () => api.get('/metals/market-data'),
     refetchInterval: 60000,
   });
 
