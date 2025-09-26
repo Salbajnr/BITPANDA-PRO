@@ -64,12 +64,6 @@ import AdvancedTrading from "@/pages/AdvancedTrading";
 import APIManagement from "@/pages/APIManagement";
 import DualMarkets from "@/pages/DualMarkets";
 
-// Admin Pages
-import AdminBalanceManagement from "@/pages/AdminBalanceManagement";
-import AdminDepositManagement from "@/pages/AdminDepositManagement";
-import AdminUsers from "@/pages/AdminUsers";
-import AdminKycManagement from "@/pages/AdminKycManagement";
-
 // Lazy loaded components
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
 const MetalsTrading = lazy(() => import("./pages/MetalsTrading"));
@@ -78,8 +72,9 @@ const AdminChatManagement = lazy(() => import("./pages/AdminChatManagement"));
 const AdminNewsManagement = lazy(() => import("./pages/AdminNewsManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
 const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonitor"));
-import KycVerification from "@/pages/KycVerification";
-import MarketResearchDashboard from "@/components/MarketResearchDashboard";
+import KycVerification from "./pages/KycVerification";
+import AssetDetails from "./pages/AssetDetails";
+import Landing from "./pages/Landing";
 
 // Placeholder for the new LoadingScreen component
 // In a real application, this would be imported from a shared components directory
@@ -217,6 +212,8 @@ export default function App() {
 
             {/* KYC Verification Route */}
             <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
+            <Route path="/asset-details" component={AssetDetails} />
+            <Route path="/landing" component={Landing} />
 
             {/* Admin Routes */}
             <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />

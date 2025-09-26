@@ -9,6 +9,7 @@ import { getCryptoLogo } from "@/components/CryptoLogos";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
+import { useNavigate } from 'react-router-dom';
 
 interface CryptoData {
   id: string;
@@ -31,6 +32,7 @@ interface MetalData {
 }
 
 export default function Markets() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("crypto");
   const [searchTerm, setSearchTerm] = useState(""); // State for search
 
@@ -50,7 +52,7 @@ export default function Markets() {
 
   // Extract crypto data from response object - handle different response formats
   let cryptoData: CryptoData[] = [];
-  
+
   if (cryptoResponse) {
     if (Array.isArray(cryptoResponse)) {
       cryptoData = cryptoResponse;
@@ -285,7 +287,45 @@ export default function Markets() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {topCryptos.map((crypto) => (
-                  <CryptoCard key={crypto.id} crypto={crypto} />
+                  <div
+                    key={crypto.id}
+                    className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/asset-details?symbol=${crypto.symbol}`)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <img 
+                        src={crypto.image || getCryptoLogo(crypto.symbol)} 
+                        alt={crypto.name} 
+                        className="w-8 h-8 rounded-full"
+                        onError={(e) => {
+                          e.currentTarget.src = getCryptoLogo(crypto.symbol);
+                        }}
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-900">{crypto.name}</p>
+                        <p className="text-xs text-gray-500">{crypto.symbol?.toUpperCase()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-black">{formatCurrency(crypto.current_price)}</p>
+                      <p className={`text-sm ${crypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {crypto.price_change_percentage_24h >= 0 ? '+' : ''}{crypto.price_change_percentage_24h.toFixed(2)}%
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent navigation when clicking trade
+                          navigate(`/trading?symbol=${crypto.symbol}`);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
+                      >
+                        Trade
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

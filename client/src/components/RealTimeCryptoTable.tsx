@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Search, Star, StarOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useLocation } from 'wouter';
 
 interface RealTimeCryptoTableProps {
   onTradeClick?: (crypto: CryptoPrice) => void;
@@ -18,6 +19,7 @@ export function RealTimeCryptoTable({
   limit = 50, 
   showWatchlist = true 
 }: RealTimeCryptoTableProps) {
+  const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<keyof CryptoPrice>('market_cap_rank');
@@ -232,8 +234,9 @@ export function RealTimeCryptoTable({
                   const isPositive = priceChange >= 0;
 
                   return (
-                    <tr key={crypto.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
-                        data-testid={`row-crypto-${crypto.symbol}`}>
+                    <tr key={crypto.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                        data-testid={`row-crypto-${crypto.symbol}`}
+                        onClick={() => navigate(`/asset-details?symbol=${crypto.symbol}`)}
                       <td className="px-6 py-4 text-gray-400 font-medium">
                         {crypto.market_cap_rank}
                       </td>
