@@ -30,7 +30,7 @@ import {
   Shield, Users, Database, BarChart3,
   Home, DollarSign, Coins, Award,
   Search, Newspaper, BookOpen, ChevronDown,
-  CreditCard, Smartphone, Globe, ArrowUp
+  CreditCard, Smartphone, Globe, ArrowUp, Target
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -98,104 +98,129 @@ export default function Navbar() {
                   alt="BITPANDA PRO"
                   className="w-8 h-8"
                 />
-                <span className="text-xl font-bold text-foreground">BITPANDA PRO</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">BITPANDAPRO</span>
               </div>
             </Link>
           </div>
 
-          {/* Desktop Navigation - Enhanced Menubar */}
-          <div className="hidden lg:flex items-center space-x-2">
+          {/* Desktop Navigation - Professional Menubar */}
+          <div className="hidden lg:flex items-center space-x-1">
             <Menubar className="border-none bg-transparent shadow-none space-x-1">
               {/* Invest Menu */}
               <MenubarMenu>
-                <MenubarTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent transition-all duration-300 px-4 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 data-[state=open]:bg-green-50 dark:data-[state=open]:bg-green-900/20 focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer flex items-center gap-2 border-none">
+                <MenubarTrigger className="group text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent transition-all duration-300 px-4 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 data-[state=open]:bg-green-50 dark:data-[state=open]:bg-green-900/20 focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer flex items-center gap-2 border-none text-sm">
                   <TrendingUp className="w-4 h-4" />
                   Invest
                   <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                 </MenubarTrigger>
-                <MenubarContent className="w-[580px] p-4 bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200">
-                  <ScrollArea className="h-auto max-h-[400px]">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground">
-                          <Coins className="w-4 h-4 text-green-600" />
-                          Cryptocurrencies
-                        </div>
-                        <MenubarItem className="p-0">
-                          <button 
-                            onClick={() => navigate('/markets')}
-                            className="w-full text-left block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
-                          >
-                            <div className="font-medium text-foreground">Markets</div>
-                            <div className="text-xs text-muted-foreground">Trade 600+ cryptocurrencies</div>
-                          </button>
-                        </MenubarItem>
-                        <MenubarItem className="p-0">
-                          <button 
-                            onClick={() => navigate('/dual-markets')}
-                            className="w-full text-left block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
-                          >
-                            <div className="font-medium text-foreground">Crypto Indices</div>
-                            <div className="text-xs text-muted-foreground">Diversified crypto portfolios</div>
-                          </button>
-                        </MenubarItem>
+                <MenubarContent className="w-[620px] p-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200 mt-2">
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Digital Assets
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground">
-                          <BarChart3 className="w-4 h-4 text-blue-600" />
-                          Traditional Assets
-                        </div>
-                        <MenubarItem
-                          className="p-0 cursor-pointer"
-                          onClick={() => navigate('/stocks')}
+                      <MenubarItem className="p-0">
+                        <button
+                          onClick={() => navigate('/markets')}
+                          className="w-full text-left group flex items-start gap-4 p-4 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 border border-transparent hover:border-green-200 dark:hover:border-green-800"
                         >
-                          <div className="w-full block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
-                            <div className="font-medium text-foreground">Stocks</div>
-                            <div className="text-xs text-muted-foreground">Global stock markets</div>
+                          <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Coins className="w-5 h-5 text-green-600" />
                           </div>
-                        </MenubarItem>
-                        <MenubarItem
-                          className="p-0 cursor-pointer"
-                          onClick={() => navigate('/etfs')}
+                          <div>
+                            <div className="font-semibold text-foreground">Cryptocurrencies</div>
+                            <div className="text-xs text-muted-foreground mt-1">Trade 600+ digital currencies</div>
+                          </div>
+                        </button>
+                      </MenubarItem>
+                      <MenubarItem className="p-0">
+                        <button
+                          onClick={() => navigate('/dual-markets')}
+                          className="w-full text-left group flex items-start gap-4 p-4 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
                         >
-                          <div className="w-full block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
-                            <div className="font-medium text-foreground">ETFs</div>
-                            <div className="text-xs text-muted-foreground">Exchange-traded funds</div>
+                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Target className="w-5 h-5 text-blue-600" />
                           </div>
-                        </MenubarItem>
-                        <MenubarItem
-                          className="p-0 cursor-pointer"
-                          onClick={() => navigate('/precious-metals')}
-                        >
-                          <div className="w-full block p-3 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200">
-                            <div className="font-medium text-foreground">Precious Metals</div>
-                            <div className="text-xs text-muted-foreground">Gold, Silver & more</div>
+                          <div>
+                            <div className="font-semibold text-foreground">Crypto Indices</div>
+                            <div className="text-xs text-muted-foreground mt-1">Diversified crypto portfolios</div>
                           </div>
-                        </MenubarItem>
-                      </div>
+                        </button>
+                      </MenubarItem>
                     </div>
-                  </ScrollArea>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        Traditional Assets
+                      </div>
+                      <MenubarItem className="p-0">
+                        <button
+                          onClick={() => navigate('/stocks')}
+                          className="w-full text-left group flex items-start gap-4 p-4 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800"
+                        >
+                          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <BarChart3 className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-foreground">Stocks</div>
+                            <div className="text-xs text-muted-foreground mt-1">Global stock markets</div>
+                          </div>
+                        </button>
+                      </MenubarItem>
+                      <MenubarItem className="p-0">
+                        <button
+                          onClick={() => navigate('/etfs')}
+                          className="w-full text-left group flex items-start gap-4 p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800"
+                        >
+                          <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Database className="w-5 h-5 text-indigo-600" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-foreground">ETFs</div>
+                            <div className="text-xs text-muted-foreground mt-1">Exchange-traded funds</div>
+                          </div>
+                        </button>
+                      </MenubarItem>
+                      <MenubarItem className="p-0">
+                        <button
+                          onClick={() => navigate('/precious-metals')}
+                          className="w-full text-left group flex items-start gap-4 p-4 rounded-xl hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200 border border-transparent hover:border-yellow-200 dark:hover:border-yellow-800"
+                        >
+                          <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Award className="w-5 h-5 text-yellow-600" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-foreground">Precious Metals</div>
+                            <div className="text-xs text-muted-foreground mt-1">Gold, Silver & more</div>
+                          </div>
+                        </button>
+                      </MenubarItem>
+                    </div>
+                  </div>
                 </MenubarContent>
               </MenubarMenu>
 
               {/* Learn Menu */}
               <MenubarMenu>
-                <MenubarTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent transition-all duration-300 px-4 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 data-[state=open]:bg-green-50 dark:data-[state=open]:bg-green-900/20 focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer flex items-center gap-2 border-none">
+                <MenubarTrigger className="group text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent transition-all duration-300 px-4 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 data-[state=open]:bg-green-50 dark:data-[state=open]:bg-green-900/20 focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer flex items-center gap-2 border-none text-sm">
                   <BookOpen className="w-4 h-4" />
                   Learn
                   <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                 </MenubarTrigger>
-                <MenubarContent className="w-[420px] p-4 bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200">
-                  <div className="space-y-1">
+                <MenubarContent className="w-[420px] p-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200 mt-2">
+                  <div className="space-y-3">
                     <MenubarItem
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/academy')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
-                        <BookOpen className="w-5 h-5 text-green-500 mt-0.5 transition-transform duration-200 group-hover:scale-110" />
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 border border-transparent hover:border-green-200 dark:hover:border-green-800 group">
+                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <BookOpen className="w-5 h-5 text-green-500" />
+                        </div>
                         <div>
-                          <div className="font-medium text-foreground">Academy</div>
-                          <div className="text-xs text-muted-foreground">Learn crypto and investing basics</div>
+                          <div className="font-semibold text-foreground">Academy</div>
+                          <div className="text-xs text-muted-foreground mt-1">Learn crypto and investing basics</div>
                         </div>
                       </div>
                     </MenubarItem>
@@ -203,11 +228,13 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/news')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
-                        <Newspaper className="w-5 h-5 text-blue-500 mt-0.5 transition-transform duration-200 group-hover:scale-110" />
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group">
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Newspaper className="w-5 h-5 text-blue-500" />
+                        </div>
                         <div>
-                          <div className="font-medium text-foreground">Market News</div>
-                          <div className="text-xs text-muted-foreground">Latest financial insights</div>
+                          <div className="font-semibold text-foreground">Market News</div>
+                          <div className="text-xs text-muted-foreground mt-1">Latest financial insights</div>
                         </div>
                       </div>
                     </MenubarItem>
@@ -215,11 +242,13 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/tutorials')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
-                        <Users className="w-5 h-5 text-purple-500 mt-0.5 transition-transform duration-200 group-hover:scale-110" />
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800 group">
+                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Users className="w-5 h-5 text-purple-500" />
+                        </div>
                         <div>
-                          <div className="font-medium text-foreground">Getting Started</div>
-                          <div className="text-xs text-muted-foreground">Step-by-step guides</div>
+                          <div className="font-semibold text-foreground">Getting Started</div>
+                          <div className="text-xs text-muted-foreground mt-1">Step-by-step guides</div>
                         </div>
                       </div>
                     </MenubarItem>
@@ -229,21 +258,23 @@ export default function Navbar() {
 
               {/* Company Menu */}
               <MenubarMenu>
-                <MenubarTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent transition-all duration-300 px-4 py-2 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 data-[state=open]:bg-green-50 dark:data-[state=open]:bg-green-900/20 focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer flex items-center gap-2 border-none">
+                <MenubarTrigger className="group text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent transition-all duration-300 px-4 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 data-[state=open]:bg-green-50 dark:data-[state=open]:bg-green-900/20 focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer flex items-center gap-2 border-none text-sm">
                   Company
                   <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                 </MenubarTrigger>
-                <MenubarContent className="w-[380px] p-4 bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200">
-                  <div className="space-y-1">
+                <MenubarContent className="w-[380px] p-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-slate-700/50 shadow-2xl rounded-2xl animate-in slide-in-from-top-2 duration-200 mt-2">
+                  <div className="space-y-3">
                     <MenubarItem
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/about-us')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
-                        <Home className="w-5 h-5 text-blue-500 mt-0.5" />
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group">
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Home className="w-5 h-5 text-blue-500" />
+                        </div>
                         <div>
-                          <div className="font-medium text-foreground">About Us</div>
-                          <div className="text-xs text-muted-foreground">Learn more about our mission and team</div>
+                          <div className="font-semibold text-foreground">About Us</div>
+                          <div className="text-xs text-muted-foreground mt-1">Learn more about our mission and team</div>
                         </div>
                       </div>
                     </MenubarItem>
@@ -251,11 +282,13 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/careers')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
-                        <Users className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 border border-transparent hover:border-green-200 dark:hover:border-green-800 group">
+                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Users className="w-5 h-5 text-green-500" />
+                        </div>
                         <div>
-                          <div className="font-medium text-foreground">Careers</div>
-                          <div className="text-xs text-muted-foreground">Join our team and build the future</div>
+                          <div className="font-semibold text-foreground">Careers</div>
+                          <div className="text-xs text-muted-foreground mt-1">Join our team and build the future</div>
                         </div>
                       </div>
                     </MenubarItem>
@@ -264,11 +297,13 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/press')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200">
-                        <Shield className="w-5 h-5 text-red-500 mt-0.5" />
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 border border-transparent hover:border-red-200 dark:hover:border-red-800 group">
+                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Shield className="w-5 h-5 text-red-500" />
+                        </div>
                         <div>
-                          <div className="font-medium text-foreground">Press</div>
-                          <div className="text-xs text-muted-foreground">Latest news and press releases</div>
+                          <div className="font-semibold text-foreground">Press</div>
+                          <div className="text-xs text-muted-foreground mt-1">Latest news and press releases</div>
                         </div>
                       </div>
                     </MenubarItem>
@@ -276,11 +311,13 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/help-center')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
-                        <HelpCircle className="w-5 h-5 text-purple-500 mt-0.5" />
+                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800 group">
+                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <HelpCircle className="w-5 h-5 text-purple-500" />
+                        </div>
                         <div>
-                          <div className="font-medium text-foreground">Help Center</div>
-                          <div className="text-xs text-muted-foreground">Find answers to common questions</div>
+                          <div className="font-semibold text-foreground">Help Center</div>
+                          <div className="text-xs text-muted-foreground mt-1">Find answers to common questions</div>
                         </div>
                       </div>
                     </MenubarItem>
@@ -292,13 +329,13 @@ export default function Navbar() {
             {/* Quick Action Links */}
             <div className="flex items-center space-x-2 ml-4">
               <Link to="/trading">
-                <Button variant="ghost" size="sm" className="text-foreground hover:text-green-600 dark:hover:text-green-400 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-green-600 dark:hover:text-green-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2">
                   <BarChart3 className="w-4 h-4" />
                   Trading
                 </Button>
               </Link>
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm" className="text-foreground hover:text-blue-600 dark:hover:text-blue-400 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-blue-600 dark:hover:text-blue-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2">
                   <Wallet className="w-4 h-4" />
                   Portfolio
                 </Button>
@@ -313,7 +350,7 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-foreground hover:text-blue-600 font-medium transition-all duration-200"
+                className="text-foreground hover:text-blue-600 font-medium transition-all duration-200 px-4 py-2.5 rounded-xl"
               >
                 <HelpCircle className="w-4 h-4 mr-2" />
                 Help
@@ -323,14 +360,14 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-foreground hover:text-green-600 font-medium transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20"
+                className="text-foreground hover:text-green-600 font-medium transition-all duration-200 px-4 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20"
               >
                 Log in
               </Button>
             </Link>
             <Link href="/auth">
               <Button
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-6 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-6 py-2.5 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-xl"
               >
                 Get Started
               </Button>
@@ -366,7 +403,7 @@ export default function Navbar() {
             <div className="px-4 pt-4 pb-6 space-y-6 bg-background/98 backdrop-blur-xl">
               {/* Quick Actions Bar */}
               <div className="flex items-center gap-2 mb-6">
-                <button 
+                <button
                   onClick={() => {
                     navigate('/trading');
                     setIsMobileMenuOpen(false);
@@ -376,7 +413,7 @@ export default function Navbar() {
                   <BarChart3 className="w-4 h-4" />
                   Trade Now
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     navigate('/dashboard');
                     setIsMobileMenuOpen(false);

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -350,9 +349,12 @@ export default function Landing() {
           <h2 className="text-3xl md:text-5xl font-bold mb-6 font-bitpanda-compressed uppercase">
             Ready to Start Your Investment Journey?
           </h2>
-          <p className="text-xl mb-8 text-white/90">
+          <p className="text-xl mb-8 text-white/75">
             Join millions of investors who trust BITPANDA PRO for their financial future
           </p>
+          <p className="text-xl mb-8 text-white/75">
+              Get started in under 5 minutes • No hidden fees • European regulated • Professional Trading Platform
+            </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100">
               <Link href="/auth">
@@ -432,7 +434,7 @@ export default function Landing() {
                 <Users className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
               </div>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-4">Invest</h4>
               <ul className="space-y-2 text-sm">
@@ -442,7 +444,7 @@ export default function Landing() {
                 <li><Link href="/metals" className="text-gray-300 hover:text-white">Precious Metals</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-2 text-sm">
@@ -452,7 +454,7 @@ export default function Landing() {
                 <li><Link href="/contact" className="text-gray-300 hover:text-white">Contact</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
@@ -463,7 +465,7 @@ export default function Landing() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-12 pt-8 text-center">
             <p className="text-sm text-gray-400">
               © 2024 BITPANDA PRO. All rights reserved. Bitpanda GmbH ve grup şirketleri (Bitpanda) Türkiye'de bankacılık ve finansal hizmetler kanunlarının düzenlediği hiçbir faaliyet için yetkilendirilmemiştir.
