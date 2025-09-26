@@ -12,18 +12,73 @@ type AuthenticatedRequest = Request & {
 
 const router = Router();
 
+// Serve proof files with authentication
+router.get('/proof/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Get deposit to verify ownership or admin access
+    const deposit = await storage.getDepositById(id);
+    if (!deposit) {
+      return res.status(404).json({ message: "Deposit not found" });
+    }
+
+    // Check if user owns the deposit or is an admin
+    if (deposit.userId !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    if (!deposit.proofImageUrl) {
+      return res.status(404).json({ message: "No proof file found" });
+    }
+
+    // Serve the file
+    const filePath = path.join(process.cwd(), 'uploads/proofs', path.basename(deposit.proofImageUrl));
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Proof file not found on disk" });
+    }
+
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Serve proof file error:", error);
+    res.status(500).json({ message: "Failed to serve proof file" });
+  }
+});
+
+import path from 'path';
+import fs from 'fs';
+
 // Configure multer for proof of payment uploads
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = 'uploads/proofs/';
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const fileExtension = path.extname(file.originalname);
+    cb(null, `proof-${uniqueSuffix}${fileExtension}`);
+  }
+});
+
 const upload = multer({
-  dest: 'uploads/proofs/',
+  storage: multerStorage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 5 // Maximum 5 files
   },
   fileFilter: (req, file, cb) => {
-    // Accept images only
-    if (file.mimetype.startsWith('image/')) {
+    // Accept images and PDFs
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(null, false);
+      cb(new Error('Only images (JPEG, PNG, GIF) and PDF files are allowed'));
     }
   }
 });
@@ -86,18 +141,26 @@ router.get('/wallet-addresses', requireAuth, async (req: Request, res: Response)
 });
 
 // POST /api/deposits - Create a new deposit request with proof
-router.post('/', requireAuth, upload.single('proof'), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', requireAuth, upload.array('proof_files', 5), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user.id;
-    const { amount, currency, symbol, paymentMethod } = req.body;
+    const { payment_method, amount, currency, notes } = req.body;
 
-    if (!amount || !currency || !symbol || !paymentMethod) {
+    if (!payment_method || !amount || !currency) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    let proofImageUrl = null;
-    if (req.file) {
-      proofImageUrl = `/uploads/proofs/${req.file.filename}`;
+    // Handle multiple proof files
+    const proofUploads = [];
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files) {
+        proofUploads.push({
+          fileName: file.originalname,
+          filePath: `/uploads/proofs/${file.filename}`,
+          fileSize: file.size,
+          mimeType: file.mimetype
+        });
+      }
     }
 
     const deposit = await storage.createDeposit({
@@ -105,14 +168,24 @@ router.post('/', requireAuth, upload.single('proof'), async (req: AuthenticatedR
       amount: parseFloat(amount).toString(),
       currency,
       assetType: 'crypto',
-      paymentMethod,
+      paymentMethod: payment_method,
       status: 'pending',
-      proofImageUrl,
+      proofImageUrl: proofUploads.length > 0 ? proofUploads[0].filePath : null,
+      adminNotes: notes || null,
     });
+
+    // Store proof upload metadata if needed
+    for (const proof of proofUploads) {
+      // You could create a separate proof_uploads table to store metadata
+      console.log(`Uploaded proof: ${proof.fileName} (${proof.fileSize} bytes)`);
+    }
 
     res.json({ 
       success: true, 
-      deposit,
+      deposit: {
+        ...deposit,
+        proof_uploads: proofUploads
+      },
       message: "Deposit request submitted successfully. Please wait for admin approval."
     });
   } catch (error) {
