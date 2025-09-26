@@ -1,0 +1,398 @@
+// External script: https://analytics.tiktok.com/i18n/pixel/static/identify_4e6f0095.js
+
+// External script: https://scripts.clarity.ms/0.8.30/clarity.js
+
+// External script: https://acdn.adnxs.com/dmp/up/pixie.js
+
+// External script: https://analytics.tiktok.com/i18n/pixel/static/main.MWI4MDAwODU3MQ.js
+
+// External script: https://tr.snapchat.com/config/com/ddf1de10-4231-4668-9c84-579be2060a19.js?v=3.47.18-2509161959
+
+// External script: https://a.sportradarserving.com/pixel?type=js&aid=1835&id=8981
+
+// External script: https://tracker.ads.sportradar.com/dist/tracker.js
+
+// External script: https://wave.outbrain.com/mtWavesBundler/handler/006a53dc572e9f6bc6acb201bc5183ee04
+
+// External script: https://cdn.adjust.com/adjust-smart-banner-latest.min.js
+
+// External script: https://www.clarity.ms/tag/q2jjigjf0j
+
+// External script: https://tag.zebestof.com/render/1368
+
+// External script: https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=CNOTL1RC77U5T6M9QH90&lib=ttq
+
+// External script: https://tm.ads.sportradar.com/dist/tag-manager.js?id=STM-AAAA02
+
+// External script: https://trck.spoteffects.net/analytics/spef.min.js
+
+// External script: https://connect.facebook.net/signals/config/858947150916199?v=2.9.232&r=stable&domain=www.bitpanda.com&hme=dcbbef44c997927c5af260dbc0059090127dce285cd316734e66d01ffe06084e&ex_m=88%2C150%2C130%2C19%2C123%2C62%2C42%2C124%2C69%2C61%2C137%2C77%2C13%2C87%2C27%2C118%2C109%2C67%2C70%2C117%2C134%2C96%2C139%2C7%2C3%2C4%2C6%2C5%2C2%2C78%2C86%2C140%2C214%2C162%2C56%2C219%2C216%2C217%2C49%2C177%2C26%2C66%2C223%2C222%2C165%2C29%2C55%2C8%2C58%2C82%2C83%2C84%2C89%2C113%2C28%2C25%2C116%2C112%2C111%2C131%2C68%2C133%2C132%2C44%2C114%2C54%2C106%2C12%2C136%2C39%2C205%2C207%2C172%2C22%2C23%2C24%2C16%2C17%2C38%2C34%2C36%2C35%2C73%2C79%2C81%2C94%2C122%2C125%2C40%2C95%2C20%2C18%2C100%2C63%2C32%2C127%2C126%2C128%2C119%2C21%2C31%2C53%2C93%2C135%2C64%2C15%2C30%2C187%2C158%2C265%2C203%2C148%2C190%2C183%2C91%2C115%2C72%2C104%2C48%2C41%2C102%2C103%2C108%2C52%2C14%2C110%2C101%2C59%2C43%2C97%2C47%2C50%2C46%2C85%2C138%2C0%2C107%2C11%2C105%2C9%2C1%2C51%2C80%2C57%2C129%2C60%2C99%2C76%2C75%2C45%2C120%2C74%2C71%2C65%2C98%2C90%2C37%2C121%2C33%2C92%2C10%2C141
+
+// External script: https://connect.facebook.net/en_US/fbevents.js
+
+// External script: https://sc-static.net/scevent.min.js
+
+// External script: https://snap.licdn.com/li.lms-analytics/insight.min.js
+
+// External script: https://amplify.outbrain.com/cp/obtp.js
+
+// External script: https://www.redditstatic.com/ads/pixel.js
+
+// External script: https://www.googletagmanager.com/gtag/js?id=G-D1JGP4ZSRE&cx=c&gtm=4e59n2
+
+// External script: https://static.ads-twitter.com/uwt.js
+
+// External script: https://bat.bing.com/bat.js
+
+// External script: https://www.googletagmanager.com/gtm.js?id=GTM-PCNBH5L&l=dataLayer
+
+// External script: https://cdn-segment.bitpanda.com/next-integrations/middleware/analytics.js-middleware-braze-deduplicate/latest/analytics.js-middleware-braze-deduplicate.js.gz
+
+// External script: https://cdn-segment.bitpanda.com/next-integrations/integrations/vendor/commons.59560acdd69ed701c941.js.gz
+
+// External script: https://cdn-segment.bitpanda.com/next-integrations/integrations/google-tag-manager/2.5.1/google-tag-manager.dynamic.js.gz
+
+// External script: https://cdn-segment.bitpanda.com/next-integrations/integrations/hotjar/1.4.0/hotjar.dynamic.js.gz
+
+// External script: https://www.google-analytics.com/analytics.js
+
+// External script: https://cdn-segment.bitpanda.com/analytics.js/v1/4R4o0hpahOARcVhpszPnj7cD2ehz1Ys3/analytics.min.js
+
+// External script: https://www.fndsda.net/beige.js
+
+// External script: https://cdn.matomo.cloud/bitpanda.matomo.cloud/matomo.js
+
+// External script: https://www.googleoptimize.com/optimize.js?id=OPT-N3D6ZNP
+
+if(document.cookie.match("uc_performance_v1_0=accepted")?.length){
+            window.dataLayer.push({'event': 'optimize.activate'});
+        }
+
+// External script: https://cdn.bitpanda.com/app/v2/js/head.min.js?id=c9d8a7523921951f3dc02c71193d6fe4
+
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+}
+function getUrlParam(param) {
+    let value = "";
+    //console.log(window.location.href);
+    if(window.location.href.indexOf(param) > -1)
+        value = getUrlVars()[param];
+    return value;
+}
+function setCookie(name,value,days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; domain=.bitpanda.com; path=/";
+}
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+function eraseCookie(name) {   
+    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT; domain=.bitpanda.com; path=/';
+}
+const s_id = getUrlParam('s_id');
+if (!!s_id) {
+    setCookie('s_id', s_id, 60);
+}
+const ref = getUrlParam('ref');
+if(!!ref) {
+    setCookie('ref', ref, 30);
+    eraseCookie('tag');
+    eraseCookie('s_id');
+}
+const tag = getUrlParam('tag');
+if(!!tag) {
+    setCookie('tag', tag, 30);
+    //eraseCookie('s_id');
+}
+const clickId = getUrlParam('irclickid');
+if(!!clickId) {
+    setCookie('irclickid', clickId, 30);
+}
+const utmCampaign = getUrlParam('utm_campaign');
+if(!!utmCampaign) {
+    setCookie('utm_campaign', utmCampaign, 30);
+}
+
+window.addEventListener('DOMContentLoaded', (event) => {
+    let hash = window.location.hash;
+    hash = hash.replace("##","#");
+    hash = hash.replace("%23","");
+    window.location.hash = hash;
+    const targetNode = document.querySelectorAll('.uk-switcher')[0];
+    if(typeof targetNode !== "undefined") {
+        const config = { attributes: true, childList: true, subtree: true };
+        const callback = function(mutationsList, observer) {
+    		document.querySelectorAll(".uk-switcher > li").forEach(_li => {
+    		    if(_li.getAttribute('id') !== null) {
+    			    _li.setAttribute("id", _li.getAttribute("id").replace("#",""));
+    		    }
+			});
+    
+    		document.querySelectorAll("#tab-module > li > a").forEach(_a => {
+    		    if(_a.getAttribute('href') !== null) {
+    			    _a.setAttribute("href", _a.getAttribute("href").replace("##","#"));
+    		    }
+			});
+    			
+            observer.disconnect();
+        };
+        const observer = new MutationObserver(callback);
+        observer.observe(targetNode, config);
+    }
+});
+
+var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://bitpanda.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '1']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='//cdn.matomo.cloud/bitpanda.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+
+let apiUrls = {
+            bpIcons: "https://bitpanda-broker-production-assets.s3-eu-west-1.amazonaws.com/static/cryptocoin/",
+            base: "https://api.bitpanda.com/v1/",
+            baseV2: "https://api.bitpanda.com/v2/",
+            baseV3: "https://api.bitpanda.com/v3/"
+        }
+
+let utmTextReplace = {
+            utmParameter: '',
+            utmValue: '',
+            cssSelector: '',
+            text: '',
+        }
+
+// External script: https://geoip-js.com/js/apis/geoip2/v2.1/geoip2.js
+
+window.adjustSettings = {
+            appToken: '7hrkmq2yb3b4',
+            environment: 'production'
+        }
+
+{
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    [{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/www.bitpanda.com\/en"},{"@type":"ListItem","position":2,"name":"Limits"}]
+                ]
+            }
+
+// External script: https://cdn.bitpanda.com/app/v2/js/limits.min.js?id=0c579d8a618a4045ff8aa8ccc30be799
+
+// External script: https://cdn.bitpanda.com/app/v2/js/transactions.min.js?id=14f86079f7745b03fad2d485265103cf
+
+!function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"];analytics.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);t.unshift(e);analytics.push(t);return analytics}};for(var e=0;e<analytics.methods.length;e++){var key=analytics.methods[e];analytics[key]=analytics.factory(key)}analytics.load=function(key,e){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.src="https://cdn-segment.bitpanda.com/analytics.js/v1/" + key + "/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n);analytics._loadOptions=e};analytics.SNIPPET_VERSION="4.13.1";
+                  analytics.load("4R4o0hpahOARcVhpszPnj7cD2ehz1Ys3");
+                  analytics.page({referrer: "null"});
+                  }}();
+
+// External script: https://static.hotjar.com/c/hotjar-736209.js?sv=6
+
+// External script: https://bat.bing.com/p/action/5739734.js
+
+// External script: https://tracker.ads.sportradar.com/dist//sp-3.8.0.js
+
+// External script: https://script.hotjar.com/modules.79484904679daf64371c.js
+
+// External script: https://script.hotjar.com/browser-perf.8417c6bba72228fa2e29.js
+
+(function() {
+            document.getElementById('js-primary-search-modal-toggler').addEventListener('click', function() {
+                setTimeout(function(){
+                        document.getElementById('search-input-modal').focus();}
+                    ,500);
+            });
+        })();
+
+function toggleTarget(e) {
+        const item = e.currentTarget;
+        const currentTarget = document.getElementById(e.currentTarget.getAttribute("bp-expand"));
+        if (currentTarget !== activeTarget) {
+            activeTarget.setAttribute("aria-expanded", "false");
+            currentTarget.setAttribute("aria-expanded", "true");
+            activeTarget = currentTarget;
+
+            activeItem.setAttribute("aria-current", "false");
+            item.setAttribute("aria-current", "true");
+            activeItem = item;
+        }
+    }
+    let activeTarget = document.getElementById("bp-expand-1");
+    let activeItem = document.querySelectorAll("[bp-expand=bp-expand-1]")[0];
+    document.querySelectorAll("[bp-expand]").forEach(function (item) {
+        item.addEventListener("mouseenter", toggleTarget, false);
+        item.addEventListener("focus", toggleTarget, false);
+    });
+
+(function() {
+                    document.getElementById('js-mobile-search-modal-toggler').addEventListener('click', function() {
+                        setTimeout(function(){
+                                document.getElementById('search-input-modal').focus();}
+                            ,500);
+                    });
+                })();
+
+function minimiseAll() {
+        document.querySelectorAll("#js-offcanvas-nav > ul > li").forEach(function(li) {
+            li.setAttribute("aria-expanded", false);
+        })
+    }
+    document.querySelectorAll("#js-offcanvas-nav > ul > li").forEach(function(li) {
+        li.addEventListener("click", function(e) {
+            if(e.currentTarget.getAttribute("aria-expanded") === "true") {
+                e.currentTarget.setAttribute("aria-expanded", false);
+            } else {
+                minimiseAll();
+                e.currentTarget.setAttribute("aria-expanded", true);
+            }
+        });
+    })
+    function toggleOffcanvas(e) {
+        const offcanvas = document.querySelectorAll(".bp-offcanvas")[0];
+        if(offcanvas.getAttribute("aria-expanded") === "false") {
+            offcanvas.setAttribute("aria-expanded", "true");
+        } else {
+            offcanvas.setAttribute("aria-expanded", "false");
+        }
+    }
+    function changeLanguage(e) {
+        document.location = e.value;
+    }
+
+const ENTER_KEY_CODE = 13;
+
+    $(document).ready(function () {
+        $('#search-input-modal').keydown(function (event) {
+            const keyCode = (event.keyCode ? event.keyCode : event.which);
+            if (keyCode === ENTER_KEY_CODE) {
+                const searchFilter = '' || '';
+                const searchLink = `/en/search?${searchFilter.length === 0 ? '' : 'filter=' + searchFilter + '&'}query=${$(this).val()}`;
+                document.location.href = searchLink;
+            }
+        });
+    });
+
+// TODO: if initScriptLater is good for deferring scripts, let's move it to layouts/default.htm
+    window.initScriptLater = function (_scriptUrl, _fallback) {
+        var script = document.createElement('script');
+        script.onload = _fallback;
+        script.src = _scriptUrl;
+        document.addEventListener('readystatechange', (event) => {
+            if (document.readyState == "interactive") {
+                document.head.appendChild(script);
+            }
+        });
+    }
+
+    window.initScriptLater("https://cdn.bitpanda.com/app/v2/js/limits.min.js?id=0c579d8a618a4045ff8aa8ccc30be799",  function () {
+        window.initLimitsTable({
+            apiUrl: "https://api.bitpanda.com/v1/limits/fiat-limit-groups"
+        })
+    })
+
+$(document).ready(function () {
+        document.getElementById("js-filter-transactions").onkeyup = function (e) {
+            $('#table-transaction-costs-body tr').hide();
+            $('#table-transaction-costs-body tr').each(function() {
+                let searchPhrase = e.target.value.toLowerCase();
+                if ($(this).data("coin-name").toLowerCase().indexOf(searchPhrase) >= 0 || $(this).data("coin-symbol").toLowerCase().indexOf(searchPhrase) >= 0) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            })
+        }
+    })
+
+window.initScriptLater = function (_scriptUrl, _fallback) {
+        var script = document.createElement('script');
+        script.onload = _fallback;
+        script.src = _scriptUrl;
+        document.addEventListener('readystatechange', (event) => {
+            if (document.readyState == "interactive") {
+                document.head.appendChild(script);
+            }
+        });
+    }
+
+    window.initScriptLater("https://cdn.bitpanda.com/app/v2/js/transactions.min.js?id=14f86079f7745b03fad2d485265103cf",  function () {
+        window.initTransactionsTable({
+            apiUrl: "https://api.bitpanda.com/v1/limits/transaction-costs"
+        })
+    })
+
+const segment_key = "4R4o0hpahOARcVhpszPnj7cD2ehz1Ys3";
+        const google_analytics_property = "UA-55274179-2";
+
+// External script: https://cdn.bitpanda.com/app/v2/js/all.min.js?id=9ac3fa897412c0e399a87da045d24cab
+
+// External script: https://cdn.bitpanda.com/app/v2/js/stock.min.js?id=09db388523f29a4e6879d1cd9650b068
+
+var refAtt = getUrlParam('ref') || getCookie('ref');
+var tagAtt = getUrlParam('tag') || getCookie('tag');
+
+if(refAtt && tagAtt) {
+    var androidLink = "https://bitpanda.page.link/?link=https://www.bitpanda.com/user/register/" + refAtt + "?tag%3D" + tagAtt + "&apn=com.bitpanda.bitpanda&ofl=https://play.google.com/store/apps/details?id=com.bitpanda.bitpanda&ifl=https://apps.apple.com/at/app/bitpanda/id1449018960?ibi=com.bitpanda.bitpanda";
+    var iosLink = "https://bitpanda.page.link/?link=https://www.bitpanda.com/user/register/" + refAtt + "?tag%3D" + tagAtt + "&apn=com.bitpanda.bitpanda&ofl=https://apps.apple.com/at/app/bitpanda/id1449018960?ifl=https://apps.apple.com/at/app/bitpanda/id1449018960?ibi=com.bitpanda.bitpanda";
+    $('.android-button').attr("href", androidLink);
+    $('.ios-button').attr("href", iosLink);
+} else if(refAtt) {
+    var androidLink = "https://bitpanda.page.link/?link=https://www.bitpanda.com/user/register/" + refAtt + "&apn=com.bitpanda.bitpanda&ofl=https://play.google.com/store/apps/details?id=com.bitpanda.bitpanda&ifl=https://apps.apple.com/at/app/bitpanda/id1449018960?ibi=com.bitpanda.bitpanda";
+    var iosLink = "https://bitpanda.page.link/?link=https://www.bitpanda.com/user/register/" + refAtt + "&apn=com.bitpanda.bitpanda&ofl=https://apps.apple.com/at/app/bitpanda/id1449018960?ifl=https://apps.apple.com/at/app/bitpanda/id1449018960?ibi=com.bitpanda.bitpanda";
+    $('.android-button').attr("href", androidLink);
+    $('.ios-button').attr("href", iosLink);
+}
+
+// External script: https://cdn.bitpanda.com/app/v2/js/dotcom-components/dotcom-components.esm.js?id=418046627d829dcf7600c6e5a8714272
+
+// External script: https://cdn.bitpanda.com/app/v2/js/dotcom-components/dotcom-components.js?id=0b52396aaf0e4308e3af795c917c9416
+
+//<! [CDATA[
+        window._fa=window._fa||[];window._fa.push({id:"OyCkAkzwJOc8Gw2AUwuC"});(function(d){var s=d.createElement("script");s.async=true;s.src=(d.location.protocol=="https:"?"https:":"http:")+"//www.fndsda.net/beige.js";var a=d.getElementsByTagName("script")[0];a.parentNode.insertBefore(s,a)}(document));
+        //]]>
+
+!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","858947150916199",{em:"undefined"});fbq("track","PageView");
+
+var _spef=_spef||[];_spef.push(["setCookieDomain","*.bitpanda.com"]);_spef.push(["setDomains","*.bitpanda.com"]);_spef.push(["enableLinkTracking"]);_spef.push(["trackPageView"]);
+(function(){var c="//trck.spoteffects.net/analytics/";_spef.push(["setTrackerUrl",c+"piwik.php"]);_spef.push(["setSiteId",google_tag_manager["rm"]["7716511"](15)]);var a=document,b=a.createElement("script");a=a.getElementsByTagName("script")[0];b.type="text/javascript";b.defer=!0;b.async=!0;b.src=c+"spef.min.js";a.parentNode.insertBefore(b,a)})();
+
+(function(a,c,d,e,b,f){a[b]=a[b]||[];a.x=c.createElement(d);a.y=c.getElementsByTagName(d)[0];x.src=e+"?id\x3d"+f;x.setAttribute("data-srtmn",b);y.parentNode.insertBefore(x,y)})(window,document,"script","https://tm.ads.sportradar.com/dist/tag-manager.js","srtmCommands","STM-AAAA02");
+
+!function(d,g,e){d.TiktokAnalyticsObject=e;var a=d[e]=d[e]||[];a.methods="page track identify instances debug on off once ready alias group enableCookie disableCookie".split(" ");a.setAndDefer=function(b,c){b[c]=function(){b.push([c].concat(Array.prototype.slice.call(arguments,0)))}};for(d=0;d<a.methods.length;d++)a.setAndDefer(a,a.methods[d]);a.instance=function(b){b=a._i[b]||[];for(var c=0;c<a.methods.length;c++)a.setAndDefer(b,a.methods[c]);return b};a.load=function(b,c){var f="https://analytics.tiktok.com/i18n/pixel/events.js";
+a._i=a._i||{};a._i[b]=[];a._i[b]._u=f;a._t=a._t||{};a._t[b]=+new Date;a._o=a._o||{};a._o[b]=c||{};c=document.createElement("script");c.type="text/javascript";c.async=!0;c.src=f+"?sdkid\x3d"+b+"\x26lib\x3d"+e;b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(c,b)};a.load("CNOTL1RC77U5T6M9QH90");a.page()}(window,document,"ttq");
+
+var _zbo=_zbo||{register:function(a,b){this[a]=this[a]||[];this[a].push(b)}};(function(a,b){var c=a.createElement(b);a=a.getElementsByTagName(b)[0];c.async=!0;c.src="https://tag.zebestof.com/render/1368";a.parentNode.insertBefore(c,a)})(document,"script");
+
+(function(a,e,b,f,g,c,d){a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)};c=e.createElement(f);c.async=1;c.src="https://www.clarity.ms/tag/"+g;d=e.getElementsByTagName(f)[0];d.parentNode.insertBefore(c,d)})(window,document,"clarity","script","q2jjigjf0j");
+
+!function(a,g,e,h,b,l,m,f,k){var c=b+"_q";a[b]=a[b]||{};a[c]=a[c]||[];for(h=0;h<l.length;h++)m(a[b],a[c],l[h]);f=g.createElement(e);k=g.getElementsByTagName(e)[0];f.async=!0;f.src="https://cdn.adjust.com/adjust-smart-banner-latest.min.js";f.onload=function(){a[b]=a[b]["default"];for(var d=0;d<a[c].length;d++)a[b][a[c][d][0]]?a[b][a[c][d][0]].apply(a[b],a[c][d][1]):console.error("No such function found in "+b+": "+a[c][d][0]);a[c]=[]};k.parentNode.insertBefore(f,k)}(window,document,"script",0,"AdjustSmartBanner",
+"init show hide setLanguage setIosDeepLinkPath setAndroidDeepLinkPath setContext setAndroidAppSchema setDeepLinkPath".split(" "),function(a,g,e){a[e]=function(){g.push([e,arguments])}});
+
+window.AdjustSmartBanner.init({appToken:"zasj07kt5wcg",language:"en"});
+
+!function(e,i){if(!e.pixie){var n=e.pixie=function(e,i,a){n.actionQueue.push({action:e,actionValue:i,params:a})};n.actionQueue=[];var a=i.createElement("script");a.async=!0,a.src="//acdn.adnxs.com/dmp/up/pixie.js";var t=i.getElementsByTagName("head")[0];t.insertBefore(a,t.firstChild)}}(window,document);
+pixie('init', '97aaf53c-3d30-4048-a634-0d8f2be036c5');
+pixie ('consent', 'update', {'ad_storage': 'granted'});
+pixie('event', 'PageView');
