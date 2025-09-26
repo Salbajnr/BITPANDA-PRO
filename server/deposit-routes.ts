@@ -5,6 +5,8 @@ import { storage } from './storage';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
 import { insertDepositSchema, insertSharedWalletAddressSchema } from '@shared/schema';
+import path from 'path';
+import fs from 'fs';
 
 type AuthenticatedRequest = Request & { 
   user: NonNullable<Express.User>
@@ -34,13 +36,16 @@ router.get('/proof/:id', requireAuth, async (req: AuthenticatedRequest, res: Res
     }
 
     // Serve the file
-    const filePath = path.join(process.cwd(), 'uploads/proofs', path.basename(deposit.proofImageUrl));
+    const fileName = deposit.proofImageUrl.replace('/uploads/proofs/', '');
+    const filePath = path.join(process.cwd(), 'uploads/proofs', fileName);
     
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "Proof file not found on disk" });
     }
 
-    res.sendFile(filePath);
+    // Set appropriate headers
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.sendFile(path.resolve(filePath));
   } catch (error) {
     console.error("Serve proof file error:", error);
     res.status(500).json({ message: "Failed to serve proof file" });
@@ -251,7 +256,7 @@ router.get('/admin/all', requireAuth, async (req: AuthenticatedRequest, res: Res
   }
 });
 
-// POST /api/deposits/:id/approve - Admin approve/reject deposit with automatic balance update
+// POST /api/deposits/:id/approve - Admin approve deposit with automatic balance update
 router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (req.user.role !== 'admin') {
@@ -259,7 +264,7 @@ router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: 
     }
 
     const { id } = req.params;
-    const approvalData = approveDepositSchema.parse(req.body);
+    const { adminNotes } = req.body;
 
     const deposit = await storage.getDepositById(id);
     if (!deposit) {
@@ -270,62 +275,96 @@ router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: 
       return res.status(400).json({ message: "Deposit has already been processed" });
     }
 
-    // Update deposit status
+    // Update deposit status to approved
     const updatedDeposit = await storage.updateDeposit(id, {
-      status: approvalData.approved ? 'approved' : 'rejected',
-      adminNotes: approvalData.adminNotes,
-      rejectionReason: approvalData.rejectionReason,
+      status: 'approved',
+      adminNotes: adminNotes || null,
       approvedById: req.user.id,
       approvedAt: new Date(),
     });
 
-    // If approved, automatically add funds to user's balance
-    if (approvalData.approved) {
-      const depositAmount = parseFloat(deposit.amount);
-      
-      // Create balance adjustment record
-      await storage.createBalanceAdjustment({
-        adminId: req.user.id,
-        targetUserId: deposit.userId,
-        adjustmentType: 'add',
-        amount: depositAmount.toString(),
-        currency: deposit.currency,
-        reason: `Approved deposit #${deposit.id}`,
+    // Automatically add funds to user's balance
+    const depositAmount = parseFloat(deposit.amount);
+    
+    // Create balance adjustment record
+    await storage.createBalanceAdjustment({
+      adminId: req.user.id,
+      targetUserId: deposit.userId,
+      adjustmentType: 'add',
+      amount: depositAmount.toString(),
+      currency: deposit.currency,
+      reason: `Approved deposit #${deposit.id}`,
+    });
+
+    // Update user's portfolio balance
+    let portfolio = await storage.getPortfolio(deposit.userId);
+    if (!portfolio) {
+      // Create portfolio if it doesn't exist
+      portfolio = await storage.createPortfolio({
+        userId: deposit.userId,
+        totalValue: depositAmount.toString(),
+        availableCash: depositAmount.toString()
       });
+    } else {
+      // Update existing portfolio
+      const newAvailableCash = parseFloat(portfolio.availableCash) + depositAmount;
+      const newTotalValue = parseFloat(portfolio.totalValue) + depositAmount;
 
-      // Update user's portfolio balance
-      let portfolio = await storage.getPortfolio(deposit.userId);
-      if (!portfolio) {
-        // Create portfolio if it doesn't exist
-        portfolio = await storage.createPortfolio({
-          userId: deposit.userId,
-          totalValue: depositAmount.toString(),
-          availableCash: depositAmount.toString()
-        });
-      } else {
-        // Update existing portfolio
-        const newAvailableCash = parseFloat(portfolio.availableCash) + depositAmount;
-        const newTotalValue = parseFloat(portfolio.totalValue) + depositAmount;
-
-        await storage.updatePortfolio(portfolio.id, {
-          availableCash: newAvailableCash.toString(),
-          totalValue: newTotalValue.toString()
-        });
-      }
-
-      console.log(`✅ Deposit ${id} approved and $${depositAmount} added to user ${deposit.userId} balance`);
+      await storage.updatePortfolio(portfolio.id, {
+        availableCash: newAvailableCash.toString(),
+        totalValue: newTotalValue.toString()
+      });
     }
+
+    console.log(`✅ Deposit ${id} approved and $${depositAmount} added to user ${deposit.userId} balance`);
 
     res.json({
       success: true,
       deposit: updatedDeposit,
-      message: approvalData.approved 
-        ? `Deposit approved and $${deposit.amount} added to user balance` 
-        : "Deposit rejected"
+      message: `Deposit approved and $${deposit.amount} added to user balance`
     });
   } catch (error) {
     console.error("Approve deposit error:", error);
-    res.status(500).json({ message: "Failed to approve/reject deposit" });
+    res.status(500).json({ message: "Failed to approve deposit" });
+  }
+});
+
+// POST /api/deposits/:id/reject - Admin reject deposit
+router.post('/:id/reject', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const { id } = req.params;
+    const { rejectionReason, adminNotes } = req.body;
+
+    const deposit = await storage.getDepositById(id);
+    if (!deposit) {
+      return res.status(404).json({ message: "Deposit not found" });
+    }
+
+    if (deposit.status !== 'pending') {
+      return res.status(400).json({ message: "Deposit has already been processed" });
+    }
+
+    // Update deposit status to rejected
+    const updatedDeposit = await storage.updateDeposit(id, {
+      status: 'rejected',
+      rejectionReason: rejectionReason || 'No reason provided',
+      adminNotes: adminNotes || null,
+      approvedById: req.user.id,
+      approvedAt: new Date(),
+    });
+
+    res.json({
+      success: true,
+      deposit: updatedDeposit,
+      message: "Deposit rejected"
+    });
+  } catch (error) {
+    console.error("Reject deposit error:", error);
+    res.status(500).json({ message: "Failed to reject deposit" });
   }
 });
 

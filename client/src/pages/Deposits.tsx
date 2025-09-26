@@ -58,7 +58,7 @@ export default function Deposits() {
   // Fetch user deposits
   const { data: deposits, isLoading, refetch } = useQuery({
     queryKey: ['/api/deposits'],
-    queryFn: () => api.get('/deposits'),
+    queryFn: () => api.get('/deposits').then(res => res.data || []),
   });
 
   // Create deposit mutation

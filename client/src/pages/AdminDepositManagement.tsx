@@ -49,13 +49,36 @@ export default function AdminDepositManagement() {
 
   const fetchDeposits = async () => {
     try {
-      const response = await fetch('/api/deposits/admin', {
+      const response = await fetch('/api/deposits/admin/all', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
       if (response.ok) {
         const data = await response.json();
-        setDeposits(data);
+        // Transform data to match expected format
+        const transformedDeposits = data.map((deposit: any) => ({
+          deposit: {
+            id: deposit.id,
+            paymentMethod: deposit.paymentMethod,
+            cryptocurrency: deposit.currency,
+            depositAmount: deposit.amount,
+            depositAddress: 'N/A', // Will be generated when needed
+            proofOfPayment: deposit.proofImageUrl || 'N/A',
+            proofType: deposit.proofImageUrl ? 'file' : 'hash',
+            status: deposit.status,
+            rejectionReason: deposit.rejectionReason,
+            createdAt: deposit.createdAt,
+            updatedAt: deposit.updatedAt
+          },
+          user: {
+            id: deposit.userId,
+            email: deposit.email || 'N/A',
+            name: deposit.firstName && deposit.lastName 
+              ? `${deposit.firstName} ${deposit.lastName}` 
+              : deposit.username || 'N/A'
+          }
+        }));
+        setDeposits(transformedDeposits);
       } else {
         throw new Error('Failed to fetch deposits');
       }

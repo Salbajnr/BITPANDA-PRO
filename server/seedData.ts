@@ -1,4 +1,3 @@
-
 import { storage } from './storage';
 import { hashPassword } from './simple-auth';
 
@@ -103,6 +102,38 @@ export async function seedDatabase() {
     for (const article of newsArticles) {
       await storage.createNewsArticle(article);
     }
+
+    // Create shared wallet addresses for deposits if they don't exist
+    console.log('🏦 Setting up shared wallet addresses...');
+
+    try {
+      const existingAddresses = await storage.getSharedWalletAddresses();
+      if (existingAddresses.length === 0) {
+        const walletAddresses = [
+          { symbol: 'BTC', name: 'Bitcoin', address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', network: 'mainnet' },
+          { symbol: 'ETH', name: 'Ethereum', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'mainnet' },
+          { symbol: 'USDT', name: 'Tether', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'ethereum' },
+          { symbol: 'BNB', name: 'Binance Coin', address: 'bnb1jw7qkv5r8x3v4x8wqnrzr2t8s5k6g3h7d2f1a0', network: 'bsc' },
+          { symbol: 'ADA', name: 'Cardano', address: 'addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj0vs2qd4a6gtajun6cjskw3', network: 'cardano' },
+          { symbol: 'SOL', name: 'Solana', address: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM', network: 'solana' },
+          { symbol: 'XRP', name: 'Ripple', address: 'rDNvpSjsGdPaAHWMKhv8iPtF3mBYYR2PpK', network: 'xrpl' },
+          { symbol: 'DOT', name: 'Polkadot', address: '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5', network: 'polkadot' },
+          { symbol: 'MATIC', name: 'Polygon', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'polygon' },
+          { symbol: 'LINK', name: 'Chainlink', address: '0x742F96e08A82d6D91F1aE37df26B12C75a1cF86e', network: 'ethereum' }
+        ];
+
+        for (const address of walletAddresses) {
+          await storage.createOrUpdateSharedWalletAddress(address);
+        }
+
+        console.log(`✅ Created ${walletAddresses.length} shared wallet addresses`);
+      } else {
+        console.log(`✅ Found ${existingAddresses.length} existing wallet addresses`);
+      }
+    } catch (error) {
+      console.log('⚠️  Wallet addresses seeding skipped (method not available yet)');
+    }
+
 
     console.log('✅ Database seeding completed successfully');
     console.log('📊 Created accounts:');

@@ -4,11 +4,8 @@ import {
   holdings,
   transactions,
   deposits,
-  withdrawals,
-  withdrawalLimits,
   balanceAdjustments,
-  notifications,
-  priceAlerts,
+  sharedWalletAddresses,
   newsArticles,
   passwordResetTokens,
   otpTokens,
@@ -18,24 +15,24 @@ import {
   liveChatSessions,
   liveChatMessages,
   userPreferences,
-  sharedWalletAddresses,
+  priceAlerts,
+  notifications,
+  withdrawals,
+  withdrawalLimits,
   type User,
+  type InsertUser,
   type Portfolio,
-  type Holding,
-  type Transaction,
-  type Deposit,
-  type Withdrawal,
-  type InsertWithdrawal,
   type InsertPortfolio,
+  type Holding,
   type InsertHolding,
+  type Transaction,
   type InsertTransaction,
-  type UpsertUser,
+  type Deposit,
+  type InsertDeposit,
   type BalanceAdjustment,
   type InsertBalanceAdjustment,
-  type Notification,
-  type InsertNotification,
-  type PriceAlert,
-  type InsertPriceAlert,
+  type SharedWalletAddress,
+  type InsertSharedWalletAddress,
   type NewsArticle,
   type InsertNewsArticle,
   type PasswordResetToken,
@@ -54,13 +51,20 @@ import {
   type InsertLiveChatMessage,
   type UserPreferences,
   type InsertUserPreferences,
-  type SharedWalletAddress,
-  type InsertSharedWalletAddress
+  type PriceAlert,
+  type InsertPriceAlert,
+  type Notification,
+  type InsertNotification,
+  type Withdrawal,
+  type InsertWithdrawal,
+  type WithdrawalLimit,
+  type InsertWithdrawalLimit
 } from '@shared/schema';
 import { db } from "./db";
 import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray, ne } from "drizzle-orm";
 import { hashPassword } from "./simple-auth";
 import crypto from 'crypto';
+import { nanoid } from 'nanoid';
 
 export interface IStorage {
   // User operations
@@ -154,12 +158,11 @@ export interface IStorage {
   getNewsAnalytics(): Promise<any>;
 
   // Deposit operations
-  createDeposit(deposit: any): Promise<any>;
-  getUserDeposits(userId: string, limit?: number): Promise<any[]>;
+  createDeposit(deposit: InsertDeposit): Promise<Deposit>;
+  getUserDeposits(userId: string): Promise<Deposit[]>;
   getAllDeposits(): Promise<any[]>;
-  getDepositById(id: string): Promise<any>;
-  updateDeposit(id: string, updates: any): Promise<any>;
-  updateDepositStatus(id: string, status: string, rejectionReason?: string): Promise<any>;
+  getDepositById(id: string): Promise<Deposit | null>;
+  updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit>;
 
   // Shared wallet address operations
   getSharedWalletAddresses(): Promise<SharedWalletAddress[]>;
@@ -1943,77 +1946,72 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Deposit methods
-  async createDeposit(deposit: any) {
-    const db = this.ensureDb();
-    const [result] = await db.insert(deposits).values(deposit).returning();
-    return result;
+  async createDeposit(depositData: InsertDeposit): Promise<Deposit> {
+    const [deposit] = await this.db
+      .insert(deposits)
+      .values({
+        ...depositData,
+        id: nanoid(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return deposit;
   }
 
-  async getUserDeposits(userId: string, limit: number = 5): Promise<any[]> {
-    try {
-      const db = this.ensureDb();
-      return await db.select()
-        .from(deposits)
-        .where(eq(deposits.userId, userId))
-        .orderBy(desc(sql`${deposits.createdAt}`))
-        .limit(limit);
-    } catch (error) {
-      console.error("Error fetching user deposits:", error);
-      return [];
-    }
+  async getDepositById(id: string): Promise<Deposit | null> {
+    const [deposit] = await this.db
+      .select()
+      .from(deposits)
+      .where(eq(deposits.id, id))
+      .limit(1);
+    return deposit || null;
   }
 
-  async getAllDeposits() {
-    const db = this.ensureDb();
-    return await db.select({
-      deposit: deposits,
-      user: {
-        id: users.id,
+  async getUserDeposits(userId: string): Promise<Deposit[]> {
+    return await this.db
+      .select()
+      .from(deposits)
+      .where(eq(deposits.userId, userId))
+      .orderBy(desc(deposits.createdAt));
+  }
+
+  async getAllDeposits(): Promise<any[]> {
+    return await this.db
+      .select({
+        id: deposits.id,
+        userId: deposits.userId,
+        amount: deposits.amount,
+        currency: deposits.currency,
+        assetType: deposits.assetType,
+        paymentMethod: deposits.paymentMethod,
+        status: deposits.status,
+        proofImageUrl: deposits.proofImageUrl,
+        adminNotes: deposits.adminNotes,
+        rejectionReason: deposits.rejectionReason,
+        approvedAt: deposits.approvedAt,
+        createdAt: deposits.createdAt,
+        updatedAt: deposits.updatedAt,
         username: users.username,
         email: users.email,
         firstName: users.firstName,
-        lastName: users.lastName,
-      }
-    })
-    .from(deposits)
-    .leftJoin(users, eq(deposits.userId, users.id))
-    .orderBy(desc(deposits.createdAt));
-  }
-
-  async updateDepositStatus(id: string, status: string, rejectionReason?: string) {
-    const db = this.ensureDb();
-    const [result] = await db
-      .update(deposits)
-      .set({
-        status,
-        rejectionReason,
-        updatedAt: new Date().toISOString()
+        lastName: users.lastName
       })
-      .where(eq(deposits.id, id))
-      .returning();
-    return result;
-  }
-
-  async getDepositById(id: string) {
-    const db = this.ensureDb();
-    const [result] = await db
-      .select()
       .from(deposits)
-      .where(eq(deposits.id, id));
-    return result;
+      .leftJoin(users, eq(deposits.userId, users.id))
+      .orderBy(desc(deposits.createdAt));
   }
 
-  async updateDeposit(id: string, updates: any) {
-    const db = this.ensureDb();
-    const [result] = await db
+  async updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit> {
+    const [deposit] = await this.db
       .update(deposits)
       .set({
         ...updates,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(deposits.id, id))
       .returning();
-    return result;
+    return deposit;
   }
 
   // Shared wallet address methods
@@ -2034,7 +2032,7 @@ export class DatabaseStorage implements IStorage {
   async createOrUpdateSharedWalletAddress(addressData: InsertSharedWalletAddress): Promise<SharedWalletAddress> {
     try {
       const db = this.ensureDb();
-      
+
       // Check if address for this symbol already exists
       const [existing] = await db
         .select()
