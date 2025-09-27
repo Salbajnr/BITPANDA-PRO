@@ -158,7 +158,7 @@ export default function Landing() {
                 Fast-track your financial freedom.
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl">
-                Join over 7 million people investing in 650+ cryptos and 3,000+ digital assets.
+                Join over 7 million people investing in 650+ cryptos and 3,000+ digital assets with BitpandaPro.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" asChild className="bg-white text-green-600 hover:bg-gray-100 font-medium">
@@ -206,7 +206,7 @@ export default function Landing() {
             <h2 className="text-3xl md:text-5xl font-bold text-green-600 mb-4 font-bitpanda-compressed uppercase">
               All your investments.
               <br />
-              All on Bitpanda.
+              All on BitpandaPro.
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -231,8 +231,8 @@ export default function Landing() {
               Investing in stocks, ETFs and commodities carries risks. Conduct your own research before concluding a transaction.
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              *Stocks and ETFs are the underlying assets of the contracts offered as Bitpanda Stocks and are brought to you by Bitpanda Financial Services GmbH. 
-              More information about the product is available at bitpanda.com. For more details, consult the prospectus available at bitpanda.com.
+              *Stocks and ETFs are the underlying assets of the contracts offered as BitpandaPro Stocks and are brought to you by BitpandaPro Financial Services GmbH. 
+              More information about the product is available at bitpandapro.com. For more details, consult the prospectus available at bitpandapro.com.
             </p>
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function Landing() {
                   More money in your portfolio
                 </CardTitle>
                 <p className="text-white/90 mb-6">
-                  No deposit or withdrawal fees on any payment method for all fiat currencies. 
+                  No deposit or withdrawal fees on any payment method for all fiat currencies with BitpandaPro. 
                   More opportunities to grow your investments and make impactful decisions.
                 </p>
                 <Button variant="secondary" className="w-fit">
@@ -402,7 +402,7 @@ export default function Landing() {
                 </div>
                 <CardTitle className="text-xl mb-4">Contact us</CardTitle>
                 <p className="mb-4">
-                  Our Bitpanda Helpdesk is filled with in-depth articles, and if you need more help, we are always available to lend a helping hand through our contact form.
+                  Our BitpandaPro Helpdesk is filled with in-depth articles, and if you need more help, we are always available to lend a helping hand through our contact form.
                 </p>
                 <Button variant="link" className="text-white underline">
                   Go to Helpdesk
@@ -425,7 +425,7 @@ export default function Landing() {
                 <span className="text-2xl font-bold text-white font-bitpanda-compressed uppercase">BITPANDA PRO</span>
               </div>
               <p className="text-gray-300 mb-6 text-sm leading-relaxed">
-                Europe's leading cryptocurrency trading platform. Regulated, secure, and trusted by millions of users across the continent. Start your investment journey with confidence.
+                Europe's leading cryptocurrency trading platform. BitpandaPro is regulated, secure, and trusted by millions of users across the continent. Start your investment journey with confidence.
               </p>
               <div className="flex space-x-4">
                 <Globe className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer transition-colors" />
@@ -468,7 +468,7 @@ export default function Landing() {
 
           <div className="border-t border-gray-800 mt-12 pt-8 text-center">
             <p className="text-sm text-gray-400">
-              © 2024 BITPANDA PRO. All rights reserved. Bitpanda GmbH ve grup şirketleri (Bitpanda) Türkiye'de bankacılık ve finansal hizmetler kanunlarının düzenlediği hiçbir faaliyet için yetkilendirilmemiştir.
+              © 2024 BITPANDAPRO. All rights reserved. BitpandaPro GmbH ve grup şirketleri (BitpandaPro) Türkiye'de bankacılık ve finansal hizmetler kanunlarının düzenlediği hiçbir faaliyet için yetkilendirilmemiştir.
             </p>
           </div>
         </div>
