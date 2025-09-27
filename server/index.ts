@@ -23,6 +23,7 @@ import marketResearchRoutes from './market-research-routes';
 import chatRoutes from './chat-routes';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -127,6 +128,9 @@ app.use((req, res, next) => {
       console.log('📁 Created uploads directory structure');
     }
 
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+
     // Serve uploaded files (with basic security)
     app.use('/uploads', (req, res, next) => {
       // Basic security check - only serve files to authenticated users
@@ -135,7 +139,7 @@ app.use((req, res, next) => {
         return res.status(401).json({ error: 'Authentication required' });
       }
       next();
-    }, express.static(path.join(process.cwd(), 'uploads')));
+    }, express.static(path.join(__dirname, '../uploads')));
 
     // ALL routes
     app.use('/api/crypto', cryptoRoutes);

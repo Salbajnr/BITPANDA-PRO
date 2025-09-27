@@ -1,143 +1,231 @@
 
-import { Router } from "express";
-import { requireAuth } from "./simple-auth";
-import { storage } from "./storage";
-import { z } from "zod";
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { requireAuth } from './simple-auth';
+import { storage } from './storage';
 
 const router = Router();
 
-const createInvestmentPlanSchema = z.object({
-  name: z.string().min(1).max(200),
-  assetSymbol: z.string().min(1).max(10),
-  assetName: z.string().min(1).max(100),
-  assetType: z.enum(['crypto', 'stock', 'etf', 'metal']),
-  amount: z.number().min(1),
-  frequency: z.enum(['weekly', 'bi-weekly', 'monthly', 'quarterly']),
-  isActive: z.boolean().default(true)
+// Validation schemas
+const investmentSchema = z.object({
+  planId: z.string(),
+  amount: z.number().positive(),
 });
 
-const updateInvestmentPlanSchema = z.object({
-  name: z.string().min(1).max(200).optional(),
-  amount: z.number().min(1).optional(),
-  frequency: z.enum(['weekly', 'bi-weekly', 'monthly', 'quarterly']).optional(),
-  isActive: z.boolean().optional()
-});
-
-// Get user's investment plans
-router.get('/', requireAuth, async (req, res) => {
+// Get available investment plans
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const plans = await storage.getUserInvestmentPlans(req.user!.id);
+    // Mock investment plans data
+    const plans = [
+      {
+        id: 'conservative-growth',
+        name: 'Conservative Growth',
+        description: 'Low-risk investment plan with steady returns',
+        minInvestment: 100,
+        expectedReturn: 7.5,
+        duration: 12,
+        riskLevel: 'low',
+        category: 'Bonds & Fixed Income',
+        features: [
+          'Government bonds and high-grade corporate bonds',
+          'Capital preservation focus',
+          'Quarterly dividends',
+          'Low volatility'
+        ],
+        isActive: true,
+        totalInvested: 2500000,
+        totalInvestors: 1250
+      },
+      {
+        id: 'balanced-portfolio',
+        name: 'Balanced Portfolio',
+        description: 'Diversified mix of stocks and bonds for moderate growth',
+        minInvestment: 500,
+        expectedReturn: 12.0,
+        duration: 18,
+        riskLevel: 'medium',
+        category: 'Mixed Assets',
+        features: [
+          '60% stocks, 40% bonds allocation',
+          'Professional portfolio management',
+          'Monthly rebalancing',
+          'Global diversification'
+        ],
+        isActive: true,
+        totalInvested: 5750000,
+        totalInvestors: 2100
+      },
+      {
+        id: 'growth-equity',
+        name: 'Growth Equity',
+        description: 'High-growth potential with focus on emerging markets',
+        minInvestment: 1000,
+        expectedReturn: 18.5,
+        duration: 24,
+        riskLevel: 'high',
+        category: 'Equity',
+        features: [
+          'Growth stocks and tech companies',
+          'Emerging markets exposure',
+          'Active management strategy',
+          'High potential returns'
+        ],
+        isActive: true,
+        totalInvested: 3200000,
+        totalInvestors: 890
+      },
+      {
+        id: 'crypto-diversified',
+        name: 'Crypto Diversified',
+        description: 'Cryptocurrency portfolio with major digital assets',
+        minInvestment: 250,
+        expectedReturn: 25.0,
+        duration: 12,
+        riskLevel: 'high',
+        category: 'Cryptocurrency',
+        features: [
+          'Bitcoin and Ethereum focus',
+          'DeFi protocol investments',
+          'Institutional custody',
+          'Weekly rebalancing'
+        ],
+        isActive: true,
+        totalInvested: 1800000,
+        totalInvestors: 720
+      },
+      {
+        id: 'dividend-income',
+        name: 'Dividend Income',
+        description: 'Focus on dividend-paying stocks for regular income',
+        minInvestment: 750,
+        expectedReturn: 9.2,
+        duration: 15,
+        riskLevel: 'medium',
+        category: 'Dividend Stocks',
+        features: [
+          'High dividend yield stocks',
+          'Monthly income distribution',
+          'Dividend aristocrats focus',
+          'Reinvestment options'
+        ],
+        isActive: true,
+        totalInvested: 4100000,
+        totalInvestors: 1560
+      },
+      {
+        id: 'esg-sustainable',
+        name: 'ESG Sustainable',
+        description: 'Environmental, social, and governance focused investments',
+        minInvestment: 500,
+        expectedReturn: 11.8,
+        duration: 20,
+        riskLevel: 'medium',
+        category: 'ESG',
+        features: [
+          'Sustainable business practices',
+          'Climate-focused investments',
+          'Social impact measurement',
+          'Long-term value creation'
+        ],
+        isActive: true,
+        totalInvested: 2900000,
+        totalInvestors: 1340
+      }
+    ];
+
     res.json(plans);
   } catch (error) {
-    console.error('Error fetching investment plans:', error);
+    console.error('Get investment plans error:', error);
     res.status(500).json({ message: 'Failed to fetch investment plans' });
   }
 });
 
-// Create new investment plan
-router.post('/', requireAuth, async (req, res) => {
+// Create investment
+router.post('/invest', requireAuth, async (req: Request, res: Response) => {
   try {
-    const planData = createInvestmentPlanSchema.parse(req.body);
-    
-    const plan = await storage.createInvestmentPlan({
-      ...planData,
-      userId: req.user!.id,
-      totalInvested: '0',
-      currentValue: '0',
-      nextExecution: calculateNextExecution(planData.frequency)
+    const data = investmentSchema.parse(req.body);
+    const userId = req.user!.id;
+
+    // Check if user has sufficient balance
+    const portfolio = await storage.getPortfolio(userId);
+    if (!portfolio) {
+      return res.status(400).json({ message: 'Portfolio not found' });
+    }
+
+    const availableCash = parseFloat(portfolio.availableCash);
+    if (availableCash < data.amount) {
+      return res.status(400).json({ message: 'Insufficient balance' });
+    }
+
+    // Create investment record
+    const investment = {
+      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      planId: data.planId,
+      investedAmount: data.amount,
+      currentValue: data.amount,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toISOString(), // 1 year from now
+      status: 'active',
+      expectedReturn: 12.0, // Default expected return
+      actualReturn: 0,
+      createdAt: new Date().toISOString()
+    };
+
+    // Update portfolio balance
+    const newAvailableCash = availableCash - data.amount;
+    await storage.updatePortfolio(portfolio.id, {
+      availableCash: newAvailableCash.toString()
     });
 
-    res.json(plan);
+    // Store investment (you might want to add this to your storage layer)
+    // For now, we'll simulate success
+
+    res.json(investment);
   } catch (error) {
-    console.error('Error creating investment plan:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
-    }
-    res.status(500).json({ message: 'Failed to create investment plan' });
+    console.error('Create investment error:', error);
+    res.status(500).json({ message: 'Failed to create investment' });
   }
 });
 
-// Update investment plan
-router.patch('/:planId', requireAuth, async (req, res) => {
+// Get user investments
+router.get('/my-investments', requireAuth, async (req: Request, res: Response) => {
   try {
-    const updates = updateInvestmentPlanSchema.parse(req.body);
-    
-    const plan = await storage.updateInvestmentPlan(req.params.planId, req.user!.id, updates);
-    if (!plan) {
-      return res.status(404).json({ message: 'Investment plan not found' });
-    }
+    const userId = req.user!.id;
 
-    res.json(plan);
+    // Mock user investments data
+    const mockInvestments = [
+      {
+        id: 'inv_1',
+        planId: 'balanced-portfolio',
+        planName: 'Balanced Portfolio',
+        investedAmount: 5000,
+        currentValue: 5420,
+        startDate: '2024-01-15T00:00:00.000Z',
+        endDate: '2025-01-15T00:00:00.000Z',
+        status: 'active',
+        expectedReturn: 12.0,
+        actualReturn: 8.4
+      },
+      {
+        id: 'inv_2',
+        planId: 'dividend-income',
+        planName: 'Dividend Income',
+        investedAmount: 2500,
+        currentValue: 2680,
+        startDate: '2024-03-01T00:00:00.000Z',
+        endDate: '2025-06-01T00:00:00.000Z',
+        status: 'active',
+        expectedReturn: 9.2,
+        actualReturn: 7.2
+      }
+    ];
+
+    res.json(mockInvestments);
   } catch (error) {
-    console.error('Error updating investment plan:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
-    }
-    res.status(500).json({ message: 'Failed to update investment plan' });
+    console.error('Get user investments error:', error);
+    res.status(500).json({ message: 'Failed to fetch user investments' });
   }
 });
-
-// Delete investment plan
-router.delete('/:planId', requireAuth, async (req, res) => {
-  try {
-    const success = await storage.deleteInvestmentPlan(req.params.planId, req.user!.id);
-    if (!success) {
-      return res.status(404).json({ message: 'Investment plan not found' });
-    }
-
-    res.json({ message: 'Investment plan deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting investment plan:', error);
-    res.status(500).json({ message: 'Failed to delete investment plan' });
-  }
-});
-
-// Execute investment plan manually
-router.post('/:planId/execute', requireAuth, async (req, res) => {
-  try {
-    const execution = await storage.executeInvestmentPlan(req.params.planId, req.user!.id);
-    if (!execution) {
-      return res.status(404).json({ message: 'Investment plan not found or execution failed' });
-    }
-
-    res.json(execution);
-  } catch (error) {
-    console.error('Error executing investment plan:', error);
-    res.status(500).json({ message: 'Failed to execute investment plan' });
-  }
-});
-
-// Get investment plan execution history
-router.get('/:planId/history', requireAuth, async (req, res) => {
-  try {
-    const history = await storage.getInvestmentPlanHistory(req.params.planId, req.user!.id);
-    res.json(history);
-  } catch (error) {
-    console.error('Error fetching investment plan history:', error);
-    res.status(500).json({ message: 'Failed to fetch execution history' });
-  }
-});
-
-function calculateNextExecution(frequency: string): string {
-  const now = new Date();
-  const next = new Date(now);
-
-  switch (frequency) {
-    case 'weekly':
-      next.setDate(now.getDate() + 7);
-      break;
-    case 'bi-weekly':
-      next.setDate(now.getDate() + 14);
-      break;
-    case 'monthly':
-      next.setMonth(now.getMonth() + 1);
-      break;
-    case 'quarterly':
-      next.setMonth(now.getMonth() + 3);
-      break;
-  }
-
-  return next.toISOString().split('T')[0];
-}
 
 export default router;

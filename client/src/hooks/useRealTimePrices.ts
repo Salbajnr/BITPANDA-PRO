@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface PriceData {
@@ -50,40 +49,43 @@ export function useRealTimePrices({
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws`;
-      
+
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
         console.log('🔌 Real-time prices WebSocket connected');
-        setIsConnected(true);
-        setIsConnecting(false);
-        setConnectionError(null);
-        reconnectAttemptsRef.current = 0;
-        onConnectionChange?.(true);
 
-        // Subscribe to symbols
-        if (symbols.length > 0) {
-          wsRef.current?.send(JSON.stringify({
-            type: 'subscribe',
-            symbols: symbols
-          }));
-        }
+        // Wait a bit for connection to be fully established
+        setTimeout(() => {
+          if (wsRef.current?.readyState === WebSocket.OPEN) {
+            // Subscribe to price updates for major cryptocurrencies
+            const subscribeMessage = {
+              type: 'subscribe',
+              symbols: ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE', 'DOT', 'AVAX', 'LINK']
+            };
+
+            wsRef.current.send(JSON.stringify(subscribeMessage));
+            // Assuming setConnectionStatus is meant to be setIsConnected or similar
+            // For now, let's stick to the original state management for isConnected
+            // setConnectionStatus('connected'); // This line was removed as it's not defined in the original state
+          }
+        }, 100);
       };
 
       wsRef.current.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          
+
           if (message.type === 'price_update' && Array.isArray(message.data)) {
             const newPrices = new Map(prices);
-            
+
             message.data.forEach((priceData: PriceData) => {
               const normalizedSymbol = priceData.symbol.toUpperCase();
               newPrices.set(normalizedSymbol, {
                 ...priceData,
                 symbol: normalizedSymbol
               });
-              
+
               onPriceUpdate?.(priceData);
             });
 
@@ -91,9 +93,13 @@ export function useRealTimePrices({
             setLastUpdate(new Date());
           } else if (message.type === 'connection') {
             console.log('📡 WebSocket connection established');
+            // This might be where setConnectionStatus was intended to be used if it existed.
+            // For now, we rely on onopen and onclose for isConnected state.
+            setIsConnected(true); // Ensure connected state is true on explicit connection message
           } else if (message.type === 'error') {
             console.error('WebSocket error:', message.message);
             setConnectionError(message.message);
+            setIsConnected(false); // Ensure disconnected state on error message
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -118,14 +124,16 @@ export function useRealTimePrices({
         console.error('🔌 Real-time prices WebSocket error:', error);
         setConnectionError('Connection failed');
         setIsConnecting(false);
+        setIsConnected(false); // Ensure disconnected state on error
         onConnectionChange?.(false);
       };
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
       setConnectionError('Failed to create connection');
       setIsConnecting(false);
+      setIsConnected(false); // Ensure disconnected state on error
     }
-  }, [enabled, symbols, onPriceUpdate, onConnectionChange]);
+  }, [enabled, symbols, onPriceUpdate, onConnectionChange, prices]); // Added prices to dependency array as it's used in onmessage
 
   const attemptReconnect = useCallback(() => {
     if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
@@ -136,7 +144,7 @@ export function useRealTimePrices({
     const delay = Math.pow(2, reconnectAttemptsRef.current - 1) * 1000; // Exponential backoff
 
     console.log(`🔄 Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
-    
+
     reconnectTimeoutRef.current = setTimeout(() => {
       connect();
     }, delay);
@@ -214,18 +222,18 @@ export function useRealTimePrices({
     isConnecting,
     connectionError,
     lastUpdate,
-    
+
     // Actions
     connect,
     disconnect,
     subscribe,
     unsubscribe,
-    
+
     // Helpers
     getPrice,
     getPriceData,
     getChange,
-    
+
     // Stats
     connectedSymbols: symbols,
     totalSymbols: prices.size

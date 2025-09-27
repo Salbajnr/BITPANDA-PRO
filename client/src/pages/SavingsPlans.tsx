@@ -1,460 +1,555 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Target,
-  PiggyBank,
-  Clock,
-  Repeat,
-  Shield,
-  Calculator,
-  CheckCircle,
-  ArrowRight,
-  Play,
-  Pause,
-  Settings
-} from "lucide-react";
-import Navbar from "@/components/Navbar";
-import { useAuth } from "@/hooks/useAuth";
+  PiggyBank, Calendar, TrendingUp, DollarSign, Target, 
+  Plus, Pause, Play, Settings, ArrowRight, CheckCircle,
+  Clock, Repeat, Zap
+} from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Sidebar from '@/components/Sidebar';
 
-const savingsPlans = [
-  {
-    id: "conservative",
-    name: "Conservative Growth",
-    description: "Low-risk portfolio focused on stability and consistent returns",
-    expectedReturn: "4-6%",
-    riskLevel: "Low",
-    minInvestment: 25,
-    composition: [
-      { type: "Bonds", percentage: 60, color: "bg-blue-500" },
-      { type: "Dividend ETFs", percentage: 30, color: "bg-green-500" },
-      { type: "Cash", percentage: 10, color: "bg-gray-500" }
-    ],
-    features: ["Capital protection", "Steady income", "Low volatility"]
-  },
-  {
-    id: "balanced",
-    name: "Balanced Portfolio",
-    description: "Diversified mix of growth and income investments",
-    expectedReturn: "6-8%",
-    riskLevel: "Medium",
-    minInvestment: 50,
-    composition: [
-      { type: "Stocks", percentage: 60, color: "bg-green-500" },
-      { type: "Bonds", percentage: 30, color: "bg-blue-500" },
-      { type: "Commodities", percentage: 10, color: "bg-yellow-500" }
-    ],
-    features: ["Balanced risk-return", "Diversification", "Regular rebalancing"]
-  },
-  {
-    id: "growth",
-    name: "Growth Focus",
-    description: "High-growth potential with higher risk tolerance",
-    expectedReturn: "8-12%",
-    riskLevel: "High",
-    minInvestment: 100,
-    composition: [
-      { type: "Growth Stocks", percentage: 70, color: "bg-green-600" },
-      { type: "Tech ETFs", percentage: 20, color: "bg-purple-500" },
-      { type: "Emerging Markets", percentage: 10, color: "bg-orange-500" }
-    ],
-    features: ["High growth potential", "Long-term wealth building", "Active management"]
-  },
-  {
-    id: "crypto",
-    name: "Crypto Allocation",
-    description: "Modern portfolio with cryptocurrency exposure",
-    expectedReturn: "10-15%",
-    riskLevel: "Very High",
-    minInvestment: 25,
-    composition: [
-      { type: "Bitcoin", percentage: 40, color: "bg-orange-500" },
-      { type: "Ethereum", percentage: 30, color: "bg-blue-600" },
-      { type: "Crypto Indices", percentage: 30, color: "bg-purple-600" }
-    ],
-    features: ["Crypto diversification", "High volatility", "Digital assets"]
-  }
-];
+interface SavingsPlan {
+  id: string;
+  name: string;
+  description: string;
+  minAmount: number;
+  maxAmount: number;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  interestRate: number;
+  compounding: 'monthly' | 'quarterly' | 'annually';
+  minDuration: number;
+  maxDuration: number;
+  category: string;
+  features: string[];
+  isActive: boolean;
+}
 
-const goals = [
-  {
-    icon: <PiggyBank className="w-8 h-8" />,
-    title: "Emergency Fund",
-    description: "Build a financial safety net for unexpected expenses",
-    target: "3-6 months expenses",
-    timeframe: "1-2 years"
-  },
-  {
-    icon: <Target className="w-8 h-8" />,
-    title: "Retirement",
-    description: "Long-term wealth building for financial independence",
-    target: "€500,000+",
-    timeframe: "20-40 years"
-  },
-  {
-    icon: <Calendar className="w-8 h-8" />,
-    title: "House Down Payment",
-    description: "Save for your dream home purchase",
-    target: "€50,000-200,000",
-    timeframe: "5-10 years"
-  },
-  {
-    icon: <TrendingUp className="w-8 h-8" />,
-    title: "Wealth Building",
-    description: "General investment for long-term growth",
-    target: "Flexible",
-    timeframe: "10+ years"
-  }
-];
+interface UserSavingsPlan {
+  id: string;
+  planId: string;
+  planName: string;
+  amount: number;
+  frequency: string;
+  nextDeposit: string;
+  startDate: string;
+  endDate: string;
+  totalSaved: number;
+  interestEarned: number;
+  status: 'active' | 'paused' | 'completed';
+  autoDeposit: boolean;
+}
 
 export default function SavingsPlans() {
   const { user } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState(savingsPlans[1]);
-  const [monthlyAmount, setMonthlyAmount] = useState(100);
-  const [timeHorizon, setTimeHorizon] = useState(10);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedPlan, setSelectedPlan] = useState<SavingsPlan | null>(null);
+  const [planConfig, setPlanConfig] = useState({
+    amount: '',
+    frequency: 'monthly',
+    duration: '12',
+    autoDeposit: true
+  });
+  const [activeTab, setActiveTab] = useState('available');
 
-  const calculateProjection = () => {
-    const expectedReturnLow = parseFloat(selectedPlan.expectedReturn.split('-')[0]) / 100;
-    const monthlyContribution = monthlyAmount;
-    const years = timeHorizon;
-    const months = years * 12;
-    
-    // Future value of annuity formula
-    const futureValue = monthlyContribution * (((1 + expectedReturnLow/12) ** months - 1) / (expectedReturnLow/12));
-    const totalContributions = monthlyContribution * months;
-    const totalGains = futureValue - totalContributions;
-    
-    return {
-      futureValue: Math.round(futureValue),
-      totalContributions: Math.round(totalContributions),
-      totalGains: Math.round(totalGains)
-    };
+  // Fetch available savings plans
+  const { data: savingsPlans = [], isLoading: plansLoading } = useQuery({
+    queryKey: ['/api/savings-plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/savings-plans', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch savings plans');
+      return response.json();
+    }
+  });
+
+  // Fetch user's savings plans
+  const { data: userSavings = [], isLoading: savingsLoading } = useQuery({
+    queryKey: ['/api/savings-plans/my-plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/savings-plans/my-plans', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch user savings');
+      return response.json();
+    },
+    enabled: !!user
+  });
+
+  // Create savings plan mutation
+  const createPlanMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/savings-plans/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create savings plan');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Savings Plan Created",
+        description: "Your savings plan has been set up successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/savings-plans/my-plans'] });
+      setSelectedPlan(null);
+      setPlanConfig({ amount: '', frequency: 'monthly', duration: '12', autoDeposit: true });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Plan Creation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Toggle plan status mutation
+  const togglePlanMutation = useMutation({
+    mutationFn: async ({ planId, action }: { planId: string; action: 'pause' | 'resume' }) => {
+      const response = await fetch(`/api/savings-plans/${planId}/${action}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error(`Failed to ${action} savings plan`);
+      return response.json();
+    },
+    onSuccess: (_, { action }) => {
+      toast({
+        title: "Plan Updated",
+        description: `Savings plan ${action}d successfully.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/savings-plans/my-plans'] });
+    }
+  });
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
   };
 
-  const projection = calculateProjection();
+  const calculateProjectedSavings = (amount: number, frequency: string, duration: number, rate: number) => {
+    const monthlyAmount = frequency === 'monthly' ? amount : 
+                         frequency === 'weekly' ? amount * 4.33 : 
+                         amount * 30.44;
+    
+    const monthlyRate = rate / 100 / 12;
+    const months = duration;
+    
+    // Compound interest formula for regular deposits
+    const futureValue = monthlyAmount * (((1 + monthlyRate) ** months - 1) / monthlyRate);
+    return futureValue;
+  };
+
+  const handleCreatePlan = () => {
+    if (!selectedPlan || !planConfig.amount) return;
+    
+    const amount = parseFloat(planConfig.amount);
+    if (amount < selectedPlan.minAmount || amount > selectedPlan.maxAmount) {
+      toast({
+        title: "Invalid Amount",
+        description: `Amount must be between ${formatCurrency(selectedPlan.minAmount)} and ${formatCurrency(selectedPlan.maxAmount)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createPlanMutation.mutate({
+      planId: selectedPlan.id,
+      amount,
+      frequency: planConfig.frequency,
+      duration: parseInt(planConfig.duration),
+      autoDeposit: planConfig.autoDeposit
+    });
+  };
+
+  const getFrequencyLabel = (frequency: string) => {
+    switch (frequency) {
+      case 'daily': return 'Daily';
+      case 'weekly': return 'Weekly';
+      case 'monthly': return 'Monthly';
+      default: return frequency;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-green-50 via-white to-green-50 pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-8">
-              <Repeat className="w-4 h-4" />
-              <span>💰 Automated investing from €25/month</span>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
+          
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                Savings Plans
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400">
+                Build your wealth with automated saving strategies
+              </p>
             </div>
 
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Savings Plans
-              <span className="text-green-600 block mt-2">Automated investing made simple</span>
-            </h1>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="available">Available Plans</TabsTrigger>
+                <TabsTrigger value="my-plans">My Savings</TabsTrigger>
+                <TabsTrigger value="statistics">Statistics</TabsTrigger>
+              </TabsList>
 
-            <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
-              Build wealth automatically with our savings plans. Set your goals, choose your strategy, and let our algorithms do the work.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4">
-                Start saving now
-              </Button>
-              <Button variant="outline" size="lg" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-8 py-4">
-                Calculate returns
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Savings Calculator */}
-      <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Plan Your Savings</h2>
-            <p className="text-lg text-gray-600">See how your money can grow with compound interest</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Calculator Input */}
-            <div>
-              <Card className="border border-gray-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calculator className="w-5 h-5 text-green-600" />
-                    <span>Savings Calculator</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Monthly Investment
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
-                      <Input
-                        type="number"
-                        value={monthlyAmount}
-                        onChange={(e) => setMonthlyAmount(Number(e.target.value))}
-                        className="pl-8"
-                        min="25"
-                        step="25"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Time Horizon (Years)
-                    </label>
-                    <Input
-                      type="number"
-                      value={timeHorizon}
-                      onChange={(e) => setTimeHorizon(Number(e.target.value))}
-                      min="1"
-                      max="50"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Investment Strategy
-                    </label>
-                    <select 
-                      value={selectedPlan.id}
-                      onChange={(e) => setSelectedPlan(savingsPlans.find(p => p.id === e.target.value) || savingsPlans[0])}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    >
-                      {savingsPlans.map(plan => (
-                        <option key={plan.id} value={plan.id}>
-                          {plan.name} ({plan.expectedReturn} expected return)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Projection Results */}
-            <div>
-              <Card className="border border-green-200 bg-green-50">
-                <CardHeader>
-                  <CardTitle className="text-green-800">Your Projection</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-green-600 mb-2">
-                      €{projection.futureValue.toLocaleString()}
-                    </div>
-                    <p className="text-gray-600">Estimated value after {timeHorizon} years</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-green-200">
-                    <div className="text-center">
-                      <div className="text-xl font-semibold text-gray-900">
-                        €{projection.totalContributions.toLocaleString()}
-                      </div>
-                      <p className="text-sm text-gray-600">Total invested</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-semibold text-green-600">
-                        €{projection.totalGains.toLocaleString()}
-                      </div>
-                      <p className="text-sm text-gray-600">Potential gains</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>Progress visualization</span>
-                      <span>{Math.round((projection.totalGains / projection.futureValue) * 100)}% growth</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div 
-                        className="bg-green-500 h-3 rounded-full transition-all duration-300"
-                        style={{ width: `${(projection.totalContributions / projection.futureValue) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white mt-6">
-                    Start This Plan
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Savings Plans */}
-      <section className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Strategy</h2>
-            <p className="text-lg text-gray-600">Professional portfolios tailored to your risk tolerance</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {savingsPlans.map((plan) => (
-              <Card key={plan.id} className={`border-2 transition-all duration-200 hover:shadow-lg cursor-pointer ${
-                selectedPlan.id === plan.id 
-                  ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-200 hover:border-green-300'
-              }`} onClick={() => setSelectedPlan(plan)}>
-                <CardContent className="p-6">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{plan.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
-                    
-                    <div className="flex justify-between items-center mb-4">
-                      <div>
-                        <div className="text-xl font-bold text-green-600">{plan.expectedReturn}</div>
-                        <div className="text-xs text-gray-500">Expected return</div>
-                      </div>
-                      <Badge variant={plan.riskLevel === 'Low' ? 'secondary' : plan.riskLevel === 'Medium' ? 'default' : 'destructive'}>
-                        {plan.riskLevel} Risk
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Portfolio Composition */}
-                  <div className="mb-4">
-                    <div className="text-sm font-medium text-gray-700 mb-2">Portfolio Mix</div>
-                    <div className="space-y-2">
-                      {plan.composition.map((item, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                            <span className="text-sm text-gray-600">{item.type}</span>
-                          </div>
-                          <span className="text-sm font-medium">{item.percentage}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 mb-4">
-                    {plan.features.map((feature, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm text-gray-600">{feature}</span>
-                      </div>
+              <TabsContent value="available" className="space-y-6">
+                {plansLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(6)].map((_, i) => (
+                      <Card key={i} className="h-80 animate-pulse">
+                        <div className="h-full bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                      </Card>
                     ))}
                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {savingsPlans.map((plan: SavingsPlan) => (
+                      <Card key={plan.id} className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <PiggyBank className="h-5 w-5" />
+                              {plan.name}
+                            </CardTitle>
+                            <Badge variant="outline">
+                              {plan.interestRate}% APY
+                            </Badge>
+                          </div>
+                          <CardDescription>{plan.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Min Amount</p>
+                              <p className="text-lg font-bold">{formatCurrency(plan.minAmount)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Max Amount</p>
+                              <p className="text-lg font-bold">{formatCurrency(plan.maxAmount)}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Frequency</p>
+                              <p className="font-medium">{getFrequencyLabel(plan.frequency)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Compounding</p>
+                              <p className="font-medium capitalize">{plan.compounding}</p>
+                            </div>
+                          </div>
 
-                  <div className="text-center pt-4 border-t border-gray-200">
-                    <div className="text-sm text-gray-500">From €{plan.minInvestment}/month</div>
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Duration</p>
+                            <p className="font-medium">
+                              {plan.minDuration} - {plan.maxDuration} months
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">Features:</p>
+                            <ul className="text-xs space-y-1">
+                              {plan.features.slice(0, 3).map((feature, idx) => (
+                                <li key={idx} className="flex items-center gap-2">
+                                  <CheckCircle className="h-3 w-3 text-green-500" />
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                className="w-full" 
+                                onClick={() => setSelectedPlan(plan)}
+                              >
+                                Start Saving
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Set Up {selectedPlan?.name}</DialogTitle>
+                              </DialogHeader>
+                              
+                              {selectedPlan && (
+                                <div className="space-y-4">
+                                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="text-center">
+                                      <p className="text-sm text-slate-600">Interest Rate</p>
+                                      <p className="text-2xl font-bold text-green-600">
+                                        {selectedPlan.interestRate}% APY
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor="amount">Amount per {planConfig.frequency}</Label>
+                                    <Input
+                                      id="amount"
+                                      type="number"
+                                      placeholder={`Min. ${formatCurrency(selectedPlan.minAmount)}`}
+                                      value={planConfig.amount}
+                                      onChange={(e) => setPlanConfig({...planConfig, amount: e.target.value})}
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor="frequency">Frequency</Label>
+                                    <Select 
+                                      value={planConfig.frequency} 
+                                      onValueChange={(value) => setPlanConfig({...planConfig, frequency: value})}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="daily">Daily</SelectItem>
+                                        <SelectItem value="weekly">Weekly</SelectItem>
+                                        <SelectItem value="monthly">Monthly</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor="duration">Duration (months)</Label>
+                                    <Select 
+                                      value={planConfig.duration} 
+                                      onValueChange={(value) => setPlanConfig({...planConfig, duration: value})}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="6">6 months</SelectItem>
+                                        <SelectItem value="12">1 year</SelectItem>
+                                        <SelectItem value="24">2 years</SelectItem>
+                                        <SelectItem value="36">3 years</SelectItem>
+                                        <SelectItem value="60">5 years</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="flex items-center justify-between">
+                                    <Label htmlFor="auto-deposit">Auto Deposit</Label>
+                                    <Switch
+                                      id="auto-deposit"
+                                      checked={planConfig.autoDeposit}
+                                      onCheckedChange={(checked) => 
+                                        setPlanConfig({...planConfig, autoDeposit: checked})
+                                      }
+                                    />
+                                  </div>
+
+                                  {planConfig.amount && parseFloat(planConfig.amount) > 0 && (
+                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                                        Projected savings after {planConfig.duration} months:
+                                      </p>
+                                      <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                        {formatCurrency(
+                                          calculateProjectedSavings(
+                                            parseFloat(planConfig.amount),
+                                            planConfig.frequency,
+                                            parseInt(planConfig.duration),
+                                            selectedPlan.interestRate
+                                          )
+                                        )}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  <Button
+                                    onClick={handleCreatePlan}
+                                    disabled={createPlanMutation.isPending || !planConfig.amount}
+                                    className="w-full"
+                                  >
+                                    {createPlanMutation.isPending ? 'Creating...' : 'Create Savings Plan'}
+                                  </Button>
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+                )}
+              </TabsContent>
 
-      {/* Goals Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What are you saving for?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose a goal that matches your timeline and risk tolerance
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {goals.map((goal, index) => (
-              <Card key={index} className="border border-gray-200 hover:border-green-300 transition-all duration-200">
-                <CardContent className="p-8">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                      {goal.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{goal.title}</h3>
-                      <p className="text-gray-600 mb-4">{goal.description}</p>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-sm text-gray-500">Target Amount</div>
-                          <div className="font-semibold text-gray-900">{goal.target}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">Timeframe</div>
-                          <div className="font-semibold text-gray-900">{goal.timeframe}</div>
-                        </div>
-                      </div>
-                    </div>
+              <TabsContent value="my-plans" className="space-y-6">
+                {savingsLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <Card key={i} className="h-32 animate-pulse">
+                        <div className="h-full bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                      </Card>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ) : userSavings.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <PiggyBank className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                      <h3 className="text-lg font-semibold mb-2">No Savings Plans Yet</h3>
+                      <p className="text-slate-600 dark:text-slate-400 mb-4">
+                        Start your savings journey with our automated plans.
+                      </p>
+                      <Button onClick={() => setActiveTab('available')}>
+                        Browse Savings Plans
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {userSavings.map((saving: UserSavingsPlan) => (
+                      <Card key={saving.id}>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold flex items-center gap-2">
+                                <PiggyBank className="h-5 w-5" />
+                                {saving.planName}
+                              </h3>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                Started {new Date(saving.startDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={saving.status === 'active' ? 'default' : 'secondary'}>
+                                {saving.status.toUpperCase()}
+                              </Badge>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => togglePlanMutation.mutate({
+                                  planId: saving.id,
+                                  action: saving.status === 'active' ? 'pause' : 'resume'
+                                })}
+                                disabled={togglePlanMutation.isPending}
+                              >
+                                {saving.status === 'active' ? 
+                                  <Pause className="h-4 w-4" /> : 
+                                  <Play className="h-4 w-4" />
+                                }
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {getFrequencyLabel(saving.frequency)} Amount
+                              </p>
+                              <p className="text-lg font-bold">{formatCurrency(saving.amount)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Total Saved</p>
+                              <p className="text-lg font-bold">{formatCurrency(saving.totalSaved)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Interest Earned</p>
+                              <p className="text-lg font-bold text-green-600">
+                                {formatCurrency(saving.interestEarned)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Next Deposit</p>
+                              <p className="text-lg font-bold">
+                                {new Date(saving.nextDeposit).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <Repeat className="h-4 w-4" />
+                              <span>Auto Deposit: {saving.autoDeposit ? 'Enabled' : 'Disabled'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              <span>Ends: {new Date(saving.endDate).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="statistics" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Total Saved</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(
+                          userSavings.reduce((sum: number, saving: UserSavingsPlan) => 
+                            sum + saving.totalSaved, 0
+                          )
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Interest Earned</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-green-600">
+                        {formatCurrency(
+                          userSavings.reduce((sum: number, saving: UserSavingsPlan) => 
+                            sum + saving.interestEarned, 0
+                          )
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Active Plans</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">
+                        {userSavings.filter((saving: UserSavingsPlan) => 
+                          saving.status === 'active'
+                        ).length}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </main>
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why choose our savings plans?</h2>
-            <p className="text-xl text-gray-600">Automated investing with professional management</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center p-8 border-gray-200">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Repeat className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Automated Investing</h3>
-              <p className="text-gray-600">Set it and forget it. Your investments happen automatically every month</p>
-            </Card>
-
-            <Card className="text-center p-8 border-gray-200">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Professional Management</h3>
-              <p className="text-gray-600">Expert portfolio management and automatic rebalancing</p>
-            </Card>
-
-            <Card className="text-center p-8 border-gray-200">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <DollarSign className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Low Fees</h3>
-              <p className="text-gray-600">Transparent, low-cost investing with no hidden fees</p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-green-600">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">Start building wealth today</h2>
-          <p className="text-xl text-green-100 mb-10 max-w-2xl mx-auto">
-            Join thousands of investors who are building wealth with our automated savings plans.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4">
-              Start investing
-            </Button>
-            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600 px-12 py-4">
-              Schedule consultation
-            </Button>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

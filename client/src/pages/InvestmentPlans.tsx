@@ -1,329 +1,451 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  TrendingUp, 
-  Calendar,
-  DollarSign,
-  PiggyBank,
-  Target,
-  Repeat,
-  Clock,
-  BarChart3,
-  CheckCircle,
-  Plus
-} from "lucide-react";
-import Navbar from "@/components/Navbar";
+  TrendingUp, DollarSign, Calendar, Target, PieChart, 
+  ArrowRight, CheckCircle, Star, Shield, Zap, Globe 
+} from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Sidebar from '@/components/Sidebar';
 
-const investmentPlans = [
-  {
-    id: 1,
-    name: "Bitcoin Dollar-Cost Averaging",
-    asset: "Bitcoin",
-    symbol: "BTC",
-    amount: 50,
-    frequency: "Weekly",
-    status: "Active",
-    totalInvested: 2400,
-    currentValue: 2856,
-    nextExecution: "2025-01-22"
-  },
-  {
-    id: 2,
-    name: "World ETF Plan",
-    asset: "MSCI World ETF",
-    symbol: "IWDA",
-    amount: 200,
-    frequency: "Monthly",
-    status: "Active",
-    totalInvested: 2400,
-    currentValue: 2654,
-    nextExecution: "2025-02-01"
-  },
-  {
-    id: 3,
-    name: "Gold Accumulation",
-    asset: "Gold",
-    symbol: "XAU",
-    amount: 100,
-    frequency: "Monthly",
-    status: "Paused",
-    totalInvested: 800,
-    currentValue: 845,
-    nextExecution: "Paused"
-  },
-  {
-    id: 4,
-    name: "Tech Stocks Portfolio",
-    asset: "Apple Inc.",
-    symbol: "AAPL",
-    amount: 150,
-    frequency: "Monthly",
-    status: "Active",
-    totalInvested: 1800,
-    currentValue: 1945,
-    nextExecution: "2025-02-01"
-  }
-];
+interface InvestmentPlan {
+  id: string;
+  name: string;
+  description: string;
+  minInvestment: number;
+  expectedReturn: number;
+  duration: number;
+  riskLevel: 'low' | 'medium' | 'high';
+  category: string;
+  features: string[];
+  isActive: boolean;
+  totalInvested: number;
+  totalInvestors: number;
+}
 
-const popularAssets = [
-  { name: "Bitcoin", symbol: "BTC", type: "Crypto", minAmount: 1 },
-  { name: "Ethereum", symbol: "ETH", type: "Crypto", minAmount: 1 },
-  { name: "MSCI World ETF", symbol: "IWDA", type: "ETF", minAmount: 5 },
-  { name: "S&P 500 ETF", symbol: "SPY", type: "ETF", minAmount: 5 },
-  { name: "Gold", symbol: "XAU", type: "Metal", minAmount: 10 },
-  { name: "Apple", symbol: "AAPL", type: "Stock", minAmount: 1 },
-  { name: "Microsoft", symbol: "MSFT", type: "Stock", minAmount: 1 },
-  { name: "Tesla", symbol: "TSLA", type: "Stock", minAmount: 1 }
-];
-
-const frequencies = ["Weekly", "Bi-weekly", "Monthly", "Quarterly"];
+interface UserInvestment {
+  id: string;
+  planId: string;
+  planName: string;
+  investedAmount: number;
+  currentValue: number;
+  startDate: string;
+  endDate: string;
+  status: 'active' | 'completed' | 'paused';
+  expectedReturn: number;
+  actualReturn: number;
+}
 
 export default function InvestmentPlans() {
-  const [selectedAsset, setSelectedAsset] = useState("");
-  const [amount, setAmount] = useState("");
-  const [frequency, setFrequency] = useState("Monthly");
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
+  const [investmentAmount, setInvestmentAmount] = useState('');
+  const [activeTab, setActiveTab] = useState('available');
 
-  const totalInvested = investmentPlans.reduce((sum, plan) => sum + plan.totalInvested, 0);
-  const totalValue = investmentPlans.reduce((sum, plan) => sum + plan.currentValue, 0);
-  const totalGain = totalValue - totalInvested;
-  const totalGainPercent = ((totalGain / totalInvested) * 100).toFixed(2);
+  // Fetch available investment plans
+  const { data: plans = [], isLoading: plansLoading } = useQuery({
+    queryKey: ['/api/investment-plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/investment-plans', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch investment plans');
+      return response.json();
+    }
+  });
+
+  // Fetch user's investments
+  const { data: userInvestments = [], isLoading: investmentsLoading } = useQuery({
+    queryKey: ['/api/investment-plans/my-investments'],
+    queryFn: async () => {
+      const response = await fetch('/api/investment-plans/my-investments', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch user investments');
+      return response.json();
+    },
+    enabled: !!user
+  });
+
+  // Investment mutation
+  const investMutation = useMutation({
+    mutationFn: async (data: { planId: string; amount: number }) => {
+      const response = await fetch('/api/investment-plans/invest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Investment failed');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Investment Successful",
+        description: "Your investment has been created successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/investment-plans/my-investments'] });
+      setSelectedPlan(null);
+      setInvestmentAmount('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Investment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'low': return 'text-green-600 bg-green-100';
+      case 'medium': return 'text-yellow-600 bg-yellow-100';
+      case 'high': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const calculateProgress = (startDate: string, endDate: string) => {
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    const now = Date.now();
+    const total = end - start;
+    const elapsed = now - start;
+    return Math.min(Math.max((elapsed / total) * 100, 0), 100);
+  };
+
+  const handleInvest = () => {
+    if (!selectedPlan || !investmentAmount) return;
+    
+    const amount = parseFloat(investmentAmount);
+    if (amount < selectedPlan.minInvestment) {
+      toast({
+        title: "Invalid Amount",
+        description: `Minimum investment is ${formatCurrency(selectedPlan.minInvestment)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    investMutation.mutate({ planId: selectedPlan.id, amount });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Investment Plans</h1>
-          <p className="text-xl text-gray-600">
-            Automate your investments with recurring purchases across multiple asset classes
-          </p>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Invested</p>
-                  <p className="text-2xl font-bold text-gray-900">€{totalInvested.toLocaleString()}</p>
-                </div>
-                <PiggyBank className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Current Value</p>
-                  <p className="text-2xl font-bold text-gray-900">€{totalValue.toLocaleString()}</p>
-                </div>
-                <BarChart3 className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Gain/Loss</p>
-                  <p className={`text-2xl font-bold ${totalGain >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    €{totalGain.toLocaleString()}
-                  </p>
-                  <p className={`text-sm ${totalGain >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {totalGain >= 0 ? '+' : ''}{totalGainPercent}%
-                  </p>
-                </div>
-                <TrendingUp className={`w-8 h-8 ${totalGain >= 0 ? 'text-green-500' : 'text-red-500'}`} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Active Plans</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {investmentPlans.filter(plan => plan.status === 'Active').length}
-                  </p>
-                </div>
-                <Target className="w-8 h-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Your Investment Plans</h2>
-          <Button 
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="bg-green-500 hover:bg-green-600 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create New Plan
-          </Button>
-        </div>
-
-        {/* Create Form */}
-        {showCreateForm && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Create New Investment Plan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Asset</label>
-                  <select 
-                    value={selectedAsset}
-                    onChange={(e) => setSelectedAsset(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="">Select an asset</option>
-                    {popularAssets.map(asset => (
-                      <option key={asset.symbol} value={asset.symbol}>
-                        {asset.name} ({asset.symbol}) - {asset.type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Amount (€)</label>
-                  <Input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="25"
-                    min="1"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
-                  <select 
-                    value={frequency}
-                    onChange={(e) => setFrequency(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    {frequencies.map(freq => (
-                      <option key={freq} value={freq}>{freq}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-end">
-                  <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
-                    Create Plan
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Investment Plans List */}
-        <div className="space-y-4 mb-8">
-          {investmentPlans.map((plan) => (
-            <Card key={plan.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 items-center">
-                  <div className="lg:col-span-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <PiggyBank className="w-6 h-6 text-gray-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900">{plan.name}</h3>
-                        <p className="text-sm text-gray-500">{plan.asset} ({plan.symbol})</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-center lg:text-left">
-                    <p className="text-sm text-gray-600">Amount & Frequency</p>
-                    <p className="font-semibold text-gray-900">€{plan.amount} {plan.frequency}</p>
-                  </div>
-
-                  <div className="text-center lg:text-left">
-                    <p className="text-sm text-gray-600">Total Invested</p>
-                    <p className="font-semibold text-gray-900">€{plan.totalInvested.toLocaleString()}</p>
-                  </div>
-
-                  <div className="text-center lg:text-left">
-                    <p className="text-sm text-gray-600">Current Value</p>
-                    <p className="font-semibold text-gray-900">€{plan.currentValue.toLocaleString()}</p>
-                    <div className={`text-sm ${plan.currentValue >= plan.totalInvested ? 'text-green-600' : 'text-red-500'}`}>
-                      {plan.currentValue >= plan.totalInvested ? '+' : ''}
-                      {(((plan.currentValue - plan.totalInvested) / plan.totalInvested) * 100).toFixed(1)}%
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between lg:justify-end space-x-3">
-                    <div className="text-right">
-                      <Badge 
-                        variant={plan.status === 'Active' ? 'default' : 'secondary'}
-                        className={plan.status === 'Active' ? 'bg-green-500' : ''}
-                      >
-                        {plan.status}
-                      </Badge>
-                      {plan.status === 'Active' && (
-                        <p className="text-xs text-gray-500 mt-1">Next: {plan.nextExecution}</p>
-                      )}
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Manage
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Benefits Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            Why use Investment Plans?
-          </h3>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Repeat className="w-8 h-8 text-green-600" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Dollar-Cost Averaging</h4>
-              <p className="text-gray-600">Reduce the impact of market volatility by investing regularly over time across all asset classes</p>
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                Investment Plans
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400">
+                Diversify your portfolio with our curated investment opportunities
+              </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-blue-600" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Automated Investing</h4>
-              <p className="text-gray-600">Set it and forget it - your investments happen automatically across crypto, stocks, ETFs, and metals</p>
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="available">Available Plans</TabsTrigger>
+                <TabsTrigger value="my-investments">My Investments</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
+              </TabsList>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="w-8 h-8 text-purple-600" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">Diversified Portfolio</h4>
-              <p className="text-gray-600">Build a balanced portfolio systematically across multiple investment vehicles</p>
-            </div>
-          </div>
+              <TabsContent value="available" className="space-y-6">
+                {plansLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(6)].map((_, i) => (
+                      <Card key={i} className="h-80 animate-pulse">
+                        <div className="h-full bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {plans.map((plan: InvestmentPlan) => (
+                      <Card key={plan.id} className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">{plan.name}</CardTitle>
+                            <Badge className={getRiskColor(plan.riskLevel)}>
+                              {plan.riskLevel.toUpperCase()} RISK
+                            </Badge>
+                          </div>
+                          <CardDescription>{plan.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Expected Return</p>
+                              <p className="text-lg font-bold text-green-600">{plan.expectedReturn}%</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Duration</p>
+                              <p className="text-lg font-bold">{plan.duration} months</p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Min. Investment</p>
+                            <p className="text-lg font-bold">{formatCurrency(plan.minInvestment)}</p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">Features:</p>
+                            <ul className="text-xs space-y-1">
+                              {plan.features.slice(0, 3).map((feature, idx) => (
+                                <li key={idx} className="flex items-center gap-2">
+                                  <CheckCircle className="h-3 w-3 text-green-500" />
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
+                              {formatCurrency(plan.totalInvested)} invested
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Target className="h-3 w-3" />
+                              {plan.totalInvestors} investors
+                            </div>
+                          </div>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                className="w-full" 
+                                onClick={() => setSelectedPlan(plan)}
+                              >
+                                Invest Now
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Invest in {selectedPlan?.name}</DialogTitle>
+                              </DialogHeader>
+                              
+                              {selectedPlan && (
+                                <div className="space-y-4">
+                                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                      <div>
+                                        <span className="text-slate-600">Expected Return:</span>
+                                        <span className="font-bold text-green-600 ml-2">
+                                          {selectedPlan.expectedReturn}%
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-slate-600">Duration:</span>
+                                        <span className="font-bold ml-2">
+                                          {selectedPlan.duration} months
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor="investment-amount">Investment Amount</Label>
+                                    <Input
+                                      id="investment-amount"
+                                      type="number"
+                                      placeholder={`Min. ${formatCurrency(selectedPlan.minInvestment)}`}
+                                      value={investmentAmount}
+                                      onChange={(e) => setInvestmentAmount(e.target.value)}
+                                    />
+                                  </div>
+
+                                  {investmentAmount && parseFloat(investmentAmount) > 0 && (
+                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                                        Expected value after {selectedPlan.duration} months:
+                                      </p>
+                                      <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                        {formatCurrency(
+                                          parseFloat(investmentAmount) * (1 + selectedPlan.expectedReturn / 100)
+                                        )}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  <Button
+                                    onClick={handleInvest}
+                                    disabled={investMutation.isPending || !investmentAmount}
+                                    className="w-full"
+                                  >
+                                    {investMutation.isPending ? 'Processing...' : 'Confirm Investment'}
+                                  </Button>
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="my-investments" className="space-y-6">
+                {investmentsLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <Card key={i} className="h-32 animate-pulse">
+                        <div className="h-full bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : userInvestments.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <PieChart className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                      <h3 className="text-lg font-semibold mb-2">No Investments Yet</h3>
+                      <p className="text-slate-600 dark:text-slate-400 mb-4">
+                        Start your investment journey by choosing from our available plans.
+                      </p>
+                      <Button onClick={() => setActiveTab('available')}>
+                        Browse Investment Plans
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {userInvestments.map((investment: UserInvestment) => (
+                      <Card key={investment.id}>
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{investment.planName}</h3>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                Started {new Date(investment.startDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <Badge variant={investment.status === 'active' ? 'default' : 'secondary'}>
+                              {investment.status.toUpperCase()}
+                            </Badge>
+                          </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Invested</p>
+                              <p className="text-lg font-bold">{formatCurrency(investment.investedAmount)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Current Value</p>
+                              <p className="text-lg font-bold">{formatCurrency(investment.currentValue)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Expected Return</p>
+                              <p className="text-lg font-bold text-green-600">
+                                {investment.expectedReturn.toFixed(2)}%
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Actual Return</p>
+                              <p className={`text-lg font-bold ${
+                                investment.actualReturn >= 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {investment.actualReturn.toFixed(2)}%
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>Progress</span>
+                              <span>
+                                {new Date(investment.endDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <Progress 
+                              value={calculateProgress(investment.startDate, investment.endDate)} 
+                              className="h-2"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="performance" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Total Invested</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(
+                          userInvestments.reduce((sum: number, inv: UserInvestment) => 
+                            sum + inv.investedAmount, 0
+                          )
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Current Value</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">
+                        {formatCurrency(
+                          userInvestments.reduce((sum: number, inv: UserInvestment) => 
+                            sum + inv.currentValue, 0
+                          )
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Total Return</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-green-600">
+                        {((userInvestments.reduce((sum: number, inv: UserInvestment) => 
+                          sum + inv.currentValue, 0
+                        ) / Math.max(userInvestments.reduce((sum: number, inv: UserInvestment) => 
+                          sum + inv.investedAmount, 0
+                        ), 1) - 1) * 100).toFixed(2)}%
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </main>
         </div>
       </div>
     </div>
