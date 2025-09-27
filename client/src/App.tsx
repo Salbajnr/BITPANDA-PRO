@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { MessageModalProvider } from '@/contexts/MessageModalContext';
 import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
 import Landing from "@/pages/Landing";
@@ -149,99 +150,100 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <LanguageProvider>
-          <Switch>
-            {/* Public Routes */}
-            <Route path="/" component={() => <PublicLayout><Landing /></PublicLayout>} />
-            <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
-            <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
-            <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
-            <Route path="/news" component={() => <PublicLayout><News /></PublicLayout>} />
-            <Route path="/research" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><MarketResearchDashboard /></Suspense></PublicLayout>} />
-            <Route path="/about" component={() => <PublicLayout><About /></PublicLayout>} />
-            <Route path="/features" component={() => <PublicLayout><Features /></PublicLayout>} />
-            <Route path="/help" component={() => <PublicLayout><Help /></PublicLayout>} />
-            <Route path="/contact" component={() => <PublicLayout><Contact /></PublicLayout>} />
-            <Route path="/privacy" component={() => <PublicLayout><Privacy /></PublicLayout>} />
-            <Route path="/terms" component={() => <PublicLayout><Terms /></PublicLayout>} />
+            <MessageModalProvider>
+              <Switch>
+                {/* Public Routes */}
+                <Route path="/" component={() => <PublicLayout><Landing /></PublicLayout>} />
+                <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
+                <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
+                <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
+                <Route path="/news" component={() => <PublicLayout><News /></PublicLayout>} />
+                <Route path="/research" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><MarketResearchDashboard /></Suspense></PublicLayout>} />
+                <Route path="/about" component={() => <PublicLayout><About /></PublicLayout>} />
+                <Route path="/features" component={() => <PublicLayout><Features /></PublicLayout>} />
+                <Route path="/help" component={() => <PublicLayout><Help /></PublicLayout>} />
+                <Route path="/contact" component={() => <PublicLayout><Contact /></PublicLayout>} />
+                <Route path="/privacy" component={() => <PublicLayout><Privacy /></PublicLayout>} />
+                <Route path="/terms" component={() => <PublicLayout><Terms /></PublicLayout>} />
 
-            {/* Investment Routes */}
-            <Route path="/stocks" component={Stocks} />
-            <Route path="/etfs" component={Etfs} />
-            <Route path="/crypto-indices" component={CryptoIndices} />
-            <Route path="/precious-metals" component={() => <Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense>} />
-            <Route path="/savings-plans" component={SavingsPlans} />
-            <Route path="/metals-trading" component={() => <Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense>} />
-            <Route path="/commodities" component={() => <Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense>} />
-            <Route path="/dual-markets" component={DualMarkets} />
+                {/* Investment Routes */}
+                <Route path="/stocks" component={Stocks} />
+                <Route path="/etfs" component={Etfs} />
+                <Route path="/crypto-indices" component={CryptoIndices} />
+                <Route path="/precious-metals" component={() => <Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense>} />
+                <Route path="/savings-plans" component={SavingsPlans} />
+                <Route path="/metals-trading" component={() => <Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense>} />
+                <Route path="/commodities" component={() => <Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense>} />
+                <Route path="/dual-markets" component={DualMarkets} />
 
-            {/* Information Routes */}
-            <Route path="/api-docs" component={API} />
-            <Route path="/press" component={Press} />
-            <Route path="/imprint" component={Imprint} />
-            <Route path="/careers" component={Careers} />
-            <Route path="/academy" component={Academy} />
-            <Route path="/help-center" component={HelpCenter} />
-            <Route path="/user-agreement" component={UserAgreement} />
-            <Route path="/tutorials" component={Tutorials} />
-            <Route path="/security" component={Security} />
-            <Route path="/investor-protection" component={InvestorProtection} />
-            <Route path="/forgot-password" component={ForgotPassword} />
-            <Route path="/verify-otp/:type/:email" component={OtpVerification} />
-            <Route path="/reset-password/:token" component={ResetPassword} />
-            <Route path="/api" component={API} />
-            <Route path="/ecosystem" component={Ecosystem} />
+                {/* Information Routes */}
+                <Route path="/api-docs" component={API} />
+                <Route path="/press" component={Press} />
+                <Route path="/imprint" component={Imprint} />
+                <Route path="/careers" component={Careers} />
+                <Route path="/academy" component={Academy} />
+                <Route path="/help-center" component={HelpCenter} />
+                <Route path="/user-agreement" component={UserAgreement} />
+                <Route path="/tutorials" component={Tutorials} />
+                <Route path="/security" component={Security} />
+                <Route path="/investor-protection" component={InvestorProtection} />
+                <Route path="/forgot-password" component={ForgotPassword} />
+                <Route path="/verify-otp/:type/:email" component={OtpVerification} />
+                <Route path="/reset-password/:token" component={ResetPassword} />
+                <Route path="/api" component={API} />
+                <Route path="/ecosystem" component={Ecosystem} />
 
-            {/* Protected Dashboard Routes */}
-            <Route path="/dashboard" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/portfolio" component={() => <ProtectedRoute><PortfolioTracker /></ProtectedRoute>} />
-            <Route path="/analytics" component={() => <ProtectedRoute><Analytics /></ProtectedRoute>} />
-            <Route path="/trading" component={() => <ProtectedRoute><Trading /></ProtectedRoute>} />
-            <Route path="/advanced-trading" component={() => <ProtectedRoute><AdvancedTrading /></ProtectedRoute>} />
-            <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
-            <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />
-            <Route path="/watchlist" component={() => <ProtectedRoute><Watchlist /></ProtectedRoute>} />
-            <Route path="/alerts" component={() => <ProtectedRoute><Alerts /></ProtectedRoute>} />
-            <Route path="/notifications" component={() => <ProtectedRoute><Notifications /></ProtectedRoute>} />
-            <Route path="/deposits" component={() => <ProtectedRoute><Deposits /></ProtectedRoute>} />
-            <Route path="/withdrawals" component={() => <ProtectedRoute><Withdrawals /></ProtectedRoute>} />
-            <Route path="/tax-reporting" component={() => <ProtectedRoute><TaxReporting /></ProtectedRoute>} />
-            <Route path="/risk-management" component={() => <ProtectedRoute><RiskManagement /></ProtectedRoute>} />
-            <Route path="/api-management" component={() => <ProtectedRoute><APIManagement /></ProtectedRoute>} />
-            <Route path="/settings" component={() => <ProtectedRoute><UserSettings /></ProtectedRoute>} />
+                {/* Protected Dashboard Routes */}
+                <Route path="/dashboard" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/portfolio" component={() => <ProtectedRoute><PortfolioTracker /></ProtectedRoute>} />
+                <Route path="/analytics" component={() => <ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/trading" component={() => <ProtectedRoute><Trading /></ProtectedRoute>} />
+                <Route path="/advanced-trading" component={() => <ProtectedRoute><AdvancedTrading /></ProtectedRoute>} />
+                <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+                <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />
+                <Route path="/watchlist" component={() => <ProtectedRoute><Watchlist /></ProtectedRoute>} />
+                <Route path="/alerts" component={() => <ProtectedRoute><Alerts /></ProtectedRoute>} />
+                <Route path="/notifications" component={() => <ProtectedRoute><Notifications /></ProtectedRoute>} />
+                <Route path="/deposits" component={() => <ProtectedRoute><Deposits /></ProtectedRoute>} />
+                <Route path="/withdrawals" component={() => <ProtectedRoute><Withdrawals /></ProtectedRoute>} />
+                <Route path="/tax-reporting" component={() => <ProtectedRoute><TaxReporting /></ProtectedRoute>} />
+                <Route path="/risk-management" component={() => <ProtectedRoute><RiskManagement /></ProtectedRoute>} />
+                <Route path="/api-management" component={() => <ProtectedRoute><APIManagement /></ProtectedRoute>} />
+                <Route path="/settings" component={() => <ProtectedRoute><UserSettings /></ProtectedRoute>} />
 
-            {/* KYC Verification Route */}
-            <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
-            
-            {/* Asset Details Route - Available to all users */}
-            <Route path="/asset-details" component={AssetDetails} />
-            <Route path="/landing" component={Landing} />
+                {/* KYC Verification Route */}
+                <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/admin/dashboard" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/admin/users" component={() => <AdminRoute><AdminUsers /></AdminRoute>} />
-            <Route path="/admin/kyc" component={() => <AdminRoute><AdminKycManagement /></AdminRoute>} />
-            <Route path="/admin/balance" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
-            <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
-            <Route path="/admin/news" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
-            <Route path="/admin/news-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
-            <Route path="/admin/balances" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
-            <Route path="/admin/balance-management" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
-            <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
-            <Route path="/admin/deposit-management" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
-            <Route path="/admin/withdrawals" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
-            <Route path="/admin/withdrawal-management" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
-            <Route path="/admin/chat" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense></AdminRoute>} />
-            <Route path="/admin/chat-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense></AdminRoute>} />
-            <Route path="/admin/metals" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
-            <Route path="/admin/metals-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
-            <Route path="/admin/transactions" component={() => <AdminRoute><AdminTransactionMonitor /></AdminRoute>} />
+                {/* Asset Details Route - Available to all users */}
+                <Route path="/asset-details" component={AssetDetails} />
+                <Route path="/landing" component={Landing} />
 
-            {/* 404 Route */}
-            <Route component={NotFound} />
-          </Switch>
+                {/* Admin Routes */}
+                <Route path="/admin" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
+                <Route path="/admin/dashboard" component={() => <AdminRoute><AdminDashboard /></AdminRoute>} />
+                <Route path="/admin/users" component={() => <AdminRoute><AdminUsers /></AdminRoute>} />
+                <Route path="/admin/kyc" component={() => <AdminRoute><AdminKycManagement /></AdminRoute>} />
+                <Route path="/admin/balance" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
+                <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
+                <Route path="/admin/news" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
+                <Route path="/admin/news-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense></AdminRoute>} />
+                <Route path="/admin/balances" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
+                <Route path="/admin/balance-management" component={() => <AdminRoute><AdminBalanceManagement /></AdminRoute>} />
+                <Route path="/admin/deposits" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
+                <Route path="/admin/deposit-management" component={() => <AdminRoute><AdminDepositManagement /></AdminRoute>} />
+                <Route path="/admin/withdrawals" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
+                <Route path="/admin/withdrawal-management" component={() => <AdminRoute><AdminWithdrawalManagement /></AdminRoute>} />
+                <Route path="/admin/chat" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense></AdminRoute>} />
+                <Route path="/admin/chat-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense></AdminRoute>} />
+                <Route path="/admin/metals" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
+                <Route path="/admin/metals-management" component={() => <AdminRoute><Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense></AdminRoute>} />
+                <Route path="/admin/transactions" component={() => <AdminRoute><AdminTransactionMonitor /></AdminRoute>} />
 
-          <Toaster />
+                {/* 404 Route */}
+                <Route component={NotFound} />
+              </Switch>
+            </Router>
+          </MessageModalProvider>
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>

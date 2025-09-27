@@ -15,8 +15,8 @@ import {
   DollarSign, Activity, Clock, Target, Zap,
   AlertCircle, CheckCircle, RefreshCw, BarChart3
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/hooks/useAuth'
+import { useGlobalMessageModal } from '@/contexts/MessageModalContext'
 import { useLocation } from "wouter";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -45,13 +45,14 @@ interface Holding {
 export default function Trading() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { showMessage } = useGlobalMessageModal();
   const queryClient = useQueryClient();
   const [location, navigate] = useLocation();
-  
+
   // Get symbol from URL params
   const urlParams = new URLSearchParams(location.split('?')[1]);
   const initialSymbol = urlParams.get('symbol') || 'BTC';
-  
+
   const [selectedSymbol, setSelectedSymbol] = useState(initialSymbol.toUpperCase());
   const [orderType, setOrderType] = useState<'buy' | 'sell'>('buy');
   const [priceType, setPriceType] = useState<'market' | 'limit'>('market');
@@ -61,7 +62,7 @@ export default function Trading() {
 
   // WebSocket for real-time price updates
   const { lastMessage } = useWebSocket('/ws/prices');
-  
+
   useEffect(() => {
     if (lastMessage) {
       try {
@@ -144,39 +145,23 @@ export default function Trading() {
 
   const handleTrade = async () => {
     if (!user) {
-      toast({
-        title: "🔐 Authentication Required",
-        description: "Please login to start trading",
-        variant: "destructive",
-      });
+      showMessage({ type: 'error', message: 'Please login to start trading' });
       navigate('/auth');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      toast({
-        title: "❌ Invalid Amount",
-        description: "Please enter a valid trading amount greater than 0",
-        variant: "destructive",
-      });
+      showMessage({ type: 'error', message: 'Please enter a valid trading amount greater than 0' });
       return;
     }
 
     if (parseFloat(amount) < 0.001) {
-      toast({
-        title: "⚠️ Minimum Amount",
-        description: "Minimum trading amount is 0.001",
-        variant: "destructive",
-      });
+      showMessage({ type: 'warning', message: 'Minimum trading amount is 0.001' });
       return;
     }
 
     if (priceType === 'limit' && (!limitPrice || parseFloat(limitPrice) <= 0)) {
-      toast({
-        title: "Invalid Price",
-        description: "Please enter a valid limit price",
-        variant: "destructive",
-      });
+      showMessage({ type: 'error', message: 'Please enter a valid limit price' });
       return;
     }
 
@@ -185,20 +170,12 @@ export default function Trading() {
     const availableAmount = parseFloat(userHolding?.amount || '0');
 
     if (orderType === 'buy' && total > availableCash) {
-      toast({
-        title: "Insufficient Funds",
-        description: `You need $${total.toFixed(2)} but only have $${availableCash.toFixed(2)} available`,
-        variant: "destructive",
-      });
+      showMessage({ type: 'error', message: `Insufficient funds. You need $${total.toFixed(2)} but only have $${availableCash.toFixed(2)} available.` });
       return;
     }
 
     if (orderType === 'sell' && parseFloat(amount) > availableAmount) {
-      toast({
-        title: "Insufficient Holdings",
-        description: `You can only sell up to ${availableAmount} ${selectedSymbol}`,
-        variant: "destructive",
-      });
+      showMessage({ type: 'error', message: `Insufficient holdings. You can only sell up to ${availableAmount} ${selectedSymbol}.` });
       return;
     }
 
@@ -240,7 +217,7 @@ export default function Trading() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

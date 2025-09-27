@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Copy, CheckCircle, Upload, Hash, ExternalLink } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth"
+import { useAppMessages } from '@/hooks/useAppMessages'
 import { toast } from "@/hooks/use-toast";
 
 interface PaymentMethod {
@@ -20,6 +20,7 @@ interface PaymentMethods {
 
 export default function Deposit() {
   const { user } = useAuth();
+  const { showMessage } = useAppMessages();
   const [step, setStep] = useState<'select-method' | 'select-currency' | 'get-address' | 'upload-proof'>('select-method');
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [selectedCurrency, setSelectedCurrency] = useState<string>('');
@@ -281,7 +282,7 @@ export default function Deposit() {
           <div>
             <h2 className="text-2xl font-semibold mb-2">Select Cryptocurrency</h2>
             <p className="text-gray-400 mb-6">Choose the cryptocurrency you want to deposit via {paymentMethods[selectedMethod].name}</p>
-            
+
             <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
               {paymentMethods[selectedMethod].currencies.map((currency) => (
                 <Card
@@ -315,7 +316,7 @@ export default function Deposit() {
         {step === 'get-address' && depositAddress && (
           <div>
             <h2 className="text-2xl font-semibold mb-6">Deposit Address Generated</h2>
-            
+
             <Card className="bg-slate-800 border-slate-700 mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -336,7 +337,7 @@ export default function Deposit() {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2 text-green-400">
                     <span className="text-sm">⚠️</span>
@@ -373,7 +374,7 @@ export default function Deposit() {
         {step === 'upload-proof' && (
           <div>
             <h2 className="text-2xl font-semibold mb-6">Submit Proof of Payment</h2>
-            
+
             <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-6">
                 <div className="space-y-6">
