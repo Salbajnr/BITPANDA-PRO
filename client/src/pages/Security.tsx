@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,25 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Shield, Smartphone, Key, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { 
+  AlertTriangle, 
+  Shield, 
+  Smartphone, 
+  Key, 
+  Eye, 
+  EyeOff, 
+  CheckCircle,
+  Lock,
+  Award,
+  Users,
+  Globe,
+  FileCheck,
+  Zap,
+  Clock,
+  Database,
+  Server,
+  Layers
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -84,54 +103,194 @@ export default function Security() {
 
   const securityFeatures = [
     {
-      title: "End-to-End Encryption",
-      description: "All your data is encrypted using industry-standard protocols",
+      title: "Financial Transparency",
+      description: "We are a leading crypto investment platform, we believe in doing things the right way, not the easy way, which is why we choose to be fully transparent, and to have our funds and business practices regularly validated by external parties.",
       status: "active",
-      icon: <Shield className="h-5 w-5" />
+      icon: <FileCheck className="h-8 w-8" />
     },
     {
-      title: "Secure Socket Layer (SSL)",
-      description: "Your connection is protected with SSL encryption",
+      title: "User Data Protection",
+      description: "BitpandaPro only processes your personal data for the purposes permitted according to data protection laws. We do not use personal data for automated decision-making, including profiling, and we have several security measures in place to make sure your data is safely stored and processed.",
       status: "active",
-      icon: <CheckCircle className="h-5 w-5" />
+      icon: <Shield className="h-8 w-8" />
     },
     {
-      title: "Two-Factor Authentication",
-      description: "Add an extra layer of security to your account",
-      status: twoFactorEnabled ? "active" : "inactive",
-      icon: <Smartphone className="h-5 w-5" />
+      title: "Asset Protection",
+      description: "We prioritise keeping your assets safe, incorporating multiple security measures to protect them from potential threats. Crypto assets are stored in highly-secure cold storage facilities that are examined by an external auditor. Your assets are yours.",
+      status: "active",
+      icon: <Database className="h-8 w-8" />
     },
     {
-      title: "Regular Security Audits",
-      description: "Our systems undergo regular security assessments",
+      title: "Advanced Encryption",
+      description: "BitpandaPro infrastructure and systems are secured with the most modern encryption technologies and supported by our dedicated security teams.",
       status: "active",
-      icon: <Key className="h-5 w-5" />
+      icon: <Lock className="h-8 w-8" />
+    },
+    {
+      title: "24/7 Coverage",
+      description: "As the markets are open 24/7, so are we. Our Operations, Security and Engineering teams operate on a 24/7 coverage model to respond to any changes within the markets.",
+      status: "active",
+      icon: <Clock className="h-8 w-8" />
+    }
+  ];
+
+  const certifications = [
+    {
+      title: "ISO 27001 Certified",
+      description: "Best-in-class security certification proving our commitment to industry standards",
+      badge: "ISO 27001",
+      color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+    },
+    {
+      title: "SOC 2 Type 1",
+      description: "Demonstrates our ongoing commitment to the highest security and compliance standards",
+      badge: "SOC 2",
+      color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+    }
+  ];
+
+  const benefitStats = [
+    {
+      title: "+7,000,000",
+      description: "users",
+      icon: <Users className="h-8 w-8 text-white" />
+    },
+    {
+      title: "7.7k",
+      description: "trusted reviews",
+      icon: <Award className="h-8 w-8 text-white" />
+    },
+    {
+      title: "All",
+      description: "our funds are regularly validated",
+      icon: <Shield className="h-8 w-8 text-white" />
     }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Hero Section - Bitpanda Style */}
+      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white">
+        <div className="container mx-auto px-4 py-16 lg:py-24">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            <div className="flex-1 space-y-6">
+              <h1 className="text-4xl lg:text-6xl font-bold uppercase tracking-tight">
+                Why your assets are safe with us
+              </h1>
+              <p className="text-lg lg:text-xl text-green-100">
+                Customer safety is our first goal - this is how we approach security.
+              </p>
+            </div>
+            <div className="flex-1 flex justify-center">
+              <div className="w-64 h-64 lg:w-80 lg:h-80 bg-green-500/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <Shield className="w-32 h-32 lg:w-40 lg:h-40 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="bg-white dark:bg-gray-900 py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {benefitStats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
+                  {stat.icon}
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  {stat.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {stat.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Security Settings
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Manage your account security and privacy settings
-          </p>
+        {/* Security Features Section */}
+        <div className="mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 uppercase">
+              Security at BitpandaPro
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8">
+            {securityFeatures.map((feature, index) => (
+              <Card key={index} className="bg-white dark:bg-gray-800 border-l-4 border-l-green-500 hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6 flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+                      <CheckCircle className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Certifications Section */}
+        <div className="mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 uppercase">
+              Best-in-class Security
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Possessing internally maintained security programs is one thing, but having them measure up to industry standards and validating them by achieving best-in-class certifications is another.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {certifications.map((cert, index) => (
+              <Card key={index} className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-green-600 rounded-full flex items-center justify-center">
+                    <Award className="w-8 h-8 text-white" />
+                  </div>
+                  <Badge className={`mb-4 ${cert.color}`}>
+                    {cert.badge}
+                  </Badge>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {cert.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {cert.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Security Settings */}
           <div className="lg:col-span-2 space-y-6">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 uppercase">
+                Keeping your account secure
+              </h2>
+            </div>
 
             {/* Change Password */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <Key className="h-5 w-5" />
-                  Change Password
+                  Password Management
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -202,7 +361,7 @@ export default function Security() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
                     Update Password
                   </Button>
                 </form>
@@ -283,7 +442,6 @@ export default function Security() {
 
           {/* Security Overview Sidebar */}
           <div className="space-y-6">
-
             {/* Security Status */}
             <Card>
               <CardHeader>
@@ -307,67 +465,85 @@ export default function Security() {
               </CardContent>
             </Card>
 
-            {/* Security Features */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Security Features</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {securityFeatures.map((feature, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        feature.status === 'active' 
-                          ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                      }`}>
-                        {feature.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{feature.title}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-300">
-                          {feature.description}
-                        </p>
-                        <Badge 
-                          variant={feature.status === 'active' ? 'default' : 'secondary'}
-                          className="mt-1 text-xs"
-                        >
-                          {feature.status === 'active' ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Security Tips */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                  Security Tips
+                  Security Best Practices
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
                   <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                    Use a unique, strong password
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    Use a unique, strong password with at least 8 characters
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                    Enable two-factor authentication
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    Enable two-factor authentication for extra security
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                    Keep your contact info updated
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    Keep your contact information updated
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                    Review your account regularly
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    Review your account activity regularly
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    Never share your API keys with anyone
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    Use different keys for different applications
                   </li>
                 </ul>
+              </CardContent>
+            </Card>
+
+            {/* Additional Security Features */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Security</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                      <Server className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">Cold Storage</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">
+                        Funds stored offline for maximum security
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400">
+                      <Globe className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">Global Compliance</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">
+                        Meeting international security standards
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+                      <Layers className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">Multi-Layer Security</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">
+                        Multiple security layers protect your assets
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
