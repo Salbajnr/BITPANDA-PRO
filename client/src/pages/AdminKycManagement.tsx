@@ -73,23 +73,20 @@ export default function AdminKycManagement() {
         ...(statusFilter && { status: statusFilter }),
         ...(searchQuery && { search: searchQuery })
       });
-      return apiRequest(`/api/kyc/admin/verifications?${params}`);
+      return apiRequest('GET', `/api/kyc/admin/verifications?${params}`);
     },
   });
 
   // Fetch KYC statistics
   const { data: stats } = useQuery({
     queryKey: ["/api/kyc/admin/statistics"],
-    queryFn: () => apiRequest("/api/kyc/admin/statistics"),
+    queryFn: () => apiRequest('GET', '/api/kyc/admin/statistics'),
   });
 
   // Review KYC mutation
   const reviewMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
-      apiRequest(`/api/kyc/admin/verifications/${id}/review`, {
-        method: 'POST',
-        body: data
-      }),
+      apiRequest('POST', `/api/kyc/admin/verifications/${id}/review`, data),
     onSuccess: () => {
       toast({
         title: "KYC reviewed successfully",
@@ -112,10 +109,7 @@ export default function AdminKycManagement() {
   // Bulk review mutation
   const bulkReviewMutation = useMutation({
     mutationFn: (data: any) =>
-      apiRequest("/api/kyc/admin/verifications/bulk-review", {
-        method: 'POST',
-        body: data
-      }),
+      apiRequest('POST', '/api/kyc/admin/verifications/bulk-review', data),
     onSuccess: () => {
       toast({
         title: "Bulk review completed",

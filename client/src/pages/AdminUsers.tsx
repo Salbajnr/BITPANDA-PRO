@@ -42,23 +42,38 @@ export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
   const { toast } = useToast();
 
-  // Fetch users data
-  const { data: users = [], isLoading } = useQuery<User[]>({
-    queryKey: ['/api/admin/users'],
+  // Fetch users data with pagination
+  const { data: usersResponse, isLoading } = useQuery({
+    queryKey: ['/api/admin/users', page, pageSize, searchTerm, roleFilter, statusFilter],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pageSize.toString(),
+        ...(searchTerm && { search: searchTerm }),
+        ...(roleFilter !== "all" && { role: roleFilter }),
+        ...(statusFilter !== "all" && { status: statusFilter })
+      });
+      return apiRequest('GET', `/api/admin/users?${params}`);
+    },
   });
 
-  // Calculate user statistics
-  const totalUsers = users.length;
+  const users = usersResponse?.users || [];
+  const totalUsers = usersResponse?.total || 0;
+  const totalPages = Math.ceil(totalUsers / pageSize);
+
+  // Calculate user statistics from current page
   const activeUsers = users.filter((user) => user.isActive).length;
-  const inactiveUsers = totalUsers - activeUsers;
+  const inactiveUsers = users.length - activeUsers;
   const adminUsers = users.filter((user) => user.role === 'admin').length;
 
   // Toggle user status mutation
   const toggleUserStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      return await apiRequest(`/api/admin/users/${userId}/status`, 'PATCH', { isActive });
+      return await apiRequest('PATCH', `/api/admin/users/${userId}/status`, { isActive });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
@@ -76,20 +91,21 @@ export default function AdminUsers() {
     },
   });
 
-  // Filter users based on search and filters
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch = 
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || 
-      (statusFilter === "active" && user.isActive) ||
-      (statusFilter === "inactive" && !user.isActive);
-    
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  // Reset page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setPage(1);
+  };
+
+  const handleRoleFilterChange = (value: string) => {
+    setRoleFilter(value);
+    setPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setPage(1);
+  };
 
   const handleToggleUserStatus = (userId: string, currentStatus: boolean) => {
     toggleUserStatusMutation.mutate({ userId, isActive: !currentStatus });
@@ -121,7 +137,7 @@ export default function AdminUsers() {
           icon={UserCheck}
           loading={isLoading}
           change={{
-            value: `${((activeUsers / totalUsers) * 100).toFixed(1)}%`,
+            value: totalUsers > 0 ? `${((activeUsers / users.length) * 100).toFixed(1)}%` : '0%',
             trend: 'up'
           }}
         />
@@ -152,13 +168,13 @@ export default function AdminUsers() {
                 <Input
                   placeholder="Search users by name, email, or username..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
                   data-testid="input-search-users"
                 />
               </div>
             </div>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
               <SelectTrigger className="w-[150px]" data-testid="select-role-filter">
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
@@ -168,7 +184,7 @@ export default function AdminUsers() {
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
               <SelectTrigger className="w-[150px]" data-testid="select-status-filter">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -185,7 +201,7 @@ export default function AdminUsers() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users ({filteredUsers.length})</CardTitle>
+          <CardTitle>Users ({totalUsers} total, showing {users.length} on page {page})</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -208,7 +224,7 @@ export default function AdminUsers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user: User) => (
+                {users.map((user: User) => (
                   <TableRow key={user.id} data-testid={`row-user-${user.id}`}>
                     <TableCell>
                       <div>
@@ -248,6 +264,55 @@ export default function AdminUsers() {
                 ))}
               </TableBody>
             </Table>
+          )}
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, totalUsers)} of {totalUsers} users
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  data-testid="button-prev-page"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNumber = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+                    if (pageNumber <= totalPages) {
+                      return (
+                        <Button
+                          key={pageNumber}
+                          variant={pageNumber === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setPage(pageNumber)}
+                          data-testid={`button-page-${pageNumber}`}
+                  className="min-w-[40px]"
+                        >
+                          {pageNumber}
+                        </Button>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                  data-testid="button-next-page"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

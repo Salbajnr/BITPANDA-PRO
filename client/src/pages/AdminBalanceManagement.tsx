@@ -1,11 +1,11 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
+import { Redirect } from 'wouter';
 import AdminBalanceManipulator from '@/components/AdminBalanceManipulator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function AdminBalanceManagement() {
   const { user, isLoading } = useAuth();
@@ -13,7 +13,7 @@ export default function AdminBalanceManagement() {
   // Fetch admin stats
   const { data: stats } = useQuery({
     queryKey: ['/api/admin/analytics/overview'],
-    queryFn: () => apiRequest('/api/admin/analytics/overview'),
+    queryFn: () => apiRequest('GET', '/api/admin/analytics/overview'),
     retry: 1,
     enabled: user?.role === 'admin',
   });
@@ -21,7 +21,7 @@ export default function AdminBalanceManagement() {
   // Fetch adjustment history
   const { data: adjustmentHistory } = useQuery({
     queryKey: ['/api/admin/analytics/balance-adjustments'],
-    queryFn: () => apiRequest('/api/admin/analytics/balance-adjustments'),
+    queryFn: () => apiRequest('GET', '/api/admin/analytics/balance-adjustments'),
     retry: 1,
     enabled: user?.role === 'admin',
   });
@@ -35,7 +35,7 @@ export default function AdminBalanceManagement() {
   }
 
   if (!user || user.role !== 'admin') {
-    return <Navigate to="/auth" replace />;
+    return <Redirect to="/auth" />;
   }
 
   return (
