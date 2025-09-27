@@ -665,6 +665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/deposits', depositRoutes);
 
   // Admin routes
+  const adminRoutes = (await import('./admin-routes')).default;
   app.use('/api/admin', adminRoutes);
 
   // Alert routes

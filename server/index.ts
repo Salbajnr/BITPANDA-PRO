@@ -162,6 +162,19 @@ app.use((req, res, next) => {
       serveStatic(app);
     }
 
+    // Serve static files from the client dist directory
+    app.use(express.static(path.join(__dirname, '../client/dist')));
+
+    // Admin routes - serve admin app
+    app.get('/admin*', (req, res) => {
+      res.sendFile(path.join(__dirname, '../client/admin.html'));
+    });
+
+    // Catch-all handler: send back React's index.html file for SPA routing
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    });
+
     // IMPORTANTLY: This catch-all route should be the last route registered.
     // It ensures that any requests that do not match the defined API routes
     // are handled by the Vite development server (or static file serving in production).

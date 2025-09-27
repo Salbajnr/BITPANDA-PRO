@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAdminAuth } from "@/admin/hooks/useAdminAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
@@ -62,7 +62,7 @@ interface Transaction {
 
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
+  const { admin, isLoading: authLoading } = useAdminAuth();
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('dashboard');
 
@@ -229,18 +229,18 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'admin')) {
+    if (!authLoading && !admin) {
       toast({
         title: "Access Denied",
         description: "Admin access required",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/admin/login";
       }, 500);
       return;
     }
-  }, [user, authLoading, toast]);
+  }, [admin, authLoading, toast]);
 
   const handleSaveSettings = async () => {
     try {
@@ -321,7 +321,7 @@ export default function AdminDashboard() {
   const analyticsOverview = analyticsOverviewData || {};
   const adjustments = (adjustmentsData as any)?.adjustments || [];
 
-  if (authLoading) {
+  if (authLoading || !admin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="text-center">
