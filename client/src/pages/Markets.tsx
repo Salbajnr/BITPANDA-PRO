@@ -9,7 +9,7 @@ import { getCryptoLogo } from "@/components/CryptoLogos";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import LiveTicker from "@/components/LiveTicker";
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 interface CryptoData {
   id: string;
@@ -32,7 +32,7 @@ interface MetalData {
 }
 
 export default function Markets() {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("crypto");
   const [searchTerm, setSearchTerm] = useState(""); // State for search
 

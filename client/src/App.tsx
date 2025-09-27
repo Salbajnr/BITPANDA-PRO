@@ -211,6 +211,8 @@ export default function App() {
 
             {/* KYC Verification Route */}
             <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
+            
+            {/* Asset Details Route - Available to all users */}
             <Route path="/asset-details" component={AssetDetails} />
             <Route path="/landing" component={Landing} />
 

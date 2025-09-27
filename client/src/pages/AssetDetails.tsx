@@ -85,19 +85,19 @@ export default function AssetDetails({ symbol: propSymbol }: AssetDetailsProps) 
   const chartData = priceHistory || mockPriceData;
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('de-DE', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EUR',
+      currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(price);
   };
 
   const formatMarketCap = (marketCap: number) => {
-    if (marketCap >= 1e12) return `€${(marketCap / 1e12).toFixed(2)}T`;
-    if (marketCap >= 1e9) return `€${(marketCap / 1e9).toFixed(2)}B`;
-    if (marketCap >= 1e6) return `€${(marketCap / 1e6).toFixed(2)}M`;
-    return `€${marketCap.toLocaleString()}`;
+    if (marketCap >= 1e12) return `$${(marketCap / 1e12).toFixed(2)}T`;
+    if (marketCap >= 1e9) return `$${(marketCap / 1e9).toFixed(2)}B`;
+    if (marketCap >= 1e6) return `$${(marketCap / 1e6).toFixed(2)}M`;
+    return `$${marketCap.toLocaleString()}`;
   };
 
   const toggleWatchlist = () => {
@@ -118,8 +118,8 @@ export default function AssetDetails({ symbol: propSymbol }: AssetDetailsProps) 
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Status Bar */}
-      <div className="h-8 flex items-center justify-between px-4 py-2 bg-white">
+      {/* Mobile Status Bar */}
+      <div className="h-8 flex items-center justify-between px-4 py-2 bg-white border-b border-gray-100">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => navigate(-1)}
@@ -155,8 +155,15 @@ export default function AssetDetails({ symbol: propSymbol }: AssetDetailsProps) 
               <button className="p-2 hover:bg-gray-100 rounded-full">
                 <Share className="w-6 h-6 text-gray-400" />
               </button>
-              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                {symbol === 'BTC' ? '₿' : symbol.charAt(0)}
+              <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
+                <img 
+                  src={asset.image || getCryptoLogo(symbol)} 
+                  alt={asset.name} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = getCryptoLogo(symbol);
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -177,8 +184,8 @@ export default function AssetDetails({ symbol: propSymbol }: AssetDetailsProps) 
               <span>
                 {asset.price_change_percentage_24h >= 0 ? '+' : ''}
                 {asset.price_change_percentage_24h.toFixed(2)}% 
-                {asset.price_change_24h >= 0 ? '+' : ''}
-                {formatPrice(asset.price_change_24h)} (1D)
+                ({asset.price_change_24h >= 0 ? '+' : ''}
+                {formatPrice(asset.price_change_24h)}) (1D)
               </span>
             </div>
           </div>

@@ -237,6 +237,7 @@ export function RealTimeCryptoTable({
                     <tr key={crypto.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors cursor-pointer"
                         data-testid={`row-crypto-${crypto.symbol}`}
                         onClick={() => navigate(`/asset-details?symbol=${crypto.symbol}`)}
+                    >
                       <td className="px-6 py-4 text-gray-400 font-medium">
                         {crypto.market_cap_rank}
                       </td>
