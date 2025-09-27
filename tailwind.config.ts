@@ -13,6 +13,10 @@ export default {
         'xl': '1280px',
         '2xl': '1536px',
         '3xl': '1728px',
+        // Custom mobile breakpoints
+        'mobile': {'max': '639px'},
+        'tablet': {'min': '640px', 'max': '1023px'},
+        'desktop': {'min': '1024px'},
       },
       borderRadius: {
         lg: "var(--radius)",

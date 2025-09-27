@@ -149,30 +149,30 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white text-gray-900 font-inter">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-green-600 to-green-800 pt-24 pb-20 text-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-green-600 to-green-800 pt-20 sm:pt-24 pb-16 sm:pb-20 text-white overflow-hidden mobile-section-padding safe-area-top">
         <div className="absolute inset-0 bg-[#103e36]"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-left">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight uppercase text-white font-bitpanda-compressed">
+        <div className="max-w-7xl mx-auto mobile-container-padding relative">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <div className="text-center lg:text-left">
+              <h1 className="mobile-heading-xl font-bold mb-4 sm:mb-6 leading-tight uppercase text-white font-bitpanda-compressed">
                 Fast-track your financial freedom.
               </h1>
-              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl">
+              <p className="mobile-text text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0">
                 Join over 7 million people investing in 650+ cryptos and 3,000+ digital assets with BitpandaPro.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" asChild className="bg-white text-green-600 hover:bg-gray-100 font-medium">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+                <Button size="lg" asChild className="bg-white text-green-600 hover:bg-gray-100 font-medium mobile-button">
                   <Link href="/auth">
                     Start investing
                   </Link>
                 </Button>
               </div>
             </div>
-            <div className="flex justify-center lg:justify-end">
+            <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
               <img 
                 src="https://a.storyblok.com/f/176646/1084x1364/c95624c12c/website_homepage_header.png" 
                 alt="Man in a gray suit with a striped shirt, sitting and holding a phone, looking to the side, with a green background." 
-                className="max-w-md w-full hover:scale-105 transition-transform duration-500"
+                className="max-w-xs sm:max-w-md w-full hover:scale-105 transition-transform duration-500"
               />
             </div>
           </div>
@@ -200,18 +200,18 @@ export default function Landing() {
       </section>
 
       {/* All Your Investments Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-green-600 mb-4 font-bitpanda-compressed uppercase">
+      <section className="mobile-section-padding bg-white">
+        <div className="max-w-7xl mx-auto mobile-container-padding">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="mobile-heading-xl font-bold text-green-600 mb-4 font-bitpanda-compressed uppercase">
               All your investments.
-              <br />
-              All on BitpandaPro.
+              <br className="hidden sm:block" />
+              <span className="sm:hidden"> </span>All on BitpandaPro.
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {investmentCards.map((card, index) => (
-              <Card key={index} className="bg-gray-50 hover:shadow-lg transition-shadow duration-300 border-0 rounded-lg overflow-hidden">
+              <Card key={index} className="mobile-card bg-gray-50 hover:shadow-lg transition-shadow duration-300 border-0 rounded-xl overflow-hidden touch-target">
                 <div className="aspect-video bg-gray-100">
                   <img 
                     src={card.image} 
@@ -219,9 +219,9 @@ export default function Landing() {
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <CardContent className="p-6">
-                  <CardTitle className="text-xl font-semibold text-green-600 mb-2">{card.title}</CardTitle>
-                  <p className="text-gray-600">{card.description}</p>
+                <CardContent className="p-4 sm:p-6">
+                  <CardTitle className="mobile-heading-md text-green-600 mb-2">{card.title}</CardTitle>
+                  <p className="mobile-text-sm text-gray-600">{card.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -305,31 +305,31 @@ export default function Landing() {
       </section>
 
       {/* Keep Tabs Section */}
-      <section className="py-20 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-green-600 mb-4 font-bitpanda-compressed uppercase">
+      <section className="mobile-section-padding bg-gray-100">
+        <div className="max-w-7xl mx-auto mobile-container-padding">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="mobile-heading-xl font-bold text-green-600 mb-4 font-bitpanda-compressed uppercase">
               Keep tabs on your favourite assets
             </h2>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {topCryptos.map((crypto, index) => (
-              <Card key={index} className="hover:shadow-md transition-shadow duration-300">
-                <CardContent className="flex items-center justify-between p-6">
-                  <div className="flex items-center space-x-4">
+              <Card key={index} className="mobile-card hover:shadow-md transition-shadow duration-300 touch-target">
+                <CardContent className="flex items-center justify-between p-4 sm:p-6">
+                  <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                     <img 
                       src={getCryptoLogo(crypto.symbol)} 
                       alt={crypto.name} 
-                      className="w-12 h-12 rounded-full"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0"
                     />
-                    <div>
-                      <h3 className="font-bold text-lg">{crypto.name}</h3>
-                      <p className="text-sm text-gray-500">{crypto.symbol}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-base sm:text-lg truncate">{crypto.name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500">{crypto.symbol}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <h3 className="font-bold text-lg">€{crypto.price.toLocaleString()}</h3>
-                    <p className={`text-sm ${crypto.change > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  <div className="text-right flex-shrink-0">
+                    <h3 className="font-bold text-base sm:text-lg">€{crypto.price.toLocaleString()}</h3>
+                    <p className={`text-xs sm:text-sm ${crypto.change > 0 ? 'text-green-600' : 'text-red-500'}`}>
                       {crypto.change > 0 ? '+' : ''}{crypto.change}%
                     </p>
                   </div>

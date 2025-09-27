@@ -104,7 +104,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation - Professional Menubar */}
-          <div className="hidden lg:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
             <Menubar className="border-none bg-transparent shadow-none space-x-1">
               {/* Invest Menu */}
               <MenubarMenu>
@@ -402,15 +402,15 @@ export default function Navbar() {
           <ScrollArea className="h-[calc(100vh-4rem)] w-full">
             <div className="px-4 pt-4 pb-6 space-y-6 bg-background/98 backdrop-blur-xl">
               {/* Quick Actions Bar */}
-              <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center gap-3 mb-6">
                 <button
                   onClick={() => {
                     navigate('/trading');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium transition-all duration-200 hover:from-green-600 hover:to-green-700 active:scale-95"
+                  className="flex-1 flex items-center justify-center gap-2 py-4 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium transition-all duration-200 hover:from-green-600 hover:to-green-700 active:scale-95 min-h-[52px] touch-target"
                 >
-                  <BarChart3 className="w-4 h-4" />
+                  <BarChart3 className="w-5 h-5" />
                   Trade Now
                 </button>
                 <button
@@ -418,9 +418,9 @@ export default function Navbar() {
                     navigate('/dashboard');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-700 rounded-xl font-medium transition-all duration-200 hover:bg-blue-100 active:scale-95 border border-blue-200"
+                  className="flex-1 flex items-center justify-center gap-2 py-4 px-4 bg-blue-50 text-blue-700 rounded-xl font-medium transition-all duration-200 hover:bg-blue-100 active:scale-95 border border-blue-200 min-h-[52px] touch-target"
                 >
-                  <Wallet className="w-4 h-4" />
+                  <Wallet className="w-5 h-5" />
                   Portfolio
                 </button>
               </div>
@@ -435,30 +435,30 @@ export default function Navbar() {
                     Invest
                   </h3>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <Link to="/markets" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/10 dark:to-green-900/20 border border-green-200/50 dark:border-green-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/10 dark:to-green-900/20 border border-green-200/50 dark:border-green-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105 min-h-[100px] flex flex-col justify-center touch-target">
                       <Coins className="w-6 h-6 text-green-600 mb-2" />
                       <div className="font-medium text-sm">Crypto</div>
                       <div className="text-xs text-muted-foreground">600+ assets</div>
                     </div>
                   </Link>
                   <Link to="/stocks" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105 min-h-[100px] flex flex-col justify-center touch-target">
                       <BarChart3 className="w-6 h-6 text-blue-600 mb-2" />
                       <div className="font-medium text-sm">Stocks</div>
                       <div className="text-xs text-muted-foreground">Global markets</div>
                     </div>
                   </Link>
                   <Link to="/etfs" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/10 dark:to-purple-900/20 border border-purple-200/50 dark:border-purple-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/10 dark:to-purple-900/20 border border-purple-200/50 dark:border-purple-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105 min-h-[100px] flex flex-col justify-center touch-target">
                       <Database className="w-6 h-6 text-purple-600 mb-2" />
                       <div className="font-medium text-sm">ETFs</div>
                       <div className="text-xs text-muted-foreground">Funds</div>
                     </div>
                   </Link>
                   <Link to="/precious-metals" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/10 dark:to-yellow-900/20 border border-yellow-200/50 dark:border-yellow-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/10 dark:to-yellow-900/20 border border-yellow-200/50 dark:border-yellow-800/50 hover:shadow-lg transition-all duration-300 transform hover:scale-105 min-h-[100px] flex flex-col justify-center touch-target">
                       <Award className="w-6 h-6 text-yellow-600 mb-2" />
                       <div className="font-medium text-sm">Metals</div>
                       <div className="text-xs text-muted-foreground">Gold & Silver</div>
@@ -545,13 +545,13 @@ export default function Navbar() {
                 <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button
                     variant="outline"
-                    className="w-full rounded-xl border-border hover:border-green-500 hover:text-green-600 transition-all duration-300 h-12"
+                    className="w-full rounded-xl border-border hover:border-green-500 hover:text-green-600 transition-all duration-300 h-14 text-base font-medium touch-target"
                   >
                     Log in
                   </Button>
                 </Link>
                 <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl h-12 transform hover:scale-105">
+                  <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl h-14 text-base transform hover:scale-105 touch-target">
                     Get Started
                   </Button>
                 </Link>
