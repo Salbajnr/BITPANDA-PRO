@@ -70,7 +70,7 @@ export default function AdminTransactionMonitor() {
   // Fetch transaction statistics
   const { data: stats } = useQuery<TransactionStats>({
     queryKey: ['/api/admin/transactions/stats', dateRange],
-    queryFn: () => apiRequest(`/api/admin/transactions/stats?range=${dateRange}`),
+    queryFn: () => apiRequest('GET', `/api/admin/transactions/stats?range=${dateRange}`),
     refetchInterval: 30000,
   });
 
@@ -93,7 +93,7 @@ export default function AdminTransactionMonitor() {
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(showSuspiciousOnly && { suspicious: 'true' })
       });
-      return apiRequest(`/api/admin/transactions?${params}`);
+      return apiRequest('GET', `/api/admin/transactions?${params}`);
     },
     refetchInterval: 10000,
   });
@@ -101,10 +101,7 @@ export default function AdminTransactionMonitor() {
   // Flag transaction mutation
   const flagTransactionMutation = useMutation({
     mutationFn: ({ id, flagged, notes }: { id: string; flagged: boolean; notes?: string }) =>
-      apiRequest(`/api/admin/transactions/${id}/flag`, {
-        method: 'POST',
-        body: { flagged, notes }
-      }),
+      apiRequest('POST', `/api/admin/transactions/${id}/flag`, { flagged, notes }),
     onSuccess: () => {
       toast({
         title: "Transaction Updated",
@@ -117,10 +114,7 @@ export default function AdminTransactionMonitor() {
   // Suspend transaction mutation
   const suspendTransactionMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      apiRequest(`/api/admin/transactions/${id}/suspend`, {
-        method: 'POST',
-        body: { reason }
-      }),
+      apiRequest('POST', `/api/admin/transactions/${id}/suspend`, { reason }),
     onSuccess: () => {
       toast({
         title: "Transaction Suspended",
@@ -133,10 +127,7 @@ export default function AdminTransactionMonitor() {
   // Reverse transaction mutation
   const reverseTransactionMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      apiRequest(`/api/admin/transactions/${id}/reverse`, {
-        method: 'POST',
-        body: { reason }
-      }),
+      apiRequest('POST', `/api/admin/transactions/${id}/reverse`, { reason }),
     onSuccess: () => {
       toast({
         title: "Transaction Reversed",
@@ -218,7 +209,7 @@ export default function AdminTransactionMonitor() {
           <Button
             variant="outline"
             onClick={() => {
-              const data = transactions.map(t => ({
+              const data = transactions.map((t: Transaction) => ({
                 id: t.id,
                 user: t.username,
                 type: t.type,
@@ -231,7 +222,7 @@ export default function AdminTransactionMonitor() {
               
               const csv = [
                 Object.keys(data[0]).join(','),
-                ...data.map(row => Object.values(row).join(','))
+                ...data.map((row: any) => Object.values(row).join(','))
               ].join('\n');
               
               const blob = new Blob([csv], { type: 'text/csv' });
@@ -683,7 +674,7 @@ export default function AdminTransactionMonitor() {
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                       <span>Completed</span>
                     </div>
-                    <span className="font-medium">{((stats?.totalTransactions - stats?.pendingTransactions - stats?.failedTransactions) || 0)}</span>
+                    <span className="font-medium">{((stats?.totalTransactions || 0) - (stats?.pendingTransactions || 0) - (stats?.failedTransactions || 0))}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
