@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,199 +29,284 @@ import {
   Zap
 } from 'lucide-react';
 
-// Placeholder for MarketResearchDashboard component (actual implementation would be here)
+interface MarketReport {
+  id: string;
+  title: string;
+  description: string;
+  category: 'technical' | 'fundamental' | 'sentiment' | 'macro';
+  publishedAt: string;
+  author: string;
+  rating: number;
+  downloadCount: number;
+  premium: boolean;
+}
+
+interface MarketData {
+  symbol: string;
+  price: number;
+  change24h: number;
+  volume: number;
+  marketCap: number;
+}
+
 const MarketResearchDashboard = () => {
+  const [reports, setReports] = useState<MarketReport[]>([]);
+  const [marketData, setMarketData] = useState<MarketData[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate data loading
+    setLoading(true);
+    setTimeout(() => {
+      setReports([
+        {
+          id: '1',
+          title: 'Bitcoin Technical Analysis Q1 2024',
+          description: 'Comprehensive technical analysis covering key support and resistance levels',
+          category: 'technical',
+          publishedAt: '2024-01-15',
+          author: 'John Doe',
+          rating: 4.5,
+          downloadCount: 1250,
+          premium: false
+        },
+        {
+          id: '2',
+          title: 'Ethereum Market Sentiment Report',
+          description: 'Analysis of market sentiment and investor behavior patterns',
+          category: 'sentiment',
+          publishedAt: '2024-01-14',
+          author: 'Jane Smith',
+          rating: 4.2,
+          downloadCount: 890,
+          premium: true
+        },
+        {
+          id: '3',
+          title: 'Macro Economic Impact on Crypto Markets',
+          description: 'How global economic factors influence cryptocurrency prices',
+          category: 'macro',
+          publishedAt: '2024-01-13',
+          author: 'Mike Johnson',
+          rating: 4.8,
+          downloadCount: 2100,
+          premium: true
+        }
+      ]);
+
+      setMarketData([
+        { symbol: 'BTC', price: 43250, change24h: 2.5, volume: 18500000000, marketCap: 847000000000 },
+        { symbol: 'ETH', price: 2640, change24h: -1.2, volume: 8200000000, marketCap: 317000000000 },
+        { symbol: 'BNB', price: 315, change24h: 3.1, volume: 1200000000, marketCap: 47000000000 }
+      ]);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  const filteredReports = reports.filter(report => {
+    const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         report.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || report.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const formatNumber = (num: number) => {
+    if (num >= 1e9) return `$${(num / 1e9).toFixed(1)}B`;
+    if (num >= 1e6) return `$${(num / 1e6).toFixed(1)}M`;
+    return `$${num.toFixed(2)}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h2>Market Research Dashboard</h2>
-      {/* Dashboard content */}
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Market Research Dashboard</h1>
+        <p className="text-muted-foreground">
+          Access comprehensive market analysis, reports, and real-time data
+        </p>
+      </div>
+
+      {/* Market Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {marketData.map((data) => (
+          <Card key={data.symbol}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">{data.symbol}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold">{formatNumber(data.price)}</div>
+                <div className={`flex items-center text-sm ${data.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  {data.change24h >= 0 ? '+' : ''}{data.change24h}%
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Vol: {formatNumber(data.volume)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  MCap: {formatNumber(data.marketCap)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Tabs defaultValue="reports" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="reports">Research Reports</TabsTrigger>
+          <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
+          <TabsTrigger value="podcasts">Podcasts</TabsTrigger>
+          <TabsTrigger value="insights">Market Insights</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="reports" className="space-y-6">
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search reports..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('all')}
+                size="sm"
+              >
+                All
+              </Button>
+              <Button
+                variant={selectedCategory === 'technical' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('technical')}
+                size="sm"
+              >
+                Technical
+              </Button>
+              <Button
+                variant={selectedCategory === 'fundamental' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('fundamental')}
+                size="sm"
+              >
+                Fundamental
+              </Button>
+              <Button
+                variant={selectedCategory === 'sentiment' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('sentiment')}
+                size="sm"
+              >
+                Sentiment
+              </Button>
+            </div>
+          </div>
+
+          {/* Reports Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredReports.map((report) => (
+              <Card key={report.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <Badge variant={report.premium ? 'default' : 'secondary'}>
+                      {report.premium ? 'Premium' : 'Free'}
+                    </Badge>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                      <span className="text-sm">{report.rating}</span>
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg">{report.title}</CardTitle>
+                  <CardDescription>{report.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Users className="h-4 w-4 mr-2" />
+                      {report.author}
+                      <Clock className="h-4 w-4 ml-4 mr-2" />
+                      {new Date(report.publishedAt).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        {report.downloadCount} downloads
+                      </span>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <Card>
+            <CardHeader>
+              <CardTitle>Live Market Analytics</CardTitle>
+              <CardDescription>Real-time market data and analysis tools</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <BarChart3 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Live analytics dashboard coming soon</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="podcasts">
+          <Card>
+            <CardHeader>
+              <CardTitle>Market Podcasts</CardTitle>
+              <CardDescription>Expert discussions and market analysis</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <Headphones className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Podcast section coming soon</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <Card>
+            <CardHeader>
+              <CardTitle>Market Insights</CardTitle>
+              <CardDescription>Daily market insights and trends</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <Target className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Market insights coming soon</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
 
 export default MarketResearchDashboard;
-
-
-// Placeholder for createMessageService function
-const createMessageService = () => {
-  console.log("createMessageService called");
-  // Actual implementation would go here
-  return {
-    sendMessage: (message) => {
-      console.log("Sending message:", message);
-      // Logic to send message
-    },
-    receiveMessage: () => {
-      console.log("Receiving message...");
-      // Logic to receive message
-      return "Sample received message";
-    }
-  };
-};
-
-// Placeholder for toast hook
-const useToast = () => {
-  const showToast = (message) => {
-    console.log("Toast message:", message);
-    // Actual toast implementation would go here
-    alert(message); // Using alert as a simple placeholder
-  };
-  return { showToast };
-};
-
-// Example usage of the functions and component
-const App = () => {
-  const [message, setMessage] = useState('');
-  const messageService = createMessageService();
-  const { showToast } = useToast();
-
-  const handleSendMessage = () => {
-    messageService.sendMessage(message);
-    showToast("Message sent!");
-    setMessage('');
-  };
-
-  const handleReceiveMessage = () => {
-    const received = messageService.receiveMessage();
-    showToast(`Received: ${received}`);
-  };
-
-  // Example of using environment variables with Vite
-  const apiKey = import.meta.env.VITE_API_KEY;
-
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Application Dashboard</h1>
-
-      <div className="mb-8">
-        <MarketResearchDashboard />
-      </div>
-
-      <div className="mb-8">
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Overview</CardTitle>
-                <CardDescription>A summary of the current project status.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Welcome to the overview section. Here you can find key metrics and recent activities.</p>
-                <div className="mt-4 flex items-center space-x-2">
-                  <Search className="h-4 w-4 text-muted-foreground" />
-                  <Input type="text" placeholder="Search..." />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics</CardTitle>
-                <CardDescription>Detailed performance analytics.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2 mb-4">
-                  <BarChart3 className="h-6 w-6 text-primary" />
-                  <span>Key Performance Indicators</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="border p-4 rounded-md">
-                    <p className="text-sm text-muted-foreground">Revenue</p>
-                    <p className="text-lg font-semibold">$120,450</p>
-                    <Badge variant="outline" className="mt-2">
-                      <TrendingUp className="h-4 w-4 text-green-500" /> +5.2%
-                    </Badge>
-                  </div>
-                  <div className="border p-4 rounded-md">
-                    <p className="text-sm text-muted-foreground">Users</p>
-                    <p className="text-lg font-semibold">15,890</p>
-                    <Badge variant="outline" className="mt-2">
-                      <Users className="h-4 w-4 text-blue-500" /> +1.8%
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage user accounts and permissions.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2 mb-4">
-                  <Users className="h-6 w-6 text-primary" />
-                  <span>Active Users</span>
-                </div>
-                <ul className="space-y-2">
-                  <li>- John Doe <Badge variant="secondary">Admin</Badge></li>
-                  <li>- Jane Smith <Badge variant="secondary">Editor</Badge></li>
-                  <li>- Peter Jones <Badge variant="secondary">Viewer</Badge></li>
-                </ul>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <div className="flex flex-col space-y-4">
-        <h2 className="text-xl font-semibold">Message Service Demo</h2>
-        <Input 
-          type="text" 
-          placeholder="Enter your message" 
-          value={message} 
-          onChange={(e) => setMessage(e.target.value)} 
-        />
-        <div className="flex space-x-2">
-          <Button onClick={handleSendMessage}>
-            <FileText className="mr-2 h-4 w-4" /> Send Message
-          </Button>
-          <Button variant="outline" onClick={handleReceiveMessage}>
-            <Download className="mr-2 h-4 w-4" /> Receive Message
-          </Button>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold">Environment Variable Check</h2>
-        <p>API Key: {apiKey ? 'Loaded' : 'Not Loaded'}</p>
-        {apiKey && <p>API Key Value (hidden): ********</p>}
-      </div>
-
-      <div className="mt-8">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <Eye className="mr-2 h-4 w-4" /> View Details
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Details</DialogTitle>
-              <DialogDescription>
-                This is a modal dialog to display more information.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <p>This is the detailed content of the dialog.</p>
-              <p>It can contain various UI elements.</p>
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>Last updated: {new Date().toLocaleString()}</span>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
-  );
-};
-
-export default App;

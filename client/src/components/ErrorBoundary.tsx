@@ -23,6 +23,17 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
+    
+    // Log to external service in production
+    if (import.meta.env.PROD) {
+      // Add your error logging service here
+      console.error('Production error:', {
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString()
+      });
+    }
   }
 
   render() {
