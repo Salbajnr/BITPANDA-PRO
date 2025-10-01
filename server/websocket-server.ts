@@ -9,6 +9,8 @@ interface ClientSubscription {
   ws: WebSocket;
   symbols: string[];
   userId?: string;
+  lastPing: number;
+  isAlive: boolean;
 }
 
 interface PriceUpdateMessage {
@@ -32,7 +34,9 @@ class WebSocketManager {
   private wss: WebSocketServer | null = null;
   private clients = new Map<string, ClientSubscription>();
   private priceUpdateInterval: NodeJS.Timeout | null = null;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly UPDATE_INTERVAL = 10000; // 10 seconds
+  private readonly HEARTBEAT_INTERVAL = 30000; // 30 seconds
 
   initialize(server: Server): void {
     if (this.wss) {
@@ -40,15 +44,21 @@ class WebSocketManager {
     }
 
     this.wss = new WebSocketServer({ 
-      noServer: true
+      noServer: true,
+      perMessageDeflate: {
+        threshold: 1024,
+        concurrencyLimit: 10,
+        memLevel: 7
+      }
     });
 
-    // Handle multiple WebSocket paths
-
-    // Handle upgrade with path checking
+    // Handle upgrade with enhanced path checking
     server.on('upgrade', (request, socket, head) => {
       try {
-        const pathname = new URL(request.url!, `http://${request.headers.host}`).pathname;
+        const url = new URL(request.url!, `http://${request.headers.host}`);
+        const pathname = url.pathname;
+        
+        console.log(`🔌 WebSocket upgrade request for: ${pathname}`);
         
         if (pathname === '/ws') {
           this.wss!.handleUpgrade(request, socket, head, (ws) => {
@@ -58,24 +68,45 @@ class WebSocketManager {
           // Let chat WebSocket handle this
           return;
         } else {
+          console.log(`❌ Unknown WebSocket path: ${pathname}`);
           socket.destroy();
         }
       } catch (error) {
-        console.error('WebSocket upgrade error:', error);
+        console.error('❌ WebSocket upgrade error:', error);
         socket.destroy();
       }
     });
 
     this.wss.on('connection', (ws, request) => {
       const clientId = this.generateClientId();
-      console.log(`🔌 WebSocket client connected: ${clientId}`);
+      const clientIp = request.socket.remoteAddress;
+      
+      console.log(`🔌 WebSocket client connected: ${clientId} from ${clientIp}`);
+
+      // Initialize client
+      this.clients.set(clientId, {
+        ws,
+        symbols: [],
+        lastPing: Date.now(),
+        isAlive: true
+      });
 
       // Send welcome message
       this.sendMessage(ws, {
         type: 'connection',
-        message: 'Connected to real-time price feed',
+        message: 'Connected to BitPanda Pro real-time price feed',
         timestamp: Date.now(),
-        clientId
+        clientId,
+        version: '2.0.0'
+      });
+
+      // Set up ping/pong for connection health
+      ws.on('pong', () => {
+        const client = this.clients.get(clientId);
+        if (client) {
+          client.isAlive = true;
+          client.lastPing = Date.now();
+        }
       });
 
       // Handle client messages
@@ -84,7 +115,7 @@ class WebSocketManager {
           const message = JSON.parse(data.toString());
           await this.handleClientMessage(clientId, ws, message);
         } catch (error) {
-          console.error('WebSocket message error:', error);
+          console.error(`❌ WebSocket message error for ${clientId}:`, error);
           this.sendMessage(ws, {
             type: 'error',
             message: 'Invalid message format',
@@ -94,45 +125,53 @@ class WebSocketManager {
       });
 
       // Handle client disconnect
-      ws.on('close', () => {
-        console.log(`🔌 WebSocket client disconnected: ${clientId}`);
+      ws.on('close', (code, reason) => {
+        console.log(`🔌 WebSocket client disconnected: ${clientId}, code: ${code}, reason: ${reason.toString()}`);
         this.clients.delete(clientId);
         realTimePriceService.removeSubscription(clientId);
         this.checkActiveClients();
       });
 
       ws.on('error', (error) => {
-        console.error(`WebSocket error for client ${clientId}:`, error);
+        console.error(`❌ WebSocket error for client ${clientId}:`, error);
         this.clients.delete(clientId);
         realTimePriceService.removeSubscription(clientId);
         this.checkActiveClients();
       });
     });
 
-    // Start real-time price service
+    // Start services
     realTimePriceService.start();
+    this.startHeartbeat();
 
-    console.log('🚀 WebSocket server initialized on /ws');
+    console.log('🚀 Enhanced WebSocket server initialized on /ws');
   }
 
   private async handleClientMessage(clientId: string, ws: WebSocket, message: any): Promise<void> {
+    const client = this.clients.get(clientId);
+    if (!client) return;
+
     switch (message.type) {
       case 'subscribe':
         await this.handleSubscription(clientId, ws, message);
         break;
       
       case 'unsubscribe':
-        this.handleUnsubscription(clientId);
+        this.handleUnsubscription(clientId, message.symbols);
         break;
       
       case 'authenticate':
         await this.handleAuthentication(clientId, ws, message);
         break;
+
+      case 'ping':
+        this.sendMessage(ws, { type: 'pong', timestamp: Date.now() });
+        break;
       
       default:
         this.sendMessage(ws, {
           type: 'error',
-          message: 'Unknown message type',
+          message: `Unknown message type: ${message.type}`,
           timestamp: Date.now()
         });
     }
@@ -150,26 +189,65 @@ class WebSocketManager {
       return;
     }
 
-    // Store client subscription
-    this.clients.set(clientId, {
-      ws,
-      symbols: symbols.map(s => s.toUpperCase()),
-      userId
-    });
+    // Validate and normalize symbols
+    const validSymbols = symbols
+      .map((s: string) => s.toUpperCase().trim())
+      .filter((s: string) => /^[A-Z]{2,10}$/.test(s))
+      .slice(0, 50); // Limit to 50 symbols per client
+
+    if (validSymbols.length === 0) {
+      this.sendMessage(ws, {
+        type: 'error',
+        message: 'No valid symbols provided',
+        timestamp: Date.now()
+      });
+      return;
+    }
+
+    // Update client subscription
+    const client = this.clients.get(clientId);
+    if (client) {
+      client.symbols = validSymbols;
+      client.userId = userId;
+    }
 
     // Add to real-time price service
-    realTimePriceService.addSubscription(clientId, ws, symbols, userId);
+    realTimePriceService.addSubscription(clientId, ws, validSymbols, userId);
 
-    console.log(`📊 Client ${clientId} subscribed to: ${symbols.join(', ')}`);
+    this.sendMessage(ws, {
+      type: 'subscription_confirmed',
+      symbols: validSymbols,
+      message: `Subscribed to ${validSymbols.length} symbols`,
+      timestamp: Date.now()
+    });
+
+    console.log(`📊 Client ${clientId} subscribed to: ${validSymbols.join(', ')}`);
 
     // Start price updates if not already running
     this.startPriceUpdates();
   }
 
-  private handleUnsubscription(clientId: string): void {
-    this.clients.delete(clientId);
+  private handleUnsubscription(clientId: string, symbols?: string[]): void {
+    const client = this.clients.get(clientId);
+    if (!client) return;
+
+    if (symbols && Array.isArray(symbols)) {
+      // Unsubscribe from specific symbols
+      client.symbols = client.symbols.filter(s => !symbols.includes(s));
+    } else {
+      // Unsubscribe from all symbols
+      client.symbols = [];
+    }
+
     realTimePriceService.removeSubscription(clientId);
-    console.log(`📊 Client ${clientId} unsubscribed`);
+    
+    this.sendMessage(client.ws, {
+      type: 'unsubscription_confirmed',
+      symbols: symbols || 'all',
+      timestamp: Date.now()
+    });
+
+    console.log(`📊 Client ${clientId} unsubscribed from: ${symbols ? symbols.join(', ') : 'all symbols'}`);
     this.checkActiveClients();
   }
 
@@ -177,16 +255,40 @@ class WebSocketManager {
     const { userId } = message;
     const client = this.clients.get(clientId);
     
-    if (client) {
+    if (client && userId) {
       client.userId = userId;
-      this.clients.set(clientId, client);
       
       this.sendMessage(ws, {
         type: 'authenticated',
-        message: 'User authenticated for personalized alerts',
+        message: 'User authenticated for personalized features',
+        userId: userId,
         timestamp: Date.now()
       });
+
+      console.log(`🔐 Client ${clientId} authenticated as user ${userId}`);
     }
+  }
+
+  private startHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+
+    this.heartbeatInterval = setInterval(() => {
+      this.clients.forEach((client, clientId) => {
+        if (!client.isAlive) {
+          console.log(`💔 Terminating dead connection: ${clientId}`);
+          client.ws.terminate();
+          this.clients.delete(clientId);
+          return;
+        }
+
+        client.isAlive = false;
+        if (client.ws.readyState === WebSocket.OPEN) {
+          client.ws.ping();
+        }
+      });
+    }, this.HEARTBEAT_INTERVAL);
   }
 
   private startPriceUpdates(): void {
@@ -198,7 +300,7 @@ class WebSocketManager {
       await this.broadcastPriceUpdates();
     }, this.UPDATE_INTERVAL);
 
-    console.log('📊 Started real-time price updates');
+    console.log('📊 Started enhanced real-time price updates');
   }
 
   private async broadcastPriceUpdates(): Promise<void> {
@@ -216,36 +318,55 @@ class WebSocketManager {
     if (allSymbols.size === 0) return;
 
     try {
-      // Fetch prices for all symbols
-      const prices = await cryptoService.getPrices(Array.from(allSymbols));
-      const priceMap = new Map(prices.map(p => [p.symbol, p]));
+      // Fetch prices in batches to avoid rate limits
+      const symbolsArray = Array.from(allSymbols);
+      const batchSize = 20;
+      const allPrices: CryptoPrice[] = [];
+
+      for (let i = 0; i < symbolsArray.length; i += batchSize) {
+        const batch = symbolsArray.slice(i, i + batchSize);
+        const batchPrices = await cryptoService.getPrices(batch);
+        allPrices.push(...batchPrices);
+        
+        // Small delay between batches
+        if (i + batchSize < symbolsArray.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+
+      const priceMap = new Map(allPrices.map(p => [p.symbol, p]));
 
       // Send updates to each client based on their subscriptions
-      this.clients.forEach(async (client, clientId) => {
-        if (client.ws.readyState === WebSocket.OPEN) {
-          const clientPrices = client.symbols
-            .map(symbol => priceMap.get(symbol))
-            .filter(Boolean) as CryptoPrice[];
+      const updatePromises = Array.from(this.clients.entries()).map(async ([clientId, client]) => {
+        if (client.ws.readyState !== WebSocket.OPEN) {
+          this.clients.delete(clientId);
+          return;
+        }
 
-          if (clientPrices.length > 0) {
-            this.sendMessage(client.ws, {
-              type: 'price_update',
-              data: clientPrices,
-              timestamp: Date.now()
-            });
-          }
+        const clientPrices = client.symbols
+          .map(symbol => priceMap.get(symbol))
+          .filter(Boolean) as CryptoPrice[];
+
+        if (clientPrices.length > 0) {
+          this.sendMessage(client.ws, {
+            type: 'price_update',
+            data: clientPrices,
+            timestamp: Date.now(),
+            count: clientPrices.length
+          });
 
           // Check for price alerts if user is authenticated
           if (client.userId) {
             await this.checkPriceAlerts(client.userId, clientPrices, client.ws);
           }
-        } else {
-          // Remove disconnected client
-          this.clients.delete(clientId);
         }
       });
+
+      await Promise.all(updatePromises);
+      
+      console.log(`📊 Broadcasted prices for ${allPrices.length} symbols to ${this.clients.size} clients`);
     } catch (error) {
-      console.error('Error broadcasting price updates:', error);
+      console.error('❌ Error broadcasting price updates:', error);
     }
   }
 
@@ -280,7 +401,8 @@ class WebSocketManager {
               symbol: alert.symbol,
               price: currentPrice,
               alertType: alert.alertType,
-              targetPrice: targetPrice
+              targetPrice: targetPrice,
+              alertId: alert.id
             },
             timestamp: Date.now()
           });
@@ -303,7 +425,7 @@ class WebSocketManager {
         }
       }
     } catch (error) {
-      console.error('Error checking price alerts:', error);
+      console.error('❌ Error checking price alerts:', error);
     }
   }
 
@@ -331,7 +453,11 @@ class WebSocketManager {
 
   private sendMessage(ws: WebSocket, message: any): void {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message));
+      try {
+        ws.send(JSON.stringify(message));
+      } catch (error) {
+        console.error('❌ Error sending WebSocket message:', error);
+      }
     }
   }
 
@@ -341,9 +467,13 @@ class WebSocketManager {
 
   // Public methods for external use
   async broadcastToAll(message: any): Promise<void> {
-    this.clients.forEach((client) => {
-      this.sendMessage(client.ws, message);
+    const promises = Array.from(this.clients.values()).map(client => {
+      if (client.ws.readyState === WebSocket.OPEN) {
+        return this.sendMessage(client.ws, message);
+      }
     });
+    
+    await Promise.all(promises.filter(Boolean));
   }
 
   getActiveClientsCount(): number {
@@ -358,13 +488,46 @@ class WebSocketManager {
     return Array.from(symbols);
   }
 
+  getConnectionStats(): any {
+    return {
+      totalClients: this.clients.size,
+      uniqueSymbols: this.getActiveSymbols().length,
+      rateLimitInfo: cryptoService.getRateLimitInfo(),
+      uptime: process.uptime(),
+      lastUpdate: new Date().toISOString()
+    };
+  }
+
   shutdown(): void {
-    this.stopPriceUpdates();
+    console.log('🛑 Shutting down WebSocket server...');
+    
+    if (this.priceUpdateInterval) {
+      clearInterval(this.priceUpdateInterval);
+    }
+    
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+    
+    this.clients.forEach(client => {
+      if (client.ws.readyState === WebSocket.OPEN) {
+        this.sendMessage(client.ws, {
+          type: 'server_shutdown',
+          message: 'Server is shutting down',
+          timestamp: Date.now()
+        });
+        client.ws.close(1001, 'Server shutdown');
+      }
+    });
+    
     this.clients.clear();
     realTimePriceService.stop();
+    
     if (this.wss) {
       this.wss.close();
     }
+    
+    console.log('✅ WebSocket server shutdown complete');
   }
 }
 

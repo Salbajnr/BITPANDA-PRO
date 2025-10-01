@@ -19,7 +19,7 @@ externalPort = 80
 PORT = "5000"
 
 [workflows]
-runButton = "Project"
+runButton = "Start Enhanced Trading Platform"
 
 [[workflows.workflow]]
 name = "Project"
@@ -525,6 +525,23 @@ args = "npm run dev"
 [[workflows.workflow]]
 name = "Start App Clean"
 author = 48041014
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*5000\" || pkill -f \"tsx.*server\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 3"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Start Enhanced Trading Platform"
+author = 48191264
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
