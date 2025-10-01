@@ -11,7 +11,7 @@ import {
   Activity, AlertTriangle, CheckCircle, Clock, RefreshCw,
   TrendingUp, TrendingDown, Zap, Globe, Shield, Monitor
 } from 'lucide-react';
-import { apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ServerMetrics {
   server: {
