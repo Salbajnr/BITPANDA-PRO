@@ -3,9 +3,28 @@ export interface MessageServiceType {
   showSuccessMessage: (message: string) => void;
   showValidationErrors: (errors: string[]) => void;
   confirmDeletion: (itemName: string, onConfirm: () => void) => void;
+  showInfo: (title: string, message: string) => void;
+  showWarning: (title: string, message: string) => void;
 }
 
-export function createMessageService(modalFunctions: any): MessageServiceType {
+interface ModalFunctions {
+  showError: (title: string, message: string) => void;
+  showSuccess: (title: string, message: string) => void;
+  showInfo: (title: string, message: string) => void;
+  showWarning: (title: string, message: string) => void;
+  showConfirmation: (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    options?: {
+      confirmText?: string;
+      cancelText?: string;
+      onCancel?: () => void;
+    }
+  ) => void;
+}
+
+export function createMessageService(modalFunctions: ModalFunctions): MessageServiceType {
   return {
     showApiError: (error: any) => {
       const errorMessage = error?.message || error?.error || 'An unexpected error occurred';
@@ -31,6 +50,14 @@ export function createMessageService(modalFunctions: any): MessageServiceType {
           cancelText: 'Cancel'
         }
       );
+    },
+
+    showInfo: (title: string, message: string) => {
+      modalFunctions.showInfo(title, message);
+    },
+
+    showWarning: (title: string, message: string) => {
+      modalFunctions.showWarning(title, message);
     }
   };
 }
