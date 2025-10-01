@@ -1,76 +1,36 @@
-
-interface MessageService {
-  showTradeSuccess: (asset: string, amount: number, type: 'buy' | 'sell') => void
-  showTradeError: (error: string) => void
-  showDepositSuccess: (amount: number, currency: string) => void
-  showWithdrawalConfirmation: (amount: number, currency: string, onConfirm: () => void) => void
-  showKycRequired: () => void
-  showInsufficientBalance: () => void
-  showMaintenanceNotice: () => void
+export interface MessageServiceType {
+  showApiError: (error: any) => void;
+  showSuccessMessage: (message: string) => void;
+  showValidationErrors: (errors: string[]) => void;
+  confirmDeletion: (itemName: string, onConfirm: () => void) => void;
 }
 
-export function createMessageService(modalFunctions: {
-  showSuccess: (title: string, message: string) => void
-  showError: (title: string, message: string) => void
-  showWarning: (title: string, message: string) => void
-  showInfo: (title: string, message: string) => void
-  showConfirmation: (title: string, message: string, onConfirm: () => void, options?: any) => void
-}): MessageService {
-  const { showSuccess, showError, showWarning, showInfo, showConfirmation } = modalFunctions
-
+export function createMessageService(modalFunctions: any): MessageServiceType {
   return {
-    showTradeSuccess: (asset: string, amount: number, type: 'buy' | 'sell') => {
-      showSuccess(
-        'Trade Executed Successfully',
-        `Your ${type} order for ${amount} ${asset} has been completed.`
-      )
+    showApiError: (error: any) => {
+      const errorMessage = error?.message || error?.error || 'An unexpected error occurred';
+      modalFunctions.showError('Error', errorMessage);
     },
 
-    showTradeError: (error: string) => {
-      showError(
-        'Trade Failed',
-        `Your trade could not be completed: ${error}. Please try again.`
-      )
+    showSuccessMessage: (message: string) => {
+      modalFunctions.showSuccess('Success', message);
     },
 
-    showDepositSuccess: (amount: number, currency: string) => {
-      showSuccess(
-        'Deposit Successful',
-        `${amount} ${currency} has been successfully added to your account.`
-      )
+    showValidationErrors: (errors: string[]) => {
+      const errorMessage = errors.join('\n');
+      modalFunctions.showError('Validation Error', errorMessage);
     },
 
-    showWithdrawalConfirmation: (amount: number, currency: string, onConfirm: () => void) => {
-      showConfirmation(
-        'Confirm Withdrawal',
-        `Are you sure you want to withdraw ${amount} ${currency}? This action cannot be undone.`,
+    confirmDeletion: (itemName: string, onConfirm: () => void) => {
+      modalFunctions.showConfirmation(
+        'Confirm Deletion',
+        `Are you sure you want to delete ${itemName}? This action cannot be undone.`,
         onConfirm,
         {
-          confirmText: 'Withdraw',
+          confirmText: 'Delete',
           cancelText: 'Cancel'
         }
-      )
-    },
-
-    showKycRequired: () => {
-      showWarning(
-        'KYC Verification Required',
-        'Please complete your identity verification to access this feature.'
-      )
-    },
-
-    showInsufficientBalance: () => {
-      showError(
-        'Insufficient Balance',
-        'You do not have enough funds to complete this transaction.'
-      )
-    },
-
-    showMaintenanceNotice: () => {
-      showInfo(
-        'System Maintenance',
-        'This feature is temporarily unavailable due to scheduled maintenance.'
-      )
+      );
     }
-  }
+  };
 }

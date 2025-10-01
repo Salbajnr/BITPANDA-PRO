@@ -72,6 +72,7 @@ const Commodities = lazy(() => import("./pages/Commodities"));
 const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonitor"));
 import KycVerification from "./pages/KycVerification";
 import AssetDetails from "./pages/AssetDetails";
+import MarketResearchDashboard from "./pages/MarketResearchDashboard";
 
 // Placeholder for the new LoadingScreen component
 // In a real application, this would be imported from a shared components directory
