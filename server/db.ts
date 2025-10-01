@@ -1,10 +1,7 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from "drizzle-orm/neon-serverless";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import ws from "ws";
+import postgres from "postgres";
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
 
 // Use Replit's built-in PostgreSQL database
 const databaseUrl = process.env.DATABASE_URL;
@@ -18,28 +15,23 @@ console.log("🔌 Attempting to connect to database...");
 console.log(databaseUrl ? '📍 Using database: Replit PostgreSQL' : '❌ DATABASE_URL not configured');
 
 export const pool = databaseUrl
-  ? new Pool({
-      connectionString: databaseUrl,
-      ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false },
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
-      connectionTimeoutMillis: 2000, // Connection timeout
+  ? postgres(databaseUrl, {
+      max: 20,
+      idle_timeout: 30,
+      connect_timeout: 2,
     })
   : null;
 
-export const db = drizzle({ client: pool!, schema });
+export const db = drizzle(pool!, { schema });
 
 // Enhanced connection testing with retry logic
 if (pool) {
   const testConnection = async (retries = 3) => {
     for (let i = 0; i < retries; i++) {
       try {
-        const client = await pool.connect();
-        console.log("✅ Database connected successfully");
-        client.release();
-
         // Test a simple query
         await db.execute(sql`SELECT 1`);
+        console.log("✅ Database connected successfully");
         console.log("✅ Database query test successful");
         return;
       } catch (err: any) {

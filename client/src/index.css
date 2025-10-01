@@ -565,7 +565,7 @@ a:hover {
 
 /* Mobile table responsiveness */
 .mobile-table-container {
-  @apply w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100;
+  @apply w-full overflow-x-auto;
 }
 
 .mobile-table {
@@ -643,7 +643,8 @@ a:hover {
 
 /* Mobile sticky elements */
 .mobile-sticky-top {
-  @apply sticky top-0 z-40 backdrop-blur-md bg-background/95;
+  @apply sticky top-0 z-40 backdrop-blur-md;
+  background-color: hsl(var(--background) / 0.95);
 }
 
 /* Mobile bottom navigation */
@@ -785,20 +786,33 @@ a:hover {
 }
 
 .status-success {
-  @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+  @apply bg-green-100 text-green-800 dark:text-green-400;
+}
+
+.dark .status-success {
+  background-color: rgb(20 83 45 / 0.3);
 }
 
 .status-warning {
-  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
+  @apply bg-yellow-100 text-yellow-800 dark:text-yellow-400;
+}
+
+.dark .status-warning {
+  background-color: rgb(113 63 18 / 0.3);
 }
 
 .status-error {
-  @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+  @apply bg-red-100 text-red-800 dark:text-red-400;
+}
+
+.dark .status-error {
+  background-color: rgb(127 29 29 / 0.3);
 }
 
 /* Modern Input Styling */
 .modern-input {
-  @apply relative overflow-hidden rounded-xl border-2 border-slate-200 bg-white/90 backdrop-blur-sm;
+  @apply relative overflow-hidden rounded-xl border-2 border-slate-200 backdrop-blur-sm;
+  background-color: rgb(255 255 255 / 0.9);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
