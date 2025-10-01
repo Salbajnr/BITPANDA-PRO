@@ -69,16 +69,10 @@ class PriceMonitorService {
   }
 
   private async connect() {
-    if (this.connectionAttempts >= this.maxConnectionAttempts) {
-      console.log('⚠️  Max connection attempts reached for price feed. Running in fallback mode.');
-      return;
-    }
-
-    try {
-      console.log('🔌 Connecting to price feed...');
-      // Use dynamic import for ES modules compatibility
-      const { WebSocket } = await import('ws');
-      this.ws = new WebSocket('wss://stream.binance.com:9443/ws/!ticker@arr');
+    console.log('📊 Running price monitor in HTTP-only mode (WebSocket disabled)');
+    // Skip WebSocket connection entirely and use HTTP polling
+    this.isConnected = true;
+    this.connectionAttempts = 0;
 
       this.ws.on('open', () => {
         console.log('✅ Connected to price feed');

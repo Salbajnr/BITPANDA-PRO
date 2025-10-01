@@ -33,7 +33,7 @@ class RealTimePriceService extends EventEmitter {
   start() {
     if (this.isRunning) return;
 
-    console.log('🚀 Starting Real-Time Price Service (HTTP mode for Replit)...');
+    console.log('🚀 Starting Real-Time Price Service (Mock mode for stability)...');
     this.isRunning = true;
     this.startPriceUpdates();
   }
