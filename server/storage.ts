@@ -893,7 +893,13 @@ export class DatabaseStorage implements IStorage {
   async deletePriceAlert(alertId: string): Promise<void> {
     try {
       const db = this.ensureDb();
-
+      await db.delete(priceAlerts)
+        .where(eq(priceAlerts.id, alertId));
+    } catch (error) {
+      console.error("Error deleting price alert:", error);
+      throw error;
+    }
+  }
 
   async logAdminAction(action: { adminId: string; action: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void> {
     try {
@@ -909,14 +915,6 @@ export class DatabaseStorage implements IStorage {
       });
     } catch (error) {
       console.error('Error logging admin action:', error);
-    }
-  }
-
-      await db.delete(priceAlerts)
-        .where(eq(priceAlerts.id, alertId));
-    } catch (error) {
-      console.error("Error deleting price alert:", error);
-      throw error;
     }
   }
 

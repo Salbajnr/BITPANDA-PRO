@@ -32,18 +32,3 @@ export const config = {
 };
 
 export default config;
-// Environment configuration and validation
-if (!process.env.DATABASE_URL) {
-  console.error('❌ DATABASE_URL environment variable is not set');
-  console.log('Please set DATABASE_URL in your environment or .env file');
-}
-
-export const config = {
-  databaseUrl: process.env.DATABASE_URL || '',
-  port: parseInt(process.env.PORT || '5000'),
-  nodeEnv: process.env.NODE_ENV || 'development',
-  sessionSecret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
-  corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:5000', 'http://127.0.0.1:5000'],
-};
-
-export default config;

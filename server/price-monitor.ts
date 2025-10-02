@@ -73,52 +73,6 @@ class PriceMonitorService {
     // Skip WebSocket connection entirely and use HTTP polling
     this.isConnected = true;
     this.connectionAttempts = 0;
-
-      this.ws.on('open', () => {
-        console.log('✅ Connected to price feed');
-        this.isConnected = true;
-        this.connectionAttempts = 0; // Reset on successful connection
-
-        // Subscribe to price updates
-        this.ws?.send(JSON.stringify({
-          method: 'subscribe',
-          params: ['btcusdt@ticker', 'ethusdt@ticker', 'adausdt@ticker']
-        }));
-      });
-
-      this.ws.on('message', (data) => {
-        try {
-          const message = JSON.parse(data.toString());
-          if (message.stream && message.data) {
-            const symbol = message.stream.replace('@ticker', '').toUpperCase();
-            const price = parseFloat(message.data.c);
-            this.prices.set(symbol, price);
-          }
-        } catch (error) {
-          console.error('Error parsing price data:', error);
-        }
-      });
-
-      this.ws.on('close', () => {
-        console.log('❌ Price feed disconnected');
-        this.isConnected = false;
-        if (this.connectionAttempts < this.maxConnectionAttempts) {
-          this.reconnect();
-        }
-      });
-
-      this.ws.on('error', (error) => {
-        console.error('Price feed error:', error);
-        this.isConnected = false;
-        // Don't automatically reconnect on error to prevent spam
-      });
-
-    } catch (error) {
-      console.error('Failed to connect to price feed:', error);
-      if (this.connectionAttempts < this.maxConnectionAttempts) {
-        this.reconnect();
-      }
-    }
   }
 
   private reconnect() {
