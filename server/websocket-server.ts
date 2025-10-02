@@ -11,6 +11,8 @@ class WebSocketManager {
   private wss: WebSocketServer | null = null;
   private clients: Map<string, ClientSubscription> = new Map();
   private isInitialized = false;
+  private connectionsByIp: Map<string, number> = new Map();
+  private readonly MAX_CONNECTIONS_PER_IP = 3;
 
   initialize(httpServer: Server) {
     if (this.isInitialized) {
@@ -18,13 +20,30 @@ class WebSocketManager {
       return;
     }
 
-    this.wss = new WebSocketServer({ noServer: true });
+    this.wss = new WebSocketServer({
+      noServer: true,
+      path: '/ws'
+    });
 
     // Handle upgrade requests only once
     httpServer.on('upgrade', (request, socket, head) => {
       const pathname = new URL(request.url || '', `http://${request.headers.host}`).pathname;
 
       if (pathname === '/ws') {
+        // Get client IP
+        const clientIp = request.headers['x-forwarded-for']?.split(',')[0] ||
+                        request.socket.remoteAddress ||
+                        'unknown';
+
+        // Check connection limit
+        const currentConnections = this.connectionsByIp.get(clientIp) || 0;
+        if (currentConnections >= this.MAX_CONNECTIONS_PER_IP) {
+          console.log(`❌ Connection limit reached for IP: ${clientIp}`);
+          socket.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
+          socket.destroy();
+          return;
+        }
+
         console.log('🔌 WebSocket upgrade request for:', pathname);
         this.wss!.handleUpgrade(request, socket, head, (ws) => {
           this.wss!.emit('connection', ws, request);
@@ -34,9 +53,16 @@ class WebSocketManager {
       }
     });
 
-    this.wss.on('connection', (ws: WebSocket) => {
+    this.wss.on('connection', (ws: WebSocket, request: any) => {
+      const clientIp = request.headers['x-forwarded-for']?.split(',')[0] ||
+                      request.socket.remoteAddress ||
+                      'unknown';
+
+      // Increment connection count
+      this.connectionsByIp.set(clientIp, (this.connectionsByIp.get(clientIp) || 0) + 1);
+
       const clientId = Date.now().toString() + Math.random().toString(36);
-      console.log('Client connected to WebSocket');
+      console.log(`Client connected to WebSocket (IP: ${clientIp}, Total: ${this.connectionsByIp.get(clientIp)})`);
 
       ws.send(JSON.stringify({
         type: 'connection',
@@ -64,11 +90,27 @@ class WebSocketManager {
       ws.on('close', () => {
         console.log('Client disconnected from WebSocket');
         this.handleUnsubscribe(clientId);
+
+        // Decrement connection count
+        const count = this.connectionsByIp.get(clientIp) || 0;
+        if (count <= 1) {
+          this.connectionsByIp.delete(clientIp);
+        } else {
+          this.connectionsByIp.set(clientIp, count - 1);
+        }
       });
 
       ws.on('error', (error) => {
         console.error('WebSocket error:', error);
         this.handleUnsubscribe(clientId);
+
+        // Decrement connection count on error
+        const count = this.connectionsByIp.get(clientIp) || 0;
+        if (count <= 1) {
+          this.connectionsByIp.delete(clientIp);
+        } else {
+          this.connectionsByIp.set(clientIp, count - 1);
+        }
       });
     });
 
@@ -146,6 +188,7 @@ class WebSocketManager {
       }
     });
     this.clients.clear();
+    this.connectionsByIp.clear(); // Clear IP connection tracking
 
     if (this.wss) {
       this.wss.close();

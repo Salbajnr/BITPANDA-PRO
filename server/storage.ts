@@ -940,18 +940,10 @@ export class DatabaseStorage implements IStorage {
 
   async getActivePriceAlerts() {
     try {
-      const alerts = await this.db.select({
-        id: priceAlerts.id,
-        userId: priceAlerts.userId,
-        symbol: priceAlerts.symbol,
-        name: priceAlerts.name,
-        targetPrice: priceAlerts.targetPrice,
-        condition: priceAlerts.condition,
-        isActive: priceAlerts.isActive,
-        isTriggered: priceAlerts.isTriggered,
-        createdAt: priceAlerts.createdAt,
-        updatedAt: priceAlerts.updatedAt
-      }).from(priceAlerts)
+      const db = this.ensureDb();
+      const alerts = await db
+        .select()
+        .from(priceAlerts)
         .where(and(
           eq(priceAlerts.isActive, true),
           eq(priceAlerts.isTriggered, false)
@@ -959,6 +951,10 @@ export class DatabaseStorage implements IStorage {
       return alerts;
     } catch (error) {
       console.error('Error getting active price alerts:', error);
+      // Return empty array if table doesn't exist or query fails
+      if (error?.code === '42P01') {
+        return [];
+      }
       return [];
     }
   }

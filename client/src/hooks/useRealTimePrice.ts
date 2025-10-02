@@ -76,7 +76,8 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
   }, [enableAlerts]);
 
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    if (wsRef.current?.readyState === WebSocket.OPEN || 
+        wsRef.current?.readyState === WebSocket.CONNECTING) {
       return;
     }
 
@@ -84,6 +85,13 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
+    }
+
+    // Check if we've exceeded max reconnect attempts
+    if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+      console.log('❌ Max reconnection attempts reached');
+      setConnectionError('Unable to connect to real-time price service');
+      return;
     }
 
     try {
