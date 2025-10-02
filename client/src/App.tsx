@@ -70,6 +70,13 @@ const AdminChatManagement = lazy(() => import("./pages/AdminChatManagement"));
 const AdminNewsManagement = lazy(() => import("./pages/AdminNewsManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
 const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonitor"));
+const AdminLogin = lazy(() => import("@/admin/pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("@/admin/pages/AdminDashboard"));
+const AdminUsers = lazy(() => import("@/pages/AdminUsers"));
+const AdminBalanceManagement = lazy(() => import("@/pages/AdminBalanceManagement"));
+const AdminWithdrawalManagement = lazy(() => import("@/pages/AdminWithdrawalManagement"));
+const AdminKycManagement = lazy(() => import("@/pages/AdminKycManagement"));
+const AdminDepositManagement = lazy(() => import("@/pages/AdminDepositManagement"));
 import KycVerification from "./pages/KycVerification";
 import AssetDetails from "./pages/AssetDetails";
 import MarketResearchDashboard from "./pages/MarketResearchDashboard";
@@ -218,8 +225,18 @@ export default function App() {
                   <Route path="/asset-details" component={AssetDetails} />
                   <Route path="/landing" component={Landing} />
 
-                  {/* Redirect any remaining admin paths to a not found page or a dedicated admin login */}
-                  <Route path="/admin/*" component={() => <Redirect to="/admin-login" />} />
+                  {/* Admin Routes - No authentication wrapper, handled internally */}
+                  <Route path="/admin/login" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><AdminLogin /></Suspense></PublicLayout>} />
+                  <Route path="/admin/dashboard" component={() => <Suspense fallback={<LoadingSpinner />}><AdminDashboard /></Suspense>} />
+                  <Route path="/admin/users" component={() => <Suspense fallback={<LoadingSpinner />}><AdminUsers /></Suspense>} />
+                  <Route path="/admin/balance-management" component={() => <Suspense fallback={<LoadingSpinner />}><AdminBalanceManagement /></Suspense>} />
+                  <Route path="/admin/news" component={() => <Suspense fallback={<LoadingSpinner />}><AdminNewsManagement /></Suspense>} />
+                  <Route path="/admin/withdrawals" component={() => <Suspense fallback={<LoadingSpinner />}><AdminWithdrawalManagement /></Suspense>} />
+                  <Route path="/admin/kyc" component={() => <Suspense fallback={<LoadingSpinner />}><AdminKycManagement /></Suspense>} />
+                  <Route path="/admin/deposits" component={() => <Suspense fallback={<LoadingSpinner />}><AdminDepositManagement /></Suspense>} />
+                  <Route path="/admin/chat" component={() => <Suspense fallback={<LoadingSpinner />}><AdminChatManagement /></Suspense>} />
+                  <Route path="/admin/transactions" component={() => <Suspense fallback={<LoadingSpinner />}><AdminTransactionMonitor /></Suspense>} />
+                  <Route path="/admin/metals" component={() => <Suspense fallback={<LoadingSpinner />}><AdminMetalsManagement /></Suspense>} />
 
                   {/* 404 Route */}
                   <Route component={NotFound} />

@@ -48,9 +48,55 @@ router.get('/analytics', async (req, res) => {
         name: holding.name,
         totalAmount: parseFloat(holding.amount),
         totalCost: parseFloat(holding.amount) * parseFloat(holding.averagePurchasePrice),
+        averagePurchasePrice: parseFloat(holding.averagePurchasePrice),
+        currentPrice: parseFloat(holding.currentPrice),
         transactions: []
       });
     }
+
+    // Process transactions to update holdings
+    for (const tx of userTransactions) {
+      const existing = holdingsMap.get(tx.symbol);
+      if (existing) {
+        existing.transactions.push(tx);
+      }
+    }
+
+    // Convert map to array and calculate analytics
+    const holdings = Array.from(holdingsMap.values()).map(h => ({
+      ...h,
+      currentValue: h.totalAmount * h.currentPrice,
+      pnl: (h.totalAmount * h.currentPrice) - h.totalCost,
+      pnlPercentage: h.totalCost > 0 ? (((h.totalAmount * h.currentPrice) - h.totalCost) / h.totalCost) * 100 : 0
+    }));
+
+    const totalValue = holdings.reduce((sum, h) => sum + h.currentValue, 0);
+    const totalCost = holdings.reduce((sum, h) => sum + h.totalCost, 0);
+    const totalPnL = totalValue - totalCost;
+    const totalPnLPercentage = totalCost > 0 ? (totalPnL / totalCost) * 100 : 0;
+
+    res.json({
+      totalValue,
+      totalCost,
+      totalPnL,
+      totalPnLPercentage,
+      dayPnL: 0, // Would need historical data
+      dayPnLPercentage: 0,
+      holdings,
+      performance: [],
+      allocation: holdings.map(h => ({
+        symbol: h.symbol,
+        name: h.name,
+        percentage: totalValue > 0 ? (h.currentValue / totalValue) * 100 : 0
+      }))
+    });
+  } catch (error) {
+    console.error('Portfolio analytics error:', error);
+    res.status(500).json({ error: 'Failed to fetch portfolio analytics' });
+  }
+});
+
+export default router;
 
     // Process recent transactions
     for (const transaction of userTransactions) {

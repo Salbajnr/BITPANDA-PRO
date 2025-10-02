@@ -141,7 +141,7 @@ app.use((req, res, next) => {
       next();
     }, express.static(path.join(__dirname, '../uploads')));
 
-    // ALL routes
+    // Register all API routes (note: more routes are registered in routes.ts via registerRoutes)
     app.use('/api/crypto', cryptoRoutes);
     app.use('/api/trading', tradingRoutes);
     app.use('/api/admin', adminRoutes);

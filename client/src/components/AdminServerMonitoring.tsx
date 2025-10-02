@@ -140,10 +140,10 @@ export default function AdminServerMonitoring() {
   const serverMetrics: ServerMetrics = metrics || {
     server: { uptime: '0', status: 'healthy', responseTime: 0, load: 0, processes: 0, connections: 0 },
     database: { status: 'connected', connectionCount: 0, queryTime: 0, storageUsed: 0, storageTotal: 0, transactionsPerSecond: 0 },
-    api: { totalRequests: 0, successRate: 0, errorRate: 0, avgResponseTime: 0, rateLimit: 0, rateLimitUsed: 0 },
+    api: { totalRequests: 0, successRate: 0, errorRate: 0, avgResponseTime: 0, rateLimit: 1000, rateLimitUsed: 0 },
     resources: { cpuUsage: 0, memoryUsage: 0, diskUsage: 0, networkIn: 0, networkOut: 0 },
-    security: { activeThreats: 0, blockedIPs: 0, failedLogins: 0, sslStatus: 'valid', sslExpiry: '' },
-    performance: { requestsPerMinute: 0, errorCount: 0, slowQueries: 0, cacheHitRate: 0 }
+    security: { activeThreats: 0, blockedIPs: 0, failedLogins: 0, sslStatus: 'valid', sslExpiry: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString() },
+    performance: { requestsPerMinute: 0, errorCount: 0, slowQueries: 0, cacheHitRate: 95 }
   };
 
   const services: ServiceStatus[] = servicesData?.services || [];
