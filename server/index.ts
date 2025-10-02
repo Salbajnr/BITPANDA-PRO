@@ -22,6 +22,10 @@ import newsRoutes from './news-routes';
 import kycRoutes from './kyc-routes';
 import marketResearchRoutes from './market-research-routes';
 import chatRoutes from './chat-routes';
+import investmentPlansRoutes from './investment-plans-routes';
+import savingsPlansRoutes from './savings-plans-routes';
+import stakingRoutes from './staking-routes';
+import lendingRoutes from './lending-routes';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -158,6 +162,10 @@ app.use((req, res, next) => {
     app.use('/api/research', marketResearchRoutes);
     app.use('/api/kyc', kycRoutes);
     app.use('/api/support/chat', chatRoutes);
+    app.use('/api/investment-plans', investmentPlansRoutes);
+    app.use('/api/savings-plans', savingsPlansRoutes);
+    app.use('/api/staking', stakingRoutes);
+    app.use('/api/lending', lendingRoutes);
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route

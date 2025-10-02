@@ -225,11 +225,8 @@ export default function App() {
                   <Route path="/asset-details" component={AssetDetails} />
                   <Route path="/landing" component={Landing} />
 
-                  {/* Admin routes handled by separate AdminApp - redirect to admin login */}
-                  <Route path="/admin/:rest*" component={() => {
-                    window.location.href = '/admin';
-                    return null;
-                  }} />
+                  {/* Admin routes - redirect to admin login */}
+                  <Route path="/admin/:rest*" component={() => <Redirect to="/admin/login" />} />
 
                   {/* 404 Route */}
                   <Route component={NotFound} />
