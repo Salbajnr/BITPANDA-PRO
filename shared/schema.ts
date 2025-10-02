@@ -358,14 +358,11 @@ export const priceAlerts = pgTable("price_alerts", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   symbol: text("symbol").notNull(),
   targetPrice: text("target_price").notNull(),
-  alertType: text("alert_type").notNull(), // 'above' or 'below'
+  alertType: text("alert_type").notNull().default('above'), // 'above' or 'below'
   isActive: boolean("is_active").default(true),
   isTriggered: boolean("is_triggered").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
-
-export type PriceAlert = typeof priceAlerts.$inferSelect;
-export type InsertPriceAlert = typeof priceAlerts.$inferInsert;
 
 // Investment Plans
 export const investmentPlans = pgTable("investment_plans", {
