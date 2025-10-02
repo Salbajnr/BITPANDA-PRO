@@ -11,6 +11,7 @@ import { realTimePriceService } from './real-time-price-service';
 import cryptoRoutes from './crypto-routes';
 import tradingRoutes from './trading-routes';
 import adminRoutes from './admin-routes';
+import adminAuthRoutes from './admin-auth-routes';
 import authRoutes from './auth-routes';
 import alertRoutes from './alert-routes';
 import depositRoutes from './deposit-routes';
@@ -144,6 +145,7 @@ app.use((req, res, next) => {
     // Register all API routes (note: more routes are registered in routes.ts via registerRoutes)
     app.use('/api/crypto', cryptoRoutes);
     app.use('/api/trading', tradingRoutes);
+    app.use('/api/admin', adminAuthRoutes);
     app.use('/api/admin', adminRoutes);
     app.use('/api/auth', authRoutes);
     app.use('/api/alerts', alertRoutes);
