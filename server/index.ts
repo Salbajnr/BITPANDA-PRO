@@ -173,7 +173,13 @@ app.use((req, res, next) => {
 
     // Admin routes - serve admin app
     app.get('/admin*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../client/admin.html'));
+      const adminHtmlPath = path.join(__dirname, '../client/dist/admin.html');
+      if (fs.existsSync(adminHtmlPath)) {
+        res.sendFile(adminHtmlPath);
+      } else {
+        // Fallback to development admin.html
+        res.sendFile(path.join(__dirname, '../client/admin.html'));
+      }
     });
 
     // Catch-all handler: send back React's index.html file for SPA routing

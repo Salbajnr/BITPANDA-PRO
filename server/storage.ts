@@ -99,6 +99,7 @@ export interface IStorage {
 
   // Admin operations
   getAllUsers(): Promise<User[]>;
+  logAdminAction(action: { adminId: string; action: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void>;
   getUsers(options: {
     page: number;
     limit: number;
@@ -896,6 +897,13 @@ export class DatabaseStorage implements IStorage {
   async deletePriceAlert(alertId: string): Promise<void> {
     try {
       const db = this.ensureDb();
+
+
+  async logAdminAction(action: { adminId: string; action: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void> {
+    // Store admin action in audit log (implement when audit log table is added)
+    console.log('Admin action logged:', action);
+  },
+
       await db.delete(priceAlerts)
         .where(eq(priceAlerts.id, alertId));
     } catch (error) {
@@ -909,6 +917,27 @@ export class DatabaseStorage implements IStorage {
       const alerts = await this.db.select({
         id: priceAlerts.id,
         userId: priceAlerts.userId,
+
+
+  async getUserTransactionCount(userId: string): Promise<number> {
+    const result = await db.select({ count: count() })
+      .from(transactions)
+      .where(eq(transactions.userId, userId));
+    return result[0]?.count || 0;
+  },
+
+  async getUserDeposits(userId: string, limit?: number): Promise<Deposit[]> {
+    const query = db.select()
+      .from(deposits)
+      .where(eq(deposits.userId, userId))
+      .orderBy(desc(deposits.createdAt));
+    
+    if (limit) {
+      return query.limit(limit);
+    }
+    return query;
+  },
+
         symbol: priceAlerts.symbol,
         name: priceAlerts.name,
         targetPrice: priceAlerts.targetPrice,

@@ -28,6 +28,7 @@ import AdminQuickActions from '@/components/AdminQuickActions';
 import AdminRiskManagement from '@/components/AdminRiskManagement';
 import AdminComplianceDashboard from '@/components/AdminComplianceDashboard';
 import AdminServerMonitoring from '@/components/AdminServerMonitoring';
+import { cn } from '@/lib/utils';
 
 interface User {
   id: string;

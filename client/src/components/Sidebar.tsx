@@ -153,14 +153,17 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
                   </Link>
                 );
               })}
-              {/* Added News Management Link */}
-              <SidebarMenuButton 
-                isActive={currentPath === '/admin/news-management'}
-                onClick={() => navigate('/admin/news-management')}
-              >
-                <Newspaper className="mr-2 h-4 w-4" />
-                News Management
-              </SidebarMenuButton>
+              <Link href="/admin/news">
+                <a className={cn(
+                  "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
+                  location === "/admin/news"
+                    ? "bg-red-500 text-white"
+                    : "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                )}>
+                  <Newspaper className="w-5 h-5" />
+                  <span>News Management</span>
+                </a>
+              </Link>
             </nav>
           </div>
         )}
