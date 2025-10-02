@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TrendingUp, Shield, Zap, Activity } from "lucide-react";
 
@@ -8,10 +7,10 @@ interface LoadingScreenProps {
   progress?: number;
 }
 
-export default function LoadingScreen({ 
-  isVisible = true, 
+export default function LoadingScreen({
+  isVisible = true,
   message = "Loading your financial future...",
-  progress = 0 
+  progress = 0
 }: LoadingScreenProps) {
   const [currentProgress, setCurrentProgress] = useState(0);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
@@ -115,7 +114,7 @@ export default function LoadingScreen({
             </span>
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all duration-500 ease-out relative"
               style={{ width: `${currentProgress}%` }}
             >

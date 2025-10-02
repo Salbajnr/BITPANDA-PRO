@@ -1,4 +1,3 @@
-
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { cryptoService, type CryptoPrice } from './crypto-service';
@@ -32,18 +31,24 @@ interface AlertMessage {
 
 class WebSocketManager {
   private wss: WebSocketServer | null = null;
+  private httpServer: Server | null = null;
   private clients = new Map<string, ClientSubscription>();
   private priceUpdateInterval: NodeJS.Timeout | null = null;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly UPDATE_INTERVAL = 10000; // 10 seconds
   private readonly HEARTBEAT_INTERVAL = 30000; // 30 seconds
+  private isInitialized = false;
 
   initialize(server: Server): void {
-    if (this.wss) {
-      this.wss.close();
+    if (this.isInitialized) {
+      console.log('⚠️ WebSocket server already initialized, skipping...');
+      return;
     }
 
-    this.wss = new WebSocketServer({ 
+    this.isInitialized = true;
+    this.httpServer = server; // Store the http server instance
+
+    this.wss = new WebSocketServer({
       noServer: true,
       perMessageDeflate: {
         threshold: 1024,
@@ -52,14 +57,17 @@ class WebSocketManager {
       }
     });
 
-    // Handle upgrade with enhanced path checking
-    server.on('upgrade', (request, socket, head) => {
+    // Remove any existing upgrade listeners to prevent duplicates
+    this.httpServer.removeAllListeners('upgrade');
+
+    // Handle upgrade requests
+    this.httpServer.once('upgrade', (request, socket, head) => {
       try {
         const url = new URL(request.url!, `http://${request.headers.host}`);
         const pathname = url.pathname;
-        
+
         console.log(`🔌 WebSocket upgrade request for: ${pathname}`);
-        
+
         if (pathname === '/ws') {
           this.wss!.handleUpgrade(request, socket, head, (ws) => {
             this.wss!.emit('connection', ws, request);
@@ -80,7 +88,7 @@ class WebSocketManager {
     this.wss.on('connection', (ws, request) => {
       const clientId = this.generateClientId();
       const clientIp = request.socket.remoteAddress;
-      
+
       console.log(`🔌 WebSocket client connected: ${clientId} from ${clientIp}`);
 
       // Initialize client
@@ -155,11 +163,11 @@ class WebSocketManager {
       case 'subscribe':
         await this.handleSubscription(clientId, ws, message);
         break;
-      
+
       case 'unsubscribe':
         this.handleUnsubscription(clientId, message.symbols);
         break;
-      
+
       case 'authenticate':
         await this.handleAuthentication(clientId, ws, message);
         break;
@@ -167,7 +175,7 @@ class WebSocketManager {
       case 'ping':
         this.sendMessage(ws, { type: 'pong', timestamp: Date.now() });
         break;
-      
+
       default:
         this.sendMessage(ws, {
           type: 'error',
@@ -179,7 +187,7 @@ class WebSocketManager {
 
   private async handleSubscription(clientId: string, ws: WebSocket, message: any): Promise<void> {
     const { symbols, userId } = message;
-    
+
     if (!Array.isArray(symbols) || symbols.length === 0) {
       this.sendMessage(ws, {
         type: 'error',
@@ -240,7 +248,7 @@ class WebSocketManager {
     }
 
     realTimePriceService.removeSubscription(clientId);
-    
+
     this.sendMessage(client.ws, {
       type: 'unsubscription_confirmed',
       symbols: symbols || 'all',
@@ -254,10 +262,10 @@ class WebSocketManager {
   private async handleAuthentication(clientId: string, ws: WebSocket, message: any): Promise<void> {
     const { userId } = message;
     const client = this.clients.get(clientId);
-    
+
     if (client && userId) {
       client.userId = userId;
-      
+
       this.sendMessage(ws, {
         type: 'authenticated',
         message: 'User authenticated for personalized features',
@@ -327,7 +335,7 @@ class WebSocketManager {
         const batch = symbolsArray.slice(i, i + batchSize);
         const batchPrices = await cryptoService.getPrices(batch);
         allPrices.push(...batchPrices);
-        
+
         // Small delay between batches
         if (i + batchSize < symbolsArray.length) {
           await new Promise(resolve => setTimeout(resolve, 200));
@@ -363,7 +371,7 @@ class WebSocketManager {
       });
 
       await Promise.all(updatePromises);
-      
+
       console.log(`📊 Broadcasted prices for ${allPrices.length} symbols to ${this.clients.size} clients`);
     } catch (error) {
       console.error('❌ Error broadcasting price updates:', error);
@@ -373,7 +381,7 @@ class WebSocketManager {
   private async checkPriceAlerts(userId: string, prices: CryptoPrice[], ws: WebSocket): Promise<void> {
     try {
       const alerts = await storage.getUserPriceAlerts(userId);
-      
+
       for (const alert of alerts) {
         if (!alert.isActive || alert.isTriggered) continue;
 
@@ -472,7 +480,7 @@ class WebSocketManager {
         return this.sendMessage(client.ws, message);
       }
     });
-    
+
     await Promise.all(promises.filter(Boolean));
   }
 
@@ -500,16 +508,9 @@ class WebSocketManager {
 
   shutdown(): void {
     console.log('🛑 Shutting down WebSocket server...');
-    
-    if (this.priceUpdateInterval) {
-      clearInterval(this.priceUpdateInterval);
-    }
-    
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-    }
-    
-    this.clients.forEach(client => {
+
+    // Clear all client subscriptions
+    this.clients.forEach((client, clientId) => {
       if (client.ws.readyState === WebSocket.OPEN) {
         this.sendMessage(client.ws, {
           type: 'server_shutdown',
@@ -518,16 +519,34 @@ class WebSocketManager {
         });
         client.ws.close(1001, 'Server shutdown');
       }
+      this.clients.delete(clientId);
     });
-    
-    this.clients.clear();
-    realTimePriceService.stop();
-    
-    if (this.wss) {
-      this.wss.close();
+
+    if (this.priceUpdateInterval) {
+      clearInterval(this.priceUpdateInterval);
+      this.priceUpdateInterval = null;
     }
-    
-    console.log('✅ WebSocket server shutdown complete');
+
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+
+    // Remove upgrade listeners
+    if (this.httpServer) {
+      this.httpServer.removeAllListeners('upgrade');
+    }
+
+    // Close WebSocket server
+    if (this.wss) {
+      this.wss.close(() => {
+        console.log('✅ WebSocket server closed');
+      });
+      this.wss = null;
+    }
+
+    realTimePriceService.stop();
+    this.isInitialized = false;
   }
 }
 

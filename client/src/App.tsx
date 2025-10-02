@@ -61,6 +61,8 @@ import RiskManagement from "@/pages/RiskManagement";
 import AdvancedTrading from "@/pages/AdvancedTrading";
 import APIManagement from "@/pages/APIManagement";
 import DualMarkets from "@/pages/DualMarkets";
+import InvestmentPlans from "@/pages/InvestmentPlans";
+import AdminDashboard from "@/pages/AdminDashboard";
 
 // Lazy loaded components
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
@@ -70,7 +72,6 @@ const AdminChatManagement = lazy(() => import("./pages/AdminChatManagement"));
 const AdminNewsManagement = lazy(() => import("./pages/AdminNewsManagement"));
 const Commodities = lazy(() => import("./pages/Commodities"));
 const AdminTransactionMonitor = lazy(() => import("@/pages/AdminTransactionMonitor"));
-const AdminLogin = lazy(() => import("@/admin/pages/AdminLogin"));
 const AdminUsers = lazy(() => import("@/pages/AdminUsers"));
 const AdminBalanceManagement = lazy(() => import("@/pages/AdminBalanceManagement"));
 const AdminWithdrawalManagement = lazy(() => import("@/pages/AdminWithdrawalManagement"));
@@ -225,6 +226,9 @@ export default function App() {
                   <Route path="/asset-details" component={AssetDetails} />
                   <Route path="/landing" component={Landing} />
 
+                  {/* Admin Dashboard - accessible by admin users */}
+                  <Route path="/admin-dashboard" component={() => <ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+                  
                   {/* Admin routes - redirect to admin login */}
                   <Route path="/admin/:rest*" component={() => <Redirect to="/admin/login" />} />
 
