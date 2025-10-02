@@ -695,24 +695,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  // Add WebSocket server for real-time updates
-  const wss = new WebSocketServer({ 
-    noServer: true 
+  // Initialize WebSocket manager
+  const { webSocketManager } = await import('./websocket-server');
+  webSocketManager.initialize(httpServer);
+
+  // Cleanup on shutdown
+  process.on('SIGTERM', () => {
+    webSocketManager.shutdown();
   });
 
-  // Handle upgrade requests
-  httpServer.on('upgrade', (request, socket, head) => {
-    const pathname = new URL(request.url || '', `http://${request.headers.host}`).pathname;
-    
-    if (pathname === '/ws') {
-      wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
-      });
-    } else {
-      socket.destroy();
-    }
+  process.on('SIGINT', () => {
+    webSocketManager.shutdown();
   });
 
+  // Old WebSocket code removed - now handled by webSocketManager
+  /*
   // Store client subscriptions and intervals
   const clientSubscriptions = new Map();
 
@@ -873,18 +870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Cleanup function for graceful shutdown
-  const cleanup = () => {
-    clientSubscriptions.forEach((subscription) => {
-      clearInterval(subscription.interval);
-    });
-    clientSubscriptions.clear();
-    wss.close();
-  };
-
-  // Handle server shutdown
-  process.on('SIGTERM', cleanup);
-  process.on('SIGINT', cleanup);
+  */
 
   return httpServer;
 }

@@ -295,6 +295,12 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const db = this.ensureDb();
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
   async getUserByEmailOrUsername(emailOrUsername: string, username?: string): Promise<User | undefined> {
     const db = this.ensureDb();
     // If we have both parameters (legacy call), use both
@@ -477,6 +483,20 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
+    }
+  }
+
+  async verifyPassword(userId: string, password: string): Promise<boolean> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user || !user.password) {
+        return false;
+      }
+      const { verifyPassword } = await import('./simple-auth');
+      return await verifyPassword(password, user.password);
+    } catch (error) {
+      console.error("Error verifying password:", error);
+      return false;
     }
   }
 
@@ -1982,12 +2002,18 @@ export class DatabaseStorage implements IStorage {
     return deposit || null;
   }
 
-  async getUserDeposits(userId: string): Promise<Deposit[]> {
-    return await this.db
+  async getUserDeposits(userId: string, limit?: number): Promise<Deposit[]> {
+    let query = this.db
       .select()
       .from(deposits)
       .where(eq(deposits.userId, userId))
       .orderBy(desc(deposits.createdAt));
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
   }
 
   async getAllDeposits(): Promise<any[]> {
@@ -2690,6 +2716,15 @@ export class DatabaseStorage implements IStorage {
       console.log(`Invalidating sessions for user ${userId}`);
     } catch (error) {
       console.error("Error invalidating user sessions:", error);
+    }
+  }
+
+  async invalidateAllSessions(): Promise<void> {
+    try {
+      // Mock session invalidation - in real app, clear all from session store
+      console.log('Invalidating all user sessions');
+    } catch (error) {
+      console.error("Error invalidating all sessions:", error);
     }
   }
 

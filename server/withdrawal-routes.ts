@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { requireAuth, requireAdmin } from './simple-auth';
 import { storage } from './storage';
@@ -232,7 +231,11 @@ router.post('/:id/reject', requireAuth, requireAdmin, async (req, res) => {
     }
 
     // Refund the reserved amount back to user's balance
-    await storage.updatePortfolioBalance(withdrawal.userId, parseFloat(withdrawal.amount));
+    const userPortfolio = await storage.getPortfolio(req.user!.id);
+    if (userPortfolio) {
+      const newBalance = parseFloat(userPortfolio.availableCash) + parseFloat(withdrawal.amount);
+      await storage.updatePortfolio(userPortfolio.id, { availableCash: newBalance.toString() });
+    }
 
     // Update withdrawal status
     const updatedWithdrawal = await storage.updateWithdrawalStatus(
@@ -303,7 +306,11 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 
     // Refund the reserved amount back to user's balance
-    await storage.updatePortfolioBalance(req.user!.id, parseFloat(withdrawal.amount));
+    const userPortfolio = await storage.getPortfolio(req.user!.id);
+    if (userPortfolio) {
+      const newBalance = parseFloat(userPortfolio.availableCash) + parseFloat(withdrawal.amount);
+      await storage.updatePortfolio(userPortfolio.id, { availableCash: newBalance.toString() });
+    }
 
     // Update withdrawal status
     await storage.updateWithdrawalStatus(id, 'cancelled', 'Cancelled by user');

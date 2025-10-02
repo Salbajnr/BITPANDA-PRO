@@ -37,8 +37,8 @@ router.post('/auth/login', async (req: Request, res: Response) => {
     }
 
     // Set session
-    req.session.userId = user.id;
-    req.session.userRole = user.role;
+    (req.session as any).userId = user.id;
+    (req.session as any).userRole = user.role;
 
     res.json({
       admin: {
