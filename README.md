@@ -108,17 +108,25 @@ BASE_URL=http://localhost:5000
 ```
 ├── client/                 # Frontend React application
 │   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Page components
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── services/       # API service functions
-│   │   └── lib/           # Utility functions
-├── server/                 # Backend Node.js application
-│   ├── routes/            # API route handlers
-│   ├── services/          # Business logic services
-│   ├── db/               # Database schema and migrations
-│   └── middleware/       # Authentication and validation
-├── shared/               # Shared types and utilities
+│   │   ├── admin/         # Admin-specific components and pages
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── hooks/         # Custom React hooks
+│   │   ├── services/      # API service functions
+│   │   ├── contexts/      # React contexts
+│   │   ├── translations/  # i18n translation files
+│   │   └── lib/          # Utility functions
+├── server/                # Backend Node.js application
+│   ├── *-routes.ts       # API route handlers
+│   ├── *-service.ts      # Business logic services
+│   ├── db.ts             # Database configuration
+│   ├── storage.ts        # Data access layer
+│   └── websocket-*.ts    # WebSocket servers
+├── shared/               # Shared types and schemas
+├── tests/                # Test files
+├── docs/                 # Documentation files
+├── scripts/              # Utility scripts
+├── assets/               # Static assets and reference files
 └── uploads/             # File upload storage
 ```
 
