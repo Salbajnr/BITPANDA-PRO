@@ -702,9 +702,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Add WebSocket server for real-time updates
-  const wss = new WebSocketServer({
-    server: httpServer,
-    path: '/ws'
+  const wss = new WebSocketServer({ 
+    noServer: true 
+  });
+
+  // Handle upgrade requests
+  httpServer.on('upgrade', (request, socket, head) => {
+    const pathname = new URL(request.url || '', `http://${request.headers.host}`).pathname;
+    
+    if (pathname === '/ws') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
   });
 
   // Store client subscriptions and intervals
