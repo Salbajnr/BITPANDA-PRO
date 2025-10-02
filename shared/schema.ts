@@ -354,23 +354,135 @@ export const userPreferences = pgTable("user_preferences", {
 
 // Price Alerts Table
 export const priceAlerts = pgTable("price_alerts", {
-  id: text("id").primaryKey().default(generateUniqueId()),
-  userId: text("user_id").notNull().references(() => users.id),
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   symbol: text("symbol").notNull(),
-  name: text("name").notNull(),
   targetPrice: text("target_price").notNull(),
-  condition: text("condition").notNull(), // 'above' or 'below'
-  message: text("message").default(''),
+  alertType: text("alert_type").notNull(), // 'above' or 'below'
   isActive: boolean("is_active").default(true),
   isTriggered: boolean("is_triggered").default(false),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertPriceAlertSchema = createInsertSchema(priceAlerts);
-export const selectPriceAlertSchema = createSelectSchema(priceAlerts);
+export type PriceAlert = typeof priceAlerts.$inferSelect;
+export type InsertPriceAlert = typeof priceAlerts.$inferInsert;
 
-// Notifications Table (updated)
+// Investment Plans
+export const investmentPlans = pgTable("investment_plans", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planId: text("plan_id").notNull(),
+  planName: text("plan_name").notNull(),
+  amount: text("amount").notNull(),
+  currentValue: text("current_value").notNull(),
+  expectedReturn: text("expected_return"),
+  actualReturn: text("actual_return"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type InvestmentPlan = typeof investmentPlans.$inferSelect;
+export type InsertInvestmentPlan = typeof investmentPlans.$inferInsert;
+
+// Savings Plans
+export const savingsPlans = pgTable("savings_plans", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planId: text("plan_id").notNull(),
+  planName: text("plan_name").notNull(),
+  amount: text("amount").notNull(),
+  frequency: text("frequency").notNull(),
+  totalSaved: text("total_saved").notNull().default("0"),
+  interestEarned: text("interest_earned").notNull().default("0"),
+  nextDeposit: timestamp("next_deposit"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  autoDeposit: boolean("auto_deposit").default(false),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type SavingsPlan = typeof savingsPlans.$inferSelect;
+export type InsertSavingsPlan = typeof savingsPlans.$inferInsert;
+
+// Staking Positions
+export const stakingPositions = pgTable("staking_positions", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assetSymbol: text("asset_symbol").notNull(),
+  amount: text("amount").notNull(),
+  apy: text("apy").notNull(),
+  stakingTerm: text("staking_term").notNull(),
+  autoReinvest: boolean("auto_reinvest").default(false),
+  totalRewards: text("total_rewards").default("0"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type StakingPosition = typeof stakingPositions.$inferSelect;
+export type InsertStakingPosition = typeof stakingPositions.$inferInsert;
+
+// Lending Positions
+export const lendingPositions = pgTable("lending_positions", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assetSymbol: text("asset_symbol").notNull(),
+  amount: text("amount").notNull(),
+  apy: text("apy").notNull(),
+  type: text("type").notNull(), // 'lend' or 'borrow'
+  totalEarned: text("total_earned").default("0"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type LendingPosition = typeof lendingPositions.$inferSelect;
+export type InsertLendingPosition = typeof lendingPositions.$inferInsert;
+
+// Loans
+export const loans = pgTable("loans", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assetSymbol: text("asset_symbol").notNull(),
+  amount: text("amount").notNull(),
+  collateralSymbol: text("collateral_symbol").notNull(),
+  collateralAmount: text("collateral_amount").notNull(),
+  interestRate: text("interest_rate").notNull(),
+  loanTerm: text("loan_term").notNull(),
+  totalInterest: text("total_interest").default("0"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  repaymentDate: timestamp("repayment_date"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Loan = typeof loans.$inferSelect;
+export type InsertLoan = typeof loans.$inferInsert;
+
+// Audit Logs
+export const auditLogs = pgTable("audit_logs", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  adminId: text("admin_id").notNull().references(() => users.id),
+  action: text("action").notNull(),
+  targetId: text("target_id"),
+  targetUserId: text("target_user_id").references(() => users.id),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+
+// Notification schema and types
 export const notifications = pgTable('notifications', {
   id: text('id').primaryKey().default(generateUniqueId()),
   userId: text('user_id').notNull().references(() => users.id),
@@ -384,6 +496,8 @@ export const notifications = pgTable('notifications', {
 
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const selectNotificationSchema = createSelectSchema(notifications);
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 
 // Relations
@@ -538,6 +652,37 @@ export const insertSharedWalletAddressSchema = createInsertSchema(sharedWalletAd
   updatedAt: true,
 });
 
+export const insertInvestmentPlanSchema = createInsertSchema(investmentPlans).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSavingsPlanSchema = createInsertSchema(savingsPlans).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStakingPositionSchema = createInsertSchema(stakingPositions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLendingPositionSchema = createInsertSchema(lendingPositions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertLoanSchema = createInsertSchema(loans).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  timestamp: true,
+});
+
+
 // Types
 // User types
 export type UpsertUser = typeof users.$inferInsert;
@@ -572,15 +717,39 @@ export type InsertBalanceAdjustment = z.infer<typeof insertBalanceAdjustmentSche
 
 // Notification types
 export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Shared wallet address types
 export type SharedWalletAddress = typeof sharedWalletAddresses.$inferSelect;
 export type InsertSharedWalletAddress = z.infer<typeof insertSharedWalletAddressSchema>;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Price alert types
 export type PriceAlert = typeof priceAlerts.$inferSelect;
-export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;
+export type InsertPriceAlert = typeof priceAlerts.$inferInsert;
+
+// Investment plan types
+export type InvestmentPlan = typeof investmentPlans.$inferSelect;
+export type InsertInvestmentPlan = typeof investmentPlans.$inferInsert;
+
+// Savings plan types
+export type SavingsPlan = typeof savingsPlans.$inferSelect;
+export type InsertSavingsPlan = typeof savingsPlans.$inferInsert;
+
+// Staking position types
+export type StakingPosition = typeof stakingPositions.$inferSelect;
+export type InsertStakingPosition = typeof stakingPositions.$inferInsert;
+
+// Lending position types
+export type LendingPosition = typeof lendingPositions.$inferSelect;
+export type InsertLendingPosition = typeof lendingPositions.$inferInsert;
+
+// Loan types
+export type Loan = typeof loans.$inferSelect;
+export type InsertLoan = typeof loans.$inferInsert;
+
+// Audit log types
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
 // News types
 export type NewsArticle = typeof newsArticles.$inferSelect;

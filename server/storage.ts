@@ -843,14 +843,10 @@ export class DatabaseStorage implements IStorage {
   async getUserPriceAlerts(userId: string): Promise<PriceAlert[]> {
     try {
       const db = this.ensureDb();
-      const alerts = await db.select()
-        .from(priceAlerts)
-        .where(eq(priceAlerts.userId, userId))
-        .orderBy(desc(priceAlerts.createdAt));
-      return alerts;
+      return await db.select().from(priceAlerts).where(eq(priceAlerts.userId, userId));
     } catch (error) {
-      console.error("Error getting price alerts:", error);
-      throw error;
+      console.error('Error fetching user price alerts:', error);
+      return [];
     }
   }
 
@@ -900,9 +896,21 @@ export class DatabaseStorage implements IStorage {
 
 
   async logAdminAction(action: { adminId: string; action: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void> {
-    // Store admin action in audit log (implement when audit log table is added)
-    console.log('Admin action logged:', action);
-  },
+    try {
+      const db = this.ensureDb();
+      const { auditLogs } = await import('@shared/schema');
+      await db.insert(auditLogs).values({
+        adminId: action.adminId,
+        action: action.action,
+        targetId: action.targetId,
+        targetUserId: action.targetUserId,
+        details: action.details ? JSON.stringify(action.details) : null,
+        timestamp: action.timestamp,
+      });
+    } catch (error) {
+      console.error('Error logging admin action:', error);
+    }
+  }
 
       await db.delete(priceAlerts)
         .where(eq(priceAlerts.id, alertId));
@@ -917,27 +925,6 @@ export class DatabaseStorage implements IStorage {
       const alerts = await this.db.select({
         id: priceAlerts.id,
         userId: priceAlerts.userId,
-
-
-  async getUserTransactionCount(userId: string): Promise<number> {
-    const result = await db.select({ count: count() })
-      .from(transactions)
-      .where(eq(transactions.userId, userId));
-    return result[0]?.count || 0;
-  },
-
-  async getUserDeposits(userId: string, limit?: number): Promise<Deposit[]> {
-    const query = db.select()
-      .from(deposits)
-      .where(eq(deposits.userId, userId))
-      .orderBy(desc(deposits.createdAt));
-    
-    if (limit) {
-      return query.limit(limit);
-    }
-    return query;
-  },
-
         symbol: priceAlerts.symbol,
         name: priceAlerts.name,
         targetPrice: priceAlerts.targetPrice,
@@ -2735,27 +2722,51 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async logAdminAction(action: { adminId: string, action: string, targetId?: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void> {
+  // Audit operations
+  async logAdminAction(action: { // Updated signature to match implementation
+    adminId: string;
+    action: string;
+    targetId?: string;
+    targetUserId?: string;
+    details?: any;
+    timestamp: Date;
+  }): Promise<void> {
     try {
-      // This would save to an audit_logs table
-      // For now, just log to console
-      console.log('Admin action logged:', {
-        ...action,
-        timestamp: new Date().toISOString()
+      const db = this.ensureDb();
+      const { auditLogs } = await import('@shared/schema');
+      await db.insert(auditLogs).values({
+        adminId: action.adminId,
+        action: action.action,
+        targetId: action.targetId,
+        targetUserId: action.targetUserId,
+        details: action.details ? JSON.stringify(action.details) : null,
+        timestamp: action.timestamp,
       });
-
-      // Placeholder for actual audit log creation if using a real DB
-      // await this.createAuditLog({
-      //   adminId: action.adminId,
-      //   action: action.action,
-      //   targetId: action.targetUserId || 'N/A',
-      //   details: action.details || {},
-      //   ipAddress: '', // IP address should ideally be passed or obtained from request context
-      //   userAgent: '' // User agent should ideally be passed or obtained from request context
-      // });
-
     } catch (error) {
-      console.error("Error logging admin action:", error);
+      console.error('Error logging admin action:', error);
+    }
+  }
+
+  async createAuditLog(logData: {
+    adminId: string;
+    action: string;
+    targetId: string;
+    details: any;
+    ipAddress: string;
+    userAgent: string;
+  }): Promise<boolean> {
+    try {
+      const db = this.ensureDb();
+      const { auditLogs } = await import('@shared/schema');
+      await db.insert(auditLogs).values({
+        ...logData,
+        details: JSON.stringify(logData.details),
+        timestamp: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      return false;
     }
   }
 
@@ -2766,20 +2777,38 @@ export class DatabaseStorage implements IStorage {
     userId?: string;
   }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
     try {
-      // This would query from an audit_logs table
-      // For now, return empty results
+      const db = this.ensureDb();
+      const { auditLogs } = await import('@shared/schema');
+
+      let query = db.select().from(auditLogs);
+
+      if (options.action) {
+        query = query.where(eq(auditLogs.action, options.action));
+      }
+      if (options.userId) {
+        query = query.where(eq(auditLogs.adminId, options.userId));
+      }
+
+      const offset = (options.page - 1) * options.limit;
+      const logs = await query
+        .orderBy(desc(auditLogs.timestamp))
+        .limit(options.limit)
+        .offset(offset);
+
+      const [{ count }] = await db.select({ count: sql`count(*)` }).from(auditLogs);
+
       return {
-        logs: [],
+        logs,
         pagination: {
           page: options.page,
           limit: options.limit,
-          total: 0,
-          pages: 0
+          total: Number(count),
+          pages: Math.ceil(Number(count) / options.limit)
         }
       };
     } catch (error) {
-      console.error("Error fetching audit logs:", error);
-      throw error;
+      console.error('Error fetching audit logs:', error);
+      return { logs: [], pagination: { page: 1, limit: 50, total: 0, pages: 0 } };
     }
   }
 
@@ -3084,31 +3113,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Audit logging
-  async createAuditLog(logData: {
+  async logAdminAction(action: {
     adminId: string;
     action: string;
-    targetId: string;
-    details: any;
-    ipAddress: string;
-    userAgent: string;
-  }) {
-    try {
-      // This would save to an audit_logs table
-      // For now, just log to console
-      console.log('Audit Log:', {
-        ...logData,
-        timestamp: new Date().toISOString()
-      });
+    targetId?: string;
+    targetUserId?: string;
+    details?: any;
+    timestamp: Date;
+  }): Promise<void> {
+    // In a real implementation, this would save to an audit log table
+    console.log('Admin action logged:', {
+      ...action,
+      timestamp: new Date().toISOString()
+    });
 
-      // In a real implementation, you would insert this into an audit_logs table.
-      // Example (assuming an auditLogs table and drizzle-orm):
-      // await this.db.insert(auditLogs).values({ ...logData, timestamp: new Date() });
+    // Placeholder for actual audit log creation if using a real DB
+    // For example, if you have an auditLogs table:
+    // await this.db.insert(auditLogs).values({ ...action, details: action.details ? JSON.stringify(action.details) : null });
+  }
 
-      return true;
-    } catch (error) {
-      console.error("Error creating audit log:", error);
-      throw error;
-    }
+  async getAuditLogs(options: {
+    page: number;
+    limit: number;
+    action?: string;
+    userId?: string;
+  }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
+    // This would query from an audit_logs table
+    // For now, return empty results
+    return {
+      logs: [],
+      pagination: {
+        page: options.page,
+        limit: options.limit,
+        total: 0,
+        pages: 0
+      }
+    };
   }
 
   // Add this method to create initial users if they don't exist
@@ -3311,33 +3351,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(transactions.id, transactionId))
       .returning();
     return updatedTransaction;
-  }
-
-  // Added logAdminAction method (placeholder for audit log creation)
-  async logAdminAction(action: {
-    adminId: string;
-    action: string;
-    targetId?: string;
-    targetUserId?: string;
-    details?: any;
-    timestamp: Date;
-  }): Promise<void> {
-    // In a real implementation, this would save to an audit log table
-    console.log('Admin action logged:', {
-      ...action,
-      timestamp: action.timestamp.toISOString()
-    });
-
-    // Placeholder for actual audit log creation if using a real DB
-    // For example, if you have an auditLogs table:
-    // await this.db.insert(auditLogs).values({
-    //   adminId: action.adminId,
-    //   action: action.action,
-    //   targetId: action.targetId || action.targetUserId || null,
-    //   details: action.details || {},
-    //   timestamp: action.timestamp,
-    //   // ipAddress and userAgent would need to be passed in or obtained from context
-    // });
   }
 
   // Existing getAuditLogs method from the original code
