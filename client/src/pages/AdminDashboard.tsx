@@ -24,9 +24,9 @@ import logoPath from '@/assets/logo.jpeg';
 import AdminSystemHealthMonitor from '@/components/AdminSystemHealthMonitor';
 import AdminUserActivityTracker from '@/components/AdminUserActivityTracker';
 import AdminQuickActions from '@/components/AdminQuickActions';
-import AdminRiskManagement from '@/components/AdminRiskManagement'; // Assuming this component exists
-import AdminComplianceDashboard from '@/components/AdminComplianceDashboard'; // Assuming this component exists
-import AdminServerMonitoring from '@/components/AdminServerMonitoring'; // Assuming this component exists
+import AdminRiskManagement from '@/components/AdminRiskManagement';
+import AdminComplianceDashboard from '@/components/AdminComplianceDashboard';
+import AdminServerMonitoring from '@/components/AdminServerMonitoring';
 
 interface User {
   id: string;

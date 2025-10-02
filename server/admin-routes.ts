@@ -288,7 +288,7 @@ router.get('/system-health', requireAuth, requireAdmin, async (req: Request, res
   try {
     const uptime = process.uptime();
     const memoryUsage = process.memoryUsage();
-    
+
     const health = {
       server: {
         uptime: `${Math.floor(uptime / 86400)}d ${Math.floor((uptime % 86400) / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`,
@@ -334,7 +334,7 @@ router.get('/user-sessions', requireAuth, requireAdmin, async (req: Request, res
   try {
     const timeframe = req.query.timeframe as string || '24h';
     const users = await storage.getAllUsers();
-    
+
     const sessions = users.slice(0, 20).map(user => ({
       id: `session-${user.id}`,
       userId: user.id,
@@ -368,7 +368,7 @@ router.get('/user-activities', requireAuth, requireAdmin, async (req: Request, r
   try {
     const timeframe = req.query.timeframe as string || '24h';
     const type = req.query.type as string || 'all';
-    
+
     const users = await storage.getAllUsers();
     const activities = users.slice(0, 30).map(user => ({
       id: `activity-${user.id}-${Date.now()}`,
@@ -393,7 +393,7 @@ router.get('/risk/alerts', requireAuth, requireAdmin, async (req: Request, res: 
   try {
     const severity = req.query.severity as string;
     const status = req.query.status as string;
-    
+
     const users = await storage.getAllUsers();
     const alerts = users.slice(0, 15).map(user => ({
       id: `alert-${user.id}`,
@@ -563,7 +563,7 @@ router.get('/server/metrics', requireAuth, requireAdmin, async (req: Request, re
   try {
     const uptime = process.uptime();
     const memoryUsage = process.memoryUsage();
-    
+
     const metrics = {
       server: {
         uptime: uptime.toString(),
@@ -704,16 +704,16 @@ router.get('/analytics/revenue', requireAuth, requireAdmin, async (req: Request,
   try {
     const period = req.query.period as string || '7d';
     const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-    
+
     // Calculate revenue from actual transactions
     const transactions = await storage.getAllTransactions({ page: 1, limit: 10000 });
     const totalVolume = transactions.transactions.reduce((sum, tx) => sum + parseFloat(tx.total || '0'), 0);
-    
+
     // Simulate trading fees (0.1% of volume)
     const tradingFees = totalVolume * 0.001;
     const depositFees = totalVolume * 0.0005;
     const withdrawalFees = totalVolume * 0.0025;
-    
+
     const revenueData = {
       totalRevenue: tradingFees + depositFees + withdrawalFees,
       previousPeriodRevenue: (tradingFees + depositFees + withdrawalFees) * 0.85,
@@ -964,7 +964,7 @@ router.get('/system-health', requireAuth, requireAdmin, async (req: Request, res
 router.get('/user-sessions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const timeframe = req.query.timeframe as string || '24h';
-    
+
     // Mock user sessions data
     const sessions = Array.from({ length: Math.floor(Math.random() * 50) + 10 }, (_, i) => ({
       id: `session_${i}`,
@@ -1000,7 +1000,7 @@ router.get('/user-activities', requireAuth, requireAdmin, async (req: Request, r
   try {
     const timeframe = req.query.timeframe as string || '24h';
     const type = req.query.type as string || 'all';
-    
+
     // Mock user activities data
     const activities = Array.from({ length: Math.floor(Math.random() * 100) + 20 }, (_, i) => ({
       id: `activity_${i}`,
@@ -1026,7 +1026,7 @@ router.get('/user-activities', requireAuth, requireAdmin, async (req: Request, r
 router.post('/maintenance', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { enabled, message } = req.body;
-    
+
     // Store maintenance status
     await storage.updateSystemConfig({
       maintenanceMode: enabled,
@@ -1051,7 +1051,7 @@ router.post('/maintenance', requireAuth, requireAdmin, async (req: Request, res:
 router.post('/broadcast', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { message, type } = req.body;
-    
+
     // In a real app, this would send notifications to all connected users
     console.log(`Broadcasting ${type} message: ${message}`);
 
@@ -1073,7 +1073,7 @@ router.post('/broadcast', requireAuth, requireAdmin, async (req: Request, res: R
 router.post('/clear-cache', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { type } = req.body;
-    
+
     // In a real app, this would clear actual cache
     console.log(`Clearing cache: ${type}`);
 
@@ -1095,7 +1095,7 @@ router.post('/clear-cache', requireAuth, requireAdmin, async (req: Request, res:
 router.post('/force-logout', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { userId, all } = req.body;
-    
+
     if (all) {
       // Force logout all users
       await storage.invalidateAllSessions();
@@ -1123,11 +1123,11 @@ router.get('/transactions/stats', requireAuth, requireAdmin, async (req: Request
   try {
     const range = req.query.range as string || '7d';
     const transactions = await storage.getAllTransactions({ page: 1, limit: 10000 });
-    
+
     // Calculate statistics
     const now = new Date();
     const rangeStart = new Date();
-    
+
     switch (range) {
       case '1d':
         rangeStart.setDate(now.getDate() - 1);
@@ -1261,12 +1261,12 @@ router.get('/transactions/stats', requireAuth, requireAdmin, async (req: Request
   try {
     const range = req.query.range as string || '7d';
     const transactions = await storage.getAllTransactions({ page: 1, limit: 10000 });
-    
+
     const totalVolume = transactions.transactions.reduce((sum, tx) => sum + parseFloat(tx.total || '0'), 0);
     const pendingTransactions = transactions.transactions.filter(tx => tx.status === 'pending').length;
     const failedTransactions = transactions.transactions.filter(tx => tx.status === 'failed').length;
     const suspiciousTransactions = transactions.transactions.filter(tx => parseFloat(tx.total || '0') > 10000).length;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dailyVolume = transactions.transactions

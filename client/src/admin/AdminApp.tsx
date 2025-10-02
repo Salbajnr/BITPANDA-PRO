@@ -33,17 +33,21 @@ const LoadingScreen = ({ message }: { message: string }) => (
 
 // Protected route wrapper for admin
 function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { admin, isLoading } = useAdminAuth();
+  const { admin, isLoading, error } = useAdminAuth();
 
   if (isLoading) {
     return <LoadingScreen message="Verifying admin access..." />;
+  }
+
+  if (error) {
+    console.error('Admin auth error:', error);
   }
 
   if (!admin) {
     return <Redirect to="/admin/login" />;
   }
 
-  return <>{children}</>;
+  return <ErrorBoundary>{children}</ErrorBoundary>;
 }
 
 export default function AdminApp() {

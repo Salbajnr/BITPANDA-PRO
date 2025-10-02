@@ -61,8 +61,11 @@ import RiskManagement from "@/pages/RiskManagement";
 import AdvancedTrading from "@/pages/AdvancedTrading";
 import APIManagement from "@/pages/APIManagement";
 import DualMarkets from "@/pages/DualMarkets";
-import InvestmentPlans from "@/pages/InvestmentPlans";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminLogin from "@/pages/AdminLogin";
+
+// Lazy load InvestmentPlans
+const InvestmentPlans = lazy(() => import("@/pages/InvestmentPlans"));
 
 // Lazy loaded components
 const PreciousMetals = lazy(() => import("./pages/PreciousMetals"));
@@ -179,7 +182,13 @@ export default function App() {
                   <Route path="/crypto-indices" component={CryptoIndices} />
                   <Route path="/precious-metals" component={() => <Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense>} />
                   <Route path="/savings-plans" component={SavingsPlans} />
-                  <Route path="/investment-plans" component={() => <ProtectedRoute><InvestmentPlans /></ProtectedRoute>} />
+                  <Route path="/investment-plans" component={() => (
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <InvestmentPlans />
+                      </Suspense>
+                    </ProtectedRoute>
+                  )} />
                   <Route path="/metals-trading" component={() => <Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense>} />
                   <Route path="/commodities" component={() => <Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense>} />
                   <Route path="/dual-markets" component={DualMarkets} />
@@ -226,11 +235,14 @@ export default function App() {
                   <Route path="/asset-details" component={AssetDetails} />
                   <Route path="/landing" component={Landing} />
 
-                  {/* Admin Dashboard - accessible by admin users */}
-                  <Route path="/admin-dashboard" component={() => <ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+                  {/* Admin Login - separate page accessible at /admin-login */}
+                  <Route path="/admin-login" component={() => <PublicLayout><AdminLogin /></PublicLayout>} />
                   
-                  {/* Admin routes - redirect to admin login */}
-                  <Route path="/admin/:rest*" component={() => <Redirect to="/admin/login" />} />
+                  {/* Admin routes - redirect to separate admin app */}
+                  <Route path="/admin/:rest*" component={() => {
+                    window.location.href = '/admin.html';
+                    return null;
+                  }} />
 
                   {/* 404 Route */}
                   <Route component={NotFound} />
