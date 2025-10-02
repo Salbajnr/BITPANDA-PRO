@@ -4,7 +4,9 @@ export async function adminApiRequest(
   endpoint: string,
   data?: any
 ): Promise<any> {
-  const url = `/api/admin${endpoint}`;
+  // Use /admin prefix for auth endpoints, /api/admin for other endpoints
+  const isAuthEndpoint = endpoint.startsWith('/auth');
+  const url = isAuthEndpoint ? `/admin${endpoint}` : `/api/admin${endpoint}`;
   
   const config: RequestInit = {
     method,

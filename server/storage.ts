@@ -918,7 +918,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getActivePriceAlerts(): Promise<any[]> {
+  async getActivePriceAlerts() {
     try {
       const alerts = await this.db.select({
         id: priceAlerts.id,
@@ -1553,8 +1553,8 @@ export class DatabaseStorage implements IStorage {
       const db = this.ensureDb();
       await db
         .update(liveChatSessions)
-        .set({ 
-          status, 
+        .set({
+          status,
           agentId,
           endedAt: status === 'ended' ? new Date() : undefined
         })
@@ -1570,7 +1570,7 @@ export class DatabaseStorage implements IStorage {
       const db = this.ensureDb();
       await db
         .update(liveChatSessions)
-        .set({ 
+        .set({
           status: 'ended',
           endedAt: new Date()
         })
@@ -1624,7 +1624,7 @@ export class DatabaseStorage implements IStorage {
       const db = this.ensureDb();
       await db
         .update(liveChatSessions)
-        .set({ 
+        .set({
           agentId,
           status: 'active'
         })
@@ -1778,8 +1778,8 @@ export class DatabaseStorage implements IStorage {
           session: liveChatSessions,
           user: {
             id: users.id,
-            username: users.username,
             email: users.email,
+            username: users.username,
             firstName: users.firstName,
             lastName: users.lastName
           }
@@ -3326,7 +3326,7 @@ export class DatabaseStorage implements IStorage {
     const db = this.ensureDb();
     const [order] = await db
       .update(transactions)
-      .set({ 
+      .set({
         status: 'cancelled',
         updatedAt: new Date()
       })

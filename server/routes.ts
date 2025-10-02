@@ -664,9 +664,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deposit routes
   app.use('/api/deposits', depositRoutes);
 
+  // Withdrawal routes
+  app.use('/api/withdrawals', withdrawalRoutes);
+
   // Admin routes
   const adminRoutes = (await import('./admin-routes')).default;
   app.use('/api/admin', adminRoutes);
+  
+  // Admin auth routes (accessible at /admin/auth/*)
+  const adminAuthRoutes = (await import('./admin-auth-routes')).default;
+  app.use('/admin', adminAuthRoutes);
 
   // Alert routes
   app.use('/api/alerts', alertRoutes);
@@ -683,21 +690,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const uploadRoutes = (await import('./upload-routes')).default;
   app.use('/api/upload', uploadRoutes);
 
-  // Mount all route modules
-  app.use('/api/auth', authRoutes);
-  app.use('/api/user/auth', authRoutes);
-  app.use('/api/admin/auth', authRoutes);
-  app.use('/api/crypto', cryptoRoutes);
-  app.use('/api/trading', tradingRoutes);
-  app.use('/api/trade', tradingRoutes);
-  app.use('/api/admin', adminRoutes);
-  app.use('/api/alerts', alertRoutes);
-  app.use('/api/deposits', depositRoutes);
-  app.use('/api/withdrawals', withdrawalRoutes);
-  app.use('/api/portfolio', portfolioRoutes);
-  app.use('/api/portfolio', portfolioAnalyticsRoutes);
-  app.use('/api/metals', metalsRoutes);
-  app.use('/api/news', newsRoutes);
+  // Note: Individual route modules are mounted above, this section is for reference only
+  // All routes are already properly mounted in their respective sections
 
   const httpServer = createServer(app);
 

@@ -87,7 +87,13 @@ class PriceMonitorService {
   private async checkPriceAlerts(): Promise<void> {
     try {
       // Get all active alerts
-      const alerts = await storage.getActivePriceAlerts();
+      let alerts;
+      try {
+        alerts = await storage.getActivePriceAlerts();
+      } catch (error) {
+        console.error('Error getting active price alerts:', error);
+        return;
+      }
 
       if (!alerts || alerts.length === 0) {
         return;
