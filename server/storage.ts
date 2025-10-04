@@ -66,6 +66,8 @@ import { hashPassword } from "./simple-auth";
 import crypto from 'crypto';
 import { nanoid } from 'nanoid';
 
+type UpsertUser = InsertUser;
+
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
@@ -3381,46 +3383,6 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedTransaction;
   }
-
-  // Existing getAuditLogs method from the original code
-  async getAuditLogs(filters: any = {}): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
-    // In a real implementation, this would query from an audit_logs table
-    // For now, return empty results
-    return {
-      logs: [],
-      pagination: { page: 1, limit: 50, total: 0, pages: 0 }
-    };
-  }
 }
 
 export const storage = new DatabaseStorage();
-
-
-  // Price History Methods
-  async savePriceHistory(symbol: string, price: number, timestamp: Date = new Date()) {
-    try {
-      // Store price history for charts and analytics
-      await this.db.execute(sql`
-        INSERT INTO price_history (symbol, price, timestamp)
-        VALUES (${symbol}, ${price}, ${timestamp})
-        ON CONFLICT (symbol, timestamp) DO UPDATE SET price = ${price}
-      `);
-    } catch (error) {
-      console.error('Error saving price history:', error);
-    }
-  }
-
-  async getPriceHistory(symbol: string, hours: number = 24) {
-    try {
-      const startTime = new Date(Date.now() - hours * 60 * 60 * 1000);
-      const result = await this.db.execute(sql`
-        SELECT * FROM price_history 
-        WHERE symbol = ${symbol} AND timestamp >= ${startTime}
-        ORDER BY timestamp ASC
-      `);
-      return result.rows;
-    } catch (error) {
-      console.error('Error fetching price history:', error);
-      return [];
-    }
-  }
