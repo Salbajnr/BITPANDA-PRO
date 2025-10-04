@@ -11,6 +11,8 @@ import {
   varchar,
   numeric, // Import numeric type
   integer, // Import integer type
+  serial, // Import serial type
+  uniqueIndex, // Import uniqueIndex
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -481,15 +483,23 @@ export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
 // Notification schema and types
 export const notifications = pgTable('notifications', {
-  id: text('id').primaryKey().default(generateUniqueId()),
-  userId: text('user_id').notNull().references(() => users.id),
-  type: text('type').notNull(), // 'price_alert', 'trade_complete', 'system', etc.
-  title: text('title').notNull(),
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
   message: text('message').notNull(),
-  data: text('data'), // JSON string for additional data
-  isRead: boolean('is_read').default(false),
+  read: boolean('read').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const priceHistory = pgTable('price_history', {
+  id: serial('id').primaryKey(),
+  symbol: varchar('symbol', { length: 20 }).notNull(),
+  price: numeric('price', { precision: 20, scale: 8 }).notNull(),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+}, (table) => ({
+  symbolTimestampIdx: uniqueIndex('symbol_timestamp_idx').on(table.symbol, table.timestamp),
+}));
 
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const selectNotificationSchema = createSelectSchema(notifications);
@@ -777,3 +787,7 @@ export type InsertLiveChatMessage = z.infer<typeof insertLiveChatMessageSchema>;
 // User preferences types
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = typeof userPreferences.$inferInsert;
+
+// Price History types
+export type PriceHistory = typeof priceHistory.$inferSelect;
+export type InsertPriceHistory = typeof priceHistory.$inferInsert;

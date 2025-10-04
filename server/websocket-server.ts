@@ -12,7 +12,9 @@ class WebSocketManager {
   private clients: Map<string, ClientSubscription> = new Map();
   private isInitialized = false;
   private connectionsByIp: Map<string, number> = new Map();
-  private readonly MAX_CONNECTIONS_PER_IP = 3;
+  // Rate limiting per IP - increased for real-time price updates
+  private connectionLimits = new Map<string, number>();
+  private readonly MAX_CONNECTIONS_PER_IP = 20; // Increased limit for multiple reconnection attempts
 
   initialize(httpServer: Server) {
     if (this.isInitialized) {
