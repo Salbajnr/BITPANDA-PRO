@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import {
   CreditCard, TrendingUp, Settings, AlertTriangle, HelpCircle,
   Clock, CheckCircle, BookOpen
 } from "lucide-react";
+import { Link } from "wouter";
 
 export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,7 +100,7 @@ export default function HelpCenter() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900">
       <Navbar />
-      
+
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -111,7 +111,7 @@ export default function HelpCenter() {
             <p className="text-lg text-slate-300 mb-8">
               Find answers to common questions or get in touch with our support team
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -179,7 +179,7 @@ export default function HelpCenter() {
                       </AccordionItem>
                     ))}
                   </Accordion>
-                  
+
                   {filteredFaqs.length === 0 && (
                     <div className="text-center py-8">
                       <HelpCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
@@ -210,7 +210,7 @@ export default function HelpCenter() {
                         <Button size="sm" className="mt-2">Start Chat</Button>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 p-3 bg-white/5 rounded-lg">
                       <Mail className="h-6 w-6 text-green-400" />
                       <div>
@@ -219,7 +219,7 @@ export default function HelpCenter() {
                         <p className="text-xs text-slate-400">Response within 24 hours</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 p-3 bg-white/5 rounded-lg">
                       <Phone className="h-6 w-6 text-purple-400" />
                       <div>
@@ -249,7 +249,7 @@ export default function HelpCenter() {
                         className="bg-white/5 border-white/20 text-white placeholder-slate-400"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-white mb-2">
                         Category
@@ -263,7 +263,7 @@ export default function HelpCenter() {
                         <option value="technical">Technical Issues</option>
                       </select>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-white mb-2">
                         Message
@@ -274,7 +274,7 @@ export default function HelpCenter() {
                         className="bg-white/5 border-white/20 text-white placeholder-slate-400"
                       />
                     </div>
-                    
+
                     <Button className="w-full">
                       Send Message
                     </Button>

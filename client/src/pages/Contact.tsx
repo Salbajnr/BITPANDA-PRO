@@ -1,301 +1,246 @@
+import { useState } from "react";
+import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Mail, Phone, MapPin, MessageCircle, Clock, 
-  Building, Users, Globe, Shield, Award
-} from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Mail, Phone, MapPin, Clock, MessageCircle, Send } from "lucide-react";
 
 export default function Contact() {
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Simulate form submission
+    setTimeout(() => {
+      toast({
+        title: "Message Sent!",
+        description: "We'll get back to you within 24 hours.",
+      });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <Navbar />
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Contact Us
-            </h1>
-            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              We're here to help. Reach out through any of our contact methods 
-              and our expert team will assist you promptly.
-            </p>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-5xl font-bold text-white mb-4">Get in Touch</h1>
+          <p className="text-xl text-blue-100">We're here to help 24/7. Reach out to us anytime!</p>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Contact Information */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Mail className="h-5 w-5 text-blue-400 mt-1" />
+                  <div>
+                    <p className="text-white font-medium">Email</p>
+                    <a href="mailto:support@bitpandapro.com" className="text-blue-300 hover:text-blue-200">
+                      support@bitpandapro.com
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <Phone className="h-5 w-5 text-blue-400 mt-1" />
+                  <div>
+                    <p className="text-white font-medium">Phone</p>
+                    <a href="tel:+1234567890" className="text-blue-300 hover:text-blue-200">
+                      +1 (234) 567-890
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <MapPin className="h-5 w-5 text-blue-400 mt-1" />
+                  <div>
+                    <p className="text-white font-medium">Address</p>
+                    <p className="text-blue-100">
+                      123 Crypto Street<br />
+                      Vienna, Austria 1010
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <Clock className="h-5 w-5 text-blue-400 mt-1" />
+                  <div>
+                    <p className="text-white font-medium">Support Hours</p>
+                    <p className="text-blue-100">24/7 Live Support</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Link to="/live-support">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Start Live Chat
+                  </Button>
+                </Link>
+                <Link to="/help">
+                  <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
+                    Browse Help Center
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Contact Methods */}
-            <div className="lg:col-span-1 space-y-6">
-              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                <CardHeader>
-                  <CardTitle className="text-white">Get in Touch</CardTitle>
-                  <CardDescription className="text-slate-300">
-                    Multiple ways to reach our support team
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="h-5 w-5 text-white" />
-                    </div>
+          {/* Contact Form */}
+          <div className="lg:col-span-2">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white text-2xl">Send us a Message</CardTitle>
+                <p className="text-blue-100">Fill out the form below and we'll get back to you shortly</p>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="font-semibold text-white mb-1">Live Chat</h4>
-                      <p className="text-sm text-slate-300 mb-2">
-                        Available 24/7 for immediate assistance
-                      </p>
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                        Start Chat
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center flex-shrink-0">
-                      <Mail className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white mb-1">Email Support</h4>
-                      <p className="text-sm text-slate-300 mb-1">
-                        support@bitpanda-pro.com
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        Response within 24 hours
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center flex-shrink-0">
-                      <Phone className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white mb-1">Phone Support</h4>
-                      <p className="text-sm text-slate-300 mb-1">
-                        +43 1 234 5678
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        Mon-Fri, 9:00-18:00 CET
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Office Information */}
-              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Building className="h-5 w-5" />
-                    Office Locations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-white mb-2">Headquarters</h4>
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-slate-400 mt-1 flex-shrink-0" />
-                      <div className="text-sm text-slate-300">
-                        <p>BITPANDA PRO GmbH</p>
-                        <p>Kärntner Ring 12</p>
-                        <p>1010 Vienna, Austria</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-white mb-2">London Office</h4>
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-slate-400 mt-1 flex-shrink-0" />
-                      <div className="text-sm text-slate-300">
-                        <p>25 Old Broad Street</p>
-                        <p>London EC2N 1HN</p>
-                        <p>United Kingdom</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Business Hours */}
-              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Clock className="h-5 w-5" />
-                    Support Hours
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm text-slate-300">
-                  <div className="flex justify-between">
-                    <span>Live Chat:</span>
-                    <span>24/7</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Phone Support:</span>
-                    <span>Mon-Fri, 9:00-18:00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Email:</span>
-                    <span>24-hour response</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Emergency:</span>
-                    <span>24/7</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                <CardHeader>
-                  <CardTitle className="text-white">Send us a Message</CardTitle>
-                  <CardDescription className="text-slate-300">
-                    Fill out the form below and we'll get back to you as soon as possible
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-white mb-2">
-                        First Name *
-                      </label>
-                      <Input 
-                        placeholder="Your first name"
-                        className="bg-white/5 border-white/20 text-white placeholder-slate-400"
+                      <Label htmlFor="name" className="text-white">Full Name *</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="mt-2 bg-white/5 border-white/20 text-white"
+                        placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">
-                        Last Name *
-                      </label>
-                      <Input 
-                        placeholder="Your last name"
-                        className="bg-white/5 border-white/20 text-white placeholder-slate-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-white mb-2">
-                        Email Address *
-                      </label>
-                      <Input 
+                      <Label htmlFor="email" className="text-white">Email Address *</Label>
+                      <Input
+                        id="email"
+                        name="email"
                         type="email"
-                        placeholder="your.email@example.com"
-                        className="bg-white/5 border-white/20 text-white placeholder-slate-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-white mb-2">
-                        Phone Number
-                      </label>
-                      <Input 
-                        type="tel"
-                        placeholder="+43 1 234 5678"
-                        className="bg-white/5 border-white/20 text-white placeholder-slate-400"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="mt-2 bg-white/5 border-white/20 text-white"
+                        placeholder="john@example.com"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      Subject *
-                    </label>
-                    <Input 
-                      placeholder="Brief description of your inquiry"
-                      className="bg-white/5 border-white/20 text-white placeholder-slate-400"
+                    <Label htmlFor="subject" className="text-white">Subject *</Label>
+                    <Input
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required
+                      className="mt-2 bg-white/5 border-white/20 text-white"
+                      placeholder="How can we help you?"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      Department
-                    </label>
-                    <select className="w-full p-2 rounded-md bg-white/5 border border-white/20 text-white">
-                      <option value="">Select a department</option>
-                      <option value="support">General Support</option>
-                      <option value="technical">Technical Issues</option>
-                      <option value="account">Account Management</option>
-                      <option value="trading">Trading Support</option>
-                      <option value="security">Security Concerns</option>
-                      <option value="compliance">Compliance & Legal</option>
-                      <option value="business">Business Inquiries</option>
-                      <option value="press">Press & Media</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      Message *
-                    </label>
-                    <Textarea 
-                      placeholder="Please provide detailed information about your inquiry..."
+                    <Label htmlFor="message" className="text-white">Message *</Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
                       rows={6}
-                      className="bg-white/5 border-white/20 text-white placeholder-slate-400"
+                      className="mt-2 bg-white/5 border-white/20 text-white"
+                      placeholder="Please describe your inquiry in detail..."
                     />
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <input 
-                      type="checkbox" 
-                      id="privacy" 
-                      className="mt-1"
-                    />
-                    <label htmlFor="privacy" className="text-sm text-slate-300">
-                      I agree to the processing of my personal data in accordance with the{" "}
-                      <a href="/privacy" className="text-blue-400 hover:underline">
-                        Privacy Policy
-                      </a>
-                    </label>
-                  </div>
-
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    Send Message
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isSubmitting ? (
+                      <>Sending...</>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Message
+                      </>
+                    )}
                   </Button>
-                </CardContent>
-              </Card>
-
-              {/* Additional Information */}
-              <div className="mt-8 grid md:grid-cols-3 gap-4">
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-center">
-                  <CardContent className="pt-6">
-                    <Users className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                    <h4 className="font-semibold text-white mb-1">Expert Team</h4>
-                    <p className="text-xs text-slate-300">
-                      Our certified professionals are here to help
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-center">
-                  <CardContent className="pt-6">
-                    <Globe className="h-8 w-8 text-green-400 mx-auto mb-3" />
-                    <h4 className="font-semibold text-white mb-1">Global Reach</h4>
-                    <p className="text-xs text-slate-300">
-                      Serving customers worldwide, 24/7
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-center">
-                  <CardContent className="pt-6">
-                    <Shield className="h-8 w-8 text-purple-400 mx-auto mb-3" />
-                    <h4 className="font-semibold text-white mb-1">Secure Communication</h4>
-                    <p className="text-xs text-slate-300">
-                      All communications are encrypted
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </main>
+
+        {/* FAQ Section */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-bold text-white text-center mb-8">Frequently Asked Questions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-white mb-3">What are your support hours?</h3>
+                <p className="text-blue-100">Our support team is available 24/7 via live chat and email. Phone support is available Monday-Friday, 9 AM - 6 PM CET.</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-white mb-3">How quickly will I get a response?</h3>
+                <p className="text-blue-100">Most inquiries are answered within 2-4 hours. Urgent matters via live chat receive immediate attention.</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-white mb-3">Can I schedule a call?</h3>
+                <p className="text-blue-100">Yes! Email us to schedule a personalized call with one of our trading specialists.</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-white mb-3">Do you offer enterprise support?</h3>
+                <p className="text-blue-100">Absolutely! Contact us for dedicated account management and priority support for institutional clients.</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

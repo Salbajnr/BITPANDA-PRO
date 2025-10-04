@@ -201,3 +201,106 @@ class WebSocketManager {
 }
 
 export const webSocketManager = new WebSocketManager();
+
+export function setupWebSocketServer(server: any) {
+  const wss = new WebSocketServer({ 
+    server,
+    path: '/ws/prices',
+    perMessageDeflate: false,
+    clientTracking: true
+  });
+
+  // Track connected clients
+  const clients = new Set<WebSocket>();
+
+  wss.on('connection', (ws: WebSocket, req: any) => {
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log(`✅ WebSocket client connected from ${clientIp}`);
+
+    ws.isAlive = true;
+    clients.add(ws);
+
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({
+      type: 'connected',
+      message: 'WebSocket connection established',
+      timestamp: new Date().toISOString()
+    }));
+
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+
+    ws.on('message', (message: string) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('📨 Received message:', data);
+
+        // Handle subscription requests
+        if (data.type === 'subscribe') {
+          ws.send(JSON.stringify({
+            type: 'subscribed',
+            symbols: data.symbols || []
+          }));
+        }
+      } catch (error) {
+        console.error('❌ Error parsing message:', error);
+      }
+    });
+
+    ws.on('close', (code, reason) => {
+      console.log(`❌ WebSocket client disconnected: ${code} - ${reason}`);
+      clients.delete(ws);
+    });
+
+    ws.on('error', (error) => {
+      console.error('❌ WebSocket error:', error);
+      clients.delete(ws);
+    });
+  });
+
+  // Heartbeat to detect broken connections
+  const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws: any) => {
+      if (ws.isAlive === false) {
+        console.log('🔌 Terminating inactive WebSocket connection');
+        clients.delete(ws);
+        return ws.terminate();
+      }
+      ws.isAlive = false;
+      ws.ping();
+    });
+  }, 30000);
+
+  // Broadcast price updates every 5 seconds
+  const priceUpdateInterval = setInterval(() => {
+    if (clients.size === 0) return;
+
+    const mockPrices = {
+      type: 'price_update',
+      data: [
+        { symbol: 'BTC', price: (Math.random() * 1000 + 67000).toFixed(2), change24h: (Math.random() * 10 - 5).toFixed(2) },
+        { symbol: 'ETH', price: (Math.random() * 100 + 3400).toFixed(2), change24h: (Math.random() * 10 - 5).toFixed(2) },
+        { symbol: 'SOL', price: (Math.random() * 50 + 150).toFixed(2), change24h: (Math.random() * 10 - 5).toFixed(2) }
+      ],
+      timestamp: new Date().toISOString()
+    };
+
+    const message = JSON.stringify(mockPrices);
+    clients.forEach(ws => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(message);
+      }
+    });
+  }, 5000);
+
+  wss.on('close', () => {
+    clearInterval(heartbeatInterval);
+    clearInterval(priceUpdateInterval);
+  });
+
+  console.log('🚀 WebSocket server initialized on /ws/prices');
+  console.log('📡 Broadcasting price updates every 5 seconds');
+
+  return wss;
+}
