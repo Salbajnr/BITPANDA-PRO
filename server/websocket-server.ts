@@ -14,7 +14,7 @@ class WebSocketManager {
   private connectionsByIp: Map<string, number> = new Map();
   // Rate limiting per IP - increased for real-time price updates
   private connectionLimits = new Map<string, number>();
-  private readonly MAX_CONNECTIONS_PER_IP = 20; // Increased limit for multiple reconnection attempts
+  private readonly MAX_CONNECTIONS_PER_IP = 10; // Increased limit for admin features
 
   initialize(httpServer: Server) {
     if (this.isInitialized) {
@@ -203,7 +203,7 @@ class WebSocketManager {
 export const webSocketManager = new WebSocketManager();
 
 export function setupWebSocketServer(server: any) {
-  const wss = new WebSocketServer({ 
+  const wss = new WebSocketServer({
     server,
     path: '/ws/prices',
     perMessageDeflate: false,

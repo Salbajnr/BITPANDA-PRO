@@ -22,6 +22,7 @@ import AdminNewsManagement from "@/admin/pages/AdminNewsManagement";
 import AdminChatManagement from "@/admin/pages/AdminChatManagement";
 import AdminMetalsManagement from "@/admin/pages/AdminMetalsManagement";
 import AdminTransactionMonitor from "@/admin/pages/AdminTransactionMonitor";
+import AdminAPIManagement from "@/pages/AdminAPIManagement";
 
 // Loading component
 const LoadingScreen = ({ message }: { message: string }) => (
@@ -126,6 +127,12 @@ export default function AdminApp() {
                   <Route path="/transactions" component={() => (
                     <AdminProtectedRoute>
                       <AdminTransactionMonitor />
+                    </AdminProtectedRoute>
+                  )} />
+                  
+                  <Route path="/api-management" component={() => (
+                    <AdminProtectedRoute>
+                      <AdminAPIManagement />
                     </AdminProtectedRoute>
                   )} />
                   
