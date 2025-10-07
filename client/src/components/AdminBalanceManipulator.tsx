@@ -11,7 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+<<<<<<< Updated upstream
 import { apiRequest } from '@/lib/api';
+=======
+import { adminApi, apiRequest } from '@/lib/api';
+>>>>>>> Stashed changes
 import { 
   DollarSign, 
   Plus, 
@@ -23,9 +27,11 @@ import {
   AlertTriangle,
   CheckCircle,
   Search,
-  User,
+  User as UserIcon,
   Settings,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 
 interface User {
@@ -82,21 +88,45 @@ export default function AdminBalanceManipulator() {
   const [selectedUser, setSelectedUser] = useState<UserBalance | null>(null);
 
   // Fetch users with portfolios
+<<<<<<< Updated upstream
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['/api/admin/users'],
     queryFn: () => apiRequest('/api/admin/users'),
+=======
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[], Error>({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+        const { data, error } = await adminApi.getUsers();
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
+    },
+>>>>>>> Stashed changes
     retry: 1,
   });
 
   // Fetch balance adjustments history
+<<<<<<< Updated upstream
   const { data: adjustments = [], isLoading: adjustmentsLoading } = useQuery({
     queryKey: ['/api/admin/balance-adjustments'],
     queryFn: () => apiRequest('/api/admin/balance-adjustments'),
+=======
+  const { data: adjustments = [], isLoading: adjustmentsLoading } = useQuery<BalanceAdjustment[], Error>({
+    queryKey: ['admin-adjustments'],
+    queryFn: async () => {
+        const { data, error } = await adminApi.getAdjustments();
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
+    },
+>>>>>>> Stashed changes
     retry: 1,
   });
 
   // Search for user balance
-  const searchUserMutation = useMutation({
+  const searchUserMutation = useMutation<UserBalance, Error, string>({
     mutationFn: async (userId: string) => {
       return apiRequest(`/api/deposits/admin/user-balance/${userId}`);
     },
@@ -118,7 +148,7 @@ export default function AdminBalanceManipulator() {
   });
 
   // Balance manipulation mutation
-  const manipulateBalanceMutation = useMutation({
+  const manipulateBalanceMutation = useMutation<any, Error, any>({
     mutationFn: async (data: any) => {
       return apiRequest('/api/deposits/admin/manipulate-balance', {
         method: 'POST',
@@ -210,7 +240,7 @@ export default function AdminBalanceManipulator() {
   );
 
   // Balance adjustment mutation
-  const balanceAdjustmentMutation = useMutation({
+  const balanceAdjustmentMutation = useMutation<any, Error, any>({
     mutationFn: async (adjustmentData: any) => {
       return await apiRequest('/api/admin/balance-adjustment', {
         method: 'POST',
@@ -242,7 +272,7 @@ export default function AdminBalanceManipulator() {
   });
 
   // Bulk balance adjustment mutation
-  const bulkAdjustmentMutation = useMutation({
+  const bulkAdjustmentMutation = useMutation<any, Error, any>({
     mutationFn: async (bulkData: any) => {
       const promises = bulkData.userIds.map((userId: string) =>
         apiRequest('/api/admin/balance-adjustment', {
@@ -626,7 +656,7 @@ export default function AdminBalanceManipulator() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+              <UserIcon className="h-5 w-5" />
               User Information
             </CardTitle>
           </CardHeader>

@@ -9,9 +9,21 @@ export interface ApiResponse<T = any> {
 
 class ApiClient {
   private baseURL: string;
+  public csrfToken: string | null = null;
 
   constructor(baseURL: string = '') {
     this.baseURL = baseURL;
+    this.getCsrfToken();
+  }
+
+  private async getCsrfToken(): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseURL}/api/csrf-token`);
+      const data = await response.json();
+      this.csrfToken = data.csrfToken;
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error);
+    }
   }
 
   private async makeRequest<T>(
@@ -25,6 +37,7 @@ class ApiClient {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': this.csrfToken || '',
           ...options.headers,
         },
         ...options,
@@ -102,6 +115,7 @@ export const apiRequest = async (
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      'X-CSRF-Token': api.csrfToken || '',
       ...options.headers,
     },
     ...options,
