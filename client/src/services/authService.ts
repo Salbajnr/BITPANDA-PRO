@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api } from '@/lib/api';
 import { z } from 'zod';
 
 const LoginSchema = z.object({

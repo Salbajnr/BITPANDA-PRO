@@ -4,7 +4,7 @@ import {
   LineChart, 
   History, 
   Newspaper, 
-  User,
+  User as UserIcon,
   Shield,
   Users,
   DollarSign,
@@ -18,7 +18,7 @@ import {
   AlertTriangle,
   Wallet
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, User } from "@/hooks/useAuth";
 
 interface SidebarProps {
   portfolioData?: any;
@@ -28,7 +28,7 @@ interface SidebarProps {
 
 export default function Sidebar({ portfolioData, isOpen = false, onClose }: SidebarProps) {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: User | null };
 
   const portfolio = portfolioData?.portfolio;
   const totalValue = portfolio ? parseFloat(portfolio.totalValue) : 0;
@@ -47,7 +47,7 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
     { href: "/notifications", label: "Notifications", icon: Bell },
     { href: "/alerts", label: "Price Alerts", icon: Activity },
     { href: "/news", label: "News", icon: Newspaper },
-    { href: "/settings", label: "Settings", icon: User },
+    { href: "/settings", label: "Settings", icon: UserIcon },
     { href: "/help", label: "Help", icon: Shield },
   ];
 
