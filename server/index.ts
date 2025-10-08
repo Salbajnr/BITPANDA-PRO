@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import cookieParser from 'cookie-parser';
+import csrf from 'tiny-csrf';
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
 import { setupVite, serveStatic, log } from "./vite";
@@ -31,8 +33,6 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Add CORS middleware with secure configuration
 app.use((req, res, next) => {
@@ -43,13 +43,13 @@ app.use((req, res, next) => {
     'http://0.0.0.0:5000',
     'https://*.replit.app',
     'https://*.replit.dev',
-    process.env.REPLIT_DOMAINS?.split(',') || []
+    ...(process.env.REPLIT_DOMAINS?.split(',') || [])
   ].flat();
 
   const origin = req.headers.origin;
   const isAllowed = allowedOrigins.some(allowed =>
     allowed === origin ||
-    (allowed.includes('*') && origin?.endsWith(allowed.replace('*.', '.')))
+    (allowed.includes('*') && origin?.endsWith(allowed.replace('*', '')))
   );
 
   if (isAllowed || !origin) {
@@ -58,13 +58,35 @@ app.use((req, res, next) => {
 
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token');
 
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
     next();
   }
+});
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// IMPORTANT: You should change this secret to a value from your environment variables
+app.use(cookieParser(process.env.COOKIE_SECRET || "some-super-secret-and-long-string"));
+
+// IMPORTANT: You should change this secret to a value from your environment variables
+const csrfProtection = csrf({
+    secret: process.env.CSRF_SECRET || "some-super-secret-and-long-string-that-is-at-least-32-characters-long",
+    cookieName: "_csrf",
+    headerName: "X-CSRF-Token",
+    cookieOptions: {
+        sameSite: "lax",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+    },
+});
+app.use(csrfProtection);
+
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken });
 });
 
 // Add request logging middleware
@@ -108,14 +130,15 @@ app.use((req, res, next) => {
     const server = await registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
+      if (err.code === 'EBADCSRFTOKEN') {
+        res.status(403).json({ message: 'Invalid CSRF token' });
+      } else {
+        const status = err.status || err.statusCode || 500;
+        const message = err.message || "Internal Server Error";
 
-      res.status(status).json({ message });
-      // Rethrow the error to ensure it's logged by the next error handler if any, or terminates the process if unhandled.
-      // However, since we are already sending a response, we might not want to terminate the process here.
-      // For now, we'll just log it and send the response.
-      console.error(`Error occurred: ${err.stack || err}`);
+        res.status(status).json({ message });
+        console.error(`Error occurred: ${err.stack || err}`);
+      }
     });
 
     // Seed database with initial data

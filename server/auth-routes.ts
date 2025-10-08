@@ -1,10 +1,10 @@
-
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { sendEmail } from './email-service';
 import { storage } from './storage';
+import { auth } from './firebase';
 
 const router = Router();
 
@@ -17,6 +17,38 @@ function generateOTP(): string {
 function generateToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
+
+// New Firebase authentication route
+router.post('/firebase', async (req, res) => {
+  try {
+    const { idToken } = z.object({
+      idToken: z.string(),
+    }).parse(req.body);
+
+    const decodedToken = await auth.verifyIdToken(idToken);
+    const { uid, email, name, picture } = decodedToken;
+
+    let user = await storage.getUserByEmail(email as string);
+
+    if (!user) {
+      user = await storage.createUser({
+        email: email as string,
+        name: name || 'Firebase User',
+        firebaseUid: uid,
+        isVerified: true, // Firebase users are considered verified
+        // You might want to add other user properties here
+      });
+    }
+
+    // Here you would typically generate a session token or JWT for your application
+    // For now, we'll just return the user object
+    res.json({ success: true, user });
+
+  } catch (error) {
+    console.error('Firebase auth error:', error);
+    res.status(401).json({ error: 'Invalid Firebase token' });
+  }
+});
 
 // Forgot Password
 router.post('/forgot-password', async (req, res) => {
@@ -257,7 +289,7 @@ router.post('/resend-otp', async (req, res) => {
         `
       });
     } catch (emailError) {
-      console.error('Failed to send OTP email:', emailError);
+      console..error('Failed to send OTP email:', emailError);
     }
 
     res.json({ success: true, message: 'New OTP sent successfully' });
