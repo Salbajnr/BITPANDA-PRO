@@ -1,32 +1,33 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { api } from "@/lib/api";
+
+async function fetchUser() {
+  try {
+    const response = await api.get("/user/auth/user");
+    return response.data;
+  } catch (error) {
+    // If user is not authenticated, check for admin
+    try {
+      const adminResponse = await api.get("/admin/auth/user");
+      return adminResponse.data;
+    } catch (adminError) {
+      // Neither user nor admin is authenticated
+      return null;
+    }
+  }
+}
 
 export function useAuth() {
-  // Try to authenticate as admin first, then as user
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["auth-user"],
-    queryFn: async () => {
-      // Try admin authentication first
-      try {
-        const adminUser = await apiRequest("GET", "/api/admin/auth/user");
-        return adminUser;
-      } catch (adminError) {
-        // If admin auth fails, try user authentication
-        try {
-          const userData = await apiRequest("GET", "/api/user/auth/user");
-          return userData;
-        } catch (userError) {
-          // Both failed, user is not authenticated
-          return null;
-        }
-      }
-    },
-    retry: false,
+  const { data: user, isLoading, isError } = useQuery({
+    queryKey: ["authenticated-user"],
+    queryFn: fetchUser,
+    retry: false, // Don't retry on failure, as it means the user is not logged in
   });
 
   return {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isError,
+    isAuthenticated: !!user && !isError,
   };
 }
