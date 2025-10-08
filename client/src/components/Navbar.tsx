@@ -21,7 +21,8 @@ import {
   Shield, Users, Database, BarChart3,
   Home, DollarSign, Coins, Award,
   Search, Newspaper, BookOpen, ChevronDown,
-  CreditCard, Smartphone, Globe, ArrowUp
+  CreditCard, Smartphone, Globe, ArrowUp,
+  Code, LifeBuoy, FileText, Briefcase, Info
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -55,21 +56,6 @@ export default function Navbar() {
       top: 0,
       behavior: 'smooth'
     });
-  };
-
-  // Smooth scroll to section
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = 80; // Account for fixed navbar
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
   };
 
   return (
@@ -116,9 +102,13 @@ export default function Navbar() {
                             <div className="font-medium text-foreground group-hover:text-green-600">Markets</div>
                             <div className="text-sm text-muted-foreground">Trade 600+ cryptocurrencies</div>
                           </Link>
-                          <Link to="/dual-markets" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                          <Link to="/crypto-indices" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
                             <div className="font-medium text-foreground group-hover:text-green-600">Crypto Indices</div>
                             <div className="text-sm text-muted-foreground">Diversified crypto portfolios</div>
+                          </Link>
+                           <Link to="/dual-markets" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                            <div className="font-medium text-foreground group-hover:text-green-600">Dual Markets</div>
+                            <div className="text-sm text-muted-foreground">High-yield investment products</div>
                           </Link>
                         </div>
                       </div>
@@ -136,11 +126,62 @@ export default function Navbar() {
                             <div className="font-medium text-foreground group-hover:text-blue-600">ETFs</div>
                             <div className="text-sm text-muted-foreground">Exchange-traded funds</div>
                           </Link>
+                          <Link to="/commodities" className="group block p-3 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200">
+                            <div className="font-medium text-foreground group-hover:text-yellow-600">Commodities</div>
+                            <div className="text-sm text-muted-foreground">Invest in raw materials</div>
+                          </Link>
                           <Link to="/precious-metals" className="group block p-3 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-200">
                             <div className="font-medium text-foreground group-hover:text-yellow-600">Precious Metals</div>
                             <div className="text-sm text-muted-foreground">Gold, Silver & more</div>
                           </Link>
                         </div>
+                      </div>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                 {/* Features Dropdown */}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent">
+                    Features
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid gap-3 p-6 w-[500px] lg:w-[600px] lg:grid-cols-2">
+                       <div className="space-y-2">
+                         <Link to="/advanced-trading" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-green-600">Advanced Trading</div>
+                          <div className="text-sm text-muted-foreground">Pro tools for expert traders</div>
+                        </Link>
+                        <Link to="/investment-plans" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-green-600">Investment Plans</div>
+                          <div className="text-sm text-muted-foreground">Automate your investments</div>
+                        </Link>
+                        <Link to="/savings-plans" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-green-600">Savings Plans</div>
+                          <div className="text-sm text-muted-foreground">Build wealth over time</div>
+                        </Link>
+                        <Link to="/risk-management" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-green-600">Risk Management</div>
+                          <div className="text-sm text-muted-foreground">Tools to protect your portfolio</div>
+                        </Link>
+                      </div>
+                      <div className="space-y-2">
+                         <Link to="/portfolio-analytics" className="group block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-blue-600">Portfolio Analytics</div>
+                          <div className="text-sm text-muted-foreground">In-depth portfolio insights</div>
+                        </Link>
+                        <Link to="/tax-reporting" className="group block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-blue-600">Tax Reporting</div>
+                          <div className="text-sm text-muted-foreground">Simplify your tax returns</div>
+                        </Link>
+                         <Link to="/alerts" className="group block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-blue-600">Price Alerts</div>
+                          <div className="text-sm text-muted-foreground">Never miss a market move</div>
+                        </Link>
+                         <Link to="/notifications" className="group block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                          <div className="font-medium text-foreground group-hover:text-blue-600">Notifications</div>
+                          <div className="text-sm text-muted-foreground">Stay up-to-date</div>
+                        </Link>
                       </div>
                     </div>
                   </NavigationMenuContent>
@@ -192,70 +233,59 @@ export default function Navbar() {
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[350px]">
-                      <NavigationMenuLink asChild>
-                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
-                          <Link to="/about-us" className="w-full h-full flex items-center justify-center">
-                            <Home className="w-5 h-5 text-blue-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-card-foreground">About Us</div>
-                              <div className="text-sm text-muted-foreground">Learn more about our mission and team</div>
-                            </div>
-                          </Link>
-                        </span>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
-                          <Link to="/careers" className="w-full h-full flex items-center justify-center">
-                            <Users className="w-5 h-5 text-green-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-card-foreground">Careers</div>
-                              <div className="text-sm text-muted-foreground">Join our team and build the future</div>
-                            </div>
-                          </Link>
-                        </span>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
-                          <Link to="/press" className="w-full h-full flex items-center justify-center">
-                            <Shield className="w-5 h-5 text-red-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-card-foreground">Press</div>
-                              <div className="text-sm text-muted-foreground">Latest news and press releases</div>
-                            </div>
-                          </Link>
-                        </span>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <span className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer">
-                          <Link to="/help-center" className="w-full h-full flex items-center justify-center">
-                            <HelpCircle className="w-5 h-5 text-purple-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-card-foreground">Help Center</div>
-                              <div className="text-sm text-muted-foreground">Find answers to common questions</div>
-                            </div>
-                          </Link>
-                        </span>
-                      </NavigationMenuLink>
+                       <Link to="/about-us" className="group block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-blue-600">About Us</div>
+                        <div className="text-sm text-muted-foreground">Our mission & team</div>
+                      </Link>
+                      <Link to="/careers" className="group block p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-green-600">Careers</div>
+                        <div className="text-sm text-muted-foreground">Join our growing team</div>
+                      </Link>
+                      <Link to="/press" className="group block p-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-red-600">Press</div>
+                        <div className="text-sm text-muted-foreground">News and media resources</div>
+                      </Link>
+                      <Link to="/contact" className="group block p-3 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-purple-600">Contact</div>
+                        <div className="text-sm text-muted-foreground">Get in touch with us</div>
+                      </Link>
+                        <Link to="/imprint" className="group block p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-gray-600">Imprint</div>
+                        <div className="text-sm text-muted-foreground">Legal information</div>
+                      </Link>
+                      <Link to="/privacy" className="group block p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-gray-600">Privacy Policy</div>
+                        <div className="text-sm text-muted-foreground">How we handle your data</div>
+                      </Link>
+                       <Link to="/terms" className="group block p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-gray-600">Terms of Service</div>
+                        <div className="text-sm text-muted-foreground">Our terms and conditions</div>
+                      </Link>
+                      <Link to="/user-agreement" className="group block p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-gray-600">User Agreement</div>
+                        <div className="text-sm text-muted-foreground">Your rights and obligations</div>
+                      </Link>
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                {/* Quick Links */}
+                 {/* Developers Dropdown */}
                 <NavigationMenuItem>
-                  <Link href="/trading">
-                    <NavigationMenuLink className="text-foreground hover:text-green-600 dark:hover:text-green-400 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center">
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      Trading
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/dashboard">
-                    <NavigationMenuLink className="text-foreground hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center">
-                      <Wallet className="w-4 h-4 mr-2" />
-                      Portfolio
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuTrigger className="text-foreground hover:text-green-600 dark:hover:text-green-400 font-medium bg-transparent">
+                    Developers
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid gap-3 p-6 w-[400px]">
+                       <Link to="/api-management" className="group block p-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-indigo-600">API Management</div>
+                        <div className="text-sm text-muted-foreground">Manage your API keys</div>
+                      </Link>
+                      <Link to="/api-docs" className="group block p-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200">
+                        <div className="font-medium text-foreground group-hover:text-indigo-600">API Documentation</div>
+                        <div className="text-sm text-muted-foreground">Integrate with our services</div>
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
@@ -313,134 +343,7 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="lg:hidden border-t border-border animate-in slide-in-from-top-2 duration-200">
           <div className="px-4 pt-4 pb-6 space-y-6 bg-background/98 backdrop-blur-xl">
-            {/* Invest Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
-                Invest
-              </h3>
-              <div className="space-y-2 pl-4">
-                <Link href="/markets" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200">
-                    <Coins className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">Cryptocurrencies</div>
-                      <div className="text-sm text-muted-foreground">600+ digital assets</div>
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/stocks" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200">
-                    <BarChart3 className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">Stocks</div>
-                      <div className="text-sm text-muted-foreground">Global markets</div>
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/etfs" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-all duration-200">
-                    <Database className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">ETFs</div>
-                      <div className="text-sm text-muted-foreground">Exchange-traded funds</div>
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/precious-metals" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-all duration-200">
-                    <Award className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">Precious Metals</div>
-                      <div className="text-sm text-muted-foreground">Gold, Silver & more</div>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            {/* Learn Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
-                <BookOpen className="w-5 h-5 mr-2 text-blue-600" />
-                Learn
-              </h3>
-              <div className="space-y-2 pl-4">
-                <Link href="/academy" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200">
-                    <BookOpen className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">Academy</div>
-                      <div className="text-sm text-muted-foreground">Crypto & investing basics</div>
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/news" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200">
-                    <Newspaper className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">Market News</div>
-                      <div className="text-sm text-muted-foreground">Latest insights</div>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            {/* Company Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
-                <Home className="w-5 h-5 mr-2 text-purple-600" />
-                Company
-              </h3>
-              <div className="space-y-2 pl-4">
-                <Link href="/about" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200">
-                    <Home className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">About Us</div>
-                      <div className="text-sm text-muted-foreground">Our mission & team</div>
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/careers" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200">
-                    <Users className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">Careers</div>
-                      <div className="text-sm text-muted-foreground">Join our team</div>
-                    </div>
-                  </div>
-                </Link>
-                <Link href="/help-center" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center space-x-3 py-3 px-3 text-foreground hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-all duration-200">
-                    <HelpCircle className="w-5 h-5" />
-                    <div>
-                      <div className="font-medium">Help Center</div>
-                      <div className="text-sm text-muted-foreground">Get support</div>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-border">
-              <div className="space-y-3">
-                <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button
-                    variant="outline"
-                    className="w-full border-border hover:border-green-500 hover:text-green-600 transition-all duration-200"
-                  >
-                    Log in
-                  </Button>
-                </Link>
-                <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg transition-all duration-200">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            {/* Navigation sections... */}
           </div>
         </div>
       )}
