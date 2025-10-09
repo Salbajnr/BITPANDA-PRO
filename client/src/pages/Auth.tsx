@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
+import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/firebase";
 import { 
   Eye, 
   EyeOff, 
@@ -178,11 +179,18 @@ export default function Auth() {
     registerMutation.mutate(registerForm);
   };
 
-  const handleGoogleAuth = () => {
-    toast({
-      title: "Google Authentication",
-      description: "Google sign-in will be available soon!",
-    });
+  const handleGoogleAuth = async () => {
+    try {
+      // Firebase redirect sign-in
+      await signInWithGoogle();
+      // User will be redirected to Google sign-in page, then back to app
+    } catch (error: any) {
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "Unable to sign in with Google",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
