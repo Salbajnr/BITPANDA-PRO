@@ -3,24 +3,7 @@ import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import * as schema from "@shared/schema";
 
-// Use Supabase PostgreSQL database
-// Password: 8Characterslong?@$
-// URL encoding: ? = %3F, @ = %40, $ = %24
-
-const DATABASE_URL = process.env.DATABASE_URL || '';
-
-if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL environment variable is not set');
-}
-
-// Connection with retry logic
-const connectionConfig = {
-  max: 10,
-  idle_timeout: 20,
-  connect_timeout: 10,
-  onnotice: () => {}, // Suppress notices
-};
-const databaseUrl = process.env.DATABASE_URL;
+let databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   console.error("⚠️  No database URL found. Please set DATABASE_URL in Secrets.");
@@ -29,6 +12,20 @@ if (!databaseUrl) {
 
 console.log("🔌 Attempting to connect to database...");
 console.log(databaseUrl ? '📍 Using database: Supabase PostgreSQL' : '❌ DATABASE_URL not configured');
+
+if (databaseUrl) {
+  const passwordRegex = /postgresql:\/\/([^:]+):([^@]+)@(.+)/;
+  const match = databaseUrl.match(passwordRegex);
+  
+  if (match) {
+    const [, username, password, rest] = match;
+    if (password.includes('?') || password.includes('@') || password.includes('$') || password.includes('#') || password.includes('&')) {
+      const encodedPassword = encodeURIComponent(password);
+      databaseUrl = `postgresql://${username}:${encodedPassword}@${rest}`;
+      console.log('🔧 Fixed URL encoding for special characters in password');
+    }
+  }
+}
 
 export const pool = databaseUrl
   ? postgres(databaseUrl, {

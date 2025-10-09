@@ -10,12 +10,47 @@ interface MessageModalContextType {
 const MessageModalContext = createContext<MessageModalContextType | undefined>(undefined);
 
 export function MessageModalProvider({ children }: { children: ReactNode }) {
-  const { showMessage, messageState } = useMessageModal();
+  const {
+    modalState,
+    closeModal,
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo
+  } = useMessageModal();
+
+  const showMessage = (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    switch (type) {
+      case 'success':
+        showSuccess(title, message);
+        break;
+      case 'error':
+        showError(title, message);
+        break;
+      case 'warning':
+        showWarning(title, message);
+        break;
+      case 'info':
+      default:
+        showInfo(title, message);
+        break;
+    }
+  };
 
   return (
     <MessageModalContext.Provider value={{ showMessage }}>
       {children}
-      <MessageModal {...messageState} />
+      <MessageModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+      />
     </MessageModalContext.Provider>
   );
 }
