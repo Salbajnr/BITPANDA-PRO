@@ -7,17 +7,17 @@ channel = "stable-24_05"
 packages = ["kubectl"]
 
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "npm run dev"]
+run = ["npm", "run", "start"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 5000
-externalPort = 443
+localPort = 43277
+externalPort = 3000
 
 [env]
 PORT = "5000"
