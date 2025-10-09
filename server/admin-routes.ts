@@ -333,28 +333,17 @@ router.get('/system-health', requireAuth, requireAdmin, async (req: Request, res
 router.get('/user-sessions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const timeframe = req.query.timeframe as string || '24h';
+    
+    // Get actual user login history from database
     const users = await storage.getAllUsers();
-
-    const sessions = users.slice(0, 20).map(user => ({
+    const sessions = users.filter(u => u.lastLogin).map(user => ({
       id: `session-${user.id}`,
       userId: user.id,
       username: user.username,
       email: user.email,
-      ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-      userAgent: 'Mozilla/5.0',
-      deviceType: ['desktop', 'mobile', 'tablet'][Math.floor(Math.random() * 3)],
-      browser: ['Chrome', 'Firefox', 'Safari'][Math.floor(Math.random() * 3)],
-      os: ['Windows', 'macOS', 'Linux'][Math.floor(Math.random() * 3)],
-      location: {
-        country: ['USA', 'UK', 'Germany', 'France'][Math.floor(Math.random() * 4)],
-        city: ['New York', 'London', 'Berlin', 'Paris'][Math.floor(Math.random() * 4)],
-        region: 'North'
-      },
-      loginTime: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-      lastActivity: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-      isActive: Math.random() > 0.3,
-      duration: Math.floor(Math.random() * 180),
-      pagesVisited: Math.floor(Math.random() * 20) + 5
+      loginTime: user.lastLogin,
+      lastActivity: user.lastLogin,
+      isActive: user.isActive
     }));
 
     res.json({ sessions });
@@ -369,16 +358,16 @@ router.get('/user-activities', requireAuth, requireAdmin, async (req: Request, r
     const timeframe = req.query.timeframe as string || '24h';
     const type = req.query.type as string || 'all';
 
-    const users = await storage.getAllUsers();
-    const activities = users.slice(0, 30).map(user => ({
-      id: `activity-${user.id}-${Date.now()}`,
-      userId: user.id,
-      username: user.username,
-      action: ['Login', 'Trade Executed', 'Deposit', 'Withdrawal', 'Profile Update'][Math.floor(Math.random() * 5)],
-      details: 'User performed action successfully',
-      ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-      timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-      riskScore: Math.floor(Math.random() * 100)
+    // Get real transaction data as activities
+    const transactions = await storage.getAllTransactions({ page: 1, limit: 50 });
+    const activities = transactions.transactions.map((tx: any) => ({
+      id: `activity-${tx.id}`,
+      userId: tx.userId,
+      username: tx.username || 'Unknown',
+      action: tx.type === 'buy' ? 'Trade Executed (Buy)' : tx.type === 'sell' ? 'Trade Executed (Sell)' : tx.type,
+      details: `${tx.type} ${tx.amount} ${tx.symbol} at ${tx.price}`,
+      timestamp: tx.createdAt,
+      riskScore: 0
     }));
 
     res.json({ activities });
@@ -394,21 +383,25 @@ router.get('/risk/alerts', requireAuth, requireAdmin, async (req: Request, res: 
     const severity = req.query.severity as string;
     const status = req.query.status as string;
 
-    const users = await storage.getAllUsers();
-    const alerts = users.slice(0, 15).map(user => ({
-      id: `alert-${user.id}`,
-      userId: user.id,
-      username: user.username,
-      email: user.email,
-      riskType: ['high_volume', 'suspicious_pattern', 'kyc_mismatch', 'location_anomaly'][Math.floor(Math.random() * 4)],
-      severity: ['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)],
-      description: 'Unusual trading pattern detected',
-      amount: (Math.random() * 50000).toFixed(2),
-      currency: 'USD',
-      timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-      status: ['active', 'reviewing', 'resolved', 'false_positive'][Math.floor(Math.random() * 4)],
-      riskScore: Math.floor(Math.random() * 100)
-    }));
+    // Get actual flagged or suspicious transactions as alerts
+    const transactions = await storage.getAllTransactions({ page: 1, limit: 100 });
+    const alerts = transactions.transactions
+      .filter((tx: any) => parseFloat(tx.total) > 10000 || tx.status === 'failed')
+      .slice(0, 15)
+      .map((tx: any) => ({
+        id: `alert-${tx.id}`,
+        userId: tx.userId,
+        username: tx.username || 'Unknown',
+        email: tx.email || 'Unknown',
+        riskType: parseFloat(tx.total) > 10000 ? 'high_volume' : 'failed_transaction',
+        severity: parseFloat(tx.total) > 50000 ? 'critical' : parseFloat(tx.total) > 20000 ? 'high' : 'medium',
+        description: `${tx.type} transaction for ${tx.symbol}`,
+        amount: tx.total,
+        currency: 'USD',
+        timestamp: tx.createdAt,
+        status: 'active',
+        riskScore: Math.min(100, Math.floor(parseFloat(tx.total) / 1000))
+      }));
 
     res.json({ alerts });
   } catch (error) {
