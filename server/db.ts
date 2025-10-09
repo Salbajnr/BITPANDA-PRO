@@ -4,11 +4,12 @@ import postgres from "postgres";
 import * as schema from "@shared/schema";
 
 // Use Supabase PostgreSQL database
-// Password special characters must be URL-encoded: ? = %3F, @ = %40, $ = %24
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:8Characterslong%3F%40%24@db.qqjvozsmlumssmmknjwf.supabase.co:5432/postgres';
+// Password: 8Characterslong?@$
+// URL encoding: ? = %3F, @ = %40, $ = %24
+const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error("⚠️  No database URL found. Please set DATABASE_URL.");
+  console.error("⚠️  No database URL found. Please set DATABASE_URL in Secrets.");
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
 }
 
