@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
-  signInWithRedirect, 
+  signInWithPopup, 
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -26,7 +26,7 @@ const googleProvider = new GoogleAuthProvider();
 
 // Sign in with Google
 export function signInWithGoogle() {
-  return signInWithRedirect(auth, googleProvider);
+  return signInWithPopup(auth, googleProvider);
 }
 
 // Sign in with email and password
