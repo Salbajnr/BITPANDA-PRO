@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 import { 
   DollarSign, 
   Plus, 
@@ -19,7 +20,6 @@ import {
   Edit3, 
   History, 
   Users, 
-  TrendingUp,
   AlertTriangle,
   CheckCircle,
   Search,
@@ -82,16 +82,28 @@ export default function AdminBalanceManipulator() {
   const [selectedUser, setSelectedUser] = useState<UserBalance | null>(null);
 
   // Fetch users with portfolios
-  const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['/api/admin/users'],
-    queryFn: () => apiRequest('/api/admin/users'),
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+        const { data, error } = await adminApi.getUsers();
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
+    },
     retry: 1,
   });
 
   // Fetch balance adjustments history
-  const { data: adjustments = [], isLoading: adjustmentsLoading } = useQuery({
-    queryKey: ['/api/admin/balance-adjustments'],
-    queryFn: () => apiRequest('/api/admin/balance-adjustments'),
+  const { data: adjustments = [], isLoading: adjustmentsLoading } = useQuery<BalanceAdjustment[]>({
+    queryKey: ['admin-adjustments'],
+    queryFn: async () => {
+        const { data, error } = await adminApi.getAdjustments();
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
+    },
     retry: 1,
   });
 
@@ -212,10 +224,11 @@ export default function AdminBalanceManipulator() {
   // Balance adjustment mutation
   const balanceAdjustmentMutation = useMutation({
     mutationFn: async (adjustmentData: any) => {
-      return await apiRequest('/api/admin/balance-adjustment', {
-        method: 'POST',
-        body: JSON.stringify(adjustmentData),
-      });
+        const { data, error } = await adminApi.simulateBalance(adjustmentData);
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
     },
     onSuccess: () => {
       toast({
@@ -223,8 +236,8 @@ export default function AdminBalanceManipulator() {
         description: `User balance has been ${adjustmentType === 'add' ? 'increased' : adjustmentType === 'remove' ? 'decreased' : 'set'} successfully.`,
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/balance-adjustments'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-adjustments'] });
       // Reset form
       setAmount('');
       setReason('');
@@ -245,15 +258,12 @@ export default function AdminBalanceManipulator() {
   const bulkAdjustmentMutation = useMutation({
     mutationFn: async (bulkData: any) => {
       const promises = bulkData.userIds.map((userId: string) =>
-        apiRequest('/api/admin/balance-adjustment', {
-          method: 'POST',
-          body: JSON.stringify({
-            targetUserId: userId,
-            adjustmentType: bulkData.adjustmentType,
-            amount: bulkData.amount,
-            currency: bulkData.currency,
-            reason: bulkData.reason,
-          }),
+        adminApi.simulateBalance({
+          targetUserId: userId,
+          adjustmentType: bulkData.adjustmentType,
+          amount: bulkData.amount,
+          currency: bulkData.currency,
+          reason: bulkData.reason,
         })
       );
       return await Promise.all(promises);
@@ -264,8 +274,8 @@ export default function AdminBalanceManipulator() {
         description: `${variables.userIds.length} user balances have been adjusted successfully.`,
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/balance-adjustments'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-adjustments'] });
     },
   });
 

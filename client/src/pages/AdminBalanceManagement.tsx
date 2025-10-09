@@ -2,15 +2,27 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Redirect } from 'wouter';
 import AdminBalanceManipulator from '@/components/AdminBalanceManipulator';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Shield, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+<<<<<<< Updated upstream
 import { apiRequest } from '@/lib/queryClient';
+=======
+import { api } from '@/lib/api';
+
+interface AdminStats {
+  totalUsers: number;
+  totalPlatformValue: string;
+  activePortfolios: number;
+  adjustmentsToday: number;
+}
+>>>>>>> Stashed changes
 
 export default function AdminBalanceManagement() {
   const { user, isLoading } = useAuth();
 
   // Fetch admin stats
+<<<<<<< Updated upstream
   const { data: stats } = useQuery({
     queryKey: ['/api/admin/analytics/overview'],
     queryFn: () => apiRequest('GET', '/api/admin/analytics/overview'),
@@ -22,8 +34,20 @@ export default function AdminBalanceManagement() {
   const { data: adjustmentHistory } = useQuery({
     queryKey: ['/api/admin/analytics/balance-adjustments'],
     queryFn: () => apiRequest('GET', '/api/admin/analytics/balance-adjustments'),
+=======
+  const { data: stats } = useQuery<AdminStats>({
+    queryKey: ['admin-analytics-overview'],
+    queryFn: async () => {
+        const { data, error } = await api.get('/api/admin/analytics/overview');
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
+    },
+>>>>>>> Stashed changes
     retry: 1,
     enabled: user?.role === 'admin',
+    initialData: { totalUsers: 0, totalPlatformValue: '0', activePortfolios: 0, adjustmentsToday: 0 },
   });
 
   if (isLoading) {
