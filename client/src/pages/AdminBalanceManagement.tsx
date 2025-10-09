@@ -2,12 +2,9 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Redirect } from 'wouter';
 import AdminBalanceManipulator from '@/components/AdminBalanceManipulator';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-<<<<<<< Updated upstream
-import { apiRequest } from '@/lib/queryClient';
-=======
 import { api } from '@/lib/api';
 
 interface AdminStats {
@@ -16,25 +13,22 @@ interface AdminStats {
   activePortfolios: number;
   adjustmentsToday: number;
 }
->>>>>>> Stashed changes
+
+interface Adjustment {
+    id: string;
+    targetUser: { username: string };
+    adjustmentType: string;
+    currency: string;
+    amount: number;
+    reason: string;
+    createdAt: string;
+    admin: { username: string };
+}
 
 export default function AdminBalanceManagement() {
   const { user, isLoading } = useAuth();
 
   // Fetch admin stats
-<<<<<<< Updated upstream
-  const { data: stats } = useQuery({
-    queryKey: ['/api/admin/analytics/overview'],
-    queryFn: () => apiRequest('GET', '/api/admin/analytics/overview'),
-    retry: 1,
-    enabled: user?.role === 'admin',
-  });
-
-  // Fetch adjustment history
-  const { data: adjustmentHistory } = useQuery({
-    queryKey: ['/api/admin/analytics/balance-adjustments'],
-    queryFn: () => apiRequest('GET', '/api/admin/analytics/balance-adjustments'),
-=======
   const { data: stats } = useQuery<AdminStats>({
     queryKey: ['admin-analytics-overview'],
     queryFn: async () => {
@@ -44,11 +38,26 @@ export default function AdminBalanceManagement() {
         }
         return data;
     },
->>>>>>> Stashed changes
     retry: 1,
     enabled: user?.role === 'admin',
     initialData: { totalUsers: 0, totalPlatformValue: '0', activePortfolios: 0, adjustmentsToday: 0 },
   });
+
+  // Fetch adjustment history
+  const { data: adjustmentHistory } = useQuery<Adjustment[]>({
+    queryKey: ['/api/admin/analytics/balance-adjustments'],
+    queryFn: async () => {
+        const { data, error } = await api.get('/api/admin/analytics/balance-adjustments');
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
+    },
+    retry: 1,
+    enabled: user?.role === 'admin',
+    initialData: [],
+  });
+
 
   if (isLoading) {
     return (
@@ -146,7 +155,7 @@ export default function AdminBalanceManagement() {
               <p className="text-gray-500">No balance adjustments found.</p>
             ) : (
               <div className="space-y-3">
-                {adjustmentHistory?.map((adjustment: any) => (
+                {adjustmentHistory?.map((adjustment: Adjustment) => (
                   <div key={adjustment.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <p className="font-medium">{adjustment.targetUser?.username}</p>

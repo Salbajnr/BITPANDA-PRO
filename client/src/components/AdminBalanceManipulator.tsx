@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { adminApi } from '@/lib/api';
+import { adminApi, api } from '@/lib/api';
 import { 
   DollarSign, 
   Plus, 
@@ -25,7 +24,9 @@ import {
   Search,
   User,
   Settings,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 
 interface User {
@@ -108,9 +109,13 @@ export default function AdminBalanceManipulator() {
   });
 
   // Search for user balance
-  const searchUserMutation = useMutation({
+  const searchUserMutation = useMutation<UserBalance, Error, string>({
     mutationFn: async (userId: string) => {
-      return apiRequest(`/api/deposits/admin/user-balance/${userId}`);
+        const { data, error } = await api.get(`/api/deposits/admin/user-balance/${userId}`);
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
     },
     onSuccess: (data) => {
       setSelectedUser(data);
@@ -130,15 +135,13 @@ export default function AdminBalanceManipulator() {
   });
 
   // Balance manipulation mutation
-  const manipulateBalanceMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest('/api/deposits/admin/manipulate-balance', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+  const manipulateBalanceMutation = useMutation<any, Error, any>({
+    mutationFn: async (updatedData: any) => {
+        const { data, error } = await api.post('/api/deposits/admin/manipulate-balance', updatedData);
+        if (error) {
+            throw new Error(String(error))
+        }
+        return data;
     },
     onSuccess: (data) => {
       toast({
@@ -222,7 +225,7 @@ export default function AdminBalanceManipulator() {
   );
 
   // Balance adjustment mutation
-  const balanceAdjustmentMutation = useMutation({
+  const balanceAdjustmentMutation = useMutation<any, Error, any>({
     mutationFn: async (adjustmentData: any) => {
         const { data, error } = await adminApi.simulateBalance(adjustmentData);
         if (error) {
@@ -234,7 +237,6 @@ export default function AdminBalanceManipulator() {
       toast({
         title: "Balance Adjustment Successful",
         description: `User balance has been ${adjustmentType === 'add' ? 'increased' : adjustmentType === 'remove' ? 'decreased' : 'set'} successfully.`,
-        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-adjustments'] });
@@ -255,7 +257,7 @@ export default function AdminBalanceManipulator() {
   });
 
   // Bulk balance adjustment mutation
-  const bulkAdjustmentMutation = useMutation({
+  const bulkAdjustmentMutation = useMutation<any, Error, any>({
     mutationFn: async (bulkData: any) => {
       const promises = bulkData.userIds.map((userId: string) =>
         adminApi.simulateBalance({
@@ -272,7 +274,6 @@ export default function AdminBalanceManipulator() {
       toast({
         title: "Bulk Adjustment Successful",
         description: `${variables.userIds.length} user balances have been adjusted successfully.`,
-        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-adjustments'] });
@@ -550,7 +551,7 @@ export default function AdminBalanceManipulator() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {usersLoading ? ( // Using usersLoading as a proxy for initial data fetch for history
+              {adjustmentsLoading ? (
                 <div className="text-center py-8">Loading history...</div>
               ) : adjustments.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">

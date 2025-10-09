@@ -232,7 +232,9 @@ export default function App() {
                   <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
 
                   {/* Asset Details Route - Available to all users */}
-                  <Route path="/asset-details" component={AssetDetails} />
+                   <Route path="/asset-details/:symbol">
+                    {(params) => <AssetDetails symbol={params.symbol} />}
+                  </Route>
                   <Route path="/landing" component={Landing} />
 
                   {/* Admin Login - separate page accessible at /admin-login */}
