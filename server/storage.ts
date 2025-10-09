@@ -73,9 +73,11 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByEmailOrUsername(email: string, username: string): Promise<User | undefined>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(userId: string, updates: Partial<User>): Promise<void>;
+  updateUserFirebaseUid(userId: string, firebaseUid: string): Promise<void>;
   deleteUser(userId: string): Promise<void>;
 
   // Portfolio operations
@@ -319,6 +321,17 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(or(eq(users.email, emailOrUsername), eq(users.username, emailOrUsername)));
     return user;
+  }
+
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    const db = this.ensureDb();
+    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+    return user;
+  }
+
+  async updateUserFirebaseUid(userId: string, firebaseUid: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.update(users).set({ firebaseUid }).where(eq(users.id, userId));
   }
 
   async createUser(userData: UpsertUser): Promise<User> {

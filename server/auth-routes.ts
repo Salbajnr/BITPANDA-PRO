@@ -8,6 +8,51 @@ import { storage } from './storage';
 
 const router = Router();
 
+// Firebase sync route - create or get user based on Firebase authentication
+router.post('/firebase-sync', async (req, res) => {
+  try {
+    const { uid, email, displayName, photoURL } = z.object({
+      uid: z.string(),
+      email: z.string().email().nullable(),
+      displayName: z.string().nullable().optional(),
+      photoURL: z.string().nullable().optional(),
+    }).parse(req.body);
+
+    // Check if user exists by Firebase UID
+    let user = await storage.getUserByFirebaseUid(uid);
+
+    if (!user && email) {
+      // Check if user exists by email
+      user = await storage.getUserByEmail(email);
+      
+      if (user) {
+        // Update existing user with Firebase UID
+        await storage.updateUserFirebaseUid(user.id, uid);
+      } else {
+        // Create new user
+        const username = email.split('@')[0] + '_' + uid.substring(0, 8);
+        user = await storage.createUser({
+          username,
+          email: email || '',
+          password: '', // Firebase handles authentication
+          firebaseUid: uid,
+          displayName: displayName || username,
+          photoURL: photoURL || null,
+        });
+      }
+    }
+
+    if (!user) {
+      return res.status(400).json({ error: 'Failed to sync user' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Firebase sync error:', error);
+    res.status(500).json({ error: 'Failed to sync user with Firebase' });
+  }
+});
+
 // Helper function to generate OTP
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
