@@ -26,26 +26,19 @@ interface MessageModalProviderProps {
   children: ReactNode
 }
 
-export function MessageModalProvider({ children }: { children: React.ReactNode }) {
-  const { 
-    showSuccess, 
-    showError, 
-    showWarning, 
-    showInfo, 
-    showConfirmation,
-    MessageModalComponent 
-  } = useMessageModal();
+export function MessageModalProvider({ children }: MessageModalProviderProps) {
+  const modalFunctions = useMessageModal();
 
   return (
     <MessageModalContext.Provider value={{ 
-      showSuccess, 
-      showError,
-      showWarning,
-      showInfo,
-      showConfirmation
+      showSuccess: modalFunctions.showSuccess, 
+      showError: modalFunctions.showError,
+      showWarning: modalFunctions.showWarning,
+      showInfo: modalFunctions.showInfo,
+      showConfirmation: modalFunctions.showConfirmation
     }}>
       {children}
-      <MessageModalComponent />
+      {modalFunctions.modal}
     </MessageModalContext.Provider>
   )
 }
