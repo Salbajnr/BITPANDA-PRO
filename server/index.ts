@@ -70,11 +70,11 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // IMPORTANT: You should change this secret to a value from your environment variables
-app.use(cookieParser(process.env.COOKIE_SECRET || "some-super-secret-and-long-string"));
+app.use(cookieParser(process.env.COOKIE_SECRET || "my-secret-cookie-key-32-chars!"));
 
 // IMPORTANT: You should change this secret to a value from your environment variables
 const csrfProtection = csrf({
-    secret: process.env.CSRF_SECRET || "some-super-secret-and-long-string-that-is-at-least-32-characters-long",
+    secret: process.env.CSRF_SECRET || "12345678901234567890123456789012",
     cookieName: "_csrf",
     headerName: "X-CSRF-Token",
     cookieOptions: {
