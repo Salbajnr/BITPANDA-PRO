@@ -19,10 +19,16 @@ if (databaseUrl) {
   
   if (match) {
     const [, username, password, rest] = match;
-    if (password.includes('?') || password.includes('@') || password.includes('$') || password.includes('#') || password.includes('&')) {
+    // Only encode if password contains unencoded special characters
+    // Check if password is already URL-encoded by looking for % followed by hex digits
+    const isAlreadyEncoded = /%[0-9A-Fa-f]{2}/.test(password);
+    
+    if (!isAlreadyEncoded && (password.includes('?') || password.includes('@') || password.includes('$') || password.includes('#') || password.includes('&'))) {
       const encodedPassword = encodeURIComponent(password);
       databaseUrl = `postgresql://${username}:${encodedPassword}@${rest}`;
-      console.log('🔧 Fixed URL encoding for special characters in password');
+      console.log('🔧 URL-encoded special characters in password');
+    } else if (isAlreadyEncoded) {
+      console.log('✅ Password already URL-encoded, using as-is');
     }
   }
 }
