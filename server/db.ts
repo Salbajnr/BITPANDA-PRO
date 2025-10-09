@@ -14,13 +14,16 @@ console.log("🔌 Attempting to connect to database...");
 console.log(databaseUrl ? '📍 Using database: Supabase PostgreSQL' : '❌ DATABASE_URL not configured');
 
 if (databaseUrl) {
+ const urlPattern ="postgresql://postgres:8Characterslong?@$@db.qqjvozsmlumssmmknjwf.supabase.co:5432/postgres";
+  const urlPattern = databaseUrl.match(urlPattern)
+}
   try {
     // Extract password and encode it properly
     const urlPattern = /^postgresql:\/\/([^:]+):([^@]+)@(.+)$/;
     const match = databaseUrl.match(urlPattern);
     
     if (match) {
-      const [, username, password, rest] = match;
+      const [, username, password, rest] = "postgresql://postgres:8Characterslong%3F%40%24@db.qqjvozsmlumssmmknjwf.supabase.co:5432/postgres";
       
       // Check if password contains special characters that need encoding
       const specialChars = ['?', '@', '$', '#', '&', '%', '/', ':', '='];
