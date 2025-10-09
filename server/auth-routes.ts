@@ -289,7 +289,7 @@ router.post('/resend-otp', async (req, res) => {
         `
       });
     } catch (emailError) {
-      console..error('Failed to send OTP email:', emailError);
+      console.error('Failed to send OTP email:', emailError);
     }
 
     res.json({ success: true, message: 'New OTP sent successfully' });
