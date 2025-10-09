@@ -46,7 +46,7 @@ interface RegisterData {
 }
 
 export default function Auth() {
-  const [, navigate] = useLocation(); // Renamed from setLocation to navigate for clarity
+  const [, navigate] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [userLoginForm, setUserLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
 
@@ -60,9 +60,9 @@ export default function Auth() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, isLoading: authLoading } = useAuth(); // Renamed isLoading to authLoading for clarity
+  const { user, isLoading: authLoading } = useAuth();
 
-  // Define mutations BEFORE any conditional returns (Rules of Hooks)
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const userLoginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
       const res = await apiRequest("POST", "/api/user/auth/login", data);
@@ -74,7 +74,7 @@ export default function Auth() {
         title: "Login successful",
         description: `Welcome back, ${data.user.firstName}!`,
       });
-      navigate('/dashboard'); // Use navigate
+      navigate('/dashboard');
     },
     onError: (error: any) => {
       toast({
@@ -95,8 +95,7 @@ export default function Auth() {
         title: "Registration successful",
         description: "Please check your email to verify your account.",
       });
-      // Redirect to OTP verification page
-      navigate(`/verify-otp/registration/${encodeURIComponent(data.user.email)}`); // Use navigate
+      navigate(`/verify-otp/registration/${encodeURIComponent(data.user.email)}`);
     },
     onError: (error: any) => {
       toast({
@@ -107,10 +106,9 @@ export default function Auth() {
     },
   });
 
-  // Handle redirect in useEffect to avoid setState during render
+  // Handle redirect in useEffect
   useEffect(() => {
     if (!authLoading && user) {
-      // Add a small delay to prevent redirect issues
       const timer = setTimeout(() => {
         const redirectPath = user.role === 'admin' ? '/admin' : '/dashboard';
         navigate(redirectPath);
@@ -120,7 +118,7 @@ export default function Auth() {
     }
   }, [user, authLoading, navigate]);
 
-  // Show loading while checking auth
+  // NOW conditional returns are safe (all hooks called above)
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
@@ -129,7 +127,6 @@ export default function Auth() {
     );
   }
 
-  // If user is already authenticated, show a brief loading before redirect
   if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
