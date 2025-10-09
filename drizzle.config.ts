@@ -11,7 +11,7 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: "postgresql://postgres:8Characterslong?@$@db.qqjvozsmlumssmmknjwf.supabase.co:5432/postgres",
+    url: databaseUrl,
   },
   verbose: true,
   strict: true,
