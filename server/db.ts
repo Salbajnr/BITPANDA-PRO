@@ -3,8 +3,8 @@ import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import * as schema from "@shared/schema";
 
-// Use Replit's built-in PostgreSQL database
-const databaseUrl = process.env.DATABASE_URL;
+// Use Supabase PostgreSQL database
+const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:8Characterslong?@$@db.qqjvozsmlumssmmknjwf.supabase.co:5432/postgres';
 
 if (!databaseUrl) {
   console.error("⚠️  No database URL found. Please set DATABASE_URL.");
@@ -12,7 +12,7 @@ if (!databaseUrl) {
 }
 
 console.log("🔌 Attempting to connect to database...");
-console.log(databaseUrl ? '📍 Using database: Replit PostgreSQL' : '❌ DATABASE_URL not configured');
+console.log(databaseUrl ? '📍 Using database: Supabase PostgreSQL' : '❌ DATABASE_URL not configured');
 
 export const pool = databaseUrl
   ? postgres(databaseUrl, {
