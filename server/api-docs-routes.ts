@@ -3,6 +3,79 @@ import { Router } from 'express';
 
 const router = Router();
 
+// Detailed API documentation with examples
+router.get('/detailed', (req, res) => {
+  const detailedDocs = {
+    version: '1.0.0',
+    baseUrl: process.env.API_BASE_URL || 'http://localhost:5000',
+    authentication: {
+      type: 'Session-based',
+      description: 'Most endpoints require authentication via session cookies',
+      adminEndpoints: 'Require admin role in addition to authentication'
+    },
+    endpoints: [
+      {
+        path: '/api/user/auth/login',
+        method: 'POST',
+        description: 'User login',
+        authentication: false,
+        body: {
+          emailOrUsername: 'string (required)',
+          password: 'string (required)'
+        },
+        response: {
+          user: 'User object',
+          portfolio: 'Portfolio object'
+        }
+      },
+      {
+        path: '/api/crypto/price/:symbol',
+        method: 'GET',
+        description: 'Get real-time cryptocurrency price',
+        authentication: false,
+        parameters: {
+          symbol: 'Crypto symbol (e.g., BTC, ETH)'
+        },
+        response: {
+          symbol: 'string',
+          price: 'number',
+          change_24h: 'number',
+          volume_24h: 'number'
+        }
+      },
+      {
+        path: '/api/portfolio',
+        method: 'GET',
+        description: 'Get user portfolio with holdings',
+        authentication: true,
+        response: {
+          portfolio: 'Portfolio object',
+          holdings: 'Array of holdings',
+          analytics: 'Portfolio analytics'
+        }
+      },
+      {
+        path: '/ws',
+        method: 'WebSocket',
+        description: 'Real-time price updates via WebSocket',
+        authentication: false,
+        message: {
+          type: 'subscribe',
+          symbols: ['bitcoin', 'ethereum']
+        },
+        responseMessage: {
+          type: 'price_update',
+          symbol: 'string',
+          price: 'number',
+          timestamp: 'number'
+        }
+      }
+    ]
+  };
+  
+  res.json(detailedDocs);
+});
+
 // API documentation endpoint
 router.get('/endpoints', (req, res) => {
   const endpoints = [
@@ -70,16 +143,38 @@ router.get('/endpoints', (req, res) => {
     { method: 'GET', path: '/api/news/search', description: 'Search news' },
     { method: 'GET', path: '/api/news/categories', description: 'Get news categories' },
     
+    // User Settings & Profile
+    { method: 'GET', path: '/api/user/settings', description: 'Get user settings' },
+    { method: 'PATCH', path: '/api/auth/profile', description: 'Update user profile' },
+    { method: 'POST', path: '/api/auth/change-password', description: 'Change password' },
+    
+    // File Upload
+    { method: 'POST', path: '/api/upload', description: 'Generic file upload' },
+    { method: 'POST', path: '/api/deposits/upload-proof', description: 'Upload deposit proof' },
+    
     // Admin
     { method: 'GET', path: '/api/admin/users', description: 'Get all users (admin)' },
     { method: 'POST', path: '/api/admin/simulate-balance', description: 'Simulate balance (admin)' },
+    { method: 'GET', path: '/api/admin/adjustments/:userId?', description: 'Get balance adjustments (admin)' },
+    { method: 'GET', path: '/api/admin/logs', description: 'Get admin action logs (admin)' },
+    { method: 'POST', path: '/api/admin/news', description: 'Create news article (admin)' },
+    { method: 'DELETE', path: '/api/admin/news/:id', description: 'Delete news article (admin)' },
     { method: 'GET', path: '/api/admin/deposits', description: 'Get all deposits (admin)' },
     { method: 'POST', path: '/api/admin/deposits/:id/approve', description: 'Approve deposit (admin)' },
     { method: 'POST', path: '/api/admin/deposits/:id/reject', description: 'Reject deposit (admin)' },
+    { method: 'GET', path: '/api/admin/deposits/stats', description: 'Get deposit statistics (admin)' },
+    { method: 'GET', path: '/api/admin/deposits/pending', description: 'Get pending deposits (admin)' },
+    { method: 'POST', path: '/api/admin/deposits/:id/review', description: 'Review deposit (admin)' },
     
     // KYC
-    { method: 'GET', path: '/api/kyc', description: 'Get KYC status' },
+    { method: 'GET', path: '/api/kyc/status', description: 'Get KYC status' },
     { method: 'POST', path: '/api/kyc/submit', description: 'Submit KYC' },
+    { method: 'PATCH', path: '/api/kyc/update', description: 'Update KYC information' },
+    { method: 'GET', path: '/api/kyc/admin/verifications', description: 'Get all KYC verifications (admin)' },
+    { method: 'GET', path: '/api/kyc/admin/verifications/:id', description: 'Get KYC verification details (admin)' },
+    { method: 'POST', path: '/api/kyc/admin/verifications/:id/review', description: 'Review KYC verification (admin)' },
+    { method: 'POST', path: '/api/kyc/admin/verifications/bulk-review', description: 'Bulk review KYC verifications (admin)' },
+    { method: 'GET', path: '/api/kyc/admin/statistics', description: 'Get KYC statistics (admin)' },
     
     // Support
     { method: 'GET', path: '/api/support/chat/messages', description: 'Get chat messages' },
@@ -104,6 +199,10 @@ router.get('/endpoints', (req, res) => {
     // Lending
     { method: 'GET', path: '/api/lending/offers', description: 'Get lending offers' },
     { method: 'POST', path: '/api/lending/lend', description: 'Lend assets' },
+    
+    // WebSocket & Real-time
+    { method: 'WS', path: '/ws', description: 'WebSocket connection for real-time prices' },
+    { method: 'WS', path: '/ws/chat', description: 'WebSocket connection for live support chat' },
     
     // Health & Status
     { method: 'GET', path: '/health', description: 'Server health check' },
