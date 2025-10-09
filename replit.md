@@ -2,7 +2,16 @@
 
 This project is a cryptocurrency simulation platform named "BITPANDA PRO," designed to offer a realistic trading experience with full admin control over simulated balances. It supports two user roles—Admin and Normal User—each with distinct authentication and access controls. The platform aims to mimic a live crypto trading environment so accurately that users cannot differentiate between real and simulated operations, focusing on providing a comprehensive, simulated trading ecosystem.
 
-## Recent Changes (August 21, 2025)
+## Recent Changes (October 9, 2025)
+- **MIGRATED TO FIREBASE AND SUPABASE:**
+  - Replaced Neon PostgreSQL with Supabase for database hosting
+  - Integrated Firebase Authentication with Google Sign-In support
+  - Added Firebase UID field to users table for seamless auth sync
+  - Created automatic user provisioning system that syncs Firebase users with Supabase database
+  - Updated frontend Auth page with Google Sign-In buttons for both login and registration
+  - Backend now supports both traditional email/password and Firebase Google authentication
+
+## Previous Changes (August 21, 2025)
 - Successfully migrated from Replit Agent environment to standard Replit environment
 - Cleaned up redundant authentication files (simple-auth-new.ts, auth-storage.ts, auth-schema.ts)
 - Fixed CORS configuration to support credentials with specific origin instead of wildcard
@@ -21,22 +30,22 @@ Preferred communication style: Simple, everyday language.
 # System Architecture
 
 ## Frontend Architecture
-The frontend is a React.js single-page application built with TypeScript. It uses Vite for fast development and optimized production builds. UI components are developed with Radix UI and styled using Tailwind CSS, supporting dark/light mode. State management is handled by TanStack React Query for server state, and Wouter is used for client-side routing. Authentication integrates with Replit's OpenID Connect.
+The frontend is a React.js single-page application built with TypeScript. It uses Vite for fast development and optimized production builds. UI components are developed with Radix UI and styled using Tailwind CSS, supporting dark/light mode. State management is handled by TanStack React Query for server state, and Wouter is used for client-side routing. Authentication integrates with Firebase Authentication for Google Sign-In and traditional email/password login.
 
 ## Backend Architecture
-The backend is a REST API built with Node.js and Express.js. It uses Passport.js with an OpenID Connect strategy for Replit authentication and Express sessions with PostgreSQL storage for session management. Role-based access control is enforced via middleware, separating admin and user operations. Vite middleware is integrated for seamless full-stack development.
+The backend is a REST API built with Node.js and Express.js. It handles user authentication through a Firebase sync endpoint that automatically provisions users in the Supabase database. Express sessions with PostgreSQL storage manage session data. Role-based access control is enforced via middleware, separating admin and user operations. Vite middleware is integrated for seamless full-stack development.
 
 ## Data Storage Solutions
-The application utilizes PostgreSQL, hosted on Neon, for its database. Drizzle ORM is used for type-safe database operations, defining schemas for users, portfolios, holdings, transactions, balance adjustments, and news articles. Drizzle Kit manages schema migrations. A dedicated sessions table in PostgreSQL handles authentication state persistence.
+The application utilizes PostgreSQL hosted on Supabase for its database. Drizzle ORM is used for type-safe database operations, defining schemas for users (with Firebase UID support), portfolios, holdings, transactions, balance adjustments, and news articles. Drizzle Kit manages schema migrations. A dedicated sessions table in PostgreSQL handles authentication state persistence.
 
 ## Authentication and Authorization
-The system employs a dual-authentication approach with strict role separation. Primary authentication integrates Replit OpenID Connect with automatic user provisioning. User roles (admin/user) are stored in the database and enforced through middleware. Session security relies on HTTP-only cookies, and separate authentication flows ensure isolated access for admin and user routes. Request-level role validation prevents unauthorized access.
+The system supports multiple authentication methods: Firebase Google Sign-In and traditional email/password authentication. Firebase users are automatically synced with the Supabase database through a custom backend endpoint. User roles (admin/user) are stored in the database and enforced through middleware. Separate authentication flows ensure isolated access for admin and user routes. Request-level role validation prevents unauthorized access.
 
 # External Dependencies
 
 ## Third-Party Services
-- **Replit Authentication**: OpenID Connect for user authentication.
-- **Neon Database**: PostgreSQL hosting.
+- **Firebase Authentication**: Google Sign-In and email/password authentication.
+- **Supabase**: PostgreSQL database hosting with real-time capabilities.
 - **CoinGecko API**: Real-time cryptocurrency market data.
 - **News APIs**: External news feeds for crypto and financial news.
 
