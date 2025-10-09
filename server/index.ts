@@ -146,26 +146,8 @@ app.use((req, res, next) => {
       next();
     }, express.static(path.join(__dirname, '../uploads')));
 
-    // Register all API routes (note: more routes are registered in routes.ts via registerRoutes)
-    app.use('/api/crypto', cryptoRoutes);
-    app.use('/api/trading', tradingRoutes);
-    app.use('/api/admin', adminAuthRoutes);
-    app.use('/api/admin', adminRoutes);
-    app.use('/api/auth', authRoutes);
-    app.use('/api/alerts', alertRoutes);
-    app.use("/api/deposits", depositRoutes);
-    app.use("/api/withdrawals", withdrawalRoutes);
-    app.use("/api/metals", metalsRoutes);
-    app.use('/api/portfolio', portfolioRoutes);
-    app.use('/api/portfolio/analytics', portfolioAnalyticsRoutes);
-    app.use('/api/news', newsRoutes);
-    app.use('/api/research', marketResearchRoutes);
-    app.use('/api/kyc', kycRoutes);
-    app.use('/api/support/chat', chatRoutes);
-    app.use('/api/investment-plans', investmentPlansRoutes);
-    app.use('/api/savings-plans', savingsPlansRoutes);
-    app.use('/api/staking', stakingRoutes);
-    app.use('/api/lending', lendingRoutes);
+    // All API routes are registered in routes.ts via registerRoutes()
+    // Do not duplicate route registrations here
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route

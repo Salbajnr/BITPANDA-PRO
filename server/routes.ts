@@ -72,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Portfolio routes (enhanced with real-time pricing)
   app.use('/api/portfolio', portfolioRoutes);
-  app.use('/api/portfolio', portfolioAnalyticsRoutes);
+  app.use('/api/portfolio/analytics', portfolioAnalyticsRoutes);
 
   // Trading routes
   app.use('/api/trading', tradingRoutes);
@@ -109,6 +109,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Savings Plans routes
   const savingsPlansRoutes = (await import('./savings-plans-routes')).default;
   app.use('/api/savings-plans', savingsPlansRoutes);
+
+  // Proof upload routes (for deposit/withdrawal proof uploads)
+  const proofUploadRoutes = (await import('./proof-upload-routes')).default;
+  app.use('/api/proof-upload', proofUploadRoutes);
+
+  // API documentation routes
+  const apiDocsRoutes = (await import('./api-docs-routes')).default;
+  app.use('/api/docs', apiDocsRoutes);
 
   // ADMIN AUTHROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
