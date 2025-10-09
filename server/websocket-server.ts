@@ -14,7 +14,7 @@ class WebSocketManager {
   private connectionsByIp: Map<string, number> = new Map();
   // Rate limiting per IP - increased for real-time price updates
   private connectionLimits = new Map<string, number>();
-  private readonly MAX_CONNECTIONS_PER_IP = 10; // Increased limit for admin features
+  private readonly MAX_CONNECTIONS_PER_IP = 50; // Increased limit to handle reconnections
 
   initialize(httpServer: Server) {
     if (this.isInitialized) {
@@ -90,31 +90,54 @@ class WebSocketManager {
       });
 
       ws.on('close', () => {
-        console.log('Client disconnected from WebSocket');
+        console.log(`Client disconnected from WebSocket (IP: ${clientIp})`);
         this.handleUnsubscribe(clientId);
 
-        // Decrement connection count
+        // Decrement connection count with safety check
         const count = this.connectionsByIp.get(clientIp) || 0;
         if (count <= 1) {
           this.connectionsByIp.delete(clientIp);
+          console.log(`✓ All connections closed for IP: ${clientIp}`);
         } else {
           this.connectionsByIp.set(clientIp, count - 1);
+          console.log(`✓ Connection closed for IP: ${clientIp} (${count - 1} remaining)`);
         }
       });
 
       ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
+        console.error(`WebSocket error for IP ${clientIp}:`, error);
         this.handleUnsubscribe(clientId);
 
-        // Decrement connection count on error
+        // Decrement connection count on error with safety check
         const count = this.connectionsByIp.get(clientIp) || 0;
         if (count <= 1) {
           this.connectionsByIp.delete(clientIp);
+          console.log(`✓ Cleaned up connections on error for IP: ${clientIp}`);
         } else {
           this.connectionsByIp.set(clientIp, count - 1);
+          console.log(`✓ Error cleanup for IP: ${clientIp} (${count - 1} remaining)`);
+        }
+        
+        // Force close the connection
+        if (ws.readyState === ws.OPEN || ws.readyState === ws.CONNECTING) {
+          ws.close();
         }
       });
     });
+
+    // Periodic cleanup of stale connection tracking (every 5 minutes)
+    setInterval(() => {
+      const staleIps: string[] = [];
+      this.connectionsByIp.forEach((count, ip) => {
+        if (count <= 0) {
+          staleIps.push(ip);
+        }
+      });
+      staleIps.forEach(ip => this.connectionsByIp.delete(ip));
+      if (staleIps.length > 0) {
+        console.log(`🧹 Cleaned up ${staleIps.length} stale IP connection tracking entries`);
+      }
+    }, 5 * 60 * 1000);
 
     this.isInitialized = true;
     console.log('✅ WebSocket manager initialized successfully');
