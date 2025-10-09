@@ -56,8 +56,12 @@ export function useRealTimePrices({
     setConnectionError(null);
 
     try {
+      // Use proper WebSocket URL construction
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      const host = window.location.host;
+      const wsUrl = `${protocol}//${host}/ws`;
+      
+      console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
 
       wsRef.current = new WebSocket(wsUrl);
 

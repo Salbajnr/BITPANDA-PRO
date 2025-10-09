@@ -6,6 +6,20 @@ import * as schema from "@shared/schema";
 // Use Supabase PostgreSQL database
 // Password: 8Characterslong?@$
 // URL encoding: ? = %3F, @ = %40, $ = %24
+
+const DATABASE_URL = process.env.DATABASE_URL || '';
+
+if (!DATABASE_URL) {
+  console.error('❌ DATABASE_URL environment variable is not set');
+}
+
+// Connection with retry logic
+const connectionConfig = {
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
+  onnotice: () => {}, // Suppress notices
+};
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {

@@ -1,51 +1,29 @@
-
 "use client"
 
 import React, { createContext, useContext, ReactNode } from 'react'
-import { useMessageModal } from '@/components/ui/message-modal'
+import { MessageModal, useMessageModal } from '@/components/ui/message-modal'
 
 interface MessageModalContextType {
-  showSuccess: (title: string, message: string) => void
-  showError: (title: string, message: string) => void
-  showWarning: (title: string, message: string) => void
-  showInfo: (title: string, message: string) => void
-  showConfirmation: (title: string, message: string, onConfirm: () => void) => void
+  showMessage: (title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
-const MessageModalContext = createContext<MessageModalContextType | undefined>(undefined)
+const MessageModalContext = createContext<MessageModalContextType | undefined>(undefined);
 
-export const useMessageModalContext = () => {
-  const context = useContext(MessageModalContext)
-  if (!context) {
-    throw new Error('useMessageModalContext must be used within MessageModalProvider')
-  }
-  return context
-}
-
-interface MessageModalProviderProps {
-  children: ReactNode
-}
-
-export function MessageModalProvider({ children }: MessageModalProviderProps) {
-  const { 
-    showSuccess, 
-    showError, 
-    showWarning, 
-    showInfo, 
-    showConfirmation,
-    modal 
-  } = useMessageModal();
+export function MessageModalProvider({ children }: { children: ReactNode }) {
+  const { showMessage, messageState } = useMessageModal();
 
   return (
-    <MessageModalContext.Provider value={{ 
-      showSuccess, 
-      showError,
-      showWarning,
-      showInfo,
-      showConfirmation
-    }}>
+    <MessageModalContext.Provider value={{ showMessage }}>
       {children}
-      {modal}
+      <MessageModal {...messageState} />
     </MessageModalContext.Provider>
-  )
+  );
+}
+
+export function useGlobalMessageModal() {
+  const context = useContext(MessageModalContext);
+  if (!context) {
+    throw new Error('useGlobalMessageModal must be used within MessageModalProvider');
+  }
+  return context;
 }
