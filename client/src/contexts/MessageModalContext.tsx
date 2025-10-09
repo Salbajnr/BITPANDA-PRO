@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { createContext, useContext, ReactNode } from 'react'
@@ -27,26 +26,17 @@ interface MessageModalProviderProps {
   children: ReactNode
 }
 
-export function MessageModalProvider({ children }: MessageModalProviderProps) {
-  const {
-    showSuccess,
-    showError,
-    showWarning,
-    showInfo,
-    showConfirmation,
-    MessageModalComponent
-  } = useMessageModal()
-
-  const contextValue: MessageModalContextType = {
-    showSuccess,
-    showError,
-    showWarning,
-    showInfo,
-    showConfirmation
-  }
+export function MessageModalProvider({ children }: { children: React.ReactNode }) {
+  const modalState = useMessageModal();
 
   return (
-    <MessageModalContext.Provider value={contextValue}>
+    <MessageModalContext.Provider value={{ 
+      showSuccess: modalState.showSuccess, 
+      showError: modalState.showError,
+      showWarning: modalState.showWarning,
+      showInfo: modalState.showInfo,
+      showConfirmation: modalState.showConfirmation
+    }}>
       {children}
       <MessageModalComponent />
     </MessageModalContext.Provider>

@@ -34,8 +34,17 @@ export function useRealTimePrices({
   const maxReconnectAttempts = 5;
 
   const connect = useCallback(() => {
-    if (!enabled || wsRef.current?.readyState === WebSocket.OPEN) {
+    if (!enabled) {
       return;
+    }
+
+    // Close existing connection first
+    if (wsRef.current) {
+      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        return; // Already connected or connecting
+      }
+      wsRef.current.close();
+      wsRef.current = null;
     }
 
     if (reconnectTimeoutRef.current) {
@@ -157,7 +166,15 @@ export function useRealTimePrices({
     }
 
     if (wsRef.current) {
-      wsRef.current.close(1000, 'Manual disconnect');
+      // Remove event listeners to prevent reconnection
+      wsRef.current.onclose = null;
+      wsRef.current.onerror = null;
+      wsRef.current.onmessage = null;
+      wsRef.current.onopen = null;
+      
+      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        wsRef.current.close(1000, 'Manual disconnect');
+      }
       wsRef.current = null;
     }
 
@@ -193,9 +210,27 @@ export function useRealTimePrices({
     }
 
     return () => {
-      disconnect();
+      // Cleanup on unmount or dependency change
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.onerror = null;
+        wsRef.current.onmessage = null;
+        wsRef.current.onopen = null;
+        
+        if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+          wsRef.current.close(1000, 'Component cleanup');
+        }
+        wsRef.current = null;
+      }
+      
+      reconnectAttemptsRef.current = 0;
     };
-  }, [enabled, symbols.join(','), connect, disconnect]);
+  }, [enabled, symbols.join(','), connect]);
 
   // Helper functions
   const getPrice = useCallback((symbol: string): number => {

@@ -61,10 +61,11 @@ class WebSocketManager {
                       'unknown';
 
       // Increment connection count
-      this.connectionsByIp.set(clientIp, (this.connectionsByIp.get(clientIp) || 0) + 1);
+      const currentCount = (this.connectionsByIp.get(clientIp) || 0) + 1;
+      this.connectionsByIp.set(clientIp, currentCount);
 
       const clientId = Date.now().toString() + Math.random().toString(36);
-      console.log(`Client connected to WebSocket (IP: ${clientIp}, Total: ${this.connectionsByIp.get(clientIp)})`);
+      console.log(`✅ WebSocket connected - IP: ${clientIp}, Count: ${currentCount}/${this.MAX_CONNECTIONS_PER_IP}`);
 
       ws.send(JSON.stringify({
         type: 'connection',
