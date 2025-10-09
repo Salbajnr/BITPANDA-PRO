@@ -74,7 +74,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET || "cookie-secret-must-be-32-char
 
 // IMPORTANT: You should change this secret to a value from your environment variables
 const csrfProtection = csrf({
-    secret: process.env.CSRF_SECRET || "csrf-secret-key-must-be-32char",
+    secret: process.env.CSRF_SECRET || "csrf-secret-key-must-be-32chars",
     cookieName: "_csrf",
     headerName: "X-CSRF-Token",
     cookieOptions: {
