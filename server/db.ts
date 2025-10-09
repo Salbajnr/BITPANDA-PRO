@@ -14,22 +14,27 @@ console.log("🔌 Attempting to connect to database...");
 console.log(databaseUrl ? '📍 Using database: Supabase PostgreSQL' : '❌ DATABASE_URL not configured');
 
 if (databaseUrl) {
-  const passwordRegex = /postgresql:\/\/([^:]+):([^@]+)@(.+)/;
-  const match = databaseUrl.match(passwordRegex);
-  
-  if (match) {
-    const [, username, password, rest] = match;
-    // Only encode if password contains unencoded special characters
-    // Check if password is already URL-encoded by looking for % followed by hex digits
-    const isAlreadyEncoded = /%[0-9A-Fa-f]{2}/.test(password);
+  try {
+    // Extract password and encode it properly
+    const urlPattern = /^postgresql:\/\/([^:]+):([^@]+)@(.+)$/;
+    const match = databaseUrl.match(urlPattern);
     
-    if (!isAlreadyEncoded && (password.includes('?') || password.includes('@') || password.includes('$') || password.includes('#') || password.includes('&'))) {
-      const encodedPassword = encodeURIComponent(password);
-      databaseUrl = `postgresql://${username}:${encodedPassword}@${rest}`;
-      console.log('🔧 URL-encoded special characters in password');
-    } else if (isAlreadyEncoded) {
-      console.log('✅ Password already URL-encoded, using as-is');
+    if (match) {
+      const [, username, password, rest] = match;
+      
+      // Check if password contains special characters that need encoding
+      const specialChars = ['?', '@', '$', '#', '&', '%', '/', ':', '='];
+      const hasSpecialChars = specialChars.some(char => password.includes(char));
+      
+      if (hasSpecialChars) {
+        // Always encode the password to ensure proper URL format
+        const encodedPassword = encodeURIComponent(password);
+        databaseUrl = `postgresql://${username}:${encodedPassword}@${rest}`;
+        console.log('🔧 Encoded special characters in password');
+      }
     }
+  } catch (err) {
+    console.error('❌ Error processing database URL:', err);
   }
 }
 
