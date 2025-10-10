@@ -77,7 +77,8 @@ export default function Auth() {
         `Welcome back, ${data.user.firstName}! Redirecting to your dashboard...`,
         "success"
       );
-      setTimeout(() => navigate('/dashboard'), 1500);
+      // Immediate redirect to dashboard
+      navigate('/dashboard');
     },
     onError: (error: any) => {
       showMessage(
@@ -96,10 +97,12 @@ export default function Auth() {
     onSuccess: (data) => {
       showMessage(
         "Registration Successful",
-        "Your account has been created successfully! Please check your email to verify your account.",
+        "Your account has been created successfully! Redirecting to your dashboard...",
         "success"
       );
-      setTimeout(() => navigate(`/verify-otp/registration/${encodeURIComponent(data.user.email)}`), 1500);
+      // Direct redirect to dashboard after registration
+      queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+      navigate('/dashboard');
     },
     onError: (error: any) => {
       showMessage(
@@ -184,8 +187,16 @@ export default function Auth() {
   const handleGoogleAuth = async () => {
     try {
       // Firebase redirect sign-in
-      await signInWithGoogle();
-      // User will be redirected to Google sign-in page, then back to app
+      const result = await signInWithGoogle();
+      if (result) {
+        showMessage(
+          "Login Successful",
+          "Welcome! Redirecting to your dashboard...",
+          "success"
+        );
+        queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       showMessage(
         "Google Sign-In Failed",

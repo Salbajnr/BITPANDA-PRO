@@ -6,7 +6,7 @@ export function useAuth() {
   const { user: firebaseUser, loading: firebaseLoading } = useFirebaseAuth();
   
   // Sync Firebase user with backend
-  const { data: backendUser, isLoading: backendLoading } = useQuery({
+  const { data: backendUser, isLoading: backendLoading, error } = useQuery({
     queryKey: ["auth-user", firebaseUser?.uid],
     queryFn: async () => {
       if (!firebaseUser) return null;
@@ -26,20 +26,20 @@ export function useAuth() {
       }
     },
     enabled: !!firebaseUser,
-    retry: 1,
+    retry: 2,
     retryDelay: 1000,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  const isLoading = firebaseLoading || (firebaseUser && backendLoading);
+  const isLoading = firebaseLoading || (!!firebaseUser && backendLoading);
 
   return {
     user: backendUser || null,
     firebaseUser,
     isLoading,
     isAuthenticated: !!firebaseUser && !!backendUser,
-    error: null,
+    error: error || null,
   };
 }

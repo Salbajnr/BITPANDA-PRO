@@ -31,8 +31,14 @@ import {
   ShieldCheckIcon,
   ArrowUpIcon,
 } from "lucide-react";
-import { Link, useLocation, useRoute } from "wouter";
+import { Link, useLocation, useRoute, useLocation as useNavigate } from "wouter";
 import { Redirect } from "wouter";
+
+// Get navigate function
+function useNavigation() {
+  const [, setLocation] = useLocation();
+  return setLocation;
+}
 
 interface PortfolioData {
   portfolio: {
@@ -103,6 +109,7 @@ function BottomNavigation() {
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
+  const navigate = useNavigation();
   const [activeTab, setActiveTab] = useState<"winners" | "losers">("winners");
   const [showBalance, setShowBalance] = useState(true);
   const [isHidden, setIsHidden] = useState(false);
@@ -121,11 +128,11 @@ export default function Dashboard() {
         variant: "destructive",
       });
       const timer = setTimeout(() => {
-        window.location.href = "/auth";
+        navigate('/auth');
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [user, authLoading, toast]);
+  }, [user, authLoading, toast, navigate]);
 
   if (authLoading || portfolioLoading) {
     return (
