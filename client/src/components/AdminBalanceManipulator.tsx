@@ -11,11 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-<<<<<<< Updated upstream
-import { apiRequest } from '@/lib/api';
-=======
 import { adminApi, apiRequest } from '@/lib/api';
->>>>>>> Stashed changes
 import { 
   DollarSign, 
   Plus, 
@@ -30,7 +26,6 @@ import {
   User as UserIcon,
   Settings,
   RefreshCw,
-  TrendingUp,
   TrendingDown
 } from 'lucide-react';
 
@@ -88,11 +83,6 @@ export default function AdminBalanceManipulator() {
   const [selectedUser, setSelectedUser] = useState<UserBalance | null>(null);
 
   // Fetch users with portfolios
-<<<<<<< Updated upstream
-  const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['/api/admin/users'],
-    queryFn: () => apiRequest('/api/admin/users'),
-=======
   const { data: users = [], isLoading: usersLoading } = useQuery<User[], Error>({
     queryKey: ['admin-users'],
     queryFn: async () => {
@@ -102,16 +92,10 @@ export default function AdminBalanceManipulator() {
         }
         return data;
     },
->>>>>>> Stashed changes
     retry: 1,
   });
 
   // Fetch balance adjustments history
-<<<<<<< Updated upstream
-  const { data: adjustments = [], isLoading: adjustmentsLoading } = useQuery({
-    queryKey: ['/api/admin/balance-adjustments'],
-    queryFn: () => apiRequest('/api/admin/balance-adjustments'),
-=======
   const { data: adjustments = [], isLoading: adjustmentsLoading } = useQuery<BalanceAdjustment[], Error>({
     queryKey: ['admin-adjustments'],
     queryFn: async () => {
@@ -121,7 +105,6 @@ export default function AdminBalanceManipulator() {
         }
         return data;
     },
->>>>>>> Stashed changes
     retry: 1,
   });
 
@@ -251,7 +234,6 @@ export default function AdminBalanceManipulator() {
       toast({
         title: "Balance Adjustment Successful",
         description: `User balance has been ${adjustmentType === 'add' ? 'increased' : adjustmentType === 'remove' ? 'decreased' : 'set'} successfully.`,
-        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/balance-adjustments'] });
@@ -292,7 +274,6 @@ export default function AdminBalanceManipulator() {
       toast({
         title: "Bulk Adjustment Successful",
         description: `${variables.userIds.length} user balances have been adjusted successfully.`,
-        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/balance-adjustments'] });

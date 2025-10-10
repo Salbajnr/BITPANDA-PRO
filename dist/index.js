@@ -1,11 +1,5 @@
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -67,6 +61,7 @@ __export(schema_exports, {
   portfolios: () => portfolios,
   portfoliosRelations: () => portfoliosRelations,
   priceAlerts: () => priceAlerts,
+  priceHistory: () => priceHistory,
   savingsPlans: () => savingsPlans,
   selectNotificationSchema: () => selectNotificationSchema,
   sessions: () => sessions,
@@ -101,16 +96,17 @@ import {
   timestamp,
   varchar,
   numeric,
-  integer
+  integer,
+  serial,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { nanoid } from "nanoid";
-var generateUniqueId, sessions, userRoleEnum, assetTypeEnum, transactionTypeEnum, depositStatusEnum, paymentMethodEnum, users, portfolios, holdings, transactions, deposits, metalsPricing, platformSettings, userSettings, balanceAdjustments, sharedWalletAddresses, newsArticles, passwordResetTokens, otpTokens, kycStatusEnum, kycVerifications, ticketStatusEnum, ticketPriorityEnum, supportTickets, supportMessages, withdrawalStatusEnum, withdrawalMethodEnum, withdrawals, withdrawalLimits, liveChatSessions, liveChatMessages, userPreferences, priceAlerts, investmentPlans, savingsPlans, stakingPositions, lendingPositions, loans, auditLogs, notifications, insertNotificationSchema, selectNotificationSchema, usersRelations, portfoliosRelations, holdingsRelations, transactionsRelations, balanceAdjustmentsRelations, insertUserSchema, insertPortfolioSchema, insertHoldingSchema, insertTransactionSchema, insertDepositSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema, insertPasswordResetTokenSchema, insertOtpTokenSchema, insertKycVerificationSchema, insertSupportTicketSchema, insertSupportMessageSchema, insertLiveChatSessionSchema, insertLiveChatMessageSchema, insertUserPreferencesSchema, insertWithdrawalSchema, insertWithdrawalLimitSchema, insertSharedWalletAddressSchema, insertInvestmentPlanSchema, insertSavingsPlanSchema, insertStakingPositionSchema, insertLendingPositionSchema, insertLoanSchema, insertAuditLogSchema;
+var sessions, userRoleEnum, assetTypeEnum, transactionTypeEnum, depositStatusEnum, paymentMethodEnum, users, portfolios, holdings, transactions, deposits, metalsPricing, platformSettings, userSettings, balanceAdjustments, sharedWalletAddresses, newsArticles, passwordResetTokens, otpTokens, kycStatusEnum, kycVerifications, ticketStatusEnum, ticketPriorityEnum, supportTickets, supportMessages, withdrawalStatusEnum, withdrawalMethodEnum, withdrawals, withdrawalLimits, liveChatSessions, liveChatMessages, userPreferences, priceAlerts, investmentPlans, savingsPlans, stakingPositions, lendingPositions, loans, auditLogs, notifications, priceHistory, insertNotificationSchema, selectNotificationSchema, usersRelations, portfoliosRelations, holdingsRelations, transactionsRelations, balanceAdjustmentsRelations, insertUserSchema, insertPortfolioSchema, insertHoldingSchema, insertTransactionSchema, insertDepositSchema, insertBalanceAdjustmentSchema, insertNewsArticleSchema, insertPasswordResetTokenSchema, insertOtpTokenSchema, insertKycVerificationSchema, insertSupportTicketSchema, insertSupportMessageSchema, insertLiveChatSessionSchema, insertLiveChatMessageSchema, insertUserPreferencesSchema, insertWithdrawalSchema, insertWithdrawalLimitSchema, insertSharedWalletAddressSchema, insertInvestmentPlanSchema, insertSavingsPlanSchema, insertStakingPositionSchema, insertLendingPositionSchema, insertLoanSchema, insertAuditLogSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
-    generateUniqueId = () => nanoid();
     sessions = pgTable(
       "sessions",
       {
@@ -130,9 +126,12 @@ var init_schema = __esm({
       username: varchar("username").unique().notNull(),
       email: varchar("email").unique().notNull(),
       password: varchar("password").notNull(),
-      firstName: varchar("first_name").notNull(),
-      lastName: varchar("last_name").notNull(),
+      firstName: varchar("first_name").default("").notNull(),
+      lastName: varchar("last_name").default("").notNull(),
       profileImageUrl: varchar("profile_image_url"),
+      firebaseUid: varchar("firebase_uid").unique(),
+      displayName: varchar("display_name"),
+      photoURL: varchar("photo_url"),
       role: userRoleEnum("role").default("user").notNull(),
       isActive: boolean("is_active").default(true).notNull(),
       walletBalance: decimal("wallet_balance", { precision: 20, scale: 8 }).notNull().default("0"),
@@ -509,17 +508,22 @@ var init_schema = __esm({
       timestamp: timestamp("timestamp").notNull().defaultNow()
     });
     notifications = pgTable("notifications", {
-      id: text("id").primaryKey().default(generateUniqueId()),
-      userId: text("user_id").notNull().references(() => users.id),
-      type: text("type").notNull(),
-      // 'price_alert', 'trade_complete', 'system', etc.
-      title: text("title").notNull(),
+      id: serial("id").primaryKey(),
+      userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+      type: varchar("type", { length: 50 }).notNull(),
+      title: varchar("title", { length: 255 }).notNull(),
       message: text("message").notNull(),
-      data: text("data"),
-      // JSON string for additional data
-      isRead: boolean("is_read").default(false),
+      read: boolean("read").default(false),
       createdAt: timestamp("created_at").defaultNow()
     });
+    priceHistory = pgTable("price_history", {
+      id: serial("id").primaryKey(),
+      symbol: varchar("symbol", { length: 20 }).notNull(),
+      price: numeric("price", { precision: 20, scale: 8 }).notNull(),
+      timestamp: timestamp("timestamp").defaultNow().notNull()
+    }, (table) => ({
+      symbolTimestampIdx: uniqueIndex("symbol_timestamp_idx").on(table.symbol, table.timestamp)
+    }));
     insertNotificationSchema = createInsertSchema(notifications);
     selectNotificationSchema = createSelectSchema(notifications);
     usersRelations = relations(users, ({ one, many }) => ({
@@ -687,32 +691,48 @@ var init_db = __esm({
     init_schema();
     databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) {
-      console.error("\u26A0\uFE0F  No database URL found. Please set DATABASE_URL.");
+      console.error("\u26A0\uFE0F  No database URL found. Please set DATABASE_URL in Secrets.");
       console.error("\u{1F527} The app will continue but database operations will fail until a database URL is set.");
+    } else {
+      console.log("\u{1F50C} Attempting to connect to database...");
+      console.log("\u{1F4CD} Using database: Supabase PostgreSQL");
+      try {
+        const urlPattern = /^postgresql:\/\/([^:]+):([^@]+)@(.+)$/;
+        const match = databaseUrl.match(urlPattern);
+        if (match) {
+          const [, username, password, rest] = match;
+          const needsEncoding = /[?@$#&%/:=]/.test(password) && !/%.{2}/.test(password);
+          if (needsEncoding) {
+            const encodedPassword = encodeURIComponent(password);
+            databaseUrl = `postgresql://${username}:${encodedPassword}@${rest}`;
+            console.log("\u{1F527} Encoded special characters in password");
+          }
+        }
+      } catch (err) {
+        console.error("\u274C Error processing database URL:", err);
+      }
     }
-    console.log("\u{1F50C} Attempting to connect to database...");
-    console.log(databaseUrl ? "\u{1F4CD} Using database: Replit PostgreSQL" : "\u274C DATABASE_URL not configured");
     pool = databaseUrl ? postgres(databaseUrl, {
-      max: 20,
-      idle_timeout: 30,
-      connect_timeout: 2
+      max: 10,
+      idle_timeout: 20,
+      connect_timeout: 10,
+      max_lifetime: 60 * 30
     }) : null;
-    db = drizzle(pool, { schema: schema_exports });
+    db = pool ? drizzle(pool, { schema: schema_exports }) : drizzle({}, { schema: schema_exports });
     if (pool) {
       const testConnection = async (retries = 3) => {
         for (let i = 0; i < retries; i++) {
           try {
             await db.execute(sql2`SELECT 1`);
             console.log("\u2705 Database connected successfully");
-            console.log("\u2705 Database query test successful");
             return;
           } catch (err) {
             console.error(`\u274C Database connection attempt ${i + 1} failed:`, err.message);
             if (i === retries - 1) {
-              console.error("\u{1F527} Please check your DATABASE_URL and network connection");
+              console.error("\u{1F527} Please check your DATABASE_URL in Secrets");
               console.error("\u26A0\uFE0F  Database operations will be limited until connection is restored");
             } else {
-              console.log(`\u{1F504} Retrying connection in 2 seconds...`);
+              console.log(`\u{1F504} Retrying in 2 seconds...`);
               await new Promise((resolve) => setTimeout(resolve, 2e3));
             }
           }
@@ -720,7 +740,7 @@ var init_db = __esm({
       };
       testConnection();
     } else {
-      console.warn("\u26A0\uFE0F Running without database connection - some features will be limited");
+      console.warn("\u26A0\uFE0F Running without database - some features will be limited");
     }
   }
 });
@@ -853,6 +873,15 @@ var init_storage = __esm({
         }
         const [user] = await db2.select().from(users).where(or(eq(users.email, emailOrUsername), eq(users.username, emailOrUsername)));
         return user;
+      }
+      async getUserByFirebaseUid(firebaseUid) {
+        const db2 = this.ensureDb();
+        const [user] = await db2.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+        return user;
+      }
+      async updateUserFirebaseUid(userId, firebaseUid) {
+        const db2 = this.ensureDb();
+        await db2.update(users).set({ firebaseUid }).where(eq(users.id, userId));
       }
       async createUser(userData) {
         const db2 = this.ensureDb();
@@ -1321,24 +1350,17 @@ var init_storage = __esm({
       }
       async getActivePriceAlerts() {
         try {
-          const alerts = await this.db.select({
-            id: priceAlerts.id,
-            userId: priceAlerts.userId,
-            symbol: priceAlerts.symbol,
-            name: priceAlerts.name,
-            targetPrice: priceAlerts.targetPrice,
-            condition: priceAlerts.condition,
-            isActive: priceAlerts.isActive,
-            isTriggered: priceAlerts.isTriggered,
-            createdAt: priceAlerts.createdAt,
-            updatedAt: priceAlerts.updatedAt
-          }).from(priceAlerts).where(and(
+          const db2 = this.ensureDb();
+          const alerts = await db2.select().from(priceAlerts).where(and(
             eq(priceAlerts.isActive, true),
             eq(priceAlerts.isTriggered, false)
           ));
           return alerts;
         } catch (error) {
           console.error("Error getting active price alerts:", error);
+          if (error?.code === "42P01") {
+            return [];
+          }
           return [];
         }
       }
@@ -3186,13 +3208,6 @@ var init_storage = __esm({
         const [updatedTransaction] = await db2.update(transactions).set({ ...updates, updatedAt: /* @__PURE__ */ new Date() }).where(eq(transactions.id, transactionId)).returning();
         return updatedTransaction;
       }
-      // Existing getAuditLogs method from the original code
-      async getAuditLogs(filters = {}) {
-        return {
-          logs: [],
-          pagination: { page: 1, limit: 50, total: 0, pages: 0 }
-        };
-      }
     };
     storage = new DatabaseStorage();
   }
@@ -3471,34 +3486,6 @@ var init_crypto_service = __esm({
           }
         }
         return results;
-      }
-      async getMarketData() {
-        const cacheKey = "market_data";
-        const cached = this.cache.get(cacheKey);
-        if (cached && this.isValidCacheEntry(cached)) {
-          return cached.data;
-        }
-        try {
-          const response = await this.rateLimitedFetch(
-            `${this.baseUrl}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d`
-          );
-          if (response.status === 429) {
-            console.warn("\u26A0\uFE0F Rate limited fetching market data, using fallback");
-            return this.getFallbackData(100);
-          }
-          if (!response.ok) {
-            throw new Error(`API responded with ${response.status}`);
-          }
-          const data = await response.json();
-          if (data && Array.isArray(data)) {
-            this.cache.set(cacheKey, { data, timestamp: Date.now() });
-            return data;
-          }
-          throw new Error("Invalid data received from API");
-        } catch (error) {
-          console.error("\u274C Error fetching market data:", error);
-          return this.getFallbackData(100);
-        }
       }
       // Get price history for charting
       async getPriceHistory(symbol, period = "24h") {
@@ -5905,20 +5892,618 @@ var init_savings_plans_routes = __esm({
   }
 });
 
+// server/deposit-service.ts
+import { eq as eq2, desc as desc2 } from "drizzle-orm";
+import multer2 from "multer";
+import path2 from "path";
+var storage2, uploadProof, DepositService, depositService;
+var init_deposit_service = __esm({
+  "server/deposit-service.ts"() {
+    "use strict";
+    init_db();
+    init_schema();
+    storage2 = multer2.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, "./uploads/proofs");
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, `proof-${uniqueSuffix}${path2.extname(file.originalname)}`);
+      }
+    });
+    uploadProof = multer2({
+      storage: storage2,
+      limits: {
+        fileSize: 5 * 1024 * 1024
+        // 5MB limit
+      },
+      fileFilter: (req, file, cb) => {
+        const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+        if (allowedTypes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new Error("Only JPEG and PNG images are allowed"));
+        }
+      }
+    });
+    DepositService = class {
+      async createDeposit(depositData) {
+        try {
+          console.log("Creating deposit:", depositData);
+          const [newDeposit] = await db.insert(deposits).values({
+            userId: depositData.userId,
+            amount: depositData.amount.toString(),
+            currency: depositData.currency,
+            assetType: depositData.assetType,
+            paymentMethod: depositData.paymentMethod,
+            proofImageUrl: depositData.proofImageUrl,
+            status: "pending"
+          }).returning();
+          console.log("Deposit created:", newDeposit);
+          return newDeposit;
+        } catch (error) {
+          console.error("Error creating deposit:", error);
+          throw new Error("Failed to create deposit request");
+        }
+      }
+      async getUserDeposits(userId) {
+        try {
+          return await db.select().from(deposits).where(eq2(deposits.userId, userId)).orderBy(desc2(deposits.createdAt));
+        } catch (error) {
+          console.error("Error fetching user deposits:", error);
+          throw new Error("Failed to fetch deposits");
+        }
+      }
+      async getPendingDeposits() {
+        try {
+          return await db.select({
+            id: deposits.id,
+            userId: deposits.userId,
+            amount: deposits.amount,
+            currency: deposits.currency,
+            assetType: deposits.assetType,
+            paymentMethod: deposits.paymentMethod,
+            proofImageUrl: deposits.proofImageUrl,
+            status: deposits.status,
+            createdAt: deposits.createdAt,
+            username: users.username,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName
+          }).from(deposits).leftJoin(users, eq2(deposits.userId, users.id)).where(eq2(deposits.status, "pending")).orderBy(desc2(deposits.createdAt));
+        } catch (error) {
+          console.error("Error fetching pending deposits:", error);
+          throw new Error("Failed to fetch pending deposits");
+        }
+      }
+      async approveDeposit(approval) {
+        try {
+          console.log("Processing deposit approval:", approval);
+          const [deposit] = await db.select().from(deposits).where(eq2(deposits.id, approval.depositId));
+          if (!deposit) {
+            throw new Error("Deposit not found");
+          }
+          if (deposit.status !== "pending") {
+            throw new Error("Deposit is not in pending status");
+          }
+          const [updatedDeposit] = await db.update(deposits).set({
+            status: approval.approved ? "approved" : "rejected",
+            approvedById: approval.adminId,
+            approvedAt: /* @__PURE__ */ new Date(),
+            adminNotes: approval.adminNotes,
+            rejectionReason: approval.rejectionReason
+          }).where(eq2(deposits.id, approval.depositId)).returning();
+          if (approval.approved) {
+            await this.addFundsToPortfolio(deposit.userId, parseFloat(deposit.amount));
+          }
+          console.log("Deposit updated:", updatedDeposit);
+          return updatedDeposit;
+        } catch (error) {
+          console.error("Error approving deposit:", error);
+          throw error;
+        }
+      }
+      async addFundsToPortfolio(userId, amount) {
+        try {
+          const [portfolio] = await db.select().from(portfolios).where(eq2(portfolios.userId, userId));
+          if (!portfolio) {
+            await db.insert(portfolios).values({
+              userId,
+              totalValue: amount.toString(),
+              availableCash: amount.toString()
+            });
+          } else {
+            const newAvailableCash = parseFloat(portfolio.availableCash) + amount;
+            const newTotalValue = parseFloat(portfolio.totalValue) + amount;
+            await db.update(portfolios).set({
+              availableCash: newAvailableCash.toString(),
+              totalValue: newTotalValue.toString(),
+              updatedAt: /* @__PURE__ */ new Date()
+            }).where(eq2(portfolios.id, portfolio.id));
+          }
+          console.log(`Added $${amount} to user ${userId} portfolio`);
+        } catch (error) {
+          console.error("Error adding funds to portfolio:", error);
+          throw new Error("Failed to add funds to portfolio");
+        }
+      }
+      async getDepositById(id) {
+        try {
+          const [deposit] = await db.select({
+            id: deposits.id,
+            userId: deposits.userId,
+            amount: deposits.amount,
+            currency: deposits.currency,
+            assetType: deposits.assetType,
+            paymentMethod: deposits.paymentMethod,
+            proofImageUrl: deposits.proofImageUrl,
+            status: deposits.status,
+            rejectionReason: deposits.rejectionReason,
+            adminNotes: deposits.adminNotes,
+            approvedAt: deposits.approvedAt,
+            createdAt: deposits.createdAt,
+            username: users.username,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            approvedByUser: users.username
+            // This will be the admin who approved
+          }).from(deposits).leftJoin(users, eq2(deposits.userId, users.id)).where(eq2(deposits.id, id));
+          return deposit;
+        } catch (error) {
+          console.error("Error fetching deposit by ID:", error);
+          throw new Error("Failed to fetch deposit");
+        }
+      }
+      async getAllDeposits(limit = 50, offset = 0) {
+        try {
+          return await db.select({
+            id: deposits.id,
+            userId: deposits.userId,
+            amount: deposits.amount,
+            currency: deposits.currency,
+            assetType: deposits.assetType,
+            paymentMethod: deposits.paymentMethod,
+            status: deposits.status,
+            createdAt: deposits.createdAt,
+            approvedAt: deposits.approvedAt,
+            username: users.username,
+            email: users.email
+          }).from(deposits).leftJoin(users, eq2(deposits.userId, users.id)).orderBy(desc2(deposits.createdAt)).limit(limit).offset(offset);
+        } catch (error) {
+          console.error("Error fetching all deposits:", error);
+          throw new Error("Failed to fetch deposits");
+        }
+      }
+      async getDepositStats() {
+        try {
+          const allDeposits = await db.select().from(deposits);
+          const totalDeposits = allDeposits.length;
+          const pendingDeposits = allDeposits.filter((d) => d.status === "pending").length;
+          const approvedDeposits = allDeposits.filter((d) => d.status === "approved").length;
+          const rejectedDeposits = allDeposits.filter((d) => d.status === "rejected").length;
+          const totalAmount = allDeposits.filter((d) => d.status === "approved").reduce((sum2, d) => sum2 + parseFloat(d.amount), 0);
+          return {
+            totalDeposits,
+            pendingDeposits,
+            approvedDeposits,
+            rejectedDeposits,
+            totalAmount
+          };
+        } catch (error) {
+          console.error("Error fetching deposit stats:", error);
+          throw new Error("Failed to fetch deposit statistics");
+        }
+      }
+    };
+    depositService = new DepositService();
+  }
+});
+
+// server/proof-upload-routes.ts
+var proof_upload_routes_exports = {};
+__export(proof_upload_routes_exports, {
+  registerProofUploadRoutes: () => registerProofUploadRoutes
+});
+import path3 from "path";
+import fs2 from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+function registerProofUploadRoutes(app2) {
+  console.log("\u{1F4CE} Registering proof upload routes");
+  app2.use("/uploads/proofs", (req, res, next) => {
+    const filePath = path3.join(__dirname, "..", "uploads", "proofs", req.path);
+    if (!fs2.existsSync(filePath)) {
+      return res.status(404).json({ error: "File not found" });
+    }
+    res.sendFile(filePath);
+  });
+  const uploadsDir2 = path3.join(__dirname, "..", "uploads", "proofs");
+  if (!fs2.existsSync(uploadsDir2)) {
+    fs2.mkdirSync(uploadsDir2, { recursive: true });
+    console.log("\u{1F4C1} Created uploads directory:", uploadsDir2);
+  }
+  app2.post("/api/deposits/upload-proof", requireAuth, uploadProof.single("proof"), async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      const proofImageUrl = `/uploads/proofs/${req.file.filename}`;
+      res.json({
+        success: true,
+        proofImageUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error("Error uploading proof:", error);
+      res.status(500).json({ error: "Failed to upload proof of payment" });
+    }
+  });
+  app2.post("/api/deposits/create", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      const { amount, currency, assetType, paymentMethod, proofImageUrl } = req.body;
+      if (!amount || !currency || !assetType || !paymentMethod) {
+        return res.status(400).json({
+          error: "Missing required fields: amount, currency, assetType, paymentMethod"
+        });
+      }
+      const depositRequest = {
+        userId,
+        amount: parseFloat(amount),
+        currency,
+        assetType,
+        paymentMethod,
+        proofImageUrl
+      };
+      const deposit = await depositService.createDeposit(depositRequest);
+      res.json({
+        success: true,
+        deposit
+      });
+    } catch (error) {
+      console.error("Error creating deposit:", error);
+      res.status(500).json({ error: "Failed to create deposit request" });
+    }
+  });
+  app2.get("/api/deposits/my-deposits", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      const deposits2 = await depositService.getUserDeposits(userId);
+      res.json(deposits2);
+    } catch (error) {
+      console.error("Error fetching user deposits:", error);
+      res.status(500).json({ error: "Failed to fetch deposits" });
+    }
+  });
+  app2.get("/api/admin/deposits/pending", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user || user.role !== "admin") {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      const deposits2 = await depositService.getPendingDeposits();
+      res.json(deposits2);
+    } catch (error) {
+      console.error("Error fetching pending deposits:", error);
+      res.status(500).json({ error: "Failed to fetch pending deposits" });
+    }
+  });
+  app2.post("/api/admin/deposits/:id/review", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user || user.role !== "admin") {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      const { id } = req.params;
+      const { approved, adminNotes, rejectionReason } = req.body;
+      if (typeof approved !== "boolean") {
+        return res.status(400).json({ error: "Approved field must be true or false" });
+      }
+      const approval = {
+        depositId: id,
+        adminId: user.id,
+        approved,
+        adminNotes,
+        rejectionReason: approved ? void 0 : rejectionReason
+      };
+      const updatedDeposit = await depositService.approveDeposit(approval);
+      res.json({
+        success: true,
+        deposit: updatedDeposit
+      });
+    } catch (error) {
+      console.error("Error reviewing deposit:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to review deposit"
+      });
+    }
+  });
+  app2.get("/api/admin/deposits", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user || user.role !== "admin") {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      const limit = parseInt(req.query.limit) || 50;
+      const offset = parseInt(req.query.offset) || 0;
+      const deposits2 = await depositService.getAllDeposits(limit, offset);
+      res.json(deposits2);
+    } catch (error) {
+      console.error("Error fetching all deposits:", error);
+      res.status(500).json({ error: "Failed to fetch deposits" });
+    }
+  });
+  app2.get("/api/admin/deposits/stats", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user || user.role !== "admin") {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      const stats = await depositService.getDepositStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching deposit stats:", error);
+      res.status(500).json({ error: "Failed to fetch deposit statistics" });
+    }
+  });
+  app2.get("/api/admin/deposits/:id", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user || user.role !== "admin") {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      const { id } = req.params;
+      const deposit = await depositService.getDepositById(id);
+      if (!deposit) {
+        return res.status(404).json({ error: "Deposit not found" });
+      }
+      res.json(deposit);
+    } catch (error) {
+      console.error("Error fetching deposit:", error);
+      res.status(500).json({ error: "Failed to fetch deposit" });
+    }
+  });
+  console.log("\u2705 Proof upload routes registered successfully");
+}
+var __filename, __dirname;
+var init_proof_upload_routes = __esm({
+  "server/proof-upload-routes.ts"() {
+    "use strict";
+    init_deposit_service();
+    init_simple_auth();
+    __filename = fileURLToPath(import.meta.url);
+    __dirname = dirname(__filename);
+  }
+});
+
+// server/api-docs-routes.ts
+var api_docs_routes_exports = {};
+__export(api_docs_routes_exports, {
+  default: () => api_docs_routes_default
+});
+import { Router as Router16 } from "express";
+var router16, api_docs_routes_default;
+var init_api_docs_routes = __esm({
+  "server/api-docs-routes.ts"() {
+    "use strict";
+    router16 = Router16();
+    router16.get("/detailed", (req, res) => {
+      const detailedDocs = {
+        version: "1.0.0",
+        baseUrl: process.env.API_BASE_URL || "http://localhost:5000",
+        authentication: {
+          type: "Session-based",
+          description: "Most endpoints require authentication via session cookies",
+          adminEndpoints: "Require admin role in addition to authentication"
+        },
+        endpoints: [
+          {
+            path: "/api/user/auth/login",
+            method: "POST",
+            description: "User login",
+            authentication: false,
+            body: {
+              emailOrUsername: "string (required)",
+              password: "string (required)"
+            },
+            response: {
+              user: "User object",
+              portfolio: "Portfolio object"
+            }
+          },
+          {
+            path: "/api/crypto/price/:symbol",
+            method: "GET",
+            description: "Get real-time cryptocurrency price",
+            authentication: false,
+            parameters: {
+              symbol: "Crypto symbol (e.g., BTC, ETH)"
+            },
+            response: {
+              symbol: "string",
+              price: "number",
+              change_24h: "number",
+              volume_24h: "number"
+            }
+          },
+          {
+            path: "/api/portfolio",
+            method: "GET",
+            description: "Get user portfolio with holdings",
+            authentication: true,
+            response: {
+              portfolio: "Portfolio object",
+              holdings: "Array of holdings",
+              analytics: "Portfolio analytics"
+            }
+          },
+          {
+            path: "/ws",
+            method: "WebSocket",
+            description: "Real-time price updates via WebSocket",
+            authentication: false,
+            message: {
+              type: "subscribe",
+              symbols: ["bitcoin", "ethereum"]
+            },
+            responseMessage: {
+              type: "price_update",
+              symbol: "string",
+              price: "number",
+              timestamp: "number"
+            }
+          }
+        ]
+      };
+      res.json(detailedDocs);
+    });
+    router16.get("/endpoints", (req, res) => {
+      const endpoints = [
+        // Authentication
+        { method: "POST", path: "/api/user/auth/login", description: "User login" },
+        { method: "POST", path: "/api/user/auth/register", description: "User registration" },
+        { method: "POST", path: "/api/user/auth/logout", description: "User logout" },
+        { method: "GET", path: "/api/user/auth/user", description: "Get current user" },
+        { method: "POST", path: "/api/admin/auth/login", description: "Admin login" },
+        { method: "POST", path: "/api/admin/auth/logout", description: "Admin logout" },
+        { method: "GET", path: "/api/admin/auth/user", description: "Get current admin" },
+        // Crypto
+        { method: "GET", path: "/api/crypto/top/:limit?", description: "Get top cryptocurrencies" },
+        { method: "GET", path: "/api/crypto/price/:symbol", description: "Get single crypto price" },
+        { method: "POST", path: "/api/crypto/prices", description: "Get multiple crypto prices" },
+        { method: "GET", path: "/api/crypto/details/:coinId", description: "Get crypto details" },
+        { method: "GET", path: "/api/crypto/market-data", description: "Get market overview" },
+        { method: "GET", path: "/api/crypto/search", description: "Search cryptocurrencies" },
+        { method: "GET", path: "/api/crypto/history/:coinId", description: "Get price history" },
+        { method: "GET", path: "/api/crypto/trending", description: "Get trending cryptos" },
+        // Metals
+        { method: "GET", path: "/api/metals/price/:symbol", description: "Get metal price" },
+        { method: "POST", path: "/api/metals/prices", description: "Get multiple metal prices" },
+        { method: "GET", path: "/api/metals/top/:limit?", description: "Get top metals" },
+        { method: "GET", path: "/api/metals/market-data", description: "Get metals market data" },
+        { method: "GET", path: "/api/metals/history/:symbol", description: "Get metal price history" },
+        { method: "GET", path: "/api/metals/health", description: "Metals API health check" },
+        // Trading
+        { method: "POST", path: "/api/trade", description: "Execute trade" },
+        { method: "GET", path: "/api/trading/orders", description: "Get user orders" },
+        { method: "POST", path: "/api/trading/buy", description: "Buy asset" },
+        { method: "POST", path: "/api/trading/sell", description: "Sell asset" },
+        // Portfolio
+        { method: "GET", path: "/api/portfolio", description: "Get portfolio" },
+        { method: "GET", path: "/api/portfolio/holdings", description: "Get holdings" },
+        { method: "GET", path: "/api/portfolio/transactions", description: "Get transactions" },
+        { method: "GET", path: "/api/portfolio/analytics", description: "Get portfolio analytics" },
+        { method: "GET", path: "/api/portfolio/performance", description: "Get performance metrics" },
+        // Alerts
+        { method: "GET", path: "/api/alerts", description: "Get user alerts" },
+        { method: "POST", path: "/api/alerts", description: "Create alert" },
+        { method: "PUT", path: "/api/alerts/:alertId", description: "Update alert" },
+        { method: "DELETE", path: "/api/alerts/:alertId", description: "Delete alert" },
+        { method: "GET", path: "/api/alerts/notifications", description: "Get notifications" },
+        // Deposits
+        { method: "GET", path: "/api/deposits", description: "Get deposits" },
+        { method: "POST", path: "/api/deposits", description: "Create deposit" },
+        { method: "POST", path: "/api/deposits/:depositId/proof", description: "Upload proof" },
+        // Withdrawals
+        { method: "GET", path: "/api/withdrawals", description: "Get withdrawals" },
+        { method: "POST", path: "/api/withdrawals/request", description: "Request withdrawal" },
+        { method: "POST", path: "/api/withdrawals/confirm", description: "Confirm withdrawal" },
+        { method: "GET", path: "/api/withdrawals/limits", description: "Get withdrawal limits" },
+        // News
+        { method: "GET", path: "/api/news", description: "Get news articles" },
+        { method: "GET", path: "/api/news/:id", description: "Get news by ID" },
+        { method: "GET", path: "/api/news/search", description: "Search news" },
+        { method: "GET", path: "/api/news/categories", description: "Get news categories" },
+        // User Settings & Profile
+        { method: "GET", path: "/api/user/settings", description: "Get user settings" },
+        { method: "PATCH", path: "/api/auth/profile", description: "Update user profile" },
+        { method: "POST", path: "/api/auth/change-password", description: "Change password" },
+        // File Upload
+        { method: "POST", path: "/api/upload", description: "Generic file upload" },
+        { method: "POST", path: "/api/deposits/upload-proof", description: "Upload deposit proof" },
+        // Admin
+        { method: "GET", path: "/api/admin/users", description: "Get all users (admin)" },
+        { method: "POST", path: "/api/admin/simulate-balance", description: "Simulate balance (admin)" },
+        { method: "GET", path: "/api/admin/adjustments/:userId?", description: "Get balance adjustments (admin)" },
+        { method: "GET", path: "/api/admin/logs", description: "Get admin action logs (admin)" },
+        { method: "POST", path: "/api/admin/news", description: "Create news article (admin)" },
+        { method: "DELETE", path: "/api/admin/news/:id", description: "Delete news article (admin)" },
+        { method: "GET", path: "/api/admin/deposits", description: "Get all deposits (admin)" },
+        { method: "POST", path: "/api/admin/deposits/:id/approve", description: "Approve deposit (admin)" },
+        { method: "POST", path: "/api/admin/deposits/:id/reject", description: "Reject deposit (admin)" },
+        { method: "GET", path: "/api/admin/deposits/stats", description: "Get deposit statistics (admin)" },
+        { method: "GET", path: "/api/admin/deposits/pending", description: "Get pending deposits (admin)" },
+        { method: "POST", path: "/api/admin/deposits/:id/review", description: "Review deposit (admin)" },
+        // KYC
+        { method: "GET", path: "/api/kyc/status", description: "Get KYC status" },
+        { method: "POST", path: "/api/kyc/submit", description: "Submit KYC" },
+        { method: "PATCH", path: "/api/kyc/update", description: "Update KYC information" },
+        { method: "GET", path: "/api/kyc/admin/verifications", description: "Get all KYC verifications (admin)" },
+        { method: "GET", path: "/api/kyc/admin/verifications/:id", description: "Get KYC verification details (admin)" },
+        { method: "POST", path: "/api/kyc/admin/verifications/:id/review", description: "Review KYC verification (admin)" },
+        { method: "POST", path: "/api/kyc/admin/verifications/bulk-review", description: "Bulk review KYC verifications (admin)" },
+        { method: "GET", path: "/api/kyc/admin/statistics", description: "Get KYC statistics (admin)" },
+        // Support
+        { method: "GET", path: "/api/support/chat/messages", description: "Get chat messages" },
+        { method: "POST", path: "/api/support/chat/send", description: "Send chat message" },
+        // Market Research
+        { method: "GET", path: "/api/research/reports", description: "Get research reports" },
+        { method: "GET", path: "/api/research/reports/:id", description: "Get report by ID" },
+        // Investment Plans
+        { method: "GET", path: "/api/investment-plans", description: "Get investment plans" },
+        { method: "POST", path: "/api/investment-plans/subscribe", description: "Subscribe to plan" },
+        // Savings Plans
+        { method: "GET", path: "/api/savings-plans", description: "Get savings plans" },
+        { method: "POST", path: "/api/savings-plans/create", description: "Create savings plan" },
+        // Staking
+        { method: "GET", path: "/api/staking/pools", description: "Get staking pools" },
+        { method: "POST", path: "/api/staking/stake", description: "Stake tokens" },
+        // Lending
+        { method: "GET", path: "/api/lending/offers", description: "Get lending offers" },
+        { method: "POST", path: "/api/lending/lend", description: "Lend assets" },
+        // WebSocket & Real-time
+        { method: "WS", path: "/ws", description: "WebSocket connection for real-time prices" },
+        { method: "WS", path: "/ws/chat", description: "WebSocket connection for live support chat" },
+        // Health & Status
+        { method: "GET", path: "/health", description: "Server health check" }
+      ];
+      res.json({
+        success: true,
+        count: endpoints.length,
+        endpoints
+      });
+    });
+    api_docs_routes_default = router16;
+  }
+});
+
 // server/admin-routes.ts
 var admin_routes_exports = {};
 __export(admin_routes_exports, {
   default: () => admin_routes_default
 });
-import { Router as Router16 } from "express";
+import { Router as Router17 } from "express";
 import { z as z10 } from "zod";
-var router16, requireAdmin2, adjustBalanceSchema, admin_routes_default;
+var router17, requireAdmin2, adjustBalanceSchema, admin_routes_default;
 var init_admin_routes = __esm({
   "server/admin-routes.ts"() {
     "use strict";
     init_simple_auth();
     init_storage();
-    router16 = Router16();
+    router17 = Router17();
     requireAdmin2 = async (req, res, next) => {
       try {
         const user = await storage.getUser(req.user.id);
@@ -5931,7 +6516,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Authorization failed" });
       }
     };
-    router16.get("/users", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/users", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
@@ -5974,7 +6559,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch users" });
       }
     });
-    router16.post("/users/:userId/suspend", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/users/:userId/suspend", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { userId } = req.params;
         const { reason } = req.body;
@@ -5992,7 +6577,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to suspend user" });
       }
     });
-    router16.post("/users/:userId/reactivate", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/users/:userId/reactivate", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { userId } = req.params;
         await storage.updateUser(userId, { isActive: true });
@@ -6008,7 +6593,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to reactivate user" });
       }
     });
-    router16.delete("/users/:userId", requireAuth, requireAdmin2, async (req, res) => {
+    router17.delete("/users/:userId", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { userId } = req.params;
         await storage.deleteUser(userId);
@@ -6031,7 +6616,7 @@ var init_admin_routes = __esm({
       currency: z10.string(),
       reason: z10.string().optional()
     });
-    router16.post("/balance-adjustment", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/balance-adjustment", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const data = adjustBalanceSchema.parse(req.body);
         const adjustment = await storage.createBalanceAdjustment({
@@ -6077,7 +6662,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to adjust balance" });
       }
     });
-    router16.get("/balance-adjustments", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/balance-adjustments", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const userId = req.query.userId;
         const page = parseInt(req.query.page) || 1;
@@ -6089,7 +6674,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch adjustments" });
       }
     });
-    router16.get("/transactions", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/transactions", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
@@ -6102,7 +6687,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch transactions" });
       }
     });
-    router16.post("/transactions/:transactionId/reverse", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/transactions/:transactionId/reverse", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { transactionId } = req.params;
         const { reason } = req.body;
@@ -6113,7 +6698,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to reverse transaction" });
       }
     });
-    router16.get("/analytics/overview", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/analytics/overview", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const users2 = await storage.getAllUsers();
         const transactions2 = await storage.getAllTransactions({ page: 1, limit: 1e4 });
@@ -6147,7 +6732,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch analytics" });
       }
     });
-    router16.get("/system-health", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/system-health", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const uptime = process.uptime();
         const memoryUsage = process.memoryUsage();
@@ -6189,30 +6774,18 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch system health" });
       }
     });
-    router16.get("/user-sessions", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/user-sessions", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const timeframe = req.query.timeframe || "24h";
         const users2 = await storage.getAllUsers();
-        const sessions2 = users2.slice(0, 20).map((user) => ({
+        const sessions2 = users2.filter((u) => u.lastLogin).map((user) => ({
           id: `session-${user.id}`,
           userId: user.id,
           username: user.username,
           email: user.email,
-          ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-          userAgent: "Mozilla/5.0",
-          deviceType: ["desktop", "mobile", "tablet"][Math.floor(Math.random() * 3)],
-          browser: ["Chrome", "Firefox", "Safari"][Math.floor(Math.random() * 3)],
-          os: ["Windows", "macOS", "Linux"][Math.floor(Math.random() * 3)],
-          location: {
-            country: ["USA", "UK", "Germany", "France"][Math.floor(Math.random() * 4)],
-            city: ["New York", "London", "Berlin", "Paris"][Math.floor(Math.random() * 4)],
-            region: "North"
-          },
-          loginTime: new Date(Date.now() - Math.random() * 864e5).toISOString(),
-          lastActivity: new Date(Date.now() - Math.random() * 36e5).toISOString(),
-          isActive: Math.random() > 0.3,
-          duration: Math.floor(Math.random() * 180),
-          pagesVisited: Math.floor(Math.random() * 20) + 5
+          loginTime: user.lastLogin,
+          lastActivity: user.lastLogin,
+          isActive: user.isActive
         }));
         res.json({ sessions: sessions2 });
       } catch (error) {
@@ -6220,20 +6793,19 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch user sessions" });
       }
     });
-    router16.get("/user-activities", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/user-activities", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const timeframe = req.query.timeframe || "24h";
         const type = req.query.type || "all";
-        const users2 = await storage.getAllUsers();
-        const activities = users2.slice(0, 30).map((user) => ({
-          id: `activity-${user.id}-${Date.now()}`,
-          userId: user.id,
-          username: user.username,
-          action: ["Login", "Trade Executed", "Deposit", "Withdrawal", "Profile Update"][Math.floor(Math.random() * 5)],
-          details: "User performed action successfully",
-          ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-          timestamp: new Date(Date.now() - Math.random() * 864e5).toISOString(),
-          riskScore: Math.floor(Math.random() * 100)
+        const transactions2 = await storage.getAllTransactions({ page: 1, limit: 50 });
+        const activities = transactions2.transactions.map((tx) => ({
+          id: `activity-${tx.id}`,
+          userId: tx.userId,
+          username: tx.username || "Unknown",
+          action: tx.type === "buy" ? "Trade Executed (Buy)" : tx.type === "sell" ? "Trade Executed (Sell)" : tx.type,
+          details: `${tx.type} ${tx.amount} ${tx.symbol} at ${tx.price}`,
+          timestamp: tx.createdAt,
+          riskScore: 0
         }));
         res.json({ activities });
       } catch (error) {
@@ -6241,24 +6813,24 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch user activities" });
       }
     });
-    router16.get("/risk/alerts", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/risk/alerts", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const severity = req.query.severity;
         const status = req.query.status;
-        const users2 = await storage.getAllUsers();
-        const alerts = users2.slice(0, 15).map((user) => ({
-          id: `alert-${user.id}`,
-          userId: user.id,
-          username: user.username,
-          email: user.email,
-          riskType: ["high_volume", "suspicious_pattern", "kyc_mismatch", "location_anomaly"][Math.floor(Math.random() * 4)],
-          severity: ["low", "medium", "high", "critical"][Math.floor(Math.random() * 4)],
-          description: "Unusual trading pattern detected",
-          amount: (Math.random() * 5e4).toFixed(2),
+        const transactions2 = await storage.getAllTransactions({ page: 1, limit: 100 });
+        const alerts = transactions2.transactions.filter((tx) => parseFloat(tx.total) > 1e4 || tx.status === "failed").slice(0, 15).map((tx) => ({
+          id: `alert-${tx.id}`,
+          userId: tx.userId,
+          username: tx.username || "Unknown",
+          email: tx.email || "Unknown",
+          riskType: parseFloat(tx.total) > 1e4 ? "high_volume" : "failed_transaction",
+          severity: parseFloat(tx.total) > 5e4 ? "critical" : parseFloat(tx.total) > 2e4 ? "high" : "medium",
+          description: `${tx.type} transaction for ${tx.symbol}`,
+          amount: tx.total,
           currency: "USD",
-          timestamp: new Date(Date.now() - Math.random() * 864e5).toISOString(),
-          status: ["active", "reviewing", "resolved", "false_positive"][Math.floor(Math.random() * 4)],
-          riskScore: Math.floor(Math.random() * 100)
+          timestamp: tx.createdAt,
+          status: "active",
+          riskScore: Math.min(100, Math.floor(parseFloat(tx.total) / 1e3))
         }));
         res.json({ alerts });
       } catch (error) {
@@ -6266,7 +6838,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch risk alerts" });
       }
     });
-    router16.get("/risk/rules", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/risk/rules", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const rules = [
           {
@@ -6298,7 +6870,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch risk rules" });
       }
     });
-    router16.get("/risk/statistics", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/risk/statistics", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const stats = {
           totalAlerts: 124,
@@ -6314,7 +6886,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch risk statistics" });
       }
     });
-    router16.get("/compliance/reports", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/compliance/reports", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const reports = [
           {
@@ -6338,7 +6910,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch compliance reports" });
       }
     });
-    router16.get("/compliance/metrics", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/compliance/metrics", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const metrics = [
           {
@@ -6358,7 +6930,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch compliance metrics" });
       }
     });
-    router16.get("/compliance/regulatory-updates", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/compliance/regulatory-updates", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const updates = [
           {
@@ -6378,7 +6950,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch regulatory updates" });
       }
     });
-    router16.get("/compliance/statistics", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/compliance/statistics", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const stats = {
           totalReports: 45,
@@ -6394,7 +6966,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch compliance statistics" });
       }
     });
-    router16.get("/server/metrics", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/server/metrics", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const uptime = process.uptime();
         const memoryUsage = process.memoryUsage();
@@ -6450,7 +7022,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch server metrics" });
       }
     });
-    router16.get("/server/services", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/server/services", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const services = [
           {
@@ -6484,7 +7056,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch server services" });
       }
     });
-    router16.post("/maintenance", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/maintenance", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { enabled, message } = req.body;
         res.json({ success: true, maintenanceMode: enabled });
@@ -6493,7 +7065,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to update maintenance mode" });
       }
     });
-    router16.post("/broadcast", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/broadcast", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { message, type } = req.body;
         res.json({ success: true, message: "Message broadcasted" });
@@ -6502,7 +7074,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to broadcast message" });
       }
     });
-    router16.post("/clear-cache", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/clear-cache", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { type } = req.body;
         res.json({ success: true, cacheType: type });
@@ -6511,7 +7083,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to clear cache" });
       }
     });
-    router16.post("/force-logout", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/force-logout", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { userId, all } = req.body;
         res.json({ success: true });
@@ -6520,7 +7092,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to force logout" });
       }
     });
-    router16.get("/analytics/revenue", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/analytics/revenue", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const period = req.query.period || "7d";
         const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
@@ -6549,7 +7121,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch revenue analytics" });
       }
     });
-    router16.get("/analytics/users", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/analytics/users", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const period = req.query.period || "30d";
         const users2 = await storage.getAllUsers();
@@ -6598,7 +7170,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch user analytics" });
       }
     });
-    router16.get("/analytics/trading", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/analytics/trading", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const tradingAnalytics = {
           totalTrades: 1247,
@@ -6625,7 +7197,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch trading analytics" });
       }
     });
-    router16.get("/analytics/platform", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/analytics/platform", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const platformMetrics = {
           systemHealth: {
@@ -6656,7 +7228,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch platform analytics" });
       }
     });
-    router16.get("/security/sessions", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/security/sessions", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const sessions2 = await storage.getActiveSessions();
         res.json(sessions2);
@@ -6665,7 +7237,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch sessions" });
       }
     });
-    router16.post("/security/force-logout/:userId", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/security/force-logout/:userId", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { userId } = req.params;
         await storage.invalidateUserSessions(userId);
@@ -6681,7 +7253,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to terminate sessions" });
       }
     });
-    router16.get("/system/config", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/system/config", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const config2 = await storage.getSystemConfig();
         res.json(config2);
@@ -6690,7 +7262,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch system config" });
       }
     });
-    router16.put("/system/config", requireAuth, requireAdmin2, async (req, res) => {
+    router17.put("/system/config", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const config2 = await storage.updateSystemConfig(req.body);
         await storage.logAdminAction({
@@ -6705,7 +7277,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to update system config" });
       }
     });
-    router16.get("/system-health", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/system-health", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const health = {
           server: {
@@ -6745,7 +7317,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch system health" });
       }
     });
-    router16.get("/user-sessions", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/user-sessions", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const timeframe = req.query.timeframe || "24h";
         const sessions2 = Array.from({ length: Math.floor(Math.random() * 50) + 10 }, (_, i) => ({
@@ -6775,7 +7347,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch user sessions" });
       }
     });
-    router16.get("/user-activities", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/user-activities", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const timeframe = req.query.timeframe || "24h";
         const type = req.query.type || "all";
@@ -6796,7 +7368,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch user activities" });
       }
     });
-    router16.post("/maintenance", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/maintenance", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { enabled, message } = req.body;
         await storage.updateSystemConfig({
@@ -6815,7 +7387,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to update maintenance mode" });
       }
     });
-    router16.post("/broadcast", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/broadcast", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { message, type } = req.body;
         console.log(`Broadcasting ${type} message: ${message}`);
@@ -6831,7 +7403,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to broadcast message" });
       }
     });
-    router16.post("/clear-cache", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/clear-cache", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { type } = req.body;
         console.log(`Clearing cache: ${type}`);
@@ -6847,7 +7419,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to clear cache" });
       }
     });
-    router16.post("/force-logout", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/force-logout", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { userId, all } = req.body;
         if (all) {
@@ -6867,7 +7439,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to force logout" });
       }
     });
-    router16.get("/transactions/stats", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/transactions/stats", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const range = req.query.range || "7d";
         const transactions2 = await storage.getAllTransactions({ page: 1, limit: 1e4 });
@@ -6922,7 +7494,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch transaction statistics" });
       }
     });
-    router16.post("/transactions/:transactionId/flag", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/transactions/:transactionId/flag", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { transactionId } = req.params;
         const { flagged, notes } = req.body;
@@ -6944,7 +7516,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to flag transaction" });
       }
     });
-    router16.post("/transactions/:transactionId/suspend", requireAuth, requireAdmin2, async (req, res) => {
+    router17.post("/transactions/:transactionId/suspend", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const { transactionId } = req.params;
         const { reason } = req.body;
@@ -6966,7 +7538,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to suspend transaction" });
       }
     });
-    router16.get("/audit-logs", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/audit-logs", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
@@ -6978,7 +7550,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch audit logs" });
       }
     });
-    router16.get("/transactions/stats", requireAuth, requireAdmin2, async (req, res) => {
+    router17.get("/transactions/stats", requireAuth, requireAdmin2, async (req, res) => {
       try {
         const range = req.query.range || "7d";
         const transactions2 = await storage.getAllTransactions({ page: 1, limit: 1e4 });
@@ -7012,7 +7584,7 @@ var init_admin_routes = __esm({
         res.status(500).json({ message: "Failed to fetch transaction statistics" });
       }
     });
-    admin_routes_default = router16;
+    admin_routes_default = router17;
   }
 });
 
@@ -7021,20 +7593,20 @@ var admin_auth_routes_exports = {};
 __export(admin_auth_routes_exports, {
   default: () => admin_auth_routes_default
 });
-import { Router as Router17 } from "express";
+import { Router as Router18 } from "express";
 import { z as z11 } from "zod";
-var router17, adminLoginSchema, admin_auth_routes_default;
+var router18, adminLoginSchema, admin_auth_routes_default;
 var init_admin_auth_routes = __esm({
   "server/admin-auth-routes.ts"() {
     "use strict";
     init_storage();
     init_simple_auth();
-    router17 = Router17();
+    router18 = Router18();
     adminLoginSchema = z11.object({
       emailOrUsername: z11.string().min(1, "Email or username is required"),
       password: z11.string().min(1, "Password is required")
     });
-    router17.post("/auth/login", async (req, res) => {
+    router18.post("/auth/login", async (req, res) => {
       try {
         const { emailOrUsername, password } = adminLoginSchema.parse(req.body);
         const user = await storage.getUserByEmailOrUsername(emailOrUsername);
@@ -7071,7 +7643,7 @@ var init_admin_auth_routes = __esm({
         res.status(500).json({ message: "Login failed" });
       }
     });
-    router17.get("/auth/user", requireAuth, async (req, res) => {
+    router18.get("/auth/user", requireAuth, async (req, res) => {
       try {
         const user = await storage.getUser(req.user.id);
         if (!user || user.role !== "admin") {
@@ -7090,7 +7662,7 @@ var init_admin_auth_routes = __esm({
         res.status(500).json({ message: "Failed to get user" });
       }
     });
-    router17.post("/auth/logout", requireAuth, async (req, res) => {
+    router18.post("/auth/logout", requireAuth, async (req, res) => {
       try {
         req.session.destroy((err) => {
           if (err) {
@@ -7105,7 +7677,7 @@ var init_admin_auth_routes = __esm({
         res.status(500).json({ message: "Logout failed" });
       }
     });
-    admin_auth_routes_default = router17;
+    admin_auth_routes_default = router18;
   }
 });
 
@@ -7114,15 +7686,15 @@ var chat_routes_exports = {};
 __export(chat_routes_exports, {
   default: () => chat_routes_default
 });
-import { Router as Router18 } from "express";
+import { Router as Router19 } from "express";
 import { z as z12 } from "zod";
-var router18, startChatSchema, sendMessageSchema, endChatSchema, chat_routes_default;
+var router19, startChatSchema, sendMessageSchema, endChatSchema, chat_routes_default;
 var init_chat_routes = __esm({
   "server/chat-routes.ts"() {
     "use strict";
     init_simple_auth();
     init_storage();
-    router18 = Router18();
+    router19 = Router19();
     startChatSchema = z12.object({
       subject: z12.string().min(1).max(200)
     });
@@ -7137,7 +7709,7 @@ var init_chat_routes = __esm({
     endChatSchema = z12.object({
       sessionId: z12.string()
     });
-    router18.get("/active", requireAuth, async (req, res) => {
+    router19.get("/active", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const session2 = await storage.getActiveChatSession(userId);
@@ -7150,7 +7722,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to fetch chat session" });
       }
     });
-    router18.post("/start", requireAuth, async (req, res) => {
+    router19.post("/start", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const { subject } = startChatSchema.parse(req.body);
@@ -7176,7 +7748,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to start chat session" });
       }
     });
-    router18.get("/messages/:sessionId", requireAuth, async (req, res) => {
+    router19.get("/messages/:sessionId", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const { sessionId } = req.params;
@@ -7191,7 +7763,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to fetch messages" });
       }
     });
-    router18.post("/message", requireAuth, async (req, res) => {
+    router19.post("/message", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const user = req.user;
@@ -7223,7 +7795,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to send message" });
       }
     });
-    router18.post("/end", requireAuth, async (req, res) => {
+    router19.post("/end", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const user = req.user;
@@ -7242,7 +7814,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to end chat session" });
       }
     });
-    router18.post("/rate", requireAuth, async (req, res) => {
+    router19.post("/rate", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const { sessionId, rating, feedback } = req.body;
@@ -7260,7 +7832,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to submit rating" });
       }
     });
-    router18.get("/admin/sessions", requireAuth, async (req, res) => {
+    router19.get("/admin/sessions", requireAuth, async (req, res) => {
       try {
         const user = req.user;
         if (user.role !== "admin") {
@@ -7278,7 +7850,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to fetch chat sessions" });
       }
     });
-    router18.post("/admin/assign", requireAuth, async (req, res) => {
+    router19.post("/admin/assign", requireAuth, async (req, res) => {
       try {
         const user = req.user;
         if (user.role !== "admin") {
@@ -7292,7 +7864,7 @@ var init_chat_routes = __esm({
         res.status(500).json({ message: "Failed to assign session" });
       }
     });
-    chat_routes_default = router18;
+    chat_routes_default = router19;
   }
 });
 
@@ -7301,15 +7873,15 @@ var kyc_routes_exports = {};
 __export(kyc_routes_exports, {
   default: () => kyc_routes_default
 });
-import { Router as Router19 } from "express";
+import { Router as Router20 } from "express";
 import { z as z13 } from "zod";
-var router19, requireAdmin3, kycSubmissionSchema, reviewSchema, kyc_routes_default;
+var router20, requireAdmin3, kycSubmissionSchema, reviewSchema, kyc_routes_default;
 var init_kyc_routes = __esm({
   "server/kyc-routes.ts"() {
     "use strict";
     init_simple_auth();
     init_storage();
-    router19 = Router19();
+    router20 = Router20();
     requireAdmin3 = async (req, res, next) => {
       try {
         const user = await storage.getUser(req.user.id);
@@ -7338,7 +7910,7 @@ var init_kyc_routes = __esm({
       documentBackImageUrl: z13.string().optional(),
       selfieImageUrl: z13.string().optional()
     });
-    router19.post("/submit", requireAuth, async (req, res) => {
+    router20.post("/submit", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const data = kycSubmissionSchema.parse(req.body);
@@ -7368,7 +7940,7 @@ var init_kyc_routes = __esm({
         res.status(500).json({ message: "Failed to submit KYC verification" });
       }
     });
-    router19.get("/status", requireAuth, async (req, res) => {
+    router20.get("/status", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const kyc = await storage.getKycVerification(userId);
@@ -7381,7 +7953,7 @@ var init_kyc_routes = __esm({
         res.status(500).json({ message: "Failed to fetch KYC status" });
       }
     });
-    router19.patch("/update", requireAuth, async (req, res) => {
+    router20.patch("/update", requireAuth, async (req, res) => {
       try {
         const userId = req.user.id;
         const data = kycSubmissionSchema.partial().parse(req.body);
@@ -7404,7 +7976,7 @@ var init_kyc_routes = __esm({
         res.status(500).json({ message: "Failed to update KYC verification" });
       }
     });
-    router19.get("/admin/verifications", requireAuth, requireAdmin3, async (req, res) => {
+    router20.get("/admin/verifications", requireAuth, requireAdmin3, async (req, res) => {
       try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
@@ -7422,7 +7994,7 @@ var init_kyc_routes = __esm({
         res.status(500).json({ message: "Failed to fetch KYC verifications" });
       }
     });
-    router19.get("/admin/verifications/:id", requireAuth, requireAdmin3, async (req, res) => {
+    router20.get("/admin/verifications/:id", requireAuth, requireAdmin3, async (req, res) => {
       try {
         const { id } = req.params;
         const verification = await storage.getKycVerificationById(id);
@@ -7441,7 +8013,7 @@ var init_kyc_routes = __esm({
       rejectionReason: z13.string().optional(),
       notes: z13.string().optional()
     });
-    router19.post("/admin/verifications/:id/review", requireAuth, requireAdmin3, async (req, res) => {
+    router20.post("/admin/verifications/:id/review", requireAuth, requireAdmin3, async (req, res) => {
       try {
         const { id } = req.params;
         const { status, rejectionReason, notes } = reviewSchema.parse(req.body);
@@ -7474,7 +8046,7 @@ var init_kyc_routes = __esm({
         res.status(500).json({ message: "Failed to review KYC verification" });
       }
     });
-    router19.post("/admin/verifications/bulk-review", requireAuth, requireAdmin3, async (req, res) => {
+    router20.post("/admin/verifications/bulk-review", requireAuth, requireAdmin3, async (req, res) => {
       try {
         const { ids, status, rejectionReason, notes } = req.body;
         const adminId = req.user.id;
@@ -7509,7 +8081,7 @@ var init_kyc_routes = __esm({
         res.status(500).json({ message: "Failed to bulk review KYC verifications" });
       }
     });
-    router19.get("/admin/statistics", requireAuth, requireAdmin3, async (req, res) => {
+    router20.get("/admin/statistics", requireAuth, requireAdmin3, async (req, res) => {
       try {
         const stats = await storage.getKycStatistics();
         res.json(stats);
@@ -7518,7 +8090,7 @@ var init_kyc_routes = __esm({
         res.status(500).json({ message: "Failed to fetch KYC statistics" });
       }
     });
-    kyc_routes_default = router19;
+    kyc_routes_default = router20;
   }
 });
 
@@ -7527,27 +8099,27 @@ var upload_routes_exports = {};
 __export(upload_routes_exports, {
   default: () => upload_routes_default
 });
-import { Router as Router20 } from "express";
-import multer2 from "multer";
-import path2 from "path";
-import fs2 from "fs";
-var router20, uploadsDir, storage2, fileFilter, upload2, upload_routes_default;
+import { Router as Router21 } from "express";
+import multer3 from "multer";
+import path4 from "path";
+import fs3 from "fs";
+var router21, uploadsDir, storage3, fileFilter, upload2, upload_routes_default;
 var init_upload_routes = __esm({
   "server/upload-routes.ts"() {
     "use strict";
     init_simple_auth();
-    router20 = Router20();
-    uploadsDir = path2.join(process.cwd(), "uploads");
-    if (!fs2.existsSync(uploadsDir)) {
-      fs2.mkdirSync(uploadsDir, { recursive: true });
+    router21 = Router21();
+    uploadsDir = path4.join(process.cwd(), "uploads");
+    if (!fs3.existsSync(uploadsDir)) {
+      fs3.mkdirSync(uploadsDir, { recursive: true });
     }
-    storage2 = multer2.diskStorage({
+    storage3 = multer3.diskStorage({
       destination: (req, file, cb) => {
         cb(null, uploadsDir);
       },
       filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        const extension = path2.extname(file.originalname);
+        const extension = path4.extname(file.originalname);
         cb(null, `${file.fieldname}-${uniqueSuffix}${extension}`);
       }
     });
@@ -7568,15 +8140,15 @@ var init_upload_routes = __esm({
         cb(new Error("Invalid file type. Only images, PDFs, and documents are allowed."));
       }
     };
-    upload2 = multer2({
-      storage: storage2,
+    upload2 = multer3({
+      storage: storage3,
       limits: {
         fileSize: 10 * 1024 * 1024
         // 10MB limit
       },
       fileFilter
     });
-    router20.post("/", requireAuth, upload2.single("file"), async (req, res) => {
+    router21.post("/", requireAuth, upload2.single("file"), async (req, res) => {
       try {
         if (!req.file) {
           return res.status(400).json({ message: "No file uploaded" });
@@ -7602,15 +8174,15 @@ var init_upload_routes = __esm({
         res.status(500).json({ message: "File upload failed" });
       }
     });
-    router20.get("/:filename", (req, res) => {
+    router21.get("/:filename", (req, res) => {
       try {
         const { filename } = req.params;
-        const filePath = path2.join(uploadsDir, filename);
-        if (!fs2.existsSync(filePath)) {
+        const filePath = path4.join(uploadsDir, filename);
+        if (!fs3.existsSync(filePath)) {
           return res.status(404).json({ message: "File not found" });
         }
-        const resolvedPath = path2.resolve(filePath);
-        const uploadsPath = path2.resolve(uploadsDir);
+        const resolvedPath = path4.resolve(filePath);
+        const uploadsPath = path4.resolve(uploadsDir);
         if (!resolvedPath.startsWith(uploadsPath)) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -7620,16 +8192,16 @@ var init_upload_routes = __esm({
         res.status(500).json({ message: "Failed to serve file" });
       }
     });
-    router20.delete("/:filename", requireAuth, async (req, res) => {
+    router21.delete("/:filename", requireAuth, async (req, res) => {
       try {
         const user = req.user;
         if (user.role !== "admin") {
           return res.status(403).json({ message: "Admin access required" });
         }
         const { filename } = req.params;
-        const filePath = path2.join(uploadsDir, filename);
-        if (fs2.existsSync(filePath)) {
-          fs2.unlinkSync(filePath);
+        const filePath = path4.join(uploadsDir, filename);
+        if (fs3.existsSync(filePath)) {
+          fs3.unlinkSync(filePath);
           res.json({ message: "File deleted successfully" });
         } else {
           res.status(404).json({ message: "File not found" });
@@ -7639,16 +8211,98 @@ var init_upload_routes = __esm({
         res.status(500).json({ message: "Failed to delete file" });
       }
     });
-    upload_routes_default = router20;
+    upload_routes_default = router21;
   }
 });
 
 // server/websocket-server.ts
 var websocket_server_exports = {};
 __export(websocket_server_exports, {
+  setupWebSocketServer: () => setupWebSocketServer,
   webSocketManager: () => webSocketManager
 });
 import { WebSocketServer, WebSocket } from "ws";
+function setupWebSocketServer(server) {
+  const wss = new WebSocketServer({
+    server,
+    path: "/ws/prices",
+    perMessageDeflate: false,
+    clientTracking: true
+  });
+  const clients = /* @__PURE__ */ new Set();
+  wss.on("connection", (ws, req) => {
+    const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    console.log(`\u2705 WebSocket client connected from ${clientIp}`);
+    ws.isAlive = true;
+    clients.add(ws);
+    ws.send(JSON.stringify({
+      type: "connected",
+      message: "WebSocket connection established",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    }));
+    ws.on("pong", () => {
+      ws.isAlive = true;
+    });
+    ws.on("message", (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log("\u{1F4E8} Received message:", data);
+        if (data.type === "subscribe") {
+          ws.send(JSON.stringify({
+            type: "subscribed",
+            symbols: data.symbols || []
+          }));
+        }
+      } catch (error) {
+        console.error("\u274C Error parsing message:", error);
+      }
+    });
+    ws.on("close", (code, reason) => {
+      console.log(`\u274C WebSocket client disconnected: ${code} - ${reason}`);
+      clients.delete(ws);
+    });
+    ws.on("error", (error) => {
+      console.error("\u274C WebSocket error:", error);
+      clients.delete(ws);
+    });
+  });
+  const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+      if (ws.isAlive === false) {
+        console.log("\u{1F50C} Terminating inactive WebSocket connection");
+        clients.delete(ws);
+        return ws.terminate();
+      }
+      ws.isAlive = false;
+      ws.ping();
+    });
+  }, 3e4);
+  const priceUpdateInterval = setInterval(() => {
+    if (clients.size === 0) return;
+    const mockPrices = {
+      type: "price_update",
+      data: [
+        { symbol: "BTC", price: (Math.random() * 1e3 + 67e3).toFixed(2), change24h: (Math.random() * 10 - 5).toFixed(2) },
+        { symbol: "ETH", price: (Math.random() * 100 + 3400).toFixed(2), change24h: (Math.random() * 10 - 5).toFixed(2) },
+        { symbol: "SOL", price: (Math.random() * 50 + 150).toFixed(2), change24h: (Math.random() * 10 - 5).toFixed(2) }
+      ],
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    const message = JSON.stringify(mockPrices);
+    clients.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(message);
+      }
+    });
+  }, 5e3);
+  wss.on("close", () => {
+    clearInterval(heartbeatInterval);
+    clearInterval(priceUpdateInterval);
+  });
+  console.log("\u{1F680} WebSocket server initialized on /ws/prices");
+  console.log("\u{1F4E1} Broadcasting price updates every 5 seconds");
+  return wss;
+}
 var WebSocketManager, webSocketManager;
 var init_websocket_server = __esm({
   "server/websocket-server.ts"() {
@@ -7657,15 +8311,31 @@ var init_websocket_server = __esm({
       wss = null;
       clients = /* @__PURE__ */ new Map();
       isInitialized = false;
+      connectionsByIp = /* @__PURE__ */ new Map();
+      // Rate limiting per IP - increased for real-time price updates
+      connectionLimits = /* @__PURE__ */ new Map();
+      MAX_CONNECTIONS_PER_IP = 50;
+      // Increased limit to handle reconnections
       initialize(httpServer) {
         if (this.isInitialized) {
           console.log("\u26A0\uFE0F WebSocket manager already initialized");
           return;
         }
-        this.wss = new WebSocketServer({ noServer: true });
+        this.wss = new WebSocketServer({
+          noServer: true,
+          path: "/ws"
+        });
         httpServer.on("upgrade", (request, socket, head) => {
           const pathname = new URL(request.url || "", `http://${request.headers.host}`).pathname;
           if (pathname === "/ws") {
+            const clientIp = request.headers["x-forwarded-for"]?.split(",")[0] || request.socket.remoteAddress || "unknown";
+            const currentConnections = this.connectionsByIp.get(clientIp) || 0;
+            if (currentConnections >= this.MAX_CONNECTIONS_PER_IP) {
+              console.log(`\u274C Connection limit reached for IP: ${clientIp}`);
+              socket.write("HTTP/1.1 429 Too Many Requests\r\n\r\n");
+              socket.destroy();
+              return;
+            }
             console.log("\u{1F50C} WebSocket upgrade request for:", pathname);
             this.wss.handleUpgrade(request, socket, head, (ws) => {
               this.wss.emit("connection", ws, request);
@@ -7674,9 +8344,12 @@ var init_websocket_server = __esm({
             socket.destroy();
           }
         });
-        this.wss.on("connection", (ws) => {
+        this.wss.on("connection", (ws, request) => {
+          const clientIp = request.headers["x-forwarded-for"]?.split(",")[0] || request.socket.remoteAddress || "unknown";
+          const currentCount = (this.connectionsByIp.get(clientIp) || 0) + 1;
+          this.connectionsByIp.set(clientIp, currentCount);
           const clientId = Date.now().toString() + Math.random().toString(36);
-          console.log("Client connected to WebSocket");
+          console.log(`\u2705 WebSocket connected - IP: ${clientIp}, Count: ${currentCount}/${this.MAX_CONNECTIONS_PER_IP}`);
           ws.send(JSON.stringify({
             type: "connection",
             message: "Connected to live price feed",
@@ -7697,14 +8370,45 @@ var init_websocket_server = __esm({
             }
           });
           ws.on("close", () => {
-            console.log("Client disconnected from WebSocket");
+            console.log(`Client disconnected from WebSocket (IP: ${clientIp})`);
             this.handleUnsubscribe(clientId);
+            const count2 = this.connectionsByIp.get(clientIp) || 0;
+            if (count2 <= 1) {
+              this.connectionsByIp.delete(clientIp);
+              console.log(`\u2713 All connections closed for IP: ${clientIp}`);
+            } else {
+              this.connectionsByIp.set(clientIp, count2 - 1);
+              console.log(`\u2713 Connection closed for IP: ${clientIp} (${count2 - 1} remaining)`);
+            }
           });
           ws.on("error", (error) => {
-            console.error("WebSocket error:", error);
+            console.error(`WebSocket error for IP ${clientIp}:`, error);
             this.handleUnsubscribe(clientId);
+            const count2 = this.connectionsByIp.get(clientIp) || 0;
+            if (count2 <= 1) {
+              this.connectionsByIp.delete(clientIp);
+              console.log(`\u2713 Cleaned up connections on error for IP: ${clientIp}`);
+            } else {
+              this.connectionsByIp.set(clientIp, count2 - 1);
+              console.log(`\u2713 Error cleanup for IP: ${clientIp} (${count2 - 1} remaining)`);
+            }
+            if (ws.readyState === ws.OPEN || ws.readyState === ws.CONNECTING) {
+              ws.close();
+            }
           });
         });
+        setInterval(() => {
+          const staleIps = [];
+          this.connectionsByIp.forEach((count2, ip) => {
+            if (count2 <= 0) {
+              staleIps.push(ip);
+            }
+          });
+          staleIps.forEach((ip) => this.connectionsByIp.delete(ip));
+          if (staleIps.length > 0) {
+            console.log(`\u{1F9F9} Cleaned up ${staleIps.length} stale IP connection tracking entries`);
+          }
+        }, 5 * 60 * 1e3);
         this.isInitialized = true;
         console.log("\u2705 WebSocket manager initialized successfully");
       }
@@ -7766,6 +8470,7 @@ var init_websocket_server = __esm({
           }
         });
         this.clients.clear();
+        this.connectionsByIp.clear();
         if (this.wss) {
           this.wss.close();
         }
@@ -7780,6 +8485,8 @@ var init_websocket_server = __esm({
 // server/index.ts
 import "dotenv/config";
 import express2 from "express";
+import cookieParser from "cookie-parser";
+import csrf from "tiny-csrf";
 
 // server/routes.ts
 import { createServer } from "http";
@@ -9210,124 +9917,85 @@ import { z as z4 } from "zod";
 var router6 = Router6();
 var createAlertSchema = z4.object({
   symbol: z4.string().min(1),
-  name: z4.string().min(1),
-  targetPrice: z4.number().min(0),
-  condition: z4.enum(["above", "below"]),
+  type: z4.enum(["price_above", "price_below", "percent_change"]),
+  targetPrice: z4.string().optional(),
+  percentChange: z4.string().optional(),
   message: z4.string().optional()
-});
-var updateAlertSchema = z4.object({
-  targetPrice: z4.number().min(0).optional(),
-  condition: z4.enum(["above", "below"]).optional(),
-  message: z4.string().optional(),
-  isActive: z4.boolean().optional()
 });
 router6.get("/", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
-    const alerts = await storage.getUserPriceAlerts(userId);
+    const alerts = await storage.getUserAlerts(userId);
     res.json(alerts);
   } catch (error) {
-    console.error("Error fetching alerts:", error);
+    console.error("Get alerts error:", error);
     res.status(500).json({ message: "Failed to fetch alerts" });
   }
 });
 router6.post("/", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
-    const alertData = createAlertSchema.parse(req.body);
-    const alert = await storage.createPriceAlert({
+    const data = createAlertSchema.parse(req.body);
+    const alert = await storage.createAlert({
       userId,
-      symbol: alertData.symbol,
-      name: alertData.name,
-      targetPrice: alertData.targetPrice.toString(),
-      condition: alertData.condition,
-      message: alertData.message || `${alertData.symbol} price alert`,
-      isActive: true
+      symbol: data.symbol,
+      type: data.type,
+      targetPrice: data.targetPrice || null,
+      percentChange: data.percentChange || null,
+      message: data.message || `Price alert for ${data.symbol}`,
+      isActive: true,
+      isTriggered: false
     });
     res.json(alert);
   } catch (error) {
-    console.error("Error creating alert:", error);
-    if (error instanceof z4.ZodError) {
-      return res.status(400).json({ message: "Invalid input data", errors: error.errors });
-    }
+    console.error("Create alert error:", error);
     res.status(500).json({ message: "Failed to create alert" });
   }
 });
-router6.put("/:alertId", requireAuth, async (req, res) => {
+router6.put("/:id", requireAuth, async (req, res) => {
   try {
+    const { id } = req.params;
     const userId = req.user.id;
-    const alertId = req.params.alertId;
-    const updates = updateAlertSchema.parse(req.body);
-    const alert = await storage.getPriceAlertById(alertId);
+    const data = req.body;
+    const alert = await storage.getAlertById(id);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: "Alert not found" });
     }
-    const updateData = {};
-    if (updates.targetPrice !== void 0) updateData.targetPrice = updates.targetPrice.toString();
-    if (updates.condition !== void 0) updateData.condition = updates.condition;
-    if (updates.message !== void 0) updateData.message = updates.message;
-    if (updates.isActive !== void 0) updateData.isActive = updates.isActive;
-    await storage.updatePriceAlert(alertId, updateData);
-    const updatedAlert = await storage.getPriceAlertById(alertId);
-    res.json(updatedAlert);
+    const updated = await storage.updateAlert(id, data);
+    res.json(updated);
   } catch (error) {
-    console.error("Error updating alert:", error);
-    if (error instanceof z4.ZodError) {
-      return res.status(400).json({ message: "Invalid input data", errors: error.errors });
-    }
+    console.error("Update alert error:", error);
     res.status(500).json({ message: "Failed to update alert" });
   }
 });
-router6.delete("/:alertId", requireAuth, async (req, res) => {
+router6.delete("/:id", requireAuth, async (req, res) => {
   try {
+    const { id } = req.params;
     const userId = req.user.id;
-    const alertId = req.params.alertId;
-    const alert = await storage.getPriceAlertById(alertId);
+    const alert = await storage.getAlertById(id);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: "Alert not found" });
     }
-    await storage.deletePriceAlert(alertId);
+    await storage.deleteAlert(id);
     res.json({ message: "Alert deleted successfully" });
   } catch (error) {
-    console.error("Error deleting alert:", error);
+    console.error("Delete alert error:", error);
     res.status(500).json({ message: "Failed to delete alert" });
   }
 });
-router6.patch("/:alertId/toggle", requireAuth, async (req, res) => {
+router6.patch("/:id/toggle", requireAuth, async (req, res) => {
   try {
+    const { id } = req.params;
     const userId = req.user.id;
-    const alertId = req.params.alertId;
-    const alert = await storage.getPriceAlertById(alertId);
+    const alert = await storage.getAlertById(id);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: "Alert not found" });
     }
-    await storage.updatePriceAlert(alertId, { isActive: !alert.isActive });
-    const updatedAlert = await storage.getPriceAlertById(alertId);
-    res.json(updatedAlert);
+    const updated = await storage.updateAlert(id, { isActive: !alert.isActive });
+    res.json(updated);
   } catch (error) {
-    console.error("Error toggling alert:", error);
+    console.error("Toggle alert error:", error);
     res.status(500).json({ message: "Failed to toggle alert" });
-  }
-});
-router6.get("/notifications", requireAuth, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const limit = parseInt(req.query.limit) || 20;
-    const notifications3 = await storage.getUserNotifications(userId, limit);
-    res.json(notifications3);
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-    res.status(500).json({ message: "Failed to fetch notifications" });
-  }
-});
-router6.patch("/notifications/:notificationId/read", requireAuth, async (req, res) => {
-  try {
-    const notificationId = req.params.notificationId;
-    await storage.markNotificationAsRead(notificationId);
-    res.json({ message: "Notification marked as read" });
-  } catch (error) {
-    console.error("Error marking notification as read:", error);
-    res.status(500).json({ message: "Failed to mark notification as read" });
   }
 });
 var alert_routes_default = router6;
@@ -9811,6 +10479,70 @@ router9.get("/categories", (req, res) => {
     res.status(500).json({ message: "Failed to fetch news categories" });
   }
 });
+router9.post("/admin/create", async (req, res) => {
+  try {
+    const { title, description, url, imageUrl, category, coins } = req.body;
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required" });
+    }
+    const newsArticle = await storage.createNewsArticle({
+      title,
+      description,
+      summary: description.substring(0, 150),
+      url: url || "#",
+      imageUrl: imageUrl || "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400",
+      category: category || "general",
+      coins: coins || [],
+      sentiment: "neutral",
+      source: { id: "admin", name: "Admin" }
+    });
+    res.json(newsArticle);
+  } catch (error) {
+    console.error("Error creating news:", error);
+    res.status(500).json({ message: "Failed to create news article" });
+  }
+});
+router9.put("/admin/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, url, imageUrl, category, coins } = req.body;
+    const updatedArticle = await storage.updateNewsArticle(id, {
+      title,
+      description,
+      summary: description?.substring(0, 150),
+      url,
+      imageUrl,
+      category,
+      coins
+    });
+    if (!updatedArticle) {
+      return res.status(404).json({ message: "News article not found" });
+    }
+    res.json(updatedArticle);
+  } catch (error) {
+    console.error("Error updating news:", error);
+    res.status(500).json({ message: "Failed to update news article" });
+  }
+});
+router9.delete("/admin/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await storage.deleteNewsArticle(id);
+    res.json({ message: "News article deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting news:", error);
+    res.status(500).json({ message: "Failed to delete news article" });
+  }
+});
+router9.get("/analytics", async (req, res) => {
+  try {
+    const analytics = await storage.getNewsAnalytics();
+    res.json(analytics);
+  } catch (error) {
+    console.error("Error fetching analytics:", error);
+    res.status(500).json({ message: "Failed to fetch analytics" });
+  }
+});
 var news_routes_default = router9;
 
 // server/routes.ts
@@ -9853,7 +10585,7 @@ async function registerRoutes(app2) {
     next();
   };
   app2.use("/api/portfolio", router4);
-  app2.use("/api/portfolio", portfolio_analytics_routes_default);
+  app2.use("/api/portfolio/analytics", portfolio_analytics_routes_default);
   app2.use("/api/trading", trading_routes_default);
   app2.use("/api/crypto", crypto_routes_default);
   app2.use("/api/metals", metals_routes_default);
@@ -9870,6 +10602,10 @@ async function registerRoutes(app2) {
   app2.use("/api/investment-plans", investmentPlansRoutes);
   const savingsPlansRoutes = (await Promise.resolve().then(() => (init_savings_plans_routes(), savings_plans_routes_exports))).default;
   app2.use("/api/savings-plans", savingsPlansRoutes);
+  const { registerProofUploadRoutes: registerProofUploadRoutes2 } = await Promise.resolve().then(() => (init_proof_upload_routes(), proof_upload_routes_exports));
+  registerProofUploadRoutes2(app2);
+  const apiDocsRoutes = (await Promise.resolve().then(() => (init_api_docs_routes(), api_docs_routes_exports))).default;
+  app2.use("/api/docs", apiDocsRoutes);
   app2.post("/api/admin/auth/login", checkDbConnection, async (req, res) => {
     try {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
@@ -10532,14 +11268,14 @@ var priceMonitor = new PriceMonitorService();
 
 // server/vite.ts
 import express from "express";
-import fs3 from "fs";
-import path4 from "path";
+import fs4 from "fs";
+import path6 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 
 // vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path3 from "path";
+import path5 from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 var vite_config_default = defineConfig({
   plugins: [
@@ -10553,14 +11289,14 @@ var vite_config_default = defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path3.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path3.resolve(import.meta.dirname, "shared"),
-      "@assets": path3.resolve(import.meta.dirname, "attached_assets")
+      "@": path5.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path5.resolve(import.meta.dirname, "shared"),
+      "@assets": path5.resolve(import.meta.dirname, "attached_assets")
     }
   },
-  root: path3.resolve(import.meta.dirname, "client"),
+  root: path5.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path3.resolve(import.meta.dirname, "dist/public"),
+    outDir: path5.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true
   },
   server: {
@@ -10613,13 +11349,13 @@ async function setupVite(app2, server) {
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path4.resolve(
+      const clientTemplate = path6.resolve(
         import.meta.dirname,
         "..",
         "client",
         "index.html"
       );
-      let template = await fs3.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs4.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid3()}"`
@@ -10633,15 +11369,15 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path4.resolve(import.meta.dirname, "public");
-  if (!fs3.existsSync(distPath)) {
+  const distPath = path6.resolve(import.meta.dirname, "public");
+  if (!fs4.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path4.resolve(distPath, "index.html"));
+    res.sendFile(path6.resolve(distPath, "index.html"));
   });
 }
 
@@ -11019,272 +11755,173 @@ var ChatWebSocketManager = class {
 };
 var chatWebSocketManager = new ChatWebSocketManager();
 
-// server/index.ts
-init_admin_routes();
-init_admin_auth_routes();
-
-// server/auth-routes.ts
-import { Router as Router21 } from "express";
-import crypto3 from "crypto";
-import { z as z15 } from "zod";
-
-// server/email-service.ts
-async function sendEmail(params) {
-  try {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.log("\u{1F4E7} Mock Email Sent:", {
-        to: params.to,
-        subject: params.subject,
-        preview: params.html?.substring(0, 100) + "..." || params.text?.substring(0, 100) + "..."
-      });
-      return true;
-    }
-    const sgMail = __require("@sendgrid/mail");
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    await sgMail.send({
-      to: params.to,
-      from: params.from,
-      subject: params.subject,
-      text: params.text,
-      html: params.html
-    });
-    console.log("\u2705 Email sent successfully to:", params.to);
-    return true;
-  } catch (error) {
-    console.error("\u274C SendGrid email error:", error);
-    console.log("\u{1F4E7} Mock Email Sent (fallback):", {
-      to: params.to,
-      subject: params.subject,
-      preview: params.html?.substring(0, 100) + "..." || params.text?.substring(0, 100) + "..."
-    });
-    return true;
-  }
-}
-
-// server/auth-routes.ts
+// server/watchlist-routes.ts
+init_simple_auth();
 init_storage();
-var router21 = Router21();
-function generateOTP() {
-  return Math.floor(1e5 + Math.random() * 9e5).toString();
+import { Router as Router22 } from "express";
+import { z as z15 } from "zod";
+var router22 = Router22();
+var addToWatchlistSchema = z15.object({
+  symbol: z15.string().min(1),
+  name: z15.string().min(1),
+  notes: z15.string().optional()
+});
+router22.get("/", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const watchlist = await storage.getUserWatchlist(userId);
+    res.json(watchlist);
+  } catch (error) {
+    console.error("Get watchlist error:", error);
+    res.status(500).json({ message: "Failed to fetch watchlist" });
+  }
+});
+router22.post("/", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const data = addToWatchlistSchema.parse(req.body);
+    const item = await storage.addToWatchlist({
+      userId,
+      symbol: data.symbol,
+      name: data.name,
+      notes: data.notes || null
+    });
+    res.json(item);
+  } catch (error) {
+    console.error("Add to watchlist error:", error);
+    res.status(500).json({ message: "Failed to add to watchlist" });
+  }
+});
+router22.put("/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { notes } = req.body;
+    const item = await storage.getWatchlistItem(id);
+    if (!item || item.userId !== userId) {
+      return res.status(404).json({ message: "Watchlist item not found" });
+    }
+    const updated = await storage.updateWatchlistItem(id, { notes });
+    res.json(updated);
+  } catch (error) {
+    console.error("Update watchlist error:", error);
+    res.status(500).json({ message: "Failed to update watchlist item" });
+  }
+});
+router22.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const item = await storage.getWatchlistItem(id);
+    if (!item || item.userId !== userId) {
+      return res.status(404).json({ message: "Watchlist item not found" });
+    }
+    await storage.removeFromWatchlist(id);
+    res.json({ message: "Removed from watchlist successfully" });
+  } catch (error) {
+    console.error("Remove from watchlist error:", error);
+    res.status(500).json({ message: "Failed to remove from watchlist" });
+  }
+});
+var watchlist_routes_default = router22;
+
+// server/api-keys-routes.ts
+init_simple_auth();
+init_storage();
+import { Router as Router23 } from "express";
+import { z as z16 } from "zod";
+import crypto3 from "crypto";
+var router23 = Router23();
+var createApiKeySchema = z16.object({
+  name: z16.string().min(1),
+  permissions: z16.array(z16.string()).optional(),
+  expiresAt: z16.string().optional()
+});
+function generateApiKey() {
+  return "bp_" + crypto3.randomBytes(32).toString("hex");
 }
-function generateToken() {
-  return crypto3.randomBytes(32).toString("hex");
-}
-router21.post("/forgot-password", async (req, res) => {
+router23.get("/", requireAuth, async (req, res) => {
   try {
-    const { email } = z15.object({
-      email: z15.string().email()
-    }).parse(req.body);
-    const user = await storage.getUserByEmail(email);
-    if (!user) {
-      return res.json({ success: true, message: "If the email exists, a reset link has been sent." });
-    }
-    const token = generateToken();
-    const expiresAt = new Date(Date.now() + 36e5);
-    console.log("Password reset token generated:", { userId: user.id, token, expiresAt });
-    const resetLink = `${process.env.BASE_URL || "http://localhost:5000"}/reset-password/${token}`;
-    try {
-      await sendEmail({
-        to: email,
-        from: "noreply@bitpanda-pro.com",
-        subject: "Password Reset Request - BITPANDA PRO",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-            <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
-              <h2 style="color: #10b981; margin: 0 0 30px 0; font-size: 24px;">Password Reset Request</h2>
-              
-              <div style="background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                  You requested a password reset for your BITPANDA PRO account.
-                </p>
-                <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                  Click the button below to reset your password:
-                </p>
-                
-                <a href="${resetLink}" style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 0;">
-                  Reset Password
-                </a>
-                
-                <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-                  This link will expire in 1 hour for security reasons.
-                </p>
-              </div>
-              
-              <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-                If you didn't request this reset, please ignore this email and your password will remain unchanged.
-              </p>
-            </div>
-          </div>
-        `
-      });
-    } catch (emailError) {
-      console.error("Failed to send password reset email:", emailError);
-    }
-    res.json({ success: true, message: "If the email exists, a reset link has been sent." });
+    const userId = req.user.id;
+    const apiKeys = await storage.getUserApiKeys(userId);
+    res.json(apiKeys);
   } catch (error) {
-    console.error("Forgot password error:", error);
-    res.status(400).json({ error: "Invalid request" });
+    console.error("Get API keys error:", error);
+    res.status(500).json({ message: "Failed to fetch API keys" });
   }
 });
-router21.post("/reset-password", async (req, res) => {
+router23.post("/", requireAuth, async (req, res) => {
   try {
-    const { token, password } = z15.object({
-      token: z15.string(),
-      password: z15.string().min(6)
-    }).parse(req.body);
-    console.log("Password reset requested with token:", token);
-    res.json({ success: true, message: "Password reset successfully" });
+    const userId = req.user.id;
+    const data = createApiKeySchema.parse(req.body);
+    const apiKey = generateApiKey();
+    const key = await storage.createApiKey({
+      userId,
+      name: data.name,
+      key: apiKey,
+      permissions: data.permissions || ["read"],
+      isActive: true,
+      expiresAt: data.expiresAt || null
+    });
+    res.json(key);
   } catch (error) {
-    console.error("Reset password error:", error);
-    res.status(400).json({ error: "Invalid request" });
+    console.error("Create API key error:", error);
+    res.status(500).json({ message: "Failed to create API key" });
   }
 });
-router21.post("/send-otp", async (req, res) => {
+router23.put("/:id", requireAuth, async (req, res) => {
   try {
-    const { email, type } = z15.object({
-      email: z15.string().email(),
-      type: z15.enum(["registration", "password_reset", "2fa"])
-    }).parse(req.body);
-    const otp = generateOTP();
-    console.log(`OTP for ${email} (${type}): ${otp}`);
-    try {
-      const subject = type === "registration" ? "Welcome to BITPANDA PRO - Verify Your Email" : type === "password_reset" ? "Password Reset Verification - BITPANDA PRO" : "Two-Factor Authentication - BITPANDA PRO";
-      await sendEmail({
-        to: email,
-        from: "noreply@bitpanda-pro.com",
-        subject,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-            <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
-              <h2 style="color: #3b82f6; margin: 0 0 30px 0; font-size: 24px;">Verification Required</h2>
-              
-              <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
-                <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                  Your verification code is:
-                </p>
-                
-                <div style="background-color: #1e40af; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <span style="color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
-                    ${otp}
-                  </span>
-                </div>
-                
-                <p style="color: #fbbf24; margin: 20px 0 0 0; font-size: 14px; font-weight: bold;">
-                  This code will expire in 5 minutes
-                </p>
-              </div>
-              
-              <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-                If you didn't request this code, please ignore this email.
-              </p>
-            </div>
-          </div>
-        `
-      });
-    } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError);
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { name, permissions } = req.body;
+    const apiKey = await storage.getApiKeyById(id);
+    if (!apiKey || apiKey.userId !== userId) {
+      return res.status(404).json({ message: "API key not found" });
     }
-    res.json({ success: true, message: "OTP sent successfully" });
+    const updated = await storage.updateApiKey(id, { name, permissions });
+    res.json(updated);
   } catch (error) {
-    console.error("Send OTP error:", error);
-    res.status(400).json({ error: "Invalid request" });
+    console.error("Update API key error:", error);
+    res.status(500).json({ message: "Failed to update API key" });
   }
 });
-router21.post("/verify-otp", async (req, res) => {
+router23.delete("/:id", requireAuth, async (req, res) => {
   try {
-    const { email, token, type } = z15.object({
-      email: z15.string().email(),
-      token: z15.string().length(6),
-      type: z15.enum(["registration", "password_reset", "2fa"])
-    }).parse(req.body);
-    const validOtps = ["123456", "111111", "000000"];
-    if (validOtps.includes(token)) {
-      if (type === "registration") {
-        try {
-          console.log(`User ${email} verified successfully for registration`);
-        } catch (dbError) {
-          console.error("Failed to update user verification status:", dbError);
-        }
-      }
-      res.json({ success: true, message: "OTP verified successfully" });
-    } else {
-      res.status(400).json({ error: "Invalid OTP code. Try: 123456, 111111, or 000000" });
+    const { id } = req.params;
+    const userId = req.user.id;
+    const apiKey = await storage.getApiKeyById(id);
+    if (!apiKey || apiKey.userId !== userId) {
+      return res.status(404).json({ message: "API key not found" });
     }
+    await storage.revokeApiKey(id);
+    res.json({ message: "API key revoked successfully" });
   } catch (error) {
-    console.error("Verify OTP error:", error);
-    res.status(400).json({ error: "Invalid request" });
+    console.error("Revoke API key error:", error);
+    res.status(500).json({ message: "Failed to revoke API key" });
   }
 });
-router21.post("/resend-otp", async (req, res) => {
+router23.patch("/:id/toggle", requireAuth, async (req, res) => {
   try {
-    const { email, type } = z15.object({
-      email: z15.string().email(),
-      type: z15.enum(["registration", "password_reset", "2fa"])
-    }).parse(req.body);
-    const otp = generateOTP();
-    console.log(`New OTP for ${email} (${type}): ${otp}`);
-    try {
-      const subject = type === "registration" ? "New Verification Code - BITPANDA PRO" : type === "password_reset" ? "New Password Reset Code - BITPANDA PRO" : "New 2FA Code - BITPANDA PRO";
-      await sendEmail({
-        to: email,
-        from: "noreply@bitpanda-pro.com",
-        subject,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-            <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
-              <h2 style="color: #10b981; margin: 0 0 30px 0; font-size: 24px;">New Verification Code</h2>
-              
-              <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
-                <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                  Your new verification code is:
-                </p>
-                
-                <div style="background-color: #059669; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <span style="color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
-                    ${otp}
-                  </span>
-                </div>
-                
-                <p style="color: #fbbf24; margin: 20px 0 0 0; font-size: 14px; font-weight: bold;">
-                  This code will expire in 5 minutes
-                </p>
-              </div>
-              
-              <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-                If you didn't request this code, please ignore this email.
-              </p>
-            </div>
-          </div>
-        `
-      });
-    } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError);
+    const { id } = req.params;
+    const userId = req.user.id;
+    const apiKey = await storage.getApiKeyById(id);
+    if (!apiKey || apiKey.userId !== userId) {
+      return res.status(404).json({ message: "API key not found" });
     }
-    res.json({ success: true, message: "New OTP sent successfully" });
+    const updated = await storage.updateApiKey(id, { isActive: !apiKey.isActive });
+    res.json(updated);
   } catch (error) {
-    console.error("Resend OTP error:", error);
-    res.status(400).json({ error: "Invalid request" });
+    console.error("Toggle API key error:", error);
+    res.status(500).json({ message: "Failed to toggle API key" });
   }
 });
-var auth_routes_default = router21;
+var api_keys_routes_default = router23;
 
 // server/index.ts
-init_kyc_routes();
-init_market_research_routes();
-init_chat_routes();
-init_investment_plans_routes();
-init_savings_plans_routes();
-init_staking_routes();
-init_lending_routes();
-import path5 from "path";
-import fs4 from "fs";
-import { fileURLToPath } from "url";
+import path7 from "path";
+import fs5 from "fs";
+import { fileURLToPath as fileURLToPath2 } from "url";
 var app = express2();
-app.use(express2.json({ limit: "10mb" }));
-app.use(express2.urlencoded({ extended: true, limit: "10mb" }));
 app.use((req, res, next) => {
   const allowedOrigins = [
     "http://localhost:5000",
@@ -11292,23 +11929,40 @@ app.use((req, res, next) => {
     "http://0.0.0.0:5000",
     "https://*.replit.app",
     "https://*.replit.dev",
-    process.env.REPLIT_DOMAINS?.split(",") || []
+    ...process.env.REPLIT_DOMAINS?.split(",") || []
   ].flat();
   const origin = req.headers.origin;
   const isAllowed = allowedOrigins.some(
-    (allowed) => allowed === origin || allowed.includes("*") && origin?.endsWith(allowed.replace("*.", "."))
+    (allowed) => allowed === origin || allowed.includes("*") && origin?.endsWith(allowed.replace("*", ""))
   );
   if (isAllowed || !origin) {
     res.header("Access-Control-Allow-Origin", origin || "*");
   }
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token");
   if (req.method === "OPTIONS") {
     res.sendStatus(200);
   } else {
     next();
   }
+});
+app.use(express2.json({ limit: "10mb" }));
+app.use(express2.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser(process.env.COOKIE_SECRET || "some-super-secret-and-long-string"));
+var csrfProtection = csrf({
+  secret: process.env.CSRF_SECRET || "some-super-secret-and-long-string-that-is-at-least-32-characters-long",
+  cookieName: "_csrf",
+  headerName: "X-CSRF-Token",
+  cookieOptions: {
+    sameSite: "lax",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production"
+  }
+});
+app.use(csrfProtection);
+app.get("/api/csrf-token", (req, res) => {
+  res.json({ csrfToken: req.csrfToken });
 });
 app.use((req, res, next) => {
   console.log(`${(/* @__PURE__ */ new Date()).toISOString()} - ${req.method} ${req.path}`);
@@ -11316,7 +11970,7 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
   const start = Date.now();
-  const path6 = req.path;
+  const path8 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -11325,8 +11979,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path6.startsWith("/api")) {
-      let logLine = `${req.method} ${path6} ${res.statusCode} in ${duration}ms`;
+    if (path8.startsWith("/api")) {
+      let logLine = `${req.method} ${path8} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -11342,10 +11996,14 @@ app.use((req, res, next) => {
   try {
     const server = await registerRoutes(app);
     app.use((err, _req, res, _next) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
-      console.error(`Error occurred: ${err.stack || err}`);
+      if (err.code === "EBADCSRFTOKEN") {
+        res.status(403).json({ message: "Invalid CSRF token" });
+      } else {
+        const status = err.status || err.statusCode || 500;
+        const message = err.message || "Internal Server Error";
+        res.status(status).json({ message });
+        console.error(`Error occurred: ${err.stack || err}`);
+      }
     });
     try {
       await seedDatabase();
@@ -11353,55 +12011,39 @@ app.use((req, res, next) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.warn("\u26A0\uFE0F  Database seeding failed (this is normal if already seeded):", errorMessage);
     }
-    const uploadsDir2 = path5.join(process.cwd(), "uploads", "proofs");
-    if (!fs4.existsSync(uploadsDir2)) {
-      fs4.mkdirSync(uploadsDir2, { recursive: true });
+    const uploadsDir2 = path7.join(process.cwd(), "uploads", "proofs");
+    if (!fs5.existsSync(uploadsDir2)) {
+      fs5.mkdirSync(uploadsDir2, { recursive: true });
       console.log("\u{1F4C1} Created uploads directory structure");
     }
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path5.dirname(__filename);
+    const __filename2 = fileURLToPath2(import.meta.url);
+    const __dirname2 = path7.dirname(__filename2);
     app.use("/uploads", (req, res, next) => {
       const token = req.headers.authorization?.replace("Bearer ", "");
       if (!token) {
         return res.status(401).json({ error: "Authentication required" });
       }
       next();
-    }, express2.static(path5.join(__dirname, "../uploads")));
-    app.use("/api/crypto", crypto_routes_default);
-    app.use("/api/trading", trading_routes_default);
-    app.use("/api/admin", admin_auth_routes_default);
-    app.use("/api/admin", admin_routes_default);
-    app.use("/api/auth", auth_routes_default);
-    app.use("/api/alerts", alert_routes_default);
-    app.use("/api/deposits", deposit_routes_default);
+    }, express2.static(path7.join(__dirname2, "../uploads")));
     app.use("/api/withdrawals", withdrawal_routes_default);
-    app.use("/api/metals", metals_routes_default);
-    app.use("/api/portfolio", router4);
-    app.use("/api/portfolio/analytics", portfolio_analytics_routes_default);
-    app.use("/api/news", news_routes_default);
-    app.use("/api/research", market_research_routes_default);
-    app.use("/api/kyc", kyc_routes_default);
-    app.use("/api/support/chat", chat_routes_default);
-    app.use("/api/investment-plans", investment_plans_routes_default);
-    app.use("/api/savings-plans", savings_plans_routes_default);
-    app.use("/api/staking", staking_routes_default);
-    app.use("/api/lending", lending_routes_default);
+    app.use("/api/watchlist", watchlist_routes_default);
+    app.use("/api/api-keys", api_keys_routes_default);
     if (app.get("env") === "development") {
       await setupVite(app, server);
     } else {
       serveStatic(app);
     }
-    app.use(express2.static(path5.join(__dirname, "../client/dist")));
+    app.use(express2.static(path7.join(__dirname2, "../client/dist")));
     app.get("/admin*", (req, res) => {
-      const adminHtmlPath = path5.join(__dirname, "../client/dist/admin.html");
-      if (fs4.existsSync(adminHtmlPath)) {
+      const adminHtmlPath = path7.join(__dirname2, "../client/dist/admin.html");
+      if (fs5.existsSync(adminHtmlPath)) {
         res.sendFile(adminHtmlPath);
       } else {
-        res.sendFile(path5.join(__dirname, "../client/admin.html"));
+        res.sendFile(path7.join(__dirname2, "../client/admin.html"));
       }
     });
     app.get("*", (req, res) => {
-      res.sendFile(path5.join(__dirname, "../client/dist/index.html"));
+      res.sendFile(path7.join(__dirname2, "../client/dist/index.html"));
     });
     const port = parseInt(process.env.PORT || "5000");
     server.on("error", (err) => {

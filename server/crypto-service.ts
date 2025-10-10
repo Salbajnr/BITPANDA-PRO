@@ -293,40 +293,6 @@ class CryptoService {
     return results;
   }
 
-  async getMarketData(): Promise<any[]> {
-    const cacheKey = 'market_data';
-    const cached = this.cache.get(cacheKey);
-    if (cached && this.isValidCacheEntry(cached)) {
-      return cached.data;
-    }
-
-    try {
-      const response = await this.rateLimitedFetch(
-        `${this.baseUrl}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d`
-      );
-
-      if (response.status === 429) {
-        console.warn('⚠️ Rate limited fetching market data, using fallback');
-        return this.getFallbackData(100); // Assuming a limit of 100 for fallback
-      }
-
-      if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data && Array.isArray(data)) {
-        this.cache.set(cacheKey, { data, timestamp: Date.now() });
-        return data;
-      }
-
-      throw new Error('Invalid data received from API');
-    } catch (error) {
-      console.error('❌ Error fetching market data:', error);
-      return this.getFallbackData(100); // Assuming a limit of 100 for fallback
-    }
-  }
-
   // Get price history for charting
   async getPriceHistory(symbol: string, period: string = '24h'): Promise<any[]> {
     const cacheKey = `history_${symbol}_${period}`;
