@@ -182,6 +182,15 @@ app.use((req, res, next) => {
     // are handled by the Vite development server (or static file serving in production).
     // This allows the frontend routing to work seamlessly.
 
+    // Register new CRUD routes
+    import watchlistRoutes from './watchlist-routes';
+    import apiKeysRoutes from './api-keys-routes';
+
+    app.use('/api/withdrawals', withdrawalRoutes);
+    app.use('/api/watchlist', watchlistRoutes);
+    app.use('/api/api-keys', apiKeysRoutes);
+
+
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
     // this serves both the API and the client.

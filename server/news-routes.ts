@@ -237,4 +237,82 @@ router.get('/categories', (req, res) => {
   }
 });
 
+// Admin: Create news article
+router.post('/admin/create', async (req, res) => {
+  try {
+    const { title, description, url, imageUrl, category, coins } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({ message: 'Title and description are required' });
+    }
+
+    const newsArticle = await storage.createNewsArticle({
+      title,
+      description,
+      summary: description.substring(0, 150),
+      url: url || '#',
+      imageUrl: imageUrl || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+      category: category || 'general',
+      coins: coins || [],
+      sentiment: 'neutral',
+      source: { id: 'admin', name: 'Admin' }
+    });
+
+    res.json(newsArticle);
+  } catch (error) {
+    console.error('Error creating news:', error);
+    res.status(500).json({ message: 'Failed to create news article' });
+  }
+});
+
+// Admin: Update news article
+router.put('/admin/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, url, imageUrl, category, coins } = req.body;
+
+    const updatedArticle = await storage.updateNewsArticle(id, {
+      title,
+      description,
+      summary: description?.substring(0, 150),
+      url,
+      imageUrl,
+      category,
+      coins
+    });
+
+    if (!updatedArticle) {
+      return res.status(404).json({ message: 'News article not found' });
+    }
+
+    res.json(updatedArticle);
+  } catch (error) {
+    console.error('Error updating news:', error);
+    res.status(500).json({ message: 'Failed to update news article' });
+  }
+});
+
+// Admin: Delete news article
+router.delete('/admin/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await storage.deleteNewsArticle(id);
+    res.json({ message: 'News article deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting news:', error);
+    res.status(500).json({ message: 'Failed to delete news article' });
+  }
+});
+
+// Admin: Get analytics
+router.get('/analytics', async (req, res) => {
+  try {
+    const analytics = await storage.getNewsAnalytics();
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ message: 'Failed to fetch analytics' });
+  }
+});
+
 export default router;

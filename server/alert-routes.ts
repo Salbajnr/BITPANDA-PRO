@@ -7,27 +7,20 @@ const router = Router();
 
 const createAlertSchema = z.object({
   symbol: z.string().min(1),
-  name: z.string().min(1),
-  targetPrice: z.number().min(0),
-  condition: z.enum(['above', 'below']),
+  type: z.enum(['price_above', 'price_below', 'percent_change']),
+  targetPrice: z.string().optional(),
+  percentChange: z.string().optional(),
   message: z.string().optional(),
 });
 
-const updateAlertSchema = z.object({
-  targetPrice: z.number().min(0).optional(),
-  condition: z.enum(['above', 'below']).optional(),
-  message: z.string().optional(),
-  isActive: z.boolean().optional(),
-});
-
-// Get all alerts for user
+// Get user's alerts
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const alerts = await storage.getUserPriceAlerts(userId);
+    const alerts = await storage.getUserAlerts(userId);
     res.json(alerts);
   } catch (error) {
-    console.error('Error fetching alerts:', error);
+    console.error('Get alerts error:', error);
     res.status(500).json({ message: 'Failed to fetch alerts' });
   }
 });
@@ -36,124 +29,81 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const alertData = createAlertSchema.parse(req.body);
+    const data = createAlertSchema.parse(req.body);
 
-    const alert = await storage.createPriceAlert({
+    const alert = await storage.createAlert({
       userId,
-      symbol: alertData.symbol,
-      name: alertData.name,
-      targetPrice: alertData.targetPrice.toString(),
-      condition: alertData.condition,
-      message: alertData.message || `${alertData.symbol} price alert`,
+      symbol: data.symbol,
+      type: data.type,
+      targetPrice: data.targetPrice || null,
+      percentChange: data.percentChange || null,
+      message: data.message || `Price alert for ${data.symbol}`,
       isActive: true,
+      isTriggered: false,
     });
 
     res.json(alert);
   } catch (error) {
-    console.error('Error creating alert:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
-    }
+    console.error('Create alert error:', error);
     res.status(500).json({ message: 'Failed to create alert' });
   }
 });
 
 // Update alert
-router.put('/:alertId', requireAuth, async (req: Request, res: Response) => {
+router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
     const userId = req.user!.id;
-    const alertId = req.params.alertId;
-    const updates = updateAlertSchema.parse(req.body);
+    const data = req.body;
 
-    // Verify alert belongs to user
-    const alert = await storage.getPriceAlertById(alertId);
+    const alert = await storage.getAlertById(id);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: 'Alert not found' });
     }
 
-    const updateData: any = {};
-    if (updates.targetPrice !== undefined) updateData.targetPrice = updates.targetPrice.toString();
-    if (updates.condition !== undefined) updateData.condition = updates.condition;
-    if (updates.message !== undefined) updateData.message = updates.message;
-    if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
-
-    await storage.updatePriceAlert(alertId, updateData);
-    const updatedAlert = await storage.getPriceAlertById(alertId);
-
-    res.json(updatedAlert);
+    const updated = await storage.updateAlert(id, data);
+    res.json(updated);
   } catch (error) {
-    console.error('Error updating alert:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
-    }
+    console.error('Update alert error:', error);
     res.status(500).json({ message: 'Failed to update alert' });
   }
 });
 
 // Delete alert
-router.delete('/:alertId', requireAuth, async (req: Request, res: Response) => {
+router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
     const userId = req.user!.id;
-    const alertId = req.params.alertId;
 
-    // Verify alert belongs to user
-    const alert = await storage.getPriceAlertById(alertId);
+    const alert = await storage.getAlertById(id);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: 'Alert not found' });
     }
 
-    await storage.deletePriceAlert(alertId);
+    await storage.deleteAlert(id);
     res.json({ message: 'Alert deleted successfully' });
   } catch (error) {
-    console.error('Error deleting alert:', error);
+    console.error('Delete alert error:', error);
     res.status(500).json({ message: 'Failed to delete alert' });
   }
 });
 
 // Toggle alert active status
-router.patch('/:alertId/toggle', requireAuth, async (req: Request, res: Response) => {
+router.patch('/:id/toggle', requireAuth, async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
     const userId = req.user!.id;
-    const alertId = req.params.alertId;
 
-    // Verify alert belongs to user
-    const alert = await storage.getPriceAlertById(alertId);
+    const alert = await storage.getAlertById(id);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: 'Alert not found' });
     }
 
-    await storage.updatePriceAlert(alertId, { isActive: !alert.isActive });
-    const updatedAlert = await storage.getPriceAlertById(alertId);
-
-    res.json(updatedAlert);
+    const updated = await storage.updateAlert(id, { isActive: !alert.isActive });
+    res.json(updated);
   } catch (error) {
-    console.error('Error toggling alert:', error);
+    console.error('Toggle alert error:', error);
     res.status(500).json({ message: 'Failed to toggle alert' });
-  }
-});
-
-// Get alert notifications for user
-router.get('/notifications', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const limit = parseInt(req.query.limit as string) || 20;
-    const notifications = await storage.getUserNotifications(userId, limit);
-    res.json(notifications);
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    res.status(500).json({ message: 'Failed to fetch notifications' });
-  }
-});
-
-// Mark notification as read
-router.patch('/notifications/:notificationId/read', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const notificationId = req.params.notificationId;
-    await storage.markNotificationAsRead(notificationId);
-    res.json({ message: 'Notification marked as read' });
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    res.status(500).json({ message: 'Failed to mark notification as read' });
   }
 });
 
