@@ -129,7 +129,7 @@ export default function Dashboard() {
       });
       const timer = setTimeout(() => {
         navigate('/auth');
-      }, 1000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [user, authLoading, toast, navigate]);

@@ -70,15 +70,20 @@ export default function Auth() {
       const res = await apiRequest("POST", "/api/user/auth/login", data);
       return res;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+    onSuccess: async (data) => {
       showMessage(
         "Login Successful",
         `Welcome back, ${data.user.firstName}! Redirecting to your dashboard...`,
         "success"
       );
-      // Immediate redirect to dashboard
-      navigate('/dashboard');
+      // Wait for auth state to update
+      await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+      await queryClient.refetchQueries({ queryKey: ["auth-user"] });
+      
+      // Redirect after state update
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 500);
     },
     onError: (error: any) => {
       showMessage(
@@ -94,15 +99,20 @@ export default function Auth() {
       const res = await apiRequest("POST", "/api/user/auth/register", data);
       return res;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       showMessage(
         "Registration Successful",
         "Your account has been created successfully! Redirecting to your dashboard...",
         "success"
       );
-      // Direct redirect to dashboard after registration
-      queryClient.invalidateQueries({ queryKey: ["auth-user"] });
-      navigate('/dashboard');
+      // Wait for auth state to update
+      await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+      await queryClient.refetchQueries({ queryKey: ["auth-user"] });
+      
+      // Redirect after state update
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 500);
     },
     onError: (error: any) => {
       showMessage(
@@ -194,8 +204,14 @@ export default function Auth() {
           "Welcome! Redirecting to your dashboard...",
           "success"
         );
-        queryClient.invalidateQueries({ queryKey: ["auth-user"] });
-        navigate('/dashboard');
+        // Wait for auth state to update
+        await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+        await queryClient.refetchQueries({ queryKey: ["auth-user"] });
+        
+        // Redirect after state update
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 500);
       }
     } catch (error: any) {
       showMessage(
