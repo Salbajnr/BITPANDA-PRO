@@ -42,11 +42,11 @@ export const queryClient = new QueryClient({
   },
 });
 
-export async function apiRequest(
+export async function apiRequest<T = any>(
   method: string,
   url: string,
   data?: any
-): Promise<any> {
+): Promise<T> {
   const config: RequestInit = {
     method,
     headers: {
@@ -75,10 +75,16 @@ export async function apiRequest(
     }
 
     const responseData = await response.text();
+    
+    // Handle empty responses
+    if (!responseData || responseData.trim() === '') {
+      return null as T;
+    }
+    
     try {
-      return JSON.parse(responseData);
+      return JSON.parse(responseData) as T;
     } catch {
-      return responseData;
+      return responseData as T;
     }
   } catch (error) {
     // Handle network errors or other fetch failures

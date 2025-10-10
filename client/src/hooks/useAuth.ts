@@ -8,16 +8,14 @@ export function useAuth() {
     queryFn: async () => {
       try {
         const res = await apiRequest<{ user: User }>("GET", "/api/user/auth/me");
-        return res.user;
+        return res?.user || null;
       } catch (error: any) {
-        if (error.message?.includes("401") || error.message?.includes("Unauthorized")) {
-          return null;
-        }
-        throw error;
+        // Return null for auth errors instead of throwing
+        console.log('Auth check error:', error.message);
+        return null;
       }
     },
-    retry: 1,
-    retryDelay: 500,
+    retry: false, // Don't retry auth checks
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: true,

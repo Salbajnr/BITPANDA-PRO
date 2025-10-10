@@ -70,17 +70,21 @@ export default function Auth() {
       const res = await apiRequest("POST", "/api/user/auth/login", data);
       return res;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       showMessage(
         "Login Successful",
-        `Welcome back, ${data.user.firstName}! Redirecting to your dashboard...`,
+        `Welcome back, ${data.user.firstName}!`,
         "success"
       );
-      // Invalidate queries to refresh auth state
-      queryClient.invalidateQueries({ queryKey: ["auth-user"] });
       
-      // Navigate using React Router
-      navigate('/dashboard');
+      // Invalidate and refetch auth state
+      await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+      await queryClient.refetchQueries({ queryKey: ["auth-user"] });
+      
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 500);
     },
     onError: (error: any) => {
       showMessage(
