@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useGlobalMessageModal } from "@/contexts/MessageModalContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,6 +60,7 @@ export default function Auth() {
     phone: "" 
   });
   const { toast } = useToast();
+  const { showMessage } = useGlobalMessageModal();
   const queryClient = useQueryClient();
   const { user, isLoading: authLoading } = useAuth();
 
@@ -70,18 +72,19 @@ export default function Auth() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["auth-user"] });
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${data.user.firstName}!`,
-      });
-      navigate('/dashboard');
+      showMessage(
+        "Login Successful",
+        `Welcome back, ${data.user.firstName}! Redirecting to your dashboard...`,
+        "success"
+      );
+      setTimeout(() => navigate('/dashboard'), 1500);
     },
     onError: (error: any) => {
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials",
-        variant: "destructive",
-      });
+      showMessage(
+        "Login Failed",
+        error.message || "Invalid credentials. Please check your email/username and password.",
+        "error"
+      );
     },
   });
 
@@ -91,18 +94,19 @@ export default function Auth() {
       return res;
     },
     onSuccess: (data) => {
-      toast({
-        title: "Registration successful",
-        description: "Please check your email to verify your account.",
-      });
-      navigate(`/verify-otp/registration/${encodeURIComponent(data.user.email)}`);
+      showMessage(
+        "Registration Successful",
+        "Your account has been created successfully! Please check your email to verify your account.",
+        "success"
+      );
+      setTimeout(() => navigate(`/verify-otp/registration/${encodeURIComponent(data.user.email)}`), 1500);
     },
     onError: (error: any) => {
-      toast({
-        title: "Registration failed",
-        description: error.message || "Registration failed",
-        variant: "destructive",
-      });
+      showMessage(
+        "Registration Failed",
+        error.message || "Unable to create your account. Please try again.",
+        "error"
+      );
     },
   });
 
@@ -141,11 +145,11 @@ export default function Auth() {
   const handleUserLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userLoginForm.emailOrUsername || !userLoginForm.password) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      showMessage(
+        "Missing Information",
+        "Please fill in all fields to continue.",
+        "warning"
+      );
       return;
     }
     userLoginMutation.mutate(userLoginForm);
@@ -157,20 +161,20 @@ export default function Auth() {
     // Validation
     if (!registerForm.firstName || !registerForm.lastName || !registerForm.username || 
         !registerForm.email || !registerForm.password) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
+      showMessage(
+        "Missing Information",
+        "Please fill in all required fields to create your account.",
+        "warning"
+      );
       return;
     }
 
     if (registerForm.password.length < 6) {
-      toast({
-        title: "Weak password",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+      showMessage(
+        "Weak Password",
+        "Your password must be at least 6 characters long for security.",
+        "warning"
+      );
       return;
     }
 
@@ -183,11 +187,11 @@ export default function Auth() {
       await signInWithGoogle();
       // User will be redirected to Google sign-in page, then back to app
     } catch (error: any) {
-      toast({
-        title: "Google Sign-In Failed",
-        description: error.message || "Unable to sign in with Google",
-        variant: "destructive",
-      });
+      showMessage(
+        "Google Sign-In Failed",
+        error.message || "Unable to sign in with Google. Please try again.",
+        "error"
+      );
     }
   };
 
@@ -265,7 +269,7 @@ export default function Auth() {
                 </TabsList>
 
                 <TabsContent value="login" className="space-y-6">
-                  <form onSubmit={handleUserLogin} className="space-y-5">
+                  <form onSubmit={handleUserLogin} className="space-y-5" data-testid="form-login">
                     <div className="space-y-2">
                       <Label htmlFor="emailOrUsername" className="text-gray-700 dark:text-slate-300 font-medium">
                         Email or Username
@@ -279,6 +283,7 @@ export default function Auth() {
                           value={userLoginForm.emailOrUsername}
                           onChange={(e) => setUserLoginForm({ ...userLoginForm, emailOrUsername: e.target.value })}
                           className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          data-testid="input-email-username"
                           required
                         />
                       </div>
@@ -297,12 +302,14 @@ export default function Auth() {
                           value={userLoginForm.password}
                           onChange={(e) => setUserLoginForm({ ...userLoginForm, password: e.target.value })}
                           className="pl-10 pr-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          data-testid="input-password"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-3 text-slate-500 hover:text-slate-300 transition-colors"
+                          data-testid="button-toggle-password"
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -315,6 +322,7 @@ export default function Auth() {
                           variant="ghost"
                           size="sm"
                           className="text-green-500 hover:text-green-600 hover:bg-green-100 p-0 h-auto font-medium"
+                          data-testid="link-forgot-password"
                         >
                           Forgot password?
                         </Button>
@@ -325,6 +333,7 @@ export default function Auth() {
                       type="submit" 
                       className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]" 
                       disabled={userLoginMutation.isPending}
+                      data-testid="button-login"
                     >
                       {userLoginMutation.isPending ? (
                         <div className="flex items-center">
@@ -355,6 +364,7 @@ export default function Auth() {
                       variant="outline"
                       onClick={handleGoogleAuth}
                       className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                      data-testid="button-google-signin"
                     >
                       <Chrome className="w-5 h-5 mr-2" />
                       Sign in with Google
@@ -363,7 +373,7 @@ export default function Auth() {
                 </TabsContent>
 
                 <TabsContent value="register" className="space-y-6">
-                  <form onSubmit={handleRegister} className="space-y-5">
+                  <form onSubmit={handleRegister} className="space-y-5" data-testid="form-register">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="firstName" className="text-gray-700 dark:text-slate-300 font-medium">
@@ -378,6 +388,7 @@ export default function Auth() {
                             value={registerForm.firstName}
                             onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
                             className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                            data-testid="input-firstname"
                             required
                           />
                         </div>
@@ -394,6 +405,7 @@ export default function Auth() {
                           value={registerForm.lastName}
                           onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
                           className="h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          data-testid="input-lastname"
                           required
                         />
                       </div>
@@ -412,6 +424,7 @@ export default function Auth() {
                           value={registerForm.username}
                           onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
                           className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          data-testid="input-username"
                           required
                         />
                       </div>
@@ -430,6 +443,7 @@ export default function Auth() {
                           value={registerForm.email}
                           onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                           className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          data-testid="input-register-email"
                           required
                         />
                       </div>
@@ -448,6 +462,7 @@ export default function Auth() {
                           value={registerForm.phone}
                           onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
                           className="pl-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          data-testid="input-phone"
                         />
                       </div>
                     </div>
@@ -465,6 +480,7 @@ export default function Auth() {
                           value={registerForm.password}
                           onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
                           className="pl-10 pr-10 h-12 bg-white dark:bg-slate-700/30 border border-slate-300 dark:border-slate-600/50 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300"
+                          data-testid="input-register-password"
                           required
                           minLength={6}
                         />
@@ -472,6 +488,7 @@ export default function Auth() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-3 text-slate-500 hover:text-slate-300 transition-colors"
+                          data-testid="button-toggle-register-password"
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -496,6 +513,7 @@ export default function Auth() {
                       type="submit" 
                       className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]" 
                       disabled={registerMutation.isPending}
+                      data-testid="button-register"
                     >
                       {registerMutation.isPending ? (
                         <div className="flex items-center">
@@ -526,6 +544,7 @@ export default function Auth() {
                       variant="outline"
                       onClick={handleGoogleAuth}
                       className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                      data-testid="button-google-signup"
                     >
                       <Chrome className="w-5 h-5 mr-2" />
                       Sign up with Google
