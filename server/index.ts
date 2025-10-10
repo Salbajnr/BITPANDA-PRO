@@ -26,6 +26,8 @@ import investmentPlansRoutes from './investment-plans-routes';
 import savingsPlansRoutes from './savings-plans-routes';
 import stakingRoutes from './staking-routes';
 import lendingRoutes from './lending-routes';
+import watchlistRoutes from './watchlist-routes';
+import apiKeysRoutes from './api-keys-routes';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -148,6 +150,11 @@ app.use((req, res, next) => {
 
     // All API routes are registered in routes.ts via registerRoutes()
     // Do not duplicate route registrations here
+    
+    // Register additional CRUD routes
+    app.use('/api/withdrawals', withdrawalRoutes);
+    app.use('/api/watchlist', watchlistRoutes);
+    app.use('/api/api-keys', apiKeysRoutes);
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route
@@ -181,14 +188,6 @@ app.use((req, res, next) => {
     // It ensures that any requests that do not match the defined API routes
     // are handled by the Vite development server (or static file serving in production).
     // This allows the frontend routing to work seamlessly.
-
-    // Register new CRUD routes
-    import watchlistRoutes from './watchlist-routes';
-    import apiKeysRoutes from './api-keys-routes';
-
-    app.use('/api/withdrawals', withdrawalRoutes);
-    app.use('/api/watchlist', watchlistRoutes);
-    app.use('/api/api-keys', apiKeysRoutes);
 
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
