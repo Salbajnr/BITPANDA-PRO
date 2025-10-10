@@ -79,8 +79,8 @@ export default function Auth() {
       // Invalidate queries to refresh auth state
       queryClient.invalidateQueries({ queryKey: ["auth-user"] });
       
-      // Navigate immediately
-      window.location.href = '/dashboard';
+      // Navigate using React Router
+      navigate('/dashboard');
     },
     onError: (error: any) => {
       showMessage(
@@ -105,8 +105,8 @@ export default function Auth() {
       // Invalidate queries to refresh auth state
       queryClient.invalidateQueries({ queryKey: ["auth-user"] });
       
-      // Navigate immediately
-      window.location.href = '/dashboard';
+      // Navigate using React Router
+      navigate('/dashboard');
     },
     onError: (error: any) => {
       showMessage(
@@ -201,8 +201,8 @@ export default function Auth() {
         // Invalidate queries to refresh auth state
         queryClient.invalidateQueries({ queryKey: ["auth-user"] });
         
-        // Navigate immediately
-        window.location.href = '/dashboard';
+        // Navigate using React Router
+        navigate('/dashboard');
       }
     } catch (error: any) {
       showMessage(

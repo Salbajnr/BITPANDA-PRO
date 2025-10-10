@@ -126,13 +126,20 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setLocation('/auth');
+    }
+  }, [user, isLoading, setLocation]);
 
   if (isLoading) {
     return <LoadingScreen message="Authenticating user..." />;
   }
 
   if (!user) {
-    return <Redirect to="/auth" />;
+    return null;
   }
 
   return <AuthenticatedLayout>{children}</AuthenticatedLayout>;

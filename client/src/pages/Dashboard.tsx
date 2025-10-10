@@ -134,6 +134,13 @@ export default function Dashboard() {
     }
   }, [user, authLoading, toast, navigate]);
 
+  // Redirect admin users to admin panel
+  useEffect(() => {
+    if (!authLoading && user && user.role === 'admin') {
+      navigate('/admin');
+    }
+  }, [user, authLoading, navigate]);
+
   if (authLoading || portfolioLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
