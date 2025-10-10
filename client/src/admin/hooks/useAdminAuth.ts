@@ -17,7 +17,7 @@ export function useAdminAuth() {
         return null;
       }
     },
-    retry: 1,
+    retry: 2,
     retryDelay: 1000,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

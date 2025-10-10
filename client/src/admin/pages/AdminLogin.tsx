@@ -33,6 +33,7 @@ export default function AdminLogin() {
         title: "Admin login successful",
         description: `Welcome back, Admin ${data.admin.firstName}!`,
       });
+      // Immediate redirect to admin dashboard
       setLocation('/admin/dashboard');
     },
     onError: (error: any) => {

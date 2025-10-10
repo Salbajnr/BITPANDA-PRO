@@ -43,11 +43,13 @@ export default function AdminLogin() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-auth"] });
       toast({
         title: "Admin login successful",
         description: `Welcome back, Admin ${data.user.firstName}!`,
       });
-      setLocation('/admin');
+      // Redirect to admin dashboard
+      setLocation('/admin/dashboard');
     },
     onError: (error: any) => {
       toast({
