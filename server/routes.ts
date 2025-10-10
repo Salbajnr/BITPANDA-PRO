@@ -111,8 +111,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/savings-plans', savingsPlansRoutes);
 
   // Proof upload routes (for deposit/withdrawal proof uploads)
-  const proofUploadRoutes = (await import('./proof-upload-routes')).default;
-  app.use('/api/proof-upload', proofUploadRoutes);
+  const { registerProofUploadRoutes } = await import('./proof-upload-routes');
+  registerProofUploadRoutes(app);
 
   // API documentation routes
   const apiDocsRoutes = (await import('./api-docs-routes')).default;
