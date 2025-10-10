@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShieldIcon, CheckCircleIcon, RotateCcwIcon, TimerIcon, ArrowLeftIcon } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
 
 export default function OtpVerification() {
   const { type, email } = useParams<{ type: string; email: string }>();
