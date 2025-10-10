@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,9 +117,45 @@ export default function OtpVerification() {
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (type === 'registration') {
-      setLocation("/auth");
+      // Get pending registration data from sessionStorage
+      const pendingRegistrationData = sessionStorage.getItem('pendingRegistration');
+      
+      if (pendingRegistrationData) {
+        try {
+          const registrationData = JSON.parse(pendingRegistrationData);
+          
+          // Complete the registration
+          const res = await apiRequest('/api/user/auth/register', {
+            method: 'POST',
+            body: registrationData
+          });
+          
+          // Clear pending registration
+          sessionStorage.removeItem('pendingRegistration');
+          
+          toast({
+            title: "Registration Complete",
+            description: "Your account has been created successfully!",
+          });
+          
+          // Navigate to dashboard
+          setLocation("/dashboard");
+        } catch (error: any) {
+          toast({
+            title: "Registration Failed",
+            description: error.message || "Unable to complete registration. Please try again.",
+            variant: "destructive",
+          });
+          
+          // Send back to auth page
+          setLocation("/auth");
+        }
+      } else {
+        // No pending registration, just go to auth
+        setLocation("/auth");
+      }
     } else if (type === 'password_reset') {
       setLocation(`/reset-password/${otp}`);
     } else {

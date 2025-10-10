@@ -91,6 +91,32 @@ export default function Auth() {
     },
   });
 
+  const sendOtpMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const res = await apiRequest("POST", "/api/auth/send-otp", {
+        email,
+        type: 'registration'
+      });
+      return res;
+    },
+    onSuccess: (data, email) => {
+      showMessage(
+        "Verification Code Sent",
+        "Please check your email for the verification code.",
+        "success"
+      );
+      // Navigate to OTP verification page
+      navigate(`/verify-otp/registration/${encodeURIComponent(email)}`);
+    },
+    onError: (error: any) => {
+      showMessage(
+        "Failed to Send Code",
+        error.message || "Unable to send verification code. Please try again.",
+        "error"
+      );
+    },
+  });
+
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
       const res = await apiRequest("POST", "/api/user/auth/register", data);
@@ -185,7 +211,11 @@ export default function Auth() {
       return;
     }
 
-    registerMutation.mutate(registerForm);
+    // Store registration data in sessionStorage for later use
+    sessionStorage.setItem('pendingRegistration', JSON.stringify(registerForm));
+    
+    // Send OTP to email for verification
+    sendOtpMutation.mutate(registerForm.email);
   };
 
   const handleGoogleAuth = async () => {
@@ -530,10 +560,15 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]" 
-                      disabled={registerMutation.isPending}
+                      disabled={sendOtpMutation.isPending || registerMutation.isPending}
                       data-testid="button-register"
                     >
-                      {registerMutation.isPending ? (
+                      {sendOtpMutation.isPending ? (
+                        <div className="flex items-center">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Sending verification code...
+                        </div>
+                      ) : registerMutation.isPending ? (
                         <div className="flex items-center">
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                           Creating account...
