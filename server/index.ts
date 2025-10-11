@@ -74,17 +74,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // IMPORTANT: You should change this secret to a value from your environment variables
 app.use(cookieParser(process.env.COOKIE_SECRET || "some-super-secret-and-long-string"));
 
-// IMPORTANT: You should change this secret to a value from your environment variables
-const csrfProtection = csrf({
-    secret: process.env.CSRF_SECRET || "some-super-secret-and-long-string-that-is-at-least-32-characters-long",
-    cookieName: "_csrf",
-    headerName: "X-CSRF-Token",
-    cookieOptions: {
-        sameSite: "lax",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-    },
-});
+// Debug: log the CSRF secret and its length so we can verify what the process reads
+const _rawCsrf = process.env.CSRF_SECRET;
+console.log('DEBUG: raw CSRF_SECRET value:', JSON.stringify(_rawCsrf));
+console.log('DEBUG: CSRF_SECRET length:', _rawCsrf ? _rawCsrf.length : 'undefined');
+
+// IMPORTANT: tiny-csrf expects the secret string as the first argument.
+// Pass the raw secret directly.
+const csrfProtection = csrf(_rawCsrf || "some-super-secret-and-long-string-that-is-at-least-32-characters-long");
 app.use(csrfProtection);
 
 app.get('/api/csrf-token', (req, res) => {
