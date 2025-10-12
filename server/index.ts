@@ -134,6 +134,12 @@ app.use((req, res, next) => {
     const server = await registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      // Check if headers were already sent to avoid double response
+      if (res.headersSent) {
+        console.error(`Error occurred after response sent: ${err.stack || err}`);
+        return;
+      }
+
       if (err.code === 'EBADCSRFTOKEN') {
         res.status(403).json({ message: 'Invalid CSRF token' });
       } else {
