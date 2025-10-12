@@ -98,7 +98,8 @@ class CryptoService {
     this.isProcessingQueue = true;
 
     while (this.requestQueue.length > 0) {
-      if (this.rateLimitInfo.remaining <= 1) {
+      // Check if we're actually rate limited (remaining is 0 or reset time hasn't passed)
+      if (this.rateLimitInfo.remaining === 0 && this.rateLimitInfo.resetTime > Date.now()) {
         const waitTime = Math.max(0, this.rateLimitInfo.resetTime - Date.now());
         console.log(`⏳ Rate limit reached, waiting ${waitTime}ms`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
