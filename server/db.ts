@@ -41,6 +41,7 @@ export const pool = databaseUrl
       idle_timeout: 20,
       connect_timeout: 10,
       max_lifetime: 60 * 30,
+      ssl: databaseUrl.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
     })
   : null;
 
