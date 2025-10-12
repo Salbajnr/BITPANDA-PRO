@@ -3,21 +3,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PriceAlertsList } from '@/components/PriceAlertsList';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { ErrorState } from '@/components/ErrorState';
+import { LoadingCard } from '@/components/LoadingCard';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { Redirect } from 'wouter';
-import { Bell, Settings, TrendingUp, Target } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Bell, Settings, TrendingUp, Target, RefreshCw } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function Alerts() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   if (!user) {
     return <Redirect to="/auth" />;
   }
 
-  const { data: alertsData = [] } = useQuery({
+  const { data: alertsData = [], isLoading: alertsLoading, error: alertsError } = useQuery({
     queryKey: ['/api/alerts'],
     queryFn: async () => {
       const response = await fetch('/api/alerts', {
@@ -59,20 +62,33 @@ export default function Alerts() {
 
           <main className="flex-1 overflow-auto p-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Active Alerts</p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {activeAlerts.length}
-                      </p>
+            {alertsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <LoadingCard count={3} height="h-24" />
+              </div>
+            ) : alertsError ? (
+              <div className="mb-8">
+                <ErrorState 
+                  title="Failed to Load Alerts"
+                  message={alertsError?.message || 'An error occurred'}
+                  onRetry={() => queryClient.invalidateQueries({ queryKey: ['/api/alerts'] })}
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Active Alerts</p>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {activeAlerts.length}
+                        </p>
+                      </div>
+                      <Bell className="h-8 w-8 text-blue-500" />
                     </div>
-                    <Bell className="h-8 w-8 text-blue-500" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
               <Card>
                 <CardContent className="p-6">

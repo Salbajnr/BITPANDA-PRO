@@ -145,23 +145,39 @@ export default function Trading() {
 
   const handleTrade = async () => {
     if (!user) {
-      showMessage({ type: 'error', message: 'Please login to start trading' });
+      toast({
+        title: "Authentication Required",
+        description: "Please login to start trading",
+        variant: "destructive",
+      });
       navigate('/auth');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      showMessage({ type: 'error', message: 'Please enter a valid trading amount greater than 0' });
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid trading amount greater than 0",
+        variant: "destructive",
+      });
       return;
     }
 
     if (parseFloat(amount) < 0.001) {
-      showMessage({ type: 'warning', message: 'Minimum trading amount is 0.001' });
+      toast({
+        title: "Amount Too Small",
+        description: "Minimum trading amount is 0.001",
+        variant: "destructive",
+      });
       return;
     }
 
     if (priceType === 'limit' && (!limitPrice || parseFloat(limitPrice) <= 0)) {
-      showMessage({ type: 'error', message: 'Please enter a valid limit price' });
+      toast({
+        title: "Invalid Limit Price",
+        description: "Please enter a valid limit price greater than 0",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -170,12 +186,20 @@ export default function Trading() {
     const availableAmount = parseFloat(userHolding?.amount || '0');
 
     if (orderType === 'buy' && total > availableCash) {
-      showMessage({ type: 'error', message: `Insufficient funds. You need $${total.toFixed(2)} but only have $${availableCash.toFixed(2)} available.` });
+      toast({
+        title: "Insufficient Funds",
+        description: `You need $${total.toFixed(2)} but only have $${availableCash.toFixed(2)} available.`,
+        variant: "destructive",
+      });
       return;
     }
 
     if (orderType === 'sell' && parseFloat(amount) > availableAmount) {
-      showMessage({ type: 'error', message: `Insufficient holdings. You can only sell up to ${availableAmount} ${selectedSymbol}.` });
+      toast({
+        title: "Insufficient Holdings",
+        description: `You can only sell up to ${availableAmount} ${selectedSymbol}.`,
+        variant: "destructive",
+      });
       return;
     }
 

@@ -30,6 +30,7 @@ import {
   ChevronRight,
   ShieldCheckIcon,
   ArrowUpIcon,
+  AlertCircle,
 } from "lucide-react";
 import { Link, useLocation, useRoute, useLocation as useNavigate } from "wouter";
 import { Redirect } from "wouter";
@@ -223,6 +224,7 @@ export default function Dashboard() {
   const portfolioValue = portfolioData?.portfolio?.totalValue || "13.36";
   const portfolioChange = -1.69; // Mock percentage change
   const availableBalance = portfolioData?.portfolio?.availableCash || "0.00";
+  const dayChange = parseFloat(portfolioValue) * (portfolioChange / 100);
   const winners = topMovers.filter((m) => m.change > 0);
   const losers = topMovers.filter((m) => m.change < 0);
 
