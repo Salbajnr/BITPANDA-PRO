@@ -240,7 +240,7 @@ class CryptoService {
       );
 
       if (response.status === 429) {
-        console.warn(`⚠️ Rate limited for ${symbol}, using fallback`);
+        console.warn(`⚠️ Rate limited (429) for ${symbol}, using fallback`);
         return this.getFallbackPrice(symbol);
       }
 
@@ -253,7 +253,7 @@ class CryptoService {
       const priceData = data[coinId];
 
       if (!priceData) {
-        console.warn(`⚠️ No price data found for ${symbol}`);
+        console.warn(`⚠️ No price data found for ${symbol} in response`);
         return this.getFallbackPrice(symbol);
       }
 
