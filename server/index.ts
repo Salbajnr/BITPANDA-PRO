@@ -175,11 +175,24 @@ app.use((req, res, next) => {
 
     // All API routes are registered in routes.ts via registerRoutes()
     // Do not duplicate route registrations here
-    
+
     // Register additional CRUD routes
     app.use('/api/withdrawals', withdrawalRoutes);
     app.use('/api/watchlist', watchlistRoutes);
     app.use('/api/api-keys', apiKeysRoutes);
+
+    // Market research routes
+    const marketResearchRoutes = (await import('./market-research-routes')).default;
+    app.use('/api/research', marketResearchRoutes);
+
+    // User management routes
+    const userRoutes = (await import('./user-routes')).default;
+    app.use('/api/user', userRoutes);
+
+    // Analytics routes
+    const analyticsRoutes = (await import('./analytics-routes')).default;
+    app.use('/api/analytics', analyticsRoutes);
+
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route

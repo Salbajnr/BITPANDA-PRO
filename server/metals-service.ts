@@ -32,43 +32,46 @@ class MetalsService {
   }
 
   // Precious metals with their display names
-  private readonly METAL_INFO: Record<MetalSymbol, { name: string; unit: string }> = {
-    'XAU': { name: 'Gold', unit: 'oz' },
-    'XAG': { name: 'Silver', unit: 'oz' },
-    'XPT': { name: 'Platinum', unit: 'oz' },
-    'XPD': { name: 'Palladium', unit: 'oz' },
-    'COPPER': { name: 'Copper', unit: 'lb' },
-    'ALUMINUM': { name: 'Aluminum', unit: 'lb' },
-    'ZINC': { name: 'Zinc', unit: 'lb' },
-    'NICKEL': { name: 'Nickel', unit: 'lb' },
-    'LEAD': { name: 'Lead', unit: 'lb' },
-    'TIN': { name: 'Tin', unit: 'lb' }
+  private readonly METAL_INFO: Record<MetalSymbol, { name: string; unit: string; mockPrice?: number }> = {
+    'XAU': { name: 'Gold', unit: 'oz', mockPrice: 2000 },
+    'XAG': { name: 'Silver', unit: 'oz', mockPrice: 24 },
+    'XPT': { name: 'Platinum', unit: 'oz', mockPrice: 950 },
+    'XPD': { name: 'Palladium', unit: 'oz', mockPrice: 1800 },
+    'COPPER': { name: 'Copper', unit: 'lb', mockPrice: 4.2 },
+    'ALUMINUM': { name: 'Aluminum', unit: 'lb', mockPrice: 0.85 },
+    'ZINC': { name: 'Zinc', unit: 'lb', mockPrice: 1.15 },
+    'NICKEL': { name: 'Nickel', unit: 'lb', mockPrice: 8.5 },
+    'LEAD': { name: 'Lead', unit: 'lb', mockPrice: 0.95 },
+    'TIN': { name: 'Tin', unit: 'lb', mockPrice: 15.5 }
   };
 
   async getPrice(symbol: string): Promise<MetalPrice | null> {
-    const cached = this.cache.get(symbol);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-      return cached.data;
-    }
-
     try {
-      if (!this.API_KEY) {
-        console.warn('METALS_API_KEY not configured, using fallback data');
+      // Check cache first
+      const cached = this.cache.get(symbol);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        return cached.data;
+      }
+
+      // If no API key or API fails, use fallback immediately
+      if (!this.API_KEY || this.API_KEY === 'your_metals_api_key_here') {
+        console.warn('METALS_API_KEY not configured or is a placeholder, using fallback data');
         return this.getFallbackPrice(symbol);
       }
 
-      const response = await fetch(
-        `${this.API_BASE}/latest?access_key=${this.API_KEY}&base=USD&symbols=${symbol.toUpperCase()}`
-      );
+      const url = `${this.API_BASE}/latest?access_key=${this.API_KEY}&base=USD&symbols=${symbol.toUpperCase()}`;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
+        console.warn(`⚠️ Metals API failed for ${symbol} (${response.status}), using fallback.`);
+        return this.getFallbackPrice(symbol);
       }
 
       const data: MetalsApiResponse = await response.json();
-      
+
       if (!data.success || !data.rates[symbol.toUpperCase()]) {
-        console.warn(`No price data found for ${symbol}`);
+        console.warn(`⚠️ Metals API returned no success or no rate for ${symbol}, using fallback.`);
         return this.getFallbackPrice(symbol);
       }
 
@@ -109,7 +112,7 @@ class MetalsService {
     try {
       const topMetals = Object.keys(this.METAL_INFO).slice(0, limit);
       const prices = await this.getPrices(topMetals);
-      
+
       this.cache.set(cacheKey, { data: prices, timestamp: Date.now() });
       return prices;
     } catch (error) {
@@ -166,28 +169,19 @@ class MetalsService {
     return history;
   }
 
-  private getFallbackPrice(symbol: string): MetalPrice {
-    const fallbackPrices: Record<string, number> = {
-      'XAU': 2000, // Gold per oz
-      'XAG': 24,   // Silver per oz
-      'XPT': 950,  // Platinum per oz
-      'XPD': 1800, // Palladium per oz
-      'COPPER': 4.2, // Copper per lb
-      'ALUMINUM': 0.85, // Aluminum per lb
-      'ZINC': 1.15, // Zinc per lb
-      'NICKEL': 8.5, // Nickel per lb
-      'LEAD': 0.95, // Lead per lb
-      'TIN': 15.5  // Tin per lb
-    };
+  private getFallbackPrice(symbol: string): MetalPrice | null {
+    const info = this.METAL_INFO[symbol.toUpperCase() as MetalSymbol];
+    if (!info) {
+      console.warn(`No fallback price defined for symbol: ${symbol}`);
+      return null;
+    }
 
-    const basePrice = fallbackPrices[symbol.toUpperCase()] || 100;
-    
     return {
       symbol: symbol.toUpperCase(),
-      name: this.getMetalName(symbol),
-      price: basePrice * (0.95 + Math.random() * 0.1), // ±5% variance
+      name: info.name,
+      price: info.mockPrice !== undefined ? info.mockPrice * (0.95 + Math.random() * 0.1) : 100 * (0.95 + Math.random() * 0.1), // ±5% variance if mockPrice not set
       change_24h: this.generateRealisticChange(),
-      unit: this.getMetalUnit(symbol),
+      unit: info.unit,
       last_updated: new Date().toISOString()
     };
   }
@@ -250,8 +244,9 @@ class MetalsService {
   }
 
   private getFallbackPriceHistory(symbol: string): any[] {
-    const basePrice = this.getFallbackPrice(symbol).price;
-    return this.generateRealisticHistory(basePrice, '24h');
+    const fallbackPrice = this.getFallbackPrice(symbol);
+    if (!fallbackPrice) return [];
+    return this.generateRealisticHistory(fallbackPrice.price, '24h'); // Default to 24h for fallback history
   }
 
   private generateRealisticHistory(currentPrice: number, period: string): any[] {
@@ -275,16 +270,16 @@ class MetalsService {
       // Metals are less volatile than crypto, so smaller changes
       const variance = (Math.random() - 0.5) * 0.02; // ±1% variance
       price = price * (1 + variance);
-      
+
       data.push({
-        timestamp: new Date(Date.now() - i * interval).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        timestamp: new Date(Date.now() - i * interval).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
         }),
         price: parseFloat(price.toFixed(2))
       });
     }
-    
+
     return data;
   }
 
