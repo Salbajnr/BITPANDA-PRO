@@ -706,3 +706,231 @@ export default function AdminTransactionMonitor() {
     </div>
   );
 }
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Activity, DollarSign, TrendingUp, Users, 
+  RefreshCw, Search, Filter, Download
+} from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { LoadingCard } from "@/components/LoadingCard";
+import { ErrorState } from "@/components/ErrorState";
+
+interface Transaction {
+  id: string;
+  userId: string;
+  type: string;
+  symbol: string;
+  amount: string;
+  price: string;
+  total: string;
+  status: string;
+  createdAt: string;
+  username?: string;
+  email?: string;
+}
+
+export default function AdminTransactionMonitor() {
+  const [page, setPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const { data: transactions, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/admin/transactions', page, typeFilter, statusFilter, searchQuery],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '20',
+        ...(typeFilter && { type: typeFilter }),
+        ...(statusFilter && { status: statusFilter }),
+        ...(searchQuery && { search: searchQuery })
+      });
+      return apiRequest('GET', `/api/admin/transactions?${params}`);
+    },
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ['/api/admin/transactions/stats'],
+    queryFn: () => apiRequest('GET', '/api/admin/transactions/stats'),
+  });
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+      completed: "default",
+      pending: "secondary",
+      failed: "destructive",
+      cancelled: "outline"
+    };
+    return <Badge variant={variants[status] || "secondary"}>{status.toUpperCase()}</Badge>;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <LoadingCard count={4} height="h-24" />
+        </div>
+        <LoadingCard count={1} height="h-96" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <ErrorState message="Failed to load transactions" onRetry={refetch} />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            Transaction Monitor
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
+            Monitor and analyze all platform transactions
+          </p>
+        </div>
+        <div className="flex space-x-3">
+          <Button onClick={() => refetch()} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Activity className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Transactions</p>
+                  <p className="text-2xl font-bold">{stats.totalTransactions || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-8 w-8 text-green-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Volume</p>
+                  <p className="text-2xl font-bold">${stats.totalVolume || '0'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-8 w-8 text-purple-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">24h Volume</p>
+                  <p className="text-2xl font-bold">${stats.volume24h || '0'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Users className="h-8 w-8 text-orange-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Active Users</p>
+                  <p className="text-2xl font-bold">{stats.activeUsers || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Transaction History</CardTitle>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search transactions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-64"
+                />
+              </div>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="buy">Buy</SelectItem>
+                  <SelectItem value="sell">Sell</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {transactions?.transactions?.map((tx: Transaction) => (
+              <div key={tx.id} className="border rounded-lg p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div>
+                      <h3 className="font-semibold">{tx.username || 'Unknown User'}</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{tx.email}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">{tx.type.toUpperCase()} {tx.symbol}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {tx.amount} @ ${tx.price}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="text-right">
+                      <p className="font-bold">${tx.total}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {new Date(tx.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    {getStatusBadge(tx.status)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

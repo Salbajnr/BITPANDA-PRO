@@ -119,10 +119,11 @@ export default function Alerts() {
               </Card>
             </div>
 
-            <Tabs defaultValue="alerts" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="alerts">Price Alerts</TabsTrigger>
-                <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <>
+              <Tabs defaultValue="alerts" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="alerts">Price Alerts</TabsTrigger>
+                  <TabsTrigger value="notifications">Notifications</TabsTrigger>
               </TabsList>
 
               <TabsContent value="alerts" className="space-y-6">
@@ -133,6 +134,7 @@ export default function Alerts() {
                 <NotificationCenter />
               </TabsContent>
             </Tabs>
+            </>
           </main>
         </div>
       </div>
