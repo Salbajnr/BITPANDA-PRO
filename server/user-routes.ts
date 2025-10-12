@@ -162,4 +162,40 @@ router.patch('/notifications/:id/read', requireAuth, async (req: Request, res: R
   }
 });
 
+// Delete user account
+router.delete('/account', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required to delete account' });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify password
+    const bcrypt = await import('bcrypt');
+    const isValid = await bcrypt.compare(password, user.password);
+    
+    if (!isValid) {
+      return res.status(400).json({ message: 'Incorrect password' });
+    }
+
+    // Delete user and all related data
+    await storage.deleteUser(userId);
+
+    // Destroy session
+    req.session?.destroy(() => {});
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ message: 'Failed to delete account' });
+  }
+});
+
 export default router;

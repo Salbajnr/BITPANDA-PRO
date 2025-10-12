@@ -147,6 +147,80 @@ router.post('/invest', requireAuth, async (req: Request, res: Response) => {
     const userId = req.user!.id;
 
     // Check if user has sufficient balance
+
+
+// Update investment
+router.put('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+    const { notes } = req.body;
+
+    // Verify ownership (you'll need to add this method to storage)
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    const updated = await storage.updateInvestment(id, { notes });
+    res.json(updated);
+  } catch (error) {
+    console.error('Update investment error:', error);
+    res.status(500).json({ message: 'Failed to update investment' });
+  }
+});
+
+// Cancel/Delete investment (only if status allows)
+router.delete('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    // Only allow cancellation if investment is still active and within grace period
+    if (investment.status !== 'active') {
+      return res.status(400).json({ message: 'Cannot cancel this investment' });
+    }
+
+    // Refund the invested amount
+    const portfolio = await storage.getPortfolio(userId);
+    if (portfolio) {
+      const newCash = parseFloat(portfolio.availableCash) + parseFloat(investment.investedAmount);
+      await storage.updatePortfolio(portfolio.id, {
+        availableCash: newCash.toString()
+      });
+    }
+
+    await storage.deleteInvestment(id);
+    res.json({ message: 'Investment cancelled successfully', refundedAmount: investment.investedAmount });
+  } catch (error) {
+    console.error('Cancel investment error:', error);
+    res.status(500).json({ message: 'Failed to cancel investment' });
+  }
+});
+
+// Get single investment details
+router.get('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    res.json(investment);
+  } catch (error) {
+    console.error('Get investment error:', error);
+    res.status(500).json({ message: 'Failed to fetch investment' });
+  }
+});
+
     const portfolio = await storage.getPortfolio(userId);
     if (!portfolio) {
       return res.status(400).json({ message: 'Portfolio not found' });

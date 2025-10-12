@@ -294,6 +294,23 @@ router.post('/admin/create', async (req, res) => {
   }
 });
 
+// Admin: Get single news article
+router.get('/admin/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const article = await storage.getNewsArticleById(id);
+    
+    if (!article) {
+      return res.status(404).json({ message: 'News article not found' });
+    }
+
+    res.json(article);
+  } catch (error) {
+    console.error('Get news article error:', error);
+    res.status(500).json({ message: 'Failed to fetch news article' });
+  }
+});
+
 // Admin: Update news article
 router.put('/admin/:id', async (req, res) => {
   try {

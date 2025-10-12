@@ -173,6 +173,70 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
       createdAt: new Date().toISOString()
     };
 
+
+// Update savings plan
+router.put('/:planId', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { planId } = req.params;
+    const userId = req.user!.id;
+    const { amount, frequency, autoDeposit } = req.body;
+
+    const plan = await storage.getSavingsPlanById(planId);
+    if (!plan || plan.userId !== userId) {
+      return res.status(404).json({ message: 'Savings plan not found' });
+    }
+
+    const updateData: any = {};
+    if (amount) updateData.amount = parseFloat(amount);
+    if (frequency) updateData.frequency = frequency;
+    if (autoDeposit !== undefined) updateData.autoDeposit = autoDeposit;
+
+    const updated = await storage.updateSavingsPlan(planId, updateData);
+    res.json(updated);
+  } catch (error) {
+    console.error('Update savings plan error:', error);
+    res.status(500).json({ message: 'Failed to update savings plan' });
+  }
+});
+
+// Delete/Cancel savings plan
+router.delete('/:planId', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { planId } = req.params;
+    const userId = req.user!.id;
+
+    const plan = await storage.getSavingsPlanById(planId);
+    if (!plan || plan.userId !== userId) {
+      return res.status(404).json({ message: 'Savings plan not found' });
+    }
+
+    await storage.deleteSavingsPlan(planId);
+    res.json({ message: 'Savings plan cancelled successfully' });
+  } catch (error) {
+    console.error('Delete savings plan error:', error);
+    res.status(500).json({ message: 'Failed to delete savings plan' });
+  }
+});
+
+// Get single savings plan
+router.get('/:planId', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { planId } = req.params;
+    const userId = req.user!.id;
+
+    const plan = await storage.getSavingsPlanById(planId);
+    if (!plan || plan.userId !== userId) {
+      return res.status(404).json({ message: 'Savings plan not found' });
+    }
+
+    res.json(plan);
+  } catch (error) {
+    console.error('Get savings plan error:', error);
+    res.status(500).json({ message: 'Failed to fetch savings plan' });
+  }
+});
+
+
     // Store savings plan (you might want to add this to your storage layer)
     // For now, we'll simulate success
 
