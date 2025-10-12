@@ -24,7 +24,7 @@ router.post('/firebase-sync', async (req, res) => {
     if (!user && email) {
       // Check if user exists by email
       user = await storage.getUserByEmail(email);
-      
+
       if (user) {
         // Update existing user with Firebase UID
         await storage.updateUserFirebaseUid(user.id, uid);
@@ -130,7 +130,7 @@ router.post('/forgot-password', async (req, res) => {
             <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
               <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
               <h2 style="color: #10b981; margin: 0 0 30px 0; font-size: 24px;">Password Reset Request</h2>
-              
+
               <div style="background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
                   You requested a password reset for your BITPANDA PRO account.
@@ -138,16 +138,16 @@ router.post('/forgot-password', async (req, res) => {
                 <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
                   Click the button below to reset your password:
                 </p>
-                
+
                 <a href="${resetLink}" style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 0;">
                   Reset Password
                 </a>
-                
+
                 <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
                   This link will expire in 1 hour for security reasons.
                 </p>
               </div>
-              
+
               <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
                 If you didn't request this reset, please ignore this email and your password will remain unchanged.
               </p>
@@ -213,23 +213,23 @@ router.post('/send-otp', async (req, res) => {
             <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
               <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
               <h2 style="color: #3b82f6; margin: 0 0 30px 0; font-size: 24px;">Verification Required</h2>
-              
+
               <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
                 <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
                   Your verification code is:
                 </p>
-                
+
                 <div style="background-color: #1e40af; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <span style="color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
                     ${otp}
                   </span>
                 </div>
-                
+
                 <p style="color: #fbbf24; margin: 20px 0 0 0; font-size: 14px; font-weight: bold;">
                   This code will expire in 5 minutes
                 </p>
               </div>
-              
+
               <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
                 If you didn't request this code, please ignore this email.
               </p>
@@ -309,23 +309,23 @@ router.post('/resend-otp', async (req, res) => {
             <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
               <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
               <h2 style="color: #10b981; margin: 0 0 30px 0; font-size: 24px;">New Verification Code</h2>
-              
+
               <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
                 <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
                   Your new verification code is:
                 </p>
-                
+
                 <div style="background-color: #059669; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <span style="color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
                     ${otp}
                   </span>
                 </div>
-                
+
                 <p style="color: #fbbf24; margin: 20px 0 0 0; font-size: 14px; font-weight: bold;">
                   This code will expire in 5 minutes
                 </p>
               </div>
-              
+
               <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
                 If you didn't request this code, please ignore this email.
               </p>
@@ -334,7 +334,7 @@ router.post('/resend-otp', async (req, res) => {
         `
       });
     } catch (emailError) {
-      console..error('Failed to send OTP email:', emailError);
+      console.error('Failed to send OTP email:', emailError);
     }
 
     res.json({ success: true, message: 'New OTP sent successfully' });

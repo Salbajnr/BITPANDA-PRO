@@ -1,31 +1,53 @@
-import { useFirebaseAuth } from "./useFirebaseAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { getIdToken } from "@/lib/firebase";
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  profilePicture?: string;
+  isVerified: boolean;
+  firebaseUid?: string;
+}
 
 export function useAuth() {
-  const { data: user, isLoading, error, refetch } = useQuery({
+  const { data: user, isLoading, error } = useQuery<User | null>({
     queryKey: ["auth-user"],
     queryFn: async () => {
       try {
-        const res = await apiRequest<{ user: User }>("GET", "/api/user/auth/me");
-        return res?.user || null;
-      } catch (error: any) {
-        // Return null for auth errors instead of throwing
-        console.log('Auth check error:', error.message);
-        return null;
+        // Try to get Firebase ID token
+        const idToken = await getIdToken();
+
+        // If we have a Firebase token, sync user first
+        if (idToken) {
+          try {
+            await apiRequest("POST", "/api/auth/firebase-sync", { idToken });
+          } catch (syncError) {
+            console.error("Firebase sync error:", syncError);
+          }
+        }
+
+        const data = await apiRequest("GET", "/api/user/auth/me");
+        return data.user || null;
+      } catch (err: any) {
+        if (err.status === 401) {
+          return null;
+        }
+        throw err;
       }
     },
-    retry: false, // Don't retry auth checks
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  return { 
-    user: user ?? null, 
-    isLoading, 
+  return {
+    user,
+    isLoading,
     error,
-    refetch
+    isAuthenticated: !!user,
   };
 }
