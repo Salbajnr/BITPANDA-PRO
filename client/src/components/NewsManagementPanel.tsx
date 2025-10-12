@@ -71,11 +71,12 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
 
   const handleCreate = async () => {
     try {
-      const response = await fetch('/api/news', {
+      const response = await fetch('/api/news/admin/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(formData)
       });
 
@@ -106,11 +107,12 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
     if (!selectedArticle) return;
 
     try {
-      const response = await fetch(`/api/news/${selectedArticle.id}`, {
+      const response = await fetch(`/api/news/admin/${selectedArticle.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(updatedData)
       });
 
@@ -140,8 +142,9 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
     if (!confirm('Are you sure you want to delete this article?')) return;
 
     try {
-      const response = await fetch(`/api/news/${articleId}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/news/admin/${articleId}`, {
+        method: 'DELETE',
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -361,17 +364,19 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
       </Card>
 
       {/* Edit Dialog */}
-      <NewsEditDialog
-        article={selectedArticle}
-        open={isEditDialogOpen}
-        onOpenChange={(isOpen) => {
-          setIsEditDialogOpen(isOpen);
-          if (!isOpen) {
-            resetForm();
-          }
-        }}
-        onSave={handleEdit}
-      />
+      {selectedArticle && (
+        <NewsEditDialog
+          article={selectedArticle}
+          open={isEditDialogOpen}
+          onOpenChange={(isOpen) => {
+            setIsEditDialogOpen(isOpen);
+            if (!isOpen) {
+              resetForm();
+            }
+          }}
+          onSave={handleEdit}
+        />
+      )}
     </div>
   );
 }

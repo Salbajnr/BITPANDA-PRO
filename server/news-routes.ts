@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { storage } from './storage';
 import config from './config';
+import { requireAdmin } from './simple-auth';
 
 const router = Router();
 
@@ -267,7 +268,7 @@ router.get('/categories', (req, res) => {
 });
 
 // Admin: Create news article
-router.post('/admin/create', async (req, res) => {
+router.post('/admin/create', requireAdmin, async (req, res) => {
   try {
     const { title, description, url, imageUrl, category, coins } = req.body;
 
@@ -295,7 +296,7 @@ router.post('/admin/create', async (req, res) => {
 });
 
 // Admin: Get single news article
-router.get('/admin/:id', async (req, res) => {
+router.get('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const article = await storage.getNewsArticleById(id);
@@ -312,7 +313,7 @@ router.get('/admin/:id', async (req, res) => {
 });
 
 // Admin: Update news article
-router.put('/admin/:id', async (req, res) => {
+router.put('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, url, imageUrl, category, coins } = req.body;
@@ -339,7 +340,7 @@ router.put('/admin/:id', async (req, res) => {
 });
 
 // Admin: Delete news article
-router.delete('/admin/:id', async (req, res) => {
+router.delete('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     await storage.deleteNewsArticle(id);
@@ -351,52 +352,13 @@ router.delete('/admin/:id', async (req, res) => {
 });
 
 // Admin: Get analytics
-router.get('/analytics', async (req, res) => {
+router.get('/analytics', requireAdmin, async (req, res) => {
   try {
     const analytics = await storage.getNewsAnalytics();
     res.json(analytics);
   } catch (error) {
     console.error('Error fetching analytics:', error);
     res.status(500).json({ message: 'Failed to fetch analytics' });
-  }
-});
-
-export default router;
-import { Router } from 'express';
-import { db } from './db';
-import { newsArticles } from '../shared/schema';
-import { eq } from 'drizzle-orm';
-import { requireAdmin } from './simple-auth';
-
-const router = Router();
-
-// Update news article (admin only)
-router.put('/:id', requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, content, category, imageUrl, source } = req.body;
-
-    const [updatedArticle] = await db
-      .update(newsArticles)
-      .set({
-        title,
-        content,
-        category,
-        imageUrl,
-        source,
-        updatedAt: new Date(),
-      })
-      .where(eq(newsArticles.id, id))
-      .returning();
-
-    if (!updatedArticle) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    res.json(updatedArticle);
-  } catch (error) {
-    console.error('Error updating news article:', error);
-    res.status(500).json({ error: 'Failed to update article' });
   }
 });
 

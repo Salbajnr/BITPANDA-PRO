@@ -24,6 +24,7 @@ interface NewsEditDialogProps {
   article: NewsArticle | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSave?: (data: any) => void;
 }
 
 export default function NewsEditDialog({ article, open, onOpenChange }: NewsEditDialogProps) {
@@ -39,7 +40,7 @@ export default function NewsEditDialog({ article, open, onOpenChange }: NewsEdit
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await fetch(`/api/news/${article?.id}`, {
+      const response = await fetch(`/api/news/admin/${article?.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -67,7 +68,11 @@ export default function NewsEditDialog({ article, open, onOpenChange }: NewsEdit
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate(formData);
+    if (onSave) {
+      onSave(formData);
+    } else {
+      updateMutation.mutate(formData);
+    }
   };
 
   return (
