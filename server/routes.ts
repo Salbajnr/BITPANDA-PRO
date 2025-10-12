@@ -118,6 +118,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const apiDocsRoutes = (await import('./api-docs-routes')).default;
   app.use('/api/docs', apiDocsRoutes);
 
+  // Comprehensive analytics routes
+  const comprehensiveAnalyticsRoutes = (await import('./comprehensive-analytics-routes')).default;
+  app.use('/api/analytics/comprehensive', comprehensiveAnalyticsRoutes);
+
   // ADMIN AUTHROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {

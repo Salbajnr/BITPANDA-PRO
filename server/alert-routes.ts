@@ -132,13 +132,13 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Get single price alert
+// Get single alert by ID
 router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { id } = req.params;
 
-    const alert = await storage.getPriceAlert(id);
+    const alert = await storage.getAlertById(id);
     if (!alert || alert.userId !== userId) {
       return res.status(404).json({ message: 'Alert not found' });
     }

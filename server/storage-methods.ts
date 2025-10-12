@@ -125,6 +125,15 @@ export async function getAlertById(id: string) {
   return alert || null;
 }
 
+export async function getPriceAlert(id: string) {
+  const [alert] = await db
+    .select()
+    .from(priceAlerts)
+    .where(eq(priceAlerts.id, id))
+    .limit(1);
+  return alert || null;
+}
+
 export async function updateAlert(id: string, data: any) {
   const [alert] = await db
     .update(priceAlerts)

@@ -162,6 +162,31 @@ router.patch('/notifications/:id/read', requireAuth, async (req: Request, res: R
   }
 });
 
+// Get single user by ID (admin or self)
+router.get('/:userId', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const requesterId = req.user!.id;
+
+    // Check if user is requesting their own data or is admin
+    const requester = await storage.getUser(requesterId);
+    if (userId !== requesterId && requester?.role !== 'admin') {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ message: 'Failed to fetch user' });
+  }
+});
+
 // Delete user account
 router.delete('/account', requireAuth, async (req: Request, res: Response) => {
   try {
