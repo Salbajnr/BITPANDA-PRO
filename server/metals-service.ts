@@ -24,6 +24,13 @@ class MetalsService {
   private readonly API_BASE = 'https://metals-api.com/api';
   private readonly API_KEY = process.env.METALS_API_KEY;
 
+  constructor() {
+    console.log('🔑 Metals API Key status:', this.API_KEY ? 'Configured ✓' : 'Missing ✗');
+    if (this.API_KEY) {
+      console.log('🔑 API Key length:', this.API_KEY.length);
+    }
+  }
+
   // Precious metals with their display names
   private readonly METAL_INFO: Record<MetalSymbol, { name: string; unit: string }> = {
     'XAU': { name: 'Gold', unit: 'oz' },
