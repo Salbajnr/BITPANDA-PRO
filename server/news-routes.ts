@@ -109,6 +109,35 @@ router.get('/', async (req, res) => {
       console.warn('Database news fetch failed, using fallback:', dbError);
     }
 
+    // Try fetching from CoinGecko trending as news alternative
+    try {
+      const trendingResponse = await fetch('https://api.coingecko.com/api/v3/search/trending');
+      if (trendingResponse.ok) {
+        const trendingData = await trendingResponse.json();
+        const trendingNews = trendingData.coins?.slice(0, limit).map((coin: any) => ({
+          id: coin.item.id,
+          title: `${coin.item.name} (${coin.item.symbol}) - Trending #${coin.item.market_cap_rank || 'N/A'}`,
+          description: `${coin.item.name} is currently trending in the crypto markets. Market Cap Rank: ${coin.item.market_cap_rank || 'N/A'}`,
+          summary: `Trending cryptocurrency: ${coin.item.name}`,
+          url: `https://www.coingecko.com/en/coins/${coin.item.id}`,
+          imageUrl: coin.item.small || coin.item.thumb,
+          urlToImage: coin.item.small || coin.item.thumb,
+          publishedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          source: { id: 'coingecko', name: 'CoinGecko Trending' },
+          category: 'trending',
+          sentiment: 'positive',
+          coins: [coin.item.symbol.toLowerCase()]
+        }));
+        
+        if (trendingNews.length > 0) {
+          return res.json(trendingNews);
+        }
+      }
+    } catch (apiError) {
+      console.warn('CoinGecko trending fetch failed:', apiError);
+    }
+
     // Use fallback news data
     let articles = [...fallbackNews];
     

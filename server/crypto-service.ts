@@ -354,7 +354,26 @@ class CryptoService {
       const response = await this.rateLimitedFetch(`${this.baseUrl}/search/trending`);
 
       if (response.status === 429) {
-        console.warn('⚠️ Rate limited for trending, using fallback');
+        console.warn('⚠️ Rate limited for trending, trying alternative source');
+        // Try alternative: get top gainers from market data
+        const marketData = await this.getMarketData(undefined, 50);
+        const topGainers = marketData
+          .filter(coin => coin.price_change_percentage_24h > 0)
+          .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+          .slice(0, 7)
+          .map(coin => ({
+            id: coin.id,
+            symbol: coin.symbol,
+            name: coin.name,
+            market_cap_rank: coin.market_cap_rank,
+            small: coin.image
+          }));
+        
+        if (topGainers.length > 0) {
+          this.cache.set(cacheKey, { data: topGainers, timestamp: Date.now() });
+          return topGainers;
+        }
+        
         return this.getFallbackTrendingData();
       }
 
