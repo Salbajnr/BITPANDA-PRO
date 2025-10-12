@@ -89,6 +89,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // News routes
   app.use('/api/news', newsRoutes);
+  
+  // News update route (admin only)
+  const newsUpdateRouter = await import('./news-routes');
+  app.use('/api/news', newsUpdateRouter.default);
 
   // Market research routes
   const marketResearchRoutes = (await import('./market-research-routes')).default;

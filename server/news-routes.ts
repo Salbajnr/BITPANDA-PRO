@@ -362,3 +362,42 @@ router.get('/analytics', async (req, res) => {
 });
 
 export default router;
+import { Router } from 'express';
+import { db } from './db';
+import { newsArticles } from '../shared/schema';
+import { eq } from 'drizzle-orm';
+import { requireAdmin } from './simple-auth';
+
+const router = Router();
+
+// Update news article (admin only)
+router.put('/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, category, imageUrl, source } = req.body;
+
+    const [updatedArticle] = await db
+      .update(newsArticles)
+      .set({
+        title,
+        content,
+        category,
+        imageUrl,
+        source,
+        updatedAt: new Date(),
+      })
+      .where(eq(newsArticles.id, id))
+      .returning();
+
+    if (!updatedArticle) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    res.json(updatedArticle);
+  } catch (error) {
+    console.error('Error updating news article:', error);
+    res.status(500).json({ error: 'Failed to update article' });
+  }
+});
+
+export default router;

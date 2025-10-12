@@ -68,7 +68,7 @@ export default function Alerts() {
               </div>
             ) : alertsError ? (
               <div className="mb-8">
-                <ErrorState 
+                <ErrorState
                   title="Failed to Load Alerts"
                   message={alertsError?.message || 'An error occurred'}
                   onRetry={() => queryClient.invalidateQueries({ queryKey: ['/api/alerts'] })}
@@ -90,40 +90,40 @@ export default function Alerts() {
                   </CardContent>
                 </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Total Alerts</p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {alertsData.length}
-                      </p>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Total Alerts</p>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {alertsData.length}
+                        </p>
+                      </div>
+                      <Target className="h-8 w-8 text-green-500" />
                     </div>
-                    <Target className="h-8 w-8 text-green-500" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">Unread Notifications</p>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {unreadNotifications.length}
-                      </p>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Unread Notifications</p>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {unreadNotifications.length}
+                        </p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-orange-500" />
                     </div>
-                    <TrendingUp className="h-8 w-8 text-orange-500" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
-            <>
-              <Tabs defaultValue="alerts" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="alerts">Price Alerts</TabsTrigger>
-                  <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <Tabs defaultValue="alerts" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="alerts">Price Alerts</TabsTrigger>
+                <TabsTrigger value="notifications">Notifications</TabsTrigger>
               </TabsList>
 
               <TabsContent value="alerts" className="space-y-6">
@@ -134,7 +134,6 @@ export default function Alerts() {
                 <NotificationCenter />
               </TabsContent>
             </Tabs>
-            </>
           </main>
         </div>
       </div>

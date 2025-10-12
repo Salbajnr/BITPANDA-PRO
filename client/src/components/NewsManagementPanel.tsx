@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye, BarChart3 } from 'lucide-react';
 import type { NewsArticle, InsertNewsArticle } from '@shared/schema';
+import NewsEditDialog from './NewsEditDialog';
 
 interface NewsManagementPanelProps {
   className?: string;
@@ -102,7 +102,7 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
     }
   };
 
-  const handleEdit = async () => {
+  const handleEdit = async (updatedData: Partial<InsertNewsArticle>) => {
     if (!selectedArticle) return;
 
     try {
@@ -111,7 +111,7 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(updatedData)
       });
 
       if (response.ok) {
@@ -187,7 +187,7 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
       imageUrl: article.imageUrl || '',
       source: article.source,
       sourceUrl: article.sourceUrl || '',
-      publishedAt: article.publishedAt
+      publishedAt: new Date(article.publishedAt)
     });
     setIsEditDialogOpen(true);
   };
@@ -361,71 +361,17 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
       </Card>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit News Article</DialogTitle>
-            <DialogDescription>
-              Update the news article details
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-title">Title</Label>
-              <Input
-                id="edit-title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Article title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-excerpt">Excerpt</Label>
-              <Textarea
-                id="edit-excerpt"
-                value={formData.excerpt}
-                onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                placeholder="Brief description"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-content">Content</Label>
-              <Textarea
-                id="edit-content"
-                value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Article content"
-                rows={6}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-imageUrl">Image URL</Label>
-              <Input
-                id="edit-imageUrl"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-source">Source</Label>
-              <Input
-                id="edit-source"
-                value={formData.source}
-                onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value }))}
-                placeholder="News source"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEdit}>Update Article</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <NewsEditDialog
+        article={selectedArticle}
+        open={isEditDialogOpen}
+        onOpenChange={(isOpen) => {
+          setIsEditDialogOpen(isOpen);
+          if (!isOpen) {
+            resetForm();
+          }
+        }}
+        onSave={handleEdit}
+      />
     </div>
   );
 }

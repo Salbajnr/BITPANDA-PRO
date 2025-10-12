@@ -456,6 +456,75 @@ export default function AdminKycManagement() {
                                   <p className="font-medium">{kyc.documentNumber}</p>
                                 </div>
                               </div>
+                              
+                              {/* Document Images */}
+                              <div className="mt-4 space-y-3">
+                                <div>
+                                  <Label>Document Front</Label>
+                                  {kyc.documentFrontImageUrl && (
+                                    <div className="mt-2 relative group">
+                                      <img 
+                                        src={kyc.documentFrontImageUrl} 
+                                        alt="Document Front" 
+                                        className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700"
+                                      />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(kyc.documentFrontImageUrl, '_blank')}
+                                        className="mt-2"
+                                      >
+                                        <EyeIcon className="h-4 w-4 mr-2" />
+                                        View Full Size
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {kyc.documentBackImageUrl && (
+                                  <div>
+                                    <Label>Document Back</Label>
+                                    <div className="mt-2 relative group">
+                                      <img 
+                                        src={kyc.documentBackImageUrl} 
+                                        alt="Document Back" 
+                                        className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700"
+                                      />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(kyc.documentBackImageUrl, '_blank')}
+                                        className="mt-2"
+                                      >
+                                        <EyeIcon className="h-4 w-4 mr-2" />
+                                        View Full Size
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div>
+                                  <Label>Selfie</Label>
+                                  {kyc.selfieImageUrl && (
+                                    <div className="mt-2 relative group">
+                                      <img 
+                                        src={kyc.selfieImageUrl} 
+                                        alt="Selfie" 
+                                        className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700"
+                                      />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(kyc.selfieImageUrl, '_blank')}
+                                        className="mt-2"
+                                      >
+                                        <EyeIcon className="h-4 w-4 mr-2" />
+                                        View Full Size
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                             
                             {/* Submission Details */}

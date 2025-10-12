@@ -536,25 +536,42 @@ export default function AdminChatManagement() {
 
                             {message.attachmentUrl && (
                               <div className="mt-2 p-2 rounded bg-black/10 dark:bg-white/10">
-                                <div className="flex items-center gap-2">
-                                  {getFileIcon(message.attachmentName || '')}
-                                  <span className="text-xs font-medium truncate flex-1">
-                                    {message.attachmentName}
-                                  </span>
-                                  {message.attachmentSize && (
-                                    <span className="text-xs opacity-75">
-                                      {formatFileSize(message.attachmentSize)}
+                                {message.attachmentName && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(message.attachmentName.split('.').pop()?.toLowerCase() || '') ? (
+                                  <div>
+                                    <img 
+                                      src={message.attachmentUrl} 
+                                      alt={message.attachmentName}
+                                      className="max-w-xs rounded mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() => window.open(message.attachmentUrl, '_blank')}
+                                    />
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="opacity-75">{message.attachmentName}</span>
+                                      {message.attachmentSize && (
+                                        <span className="opacity-75">{formatFileSize(message.attachmentSize)}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    {getFileIcon(message.attachmentName || '')}
+                                    <span className="text-xs font-medium truncate flex-1">
+                                      {message.attachmentName}
                                     </span>
-                                  )}
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => window.open(message.attachmentUrl, '_blank')}
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    <DownloadIcon className="h-3 w-3" />
-                                  </Button>
-                                </div>
+                                    {message.attachmentSize && (
+                                      <span className="text-xs opacity-75">
+                                        {formatFileSize(message.attachmentSize)}
+                                      </span>
+                                    )}
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => window.open(message.attachmentUrl, '_blank')}
+                                      className="h-6 w-6 p-0"
+                                    >
+                                      <DownloadIcon className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             )}
 
