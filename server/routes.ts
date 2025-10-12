@@ -708,6 +708,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Alert routes
   app.use('/api/alerts', alertRoutes);
 
+  // User routes
+  const userRoutes = (await import('./user-routes')).default;
+  app.use('/api/user', userRoutes);
+
+  // Watchlist routes
+  const watchlistRoutes = (await import('./watchlist-routes')).default;
+  app.use('/api/watchlist', watchlistRoutes);
+
   // Chat routes
   const chatRoutes = (await import('./chat-routes')).default;
   app.use('/api/support/chat', chatRoutes);

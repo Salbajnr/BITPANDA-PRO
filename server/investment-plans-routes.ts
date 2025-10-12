@@ -232,28 +232,23 @@ router.get('/my-investments/:id', requireAuth, async (req: Request, res: Respons
     }
 
     // Create investment record
-    const investment = {
-      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    const investment = await storage.createInvestment({
       userId,
       planId: data.planId,
-      investedAmount: data.amount,
-      currentValue: data.amount,
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toISOString(), // 1 year from now
+      investedAmount: data.amount.toString(),
+      currentValue: data.amount.toString(),
+      startDate: new Date(),
+      endDate: new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)), // 1 year from now
       status: 'active',
-      expectedReturn: 12.0, // Default expected return
-      actualReturn: 0,
-      createdAt: new Date().toISOString()
-    };
+      expectedReturn: '12.0',
+      actualReturn: '0'
+    });
 
     // Update portfolio balance
     const newAvailableCash = availableCash - data.amount;
     await storage.updatePortfolio(portfolio.id, {
       availableCash: newAvailableCash.toString()
     });
-
-    // Store investment (you might want to add this to your storage layer)
-    // For now, we'll simulate success
 
     res.json(investment);
   } catch (error) {
@@ -266,36 +261,8 @@ router.get('/my-investments/:id', requireAuth, async (req: Request, res: Respons
 router.get('/my-investments', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-
-    // Mock user investments data
-    const mockInvestments = [
-      {
-        id: 'inv_1',
-        planId: 'balanced-portfolio',
-        planName: 'Balanced Portfolio',
-        investedAmount: 5000,
-        currentValue: 5420,
-        startDate: '2024-01-15T00:00:00.000Z',
-        endDate: '2025-01-15T00:00:00.000Z',
-        status: 'active',
-        expectedReturn: 12.0,
-        actualReturn: 8.4
-      },
-      {
-        id: 'inv_2',
-        planId: 'dividend-income',
-        planName: 'Dividend Income',
-        investedAmount: 2500,
-        currentValue: 2680,
-        startDate: '2024-03-01T00:00:00.000Z',
-        endDate: '2025-06-01T00:00:00.000Z',
-        status: 'active',
-        expectedReturn: 9.2,
-        actualReturn: 7.2
-      }
-    ];
-
-    res.json(mockInvestments);
+    const investments = await storage.getUserInvestments(userId);
+    res.json(investments);
   } catch (error) {
     console.error('Get user investments error:', error);
     res.status(500).json({ message: 'Failed to fetch user investments' });

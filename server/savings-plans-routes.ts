@@ -156,23 +156,39 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
     const userId = req.user!.id;
 
     // Create savings plan record
-    const savingsPlan = {
-      id: `sav_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    const savingsPlan = await storage.createSavingsPlan({
       userId,
       planId: data.planId,
-      amount: data.amount,
+      amount: data.amount.toString(),
       frequency: data.frequency,
       duration: data.duration,
       autoDeposit: data.autoDeposit,
-      nextDeposit: new Date(Date.now() + (24 * 60 * 60 * 1000)).toISOString(), // Tomorrow
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + (data.duration * 30 * 24 * 60 * 60 * 1000)).toISOString(),
-      totalSaved: 0,
-      interestEarned: 0,
-      status: 'active',
-      createdAt: new Date().toISOString()
-    };
+      nextDeposit: new Date(Date.now() + (24 * 60 * 60 * 1000)), // Tomorrow
+      startDate: new Date(),
+      endDate: new Date(Date.now() + (data.duration * 30 * 24 * 60 * 60 * 1000)),
+      totalSaved: '0',
+      interestEarned: '0',
+      status: 'active'
+    });
 
+    res.json(savingsPlan);
+  } catch (error) {
+    console.error('Create savings plan error:', error);
+    res.status(500).json({ message: 'Failed to create savings plan' });
+  }
+});
+
+// Get user savings plans
+router.get('/my-plans', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const plans = await storage.getUserSavingsPlans(userId);
+    res.json(plans);
+  } catch (error) {
+    console.error('Get user savings plans error:', error);
+    res.status(500).json({ message: 'Failed to fetch user savings plans' });
+  }
+});
 
 // Update savings plan
 router.put('/:planId', requireAuth, async (req: Request, res: Response) => {
@@ -237,61 +253,7 @@ router.get('/:planId', requireAuth, async (req: Request, res: Response) => {
 });
 
 
-    // Store savings plan (you might want to add this to your storage layer)
-    // For now, we'll simulate success
-
-    res.json(savingsPlan);
-  } catch (error) {
-    console.error('Create savings plan error:', error);
-    res.status(500).json({ message: 'Failed to create savings plan' });
-  }
-});
-
-// Get user savings plans
-router.get('/my-plans', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-
-    // Mock user savings plans data
-    const mockSavings = [
-      {
-        id: 'sav_1',
-        planId: 'smart-saver',
-        planName: 'Smart Saver',
-        amount: 150,
-        frequency: 'monthly',
-        nextDeposit: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)).toISOString(),
-        startDate: '2024-01-01T00:00:00.000Z',
-        endDate: '2025-01-01T00:00:00.000Z',
-        totalSaved: 1650,
-        interestEarned: 45.20,
-        status: 'active',
-        autoDeposit: true
-      },
-      {
-        id: 'sav_2',
-        planId: 'emergency-fund',
-        planName: 'Emergency Fund Builder',
-        amount: 75,
-        frequency: 'weekly',
-        nextDeposit: new Date(Date.now() + (2 * 24 * 60 * 60 * 1000)).toISOString(),
-        startDate: '2024-02-15T00:00:00.000Z',
-        endDate: '2025-02-15T00:00:00.000Z',
-        totalSaved: 3525,
-        interestEarned: 89.75,
-        status: 'active',
-        autoDeposit: true
-      }
-    ];
-
-    res.json(mockSavings);
-  } catch (error) {
-    console.error('Get user savings plans error:', error);
-    res.status(500).json({ message: 'Failed to fetch user savings plans' });
-  }
-});
-
-// Pause savings plan
+    // Pause savings plan
 router.post('/:planId/pause', requireAuth, async (req: Request, res: Response) => {
   try {
     const { planId } = req.params;
