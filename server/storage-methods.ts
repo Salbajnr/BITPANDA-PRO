@@ -1,4 +1,57 @@
 
+// Additional storage methods for complete CRUD operations
+
+import { db } from './db';
+import { eq } from 'drizzle-orm';
+
+// Watchlist methods
+export async function getWatchlistItem(id: string) {
+  const [item] = await db.select().from(watchlist).where(eq(watchlist.id, id));
+  return item;
+}
+
+export async function updateWatchlistItem(id: string, data: any) {
+  const [updated] = await db.update(watchlist).set(data).where(eq(watchlist.id, id)).returning();
+  return updated;
+}
+
+// Investment methods
+export async function getInvestmentById(id: string) {
+  const [investment] = await db.select().from(investments).where(eq(investments.id, id));
+  return investment;
+}
+
+export async function updateInvestment(id: string, data: any) {
+  const [updated] = await db.update(investments).set(data).where(eq(investments.id, id)).returning();
+  return updated;
+}
+
+export async function deleteInvestment(id: string) {
+  await db.delete(investments).where(eq(investments.id, id));
+}
+
+// Savings plan methods
+export async function getSavingsPlanById(id: string) {
+  const [plan] = await db.select().from(savingsPlans).where(eq(savingsPlans.id, id));
+  return plan;
+}
+
+export async function updateSavingsPlan(id: string, data: any) {
+  const [updated] = await db.update(savingsPlans).set(data).where(eq(savingsPlans.id, id)).returning();
+  return updated;
+}
+
+export async function deleteSavingsPlan(id: string) {
+  await db.delete(savingsPlans).where(eq(savingsPlans.id, id));
+}
+
+// News methods
+export async function getNewsArticleById(id: string) {
+  const [article] = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
+  return article;
+}
+
+
 import { db } from './db';
 import { 
   newsArticles, 
@@ -64,6 +117,15 @@ export async function createAlert(data: any) {
 }
 
 export async function getAlertById(id: string) {
+  const [alert] = await db
+    .select()
+    .from(priceAlerts)
+    .where(eq(priceAlerts.id, id))
+    .limit(1);
+  return alert || null;
+}
+
+export async function getPriceAlert(id: string) {
   const [alert] = await db
     .select()
     .from(priceAlerts)

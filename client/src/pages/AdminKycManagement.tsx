@@ -19,6 +19,8 @@ import {
   ThumbsUpIcon, ThumbsDownIcon, MessageSquareIcon
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { LoadingCard } from "@/components/LoadingCard";
+import { EmptyState } from "@/components/EmptyState";
 
 interface KycVerification {
   id: string;
@@ -185,14 +187,15 @@ export default function AdminKycManagement() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
-          ))}
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
         </div>
-        <div className="h-96 bg-slate-200 dark:bg-slate-700 rounded"></div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <LoadingCard count={5} height="h-24" />
+        </div>
+        <LoadingCard count={1} height="h-96" />
       </div>
     );
   }
@@ -451,6 +454,75 @@ export default function AdminKycManagement() {
                                 <div>
                                   <Label>Document Number</Label>
                                   <p className="font-medium">{kyc.documentNumber}</p>
+                                </div>
+                              </div>
+                              
+                              {/* Document Images */}
+                              <div className="mt-4 space-y-3">
+                                <div>
+                                  <Label>Document Front</Label>
+                                  {kyc.documentFrontImageUrl && (
+                                    <div className="mt-2 relative group">
+                                      <img 
+                                        src={kyc.documentFrontImageUrl} 
+                                        alt="Document Front" 
+                                        className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700"
+                                      />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(kyc.documentFrontImageUrl, '_blank')}
+                                        className="mt-2"
+                                      >
+                                        <EyeIcon className="h-4 w-4 mr-2" />
+                                        View Full Size
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {kyc.documentBackImageUrl && (
+                                  <div>
+                                    <Label>Document Back</Label>
+                                    <div className="mt-2 relative group">
+                                      <img 
+                                        src={kyc.documentBackImageUrl} 
+                                        alt="Document Back" 
+                                        className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700"
+                                      />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(kyc.documentBackImageUrl, '_blank')}
+                                        className="mt-2"
+                                      >
+                                        <EyeIcon className="h-4 w-4 mr-2" />
+                                        View Full Size
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div>
+                                  <Label>Selfie</Label>
+                                  {kyc.selfieImageUrl && (
+                                    <div className="mt-2 relative group">
+                                      <img 
+                                        src={kyc.selfieImageUrl} 
+                                        alt="Selfie" 
+                                        className="w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700"
+                                      />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(kyc.selfieImageUrl, '_blank')}
+                                        className="mt-2"
+                                      >
+                                        <EyeIcon className="h-4 w-4 mr-2" />
+                                        View Full Size
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>

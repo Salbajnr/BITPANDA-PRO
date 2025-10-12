@@ -509,3 +509,255 @@ export default function AdminMetalsManagement() {
     </div>
   );
 }
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  DollarSign, TrendingUp, TrendingDown, RefreshCw, 
+  Plus, Edit, Trash2, AlertTriangle, CheckCircle
+} from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { LoadingCard } from "@/components/LoadingCard";
+import { ErrorState } from "@/components/ErrorState";
+import { EmptyState } from "@/components/EmptyState";
+
+interface Metal {
+  id: string;
+  symbol: string;
+  name: string;
+  currentPrice: string;
+  change24h: string;
+  isActive: boolean;
+  lastUpdated: string;
+}
+
+export default function AdminMetalsManagement() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedMetal, setSelectedMetal] = useState<Metal | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [metalForm, setMetalForm] = useState({
+    symbol: '',
+    name: '',
+    currentPrice: '',
+    isActive: true
+  });
+
+  const { data: metals, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/metals/admin/all'],
+    queryFn: () => apiRequest('GET', '/api/metals/admin/all'),
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ['/api/metals/admin/stats'],
+    queryFn: () => apiRequest('GET', '/api/metals/admin/stats'),
+  });
+
+  const updatePriceMutation = useMutation({
+    mutationFn: ({ id, price }: { id: string; price: string }) =>
+      apiRequest('PATCH', `/api/metals/admin/${id}/price`, { price }),
+    onSuccess: () => {
+      toast({ title: "Price updated", description: "Metal price has been updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/metals/admin/all'] });
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      apiRequest('PATCH', `/api/metals/admin/${id}/status`, { isActive }),
+    onSuccess: () => {
+      toast({ title: "Status updated", description: "Metal status has been updated" });
+      queryClient.invalidateQueries({ queryKey: ['/api/metals/admin/all'] });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <LoadingCard count={4} height="h-24" />
+        </div>
+        <LoadingCard count={1} height="h-96" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <ErrorState message="Failed to load metals data" onRetry={refetch} />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            Precious Metals Management
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
+            Manage precious metals prices and availability
+          </p>
+        </div>
+        <Button onClick={() => refetch()} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh Prices
+        </Button>
+      </div>
+
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-8 w-8 text-yellow-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Metals</p>
+                  <p className="text-2xl font-bold">{stats.totalMetals || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-8 w-8 text-green-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Active</p>
+                  <p className="text-2xl font-bold">{stats.activeMetals || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Avg 24h Change</p>
+                  <p className="text-2xl font-bold">{stats.avgChange24h || '0'}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-8 w-8 text-purple-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Volume</p>
+                  <p className="text-2xl font-bold">${stats.totalVolume || '0'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Precious Metals</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!metals || metals.length === 0 ? (
+            <EmptyState
+              icon={DollarSign}
+              title="No Metals Found"
+              description="No precious metals have been added to the system yet"
+              actionLabel="Add Metal"
+              onAction={() => setIsDialogOpen(true)}
+            />
+          ) : (
+            <div className="space-y-4">
+              {metals.map((metal: Metal) => (
+                <div key={metal.id} className="border rounded-lg p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <h3 className="font-semibold text-lg">{metal.name}</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{metal.symbol}</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">${metal.currentPrice}</p>
+                        <p className={`text-sm ${parseFloat(metal.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {parseFloat(metal.change24h) >= 0 ? '+' : ''}{metal.change24h}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Badge variant={metal.isActive ? 'default' : 'secondary'}>
+                        {metal.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => toggleActiveMutation.mutate({ id: metal.id, isActive: !metal.isActive })}
+                      >
+                        {metal.isActive ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedMetal(metal);
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedMetal ? 'Edit Metal' : 'Add Metal'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Symbol</Label>
+              <Input
+                value={metalForm.symbol}
+                onChange={(e) => setMetalForm({ ...metalForm, symbol: e.target.value })}
+                placeholder="e.g., XAU"
+              />
+            </div>
+            <div>
+              <Label>Name</Label>
+              <Input
+                value={metalForm.name}
+                onChange={(e) => setMetalForm({ ...metalForm, name: e.target.value })}
+                placeholder="e.g., Gold"
+              />
+            </div>
+            <div>
+              <Label>Current Price</Label>
+              <Input
+                type="number"
+                value={metalForm.currentPrice}
+                onChange={(e) => setMetalForm({ ...metalForm, currentPrice: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

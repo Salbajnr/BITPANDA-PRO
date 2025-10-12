@@ -56,7 +56,7 @@ export default function InvestmentPlans() {
   const [activeTab, setActiveTab] = useState('available');
 
   // Fetch available investment plans
-  const { data: plans = [], isLoading: plansLoading } = useQuery({
+  const { data: plans = [], isLoading: plansLoading, error: plansError } = useQuery({
     queryKey: ['/api/investment-plans'],
     queryFn: async () => {
       const response = await fetch('/api/investment-plans', {
@@ -64,7 +64,9 @@ export default function InvestmentPlans() {
       });
       if (!response.ok) throw new Error('Failed to fetch investment plans');
       return response.json();
-    }
+    },
+    retry: 3,
+    staleTime: 30000
   });
 
   // Fetch user's investments
@@ -176,7 +178,25 @@ export default function InvestmentPlans() {
               </TabsList>
 
               <TabsContent value="available" className="space-y-6">
-                {plansLoading ? (
+                {plansError ? (
+                  <Card className="border-red-200 dark:border-red-800">
+                    <CardContent className="p-8 text-center">
+                      <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <AlertCircle className="h-8 w-8 text-red-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+                        Failed to Load Plans
+                      </h3>
+                      <p className="text-red-600 dark:text-red-400 mb-4">
+                        {plansError?.message || 'An error occurred while loading investment plans'}
+                      </p>
+                      <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/investment-plans'] })}>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Retry
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : plansLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[...Array(6)].map((_, i) => (
                       <Card key={i} className="h-80 animate-pulse">
@@ -184,6 +204,18 @@ export default function InvestmentPlans() {
                       </Card>
                     ))}
                   </div>
+                ) : plans.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <PieChart className="h-8 w-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">No Investment Plans Available</h3>
+                      <p className="text-slate-600 dark:text-slate-400">
+                        Check back later for new investment opportunities.
+                      </p>
+                    </CardContent>
+                  </Card>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {plans.map((plan: InvestmentPlan) => (

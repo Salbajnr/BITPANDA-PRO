@@ -103,6 +103,13 @@ class NewsApiService {
         return cryptoPanicResponse;
       }
 
+      // Try CoinTelegraph RSS feed
+      const coinTelegraphResponse = await this.fetchFromCoinTelegraph(limit);
+      if (coinTelegraphResponse) {
+        this.setCachedData(cacheKey, coinTelegraphResponse);
+        return coinTelegraphResponse;
+      }
+
       // Fallback to mock data
       return this.getFallbackNewsResponse(category, limit);
 
@@ -152,7 +159,8 @@ class NewsApiService {
 
   private async fetchFromCryptoPanic(limit: number = 20): Promise<NewsResponse | null> {
     try {
-      const response = await fetch(`${this.CRYPTOPANIC_BASE}/posts/?auth_token=free&kind=news&page=1`);
+      // Using CryptoPanic's free public API without auth token
+      const response = await fetch(`${this.CRYPTOPANIC_BASE}/posts/?public=true&kind=news&page=1`);
       
       if (!response.ok) {
         console.warn(`CryptoPanic error: ${response.status}`);
@@ -166,11 +174,11 @@ class NewsApiService {
         title: post.title,
         description: post.title,
         url: post.url,
-        urlToImage: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        urlToImage: post.metadata?.image || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
         publishedAt: post.published_at,
-        source: { id: 'cryptopanic', name: 'CryptoPanic' },
+        source: { id: 'cryptopanic', name: post.source?.title || 'CryptoPanic' },
         category: 'cryptocurrency',
-        sentiment: post.votes?.positive > post.votes?.negative ? 'positive' : 'negative',
+        sentiment: post.votes?.positive > post.votes?.negative ? 'positive' : post.votes?.negative > post.votes?.positive ? 'negative' : 'neutral',
         coins: post.currencies?.map((c: any) => c.code.toLowerCase()) || []
       }));
 
@@ -181,6 +189,44 @@ class NewsApiService {
       };
     } catch (error) {
       console.error('CryptoPanic fetch failed:', error);
+      return null;
+    }
+  }
+
+  private async fetchFromCoinTelegraph(limit: number = 20): Promise<NewsResponse | null> {
+    try {
+      // Using Cointelegraph RSS feed (open source, no API key needed)
+      const response = await fetch(`https://cointelegraph.com/rss`);
+      
+      if (!response.ok) {
+        console.warn(`CoinTelegraph RSS error: ${response.status}`);
+        return null;
+      }
+      
+      const text = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, 'text/xml');
+      const items = xmlDoc.querySelectorAll('item');
+      
+      const articles = Array.from(items).slice(0, limit).map((item, index) => ({
+        id: `ct-${index}`,
+        title: item.querySelector('title')?.textContent || '',
+        description: item.querySelector('description')?.textContent?.replace(/<[^>]*>/g, '') || '',
+        url: item.querySelector('link')?.textContent || '#',
+        urlToImage: item.querySelector('enclosure')?.getAttribute('url') || 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
+        publishedAt: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
+        source: { id: 'cointelegraph', name: 'CoinTelegraph' },
+        category: 'cryptocurrency',
+        sentiment: 'neutral'
+      }));
+
+      return {
+        articles,
+        totalResults: articles.length,
+        status: 'ok'
+      };
+    } catch (error) {
+      console.error('CoinTelegraph RSS fetch failed:', error);
       return null;
     }
   }

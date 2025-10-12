@@ -224,21 +224,33 @@ export default function Auth() {
 
   const handleGoogleAuth = async () => {
     try {
-      // Firebase redirect sign-in
+      // Firebase sign-in
       const result = await signInWithGoogle();
-      if (result) {
+      
+      if (result && result.user) {
+        // Get Firebase ID token
+        const idToken = await result.user.getIdToken();
+        
+        // Sync with backend
+        const syncResponse = await apiRequest("POST", "/api/auth/firebase-sync", { idToken });
+        
         showMessage(
           "Login Successful",
-          "Welcome! Redirecting to your dashboard...",
+          `Welcome${syncResponse.user?.firstName ? ', ' + syncResponse.user.firstName : ''}! Redirecting to your dashboard...`,
           "success"
         );
-        // Invalidate queries to refresh auth state
-        queryClient.invalidateQueries({ queryKey: ["auth-user"] });
         
-        // Navigate using React Router
-        navigate('/dashboard');
+        // Invalidate queries to refresh auth state
+        await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+        await queryClient.refetchQueries({ queryKey: ["auth-user"] });
+        
+        // Navigate to dashboard
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 500);
       }
     } catch (error: any) {
+      console.error("Google auth error:", error);
       showMessage(
         "Google Sign-In Failed",
         error.message || "Unable to sign in with Google. Please try again.",

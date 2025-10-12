@@ -95,12 +95,11 @@ proof_uploads: deposit confirmation files
 6. Start development server: `npm run dev`
 
 ### Environment Variables
-```env
-DATABASE_URL=postgresql://username:password@localhost:5432/bitpanda_pro
-COINGECKO_API_KEY=your_coingecko_api_key
-METALS_API_KEY=your_metals_api_key
-SESSION_SECRET=your_session_secret
-BASE_URL=http://localhost:5000
+See `.env.example` for all required environment variables. Key variables include:
+- `DATABASE_URL`: PostgreSQL connection string
+- `VITE_FIREBASE_*`: Firebase configuration
+- `COINGECKO_API_KEY`: CoinGecko API key
+- `SESSION_SECRET`: Session encryption key_URL=http://localhost:5000
 ```
 
 ## 📁 Project Structure

@@ -49,18 +49,41 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;
-    const { notes } = req.body;
+    const { notes, symbol, name } = req.body;
 
     const item = await storage.getWatchlistItem(id);
     if (!item || item.userId !== userId) {
       return res.status(404).json({ message: 'Watchlist item not found' });
     }
 
-    const updated = await storage.updateWatchlistItem(id, { notes });
+    const updateData: any = {};
+    if (notes !== undefined) updateData.notes = notes;
+    if (symbol) updateData.symbol = symbol;
+    if (name) updateData.name = name;
+
+    const updated = await storage.updateWatchlistItem(id, updateData);
     res.json(updated);
   } catch (error) {
     console.error('Update watchlist error:', error);
     res.status(500).json({ message: 'Failed to update watchlist item' });
+  }
+});
+
+// Get single watchlist item
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const item = await storage.getWatchlistItem(id);
+    if (!item || item.userId !== userId) {
+      return res.status(404).json({ message: 'Watchlist item not found' });
+    }
+
+    res.json(item);
+  } catch (error) {
+    console.error('Get watchlist item error:', error);
+    res.status(500).json({ message: 'Failed to fetch watchlist item' });
   }
 });
 

@@ -311,12 +311,25 @@ export default function AdminDashboard() {
   const analyticsOverview = analyticsOverviewData || {};
   const adjustments = (adjustmentsData as any)?.adjustments || [];
 
-  if (authLoading || !admin) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading admin dashboard...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-slate-600 dark:text-slate-400">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!admin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Access Denied</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">You don't have admin access</p>
+          <Button onClick={() => window.location.href = '/auth'}>Go to Login</Button>
         </div>
       </div>
     );

@@ -107,4 +107,66 @@ router.patch('/:id/toggle', requireAuth, async (req: Request, res: Response) => 
   }
 });
 
+// Update price alert
+router.put('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const { targetPrice, condition, isActive } = req.body;
+
+    const alert = await storage.getPriceAlert(id);
+    if (!alert || alert.userId !== userId) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+
+    const updateData: any = {};
+    if (targetPrice) updateData.targetPrice = targetPrice.toString();
+    if (condition) updateData.condition = condition;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
+    const updated = await storage.updatePriceAlert(id, updateData);
+    res.json(updated);
+  } catch (error) {
+    console.error('Update alert error:', error);
+    res.status(500).json({ message: 'Failed to update alert' });
+  }
+});
+
+// Get single alert by ID
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+
+    const alert = await storage.getAlertById(id);
+    if (!alert || alert.userId !== userId) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+
+    res.json(alert);
+  } catch (error) {
+    console.error('Get alert error:', error);
+    res.status(500).json({ message: 'Failed to fetch alert' });
+  }
+});
+
+// Delete price alert
+router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+
+    const alert = await storage.getPriceAlert(id);
+    if (!alert || alert.userId !== userId) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+
+    await storage.deletePriceAlert(id);
+    res.json({ message: 'Alert deleted successfully' });
+  } catch (error) {
+    console.error('Delete alert error:', error);
+    res.status(500).json({ message: 'Failed to delete alert' });
+  }
+});
+
 export default router;

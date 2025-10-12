@@ -30,6 +30,7 @@ import {
   ChevronRight,
   ShieldCheckIcon,
   ArrowUpIcon,
+  AlertCircle,
 } from "lucide-react";
 import { Link, useLocation, useRoute, useLocation as useNavigate } from "wouter";
 import { Redirect } from "wouter";
@@ -113,6 +114,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"winners" | "losers">("winners");
   const [showBalance, setShowBalance] = useState(true);
   const [isHidden, setIsHidden] = useState(false);
+  const [selectedTimeframe, setSelectedTimeframe] = useState("24h");
   const { data: portfolioData, isLoading: portfolioLoading } =
     useQuery<PortfolioData>({
       queryKey: ["/api/portfolio"],
@@ -222,124 +224,215 @@ export default function Dashboard() {
   const portfolioValue = portfolioData?.portfolio?.totalValue || "13.36";
   const portfolioChange = -1.69; // Mock percentage change
   const availableBalance = portfolioData?.portfolio?.availableCash || "0.00";
+  const dayChange = parseFloat(portfolioValue) * (portfolioChange / 100);
   const winners = topMovers.filter((m) => m.change > 0);
   const losers = topMovers.filter((m) => m.change < 0);
 
   return (
     <DashboardLayout showTicker={true}>
-      {/* Status Bar */}
-      <div className="h-8 flex items-center justify-end px-4 py-2">
-        <div className="flex space-x-2">
-          <span className="text-xs">📶</span>
-          <span className="text-xs">🔋</span>
-          <span className="text-xs">9:41</span>
+      {/* Professional Trading Header */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Trading Dashboard</h1>
+              <p className="text-sm text-slate-400">Real-time market overview</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                <Activity className="h-3 w-3 mr-1" />
+                Live Markets
+              </Badge>
+              <div className="text-right">
+                <div className="text-xs text-slate-400">Server Time</div>
+                <div className="text-sm font-mono text-white">
+                  {new Date().toLocaleTimeString()}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="pb-20">
-        {/* Header */}
-        <div className="px-4 py-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Bitcoin</h1>
-            <div className="w-10 h-10 bg-[#f7931a] rounded-full flex items-center justify-center text-white font-bold">
-              ₿
-            </div>
-          </div>
+      <div className="pb-20 bg-slate-950">
+        {/* Professional Portfolio Overview */}
+        <div className="px-6 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+            {/* Total Portfolio Value */}
+            <Card className="bg-gradient-to-br from-blue-600 to-blue-700 border-0">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-blue-100 text-sm">Portfolio Value</span>
+                  <Wallet className="h-4 w-4 text-blue-200" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-white">
+                    {showBalance ? `€${portfolioValue}` : "••••••"}
+                  </span>
+                  <button onClick={() => setShowBalance(!showBalance)} className="text-blue-200 hover:text-white">
+                    {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="flex items-center gap-1 mt-2">
+                  {portfolioChange >= 0 ? (
+                    <TrendingUp className="h-3 w-3 text-green-300" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-300" />
+                  )}
+                  <span className={`text-sm ${portfolioChange >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                    {portfolioChange >= 0 ? '+' : ''}{portfolioChange.toFixed(2)}% (24h)
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Price Display */}
-          <div className="text-center mb-8">
-            <div className="text-4xl font-bold mb-2">102.326,25 €</div>
-            <div className="flex justify-center items-center space-x-2 text-green-500">
-              <ArrowUp className="h-4 w-4" />
-              <span>0,89% +1.152,00 € (1D)</span>
-            </div>
+            {/* Available Balance */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-400 text-sm">Available Cash</span>
+                  <DollarSign className="h-4 w-4 text-green-400" />
+                </div>
+                <div className="text-2xl font-bold text-white">€{availableBalance}</div>
+                <div className="text-xs text-slate-400 mt-2">Ready to trade</div>
+              </CardContent>
+            </Card>
+
+            {/* Total P&L */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-400 text-sm">Total P&L</span>
+                  <BarChart3 className="h-4 w-4 text-purple-400" />
+                </div>
+                <div className={`text-2xl font-bold ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {dayChange >= 0 ? '+' : ''}€{Math.abs(dayChange).toFixed(2)}
+                </div>
+                <div className="text-xs text-slate-400 mt-2">Since yesterday</div>
+              </CardContent>
+            </Card>
+
+            {/* Active Positions */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-400 text-sm">Active Positions</span>
+                  <Activity className="h-4 w-4 text-blue-400" />
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  {portfolioData?.holdings?.length || 0}
+                </div>
+                <div className="text-xs text-slate-400 mt-2">Assets held</div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {/* Chart */}
-        <div className="px-4 mb-6">
-          <div className="h-40 bg-gray-100 rounded-lg relative">
-            <svg
-              viewBox="0 0 100 30"
-              className="w-full h-full"
-              preserveAspectRatio="none"
-            >
-              <polyline
-                points="0,20 5,18 10,22 15,19 20,21 25,17 30,23 35,20 40,25 45,22 50,28 55,24 60,30 65,27 70,25 75,29 80,26 85,28 90,30 95,27 100,25"
-                stroke="#00d395"
-                strokeWidth="1.5"
-                fill="none"
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>101.200,22 €</span>
-              <span>102.326,25 €</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Time Selector */}
-        <div className="flex justify-around border-b mb-6 px-4">
-          {["1D", "7D", "30D", "6M", "1Y", "Max"].map((period) => (
-            <button
-              key={period}
-              className={`py-2 text-sm ${activeTab === period.toLowerCase() ? "text-black border-b-2 border-green-500" : "text-gray-400"}`}
-              onClick={() =>
-                setActiveTab(period.toLowerCase() as "winners" | "losers")
-              }
-            >
-              {period}
-            </button>
-          ))}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-4 gap-4 px-4 mb-8">
-          {[
-            {
-              icon: <Plus className="h-6 w-6" />,
-              label: "Buy",
-              color: "bg-green-500",
-            },
-            {
-              icon: <RefreshCw className="h-6 w-6" />,
-              label: "Swap",
-              color: "bg-gray-800",
-            },
-            {
-              icon: <Minus className="h-6 w-6" />,
-              label: "Sell",
-              color: "bg-red-500",
-            },
-            {
-              icon: <span className="text-xl">⋯</span>,
-              label: "More",
-              color: "bg-gray-300",
-            },
-          ].map((action, index) => (
-            <Link
-              key={index}
-              to={
-                action.label === "Buy"
-                  ? "/deposits"
-                  : action.label === "Sell"
-                    ? "/withdrawals"
-                    : action.label === "Swap"
-                      ? "/trading"
-                      : "#"
-              }
-              className="flex flex-col items-center"
-            >
-              <div
-                className={`w-12 h-12 ${action.color} rounded-full flex items-center justify-center mb-1`}
-              >
-                {action.icon}
+        {/* Professional Trading Chart */}
+        <div className="px-6 mb-6">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="border-b border-slate-700">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">Portfolio Performance</CardTitle>
+                <div className="flex items-center gap-2">
+                  {["1H", "24H", "7D", "30D", "1Y"].map((period) => (
+                    <button
+                      key={period}
+                      onClick={() => setSelectedTimeframe(period)}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                        selectedTimeframe === period
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                      }`}
+                    >
+                      {period}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <span className="text-xs">{action.label}</span>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="h-64 bg-slate-900 rounded-lg relative overflow-hidden">
+                {/* Simulated candlestick chart background */}
+                <div className="absolute inset-0 flex items-end justify-around p-4">
+                  {Array.from({ length: 30 }).map((_, i) => {
+                    const height = Math.random() * 80 + 20;
+                    const isPositive = Math.random() > 0.5;
+                    return (
+                      <div
+                        key={i}
+                        className={`w-2 ${isPositive ? 'bg-green-500' : 'bg-red-500'} opacity-60 hover:opacity-100 transition-opacity`}
+                        style={{ height: `${height}%` }}
+                      />
+                    );
+                  })}
+                </div>
+                {/* Price line overlay */}
+                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                  <polyline
+                    points="0,120 50,110 100,125 150,105 200,115 250,95 300,110 350,90 400,105 450,85 500,95 550,75 600,85 650,70 700,80 750,65 800,75"
+                    stroke="#3b82f6"
+                    strokeWidth="2"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
+                  <polyline
+                    points="0,120 50,110 100,125 150,105 200,115 250,95 300,110 350,90 400,105 450,85 500,95 550,75 600,85 650,70 700,80 750,65 800,75 800,300 0,300"
+                    fill="url(#gradient)"
+                    opacity="0.3"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                {/* Grid lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="border-t border-slate-700/50" />
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between mt-4 text-xs text-slate-400">
+                <span>Low: €{(parseFloat(portfolioValue) * 0.95).toFixed(2)}</span>
+                <span>High: €{(parseFloat(portfolioValue) * 1.05).toFixed(2)}</span>
+                <span>Vol: €{(parseFloat(portfolioValue) * 2.3).toFixed(2)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Professional Quick Actions */}
+        <div className="px-6 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Link to="/deposits">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-6 flex flex-col items-center gap-2">
+                <Plus className="h-5 w-5" />
+                <span className="text-sm font-medium">Buy Crypto</span>
+              </Button>
             </Link>
-          ))}
+            <Link to="/withdrawals">
+              <Button className="w-full bg-red-600 hover:bg-red-700 text-white py-6 flex flex-col items-center gap-2">
+                <Minus className="h-5 w-5" />
+                <span className="text-sm font-medium">Sell Crypto</span>
+              </Button>
+            </Link>
+            <Link to="/trading">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 flex flex-col items-center gap-2">
+                <RefreshCw className="h-5 w-5" />
+                <span className="text-sm font-medium">Trade</span>
+              </Button>
+            </Link>
+            <Link to="/transactions">
+              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-6 flex flex-col items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-sm font-medium">History</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* About Section */}
@@ -551,96 +644,100 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Top Movers */}
-        <div className="bg-white dark:bg-slate-900 m-4 rounded-xl shadow-sm">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-              Top Movers in 1 Day
-            </h3>
-            <Tabs
-              value={activeTab}
-              onValueChange={(value) =>
-                setActiveTab(value as "winners" | "losers")
-              }
-            >
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="winners" data-testid="tab-winners">
-                  Winners
-                </TabsTrigger>
-                <TabsTrigger value="losers" data-testid="tab-losers">
-                  Losers
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="winners">
-                <div className="space-y-3">
-                  {winners.map((mover) => (
-                    <div
-                      key={mover.id}
-                      className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
-                      data-testid={`mover-card-${mover.symbol}`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-[#00cc88]/10 rounded-full flex items-center justify-center">
-                          <span className="text-lg">{mover.icon}</span>
+        {/* Professional Market Movers */}
+        <div className="px-6 mb-6">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="border-b border-slate-700">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">Market Movers (24h)</CardTitle>
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                  Live Data
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "winners" | "losers")}>
+                <TabsList className="w-full grid grid-cols-2 bg-slate-900 border-b border-slate-700 rounded-none">
+                  <TabsTrigger 
+                    value="winners" 
+                    className="data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-none"
+                    data-testid="tab-winners"
+                  >
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Top Gainers
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="losers" 
+                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none"
+                    data-testid="tab-losers"
+                  >
+                    <TrendingDown className="h-4 w-4 mr-2" />
+                    Top Losers
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="winners" className="m-0">
+                  <div className="divide-y divide-slate-700">
+                    {winners.map((mover, index) => (
+                      <div
+                        key={mover.id}
+                        className="flex items-center justify-between p-4 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                        data-testid={`mover-card-${mover.symbol}`}
+                        onClick={() => navigate(`/trading?symbol=${mover.symbol}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="text-slate-500 font-mono text-sm">#{index + 1}</div>
+                          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {mover.symbol.slice(0, 2)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white">{mover.symbol}</p>
+                            <p className="text-xs text-slate-400">{mover.name}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-slate-900 dark:text-white">
-                            {mover.symbol}
-                          </p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {mover.name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-slate-900 dark:text-white">
-                          {mover.price}
-                        </p>
-                        <p className="text-sm text-[#00cc88] flex items-center">
-                          <TrendingUp className="h-3 w-3 mr-1" />+{mover.change}
-                          %
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-              <TabsContent value="losers">
-                <div className="space-y-3">
-                  {losers.map((mover) => (
-                    <div
-                      key={mover.id}
-                      className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
-                      data-testid={`mover-card-${mover.symbol}`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-lg">{mover.icon}</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-900 dark:text-white">
-                            {mover.symbol}
-                          </p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {mover.name}
-                          </p>
+                        <div className="text-right">
+                          <p className="font-semibold text-white">{mover.price}</p>
+                          <div className="flex items-center gap-1 text-green-400">
+                            <TrendingUp className="h-3 w-3" />
+                            <span className="text-sm font-medium">+{mover.change}%</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-slate-900 dark:text-white">
-                          {mover.price}
-                        </p>
-                        <p className="text-sm text-red-500 flex items-center">
-                          <TrendingDown className="h-3 w-3 mr-1" />
-                          {mover.change}%
-                        </p>
+                    ))}
+                  </div>
+                </TabsContent>
+                <TabsContent value="losers" className="m-0">
+                  <div className="divide-y divide-slate-700">
+                    {losers.map((mover, index) => (
+                      <div
+                        key={mover.id}
+                        className="flex items-center justify-between p-4 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                        data-testid={`mover-card-${mover.symbol}`}
+                        onClick={() => navigate(`/trading?symbol=${mover.symbol}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="text-slate-500 font-mono text-sm">#{index + 1}</div>
+                          <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {mover.symbol.slice(0, 2)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white">{mover.symbol}</p>
+                            <p className="text-xs text-slate-400">{mover.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-white">{mover.price}</p>
+                          <div className="flex items-center gap-1 text-red-400">
+                            <TrendingDown className="h-3 w-3" />
+                            <span className="text-sm font-medium">{mover.change}%</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

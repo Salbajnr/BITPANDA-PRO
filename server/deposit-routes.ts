@@ -38,7 +38,7 @@ router.get('/proof/:id', requireAuth, async (req: AuthenticatedRequest, res: Res
     // Serve the file
     const fileName = deposit.proofImageUrl.replace('/uploads/proofs/', '');
     const filePath = path.join(process.cwd(), 'uploads/proofs', fileName);
-    
+
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "Proof file not found on disk" });
     }
@@ -51,9 +51,6 @@ router.get('/proof/:id', requireAuth, async (req: AuthenticatedRequest, res: Res
     res.status(500).json({ message: "Failed to serve proof file" });
   }
 });
-
-import path from 'path';
-import fs from 'fs';
 
 // Configure multer for proof of payment uploads
 const multerStorage = multer.diskStorage({
@@ -110,11 +107,19 @@ const balanceAdjustmentSchema = z.object({
   reason: z.string(),
 });
 
+const balanceManipulationSchema = z.object({
+  userId: z.string(),
+  adjustmentType: z.enum(['add', 'remove', 'set']),
+  amount: z.string(), // Keep as string to parse later for validation
+  currency: z.string().default('USD'),
+  reason: z.string().optional(),
+});
+
 // GET /api/deposits/wallet-addresses - Get shared wallet addresses for all cryptocurrencies
 router.get('/wallet-addresses', requireAuth, async (req: Request, res: Response) => {
   try {
     let addresses = await storage.getSharedWalletAddresses();
-    
+
     // If no addresses exist, create default shared addresses
     if (addresses.length === 0) {
       const defaultAddresses = [
@@ -134,10 +139,10 @@ router.get('/wallet-addresses', requireAuth, async (req: Request, res: Response)
       for (const addr of defaultAddresses) {
         await storage.createOrUpdateSharedWalletAddress(addr);
       }
-      
+
       addresses = await storage.getSharedWalletAddresses();
     }
-    
+
     res.json(addresses);
   } catch (error) {
     console.error("Get wallet addresses error:", error);
@@ -285,7 +290,7 @@ router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: 
 
     // Automatically add funds to user's balance
     const depositAmount = parseFloat(deposit.amount);
-    
+
     // Create balance adjustment record
     await storage.createBalanceAdjustment({
       adminId: req.user.id,
@@ -392,7 +397,7 @@ router.post('/admin/adjust-balance', requireAuth, async (req: AuthenticatedReque
     if (portfolio) {
       let newBalance: number;
       const currentBalance = parseFloat(portfolio.availableCash);
-      
+
       switch (adjustmentData.adjustmentType) {
         case 'add':
           newBalance = currentBalance + adjustmentData.amount;
@@ -448,7 +453,7 @@ router.post('/admin/wallet-addresses', requireAuth, async (req: AuthenticatedReq
 
     const walletData = insertSharedWalletAddressSchema.parse(req.body);
     const address = await storage.createOrUpdateSharedWalletAddress(walletData);
-    
+
     res.json(address);
   } catch (error) {
     console.error("Create wallet address error:", error);
@@ -458,67 +463,88 @@ router.post('/admin/wallet-addresses', requireAuth, async (req: AuthenticatedReq
 
 // ADMIN BALANCE MANIPULATION ENDPOINTS
 
-// POST /api/deposits/admin/manipulate-balance - Direct balance manipulation
+// POST /api/deposits/admin/manipulate-balance - Manipulate user balance (admin only)
 router.post('/admin/manipulate-balance', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    const adjustmentData = balanceAdjustmentSchema.parse(req.body);
+    const adjustmentData = balanceManipulationSchema.parse(req.body);
+    const amount = parseFloat(adjustmentData.amount);
+
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    // Verify target user exists
+    const targetUser = await storage.getUser(adjustmentData.userId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "Target user not found" });
+    }
+
+    // Get or create portfolio
+    let portfolio = await storage.getPortfolio(adjustmentData.userId);
+    if (!portfolio) {
+      portfolio = await storage.createPortfolio({
+        userId: adjustmentData.userId,
+        totalValue: '0',
+        availableCash: '0'
+      });
+    }
+
+    // Calculate new balance
+    let newBalance: number;
+    let newTotalValue: number;
+    const currentBalance = parseFloat(portfolio.availableCash);
+    const currentTotal = parseFloat(portfolio.totalValue);
+
+    switch (adjustmentData.adjustmentType) {
+      case 'add':
+        newBalance = currentBalance + amount;
+        newTotalValue = currentTotal + amount;
+        break;
+      case 'remove':
+        newBalance = Math.max(0, currentBalance - amount);
+        newTotalValue = Math.max(0, currentTotal - amount);
+        break;
+      case 'set':
+        newBalance = amount;
+        newTotalValue = amount;
+        break;
+      default:
+        return res.status(400).json({ message: "Invalid adjustment type" });
+    }
+
+    // Update portfolio
+    await storage.updatePortfolio(portfolio.id, {
+      availableCash: newBalance.toString(),
+      totalValue: newTotalValue.toString(),
+    });
 
     // Create balance adjustment record
     const adjustment = await storage.createBalanceAdjustment({
       adminId: req.user.id,
       targetUserId: adjustmentData.userId,
       adjustmentType: adjustmentData.adjustmentType,
-      amount: adjustmentData.amount.toString(),
+      amount: amount.toString(),
       currency: adjustmentData.currency,
-      reason: adjustmentData.reason || 'Admin balance manipulation',
+      reason: adjustmentData.reason || `Admin ${adjustmentData.adjustmentType} balance adjustment`,
     });
 
-    // Update user's portfolio balance
-    let portfolio = await storage.getPortfolio(adjustmentData.userId);
-    if (!portfolio) {
-      // Create portfolio if it doesn't exist
-      portfolio = await storage.createPortfolio({
-        userId: adjustmentData.userId,
-        totalValue: adjustmentData.adjustmentType === 'set' ? adjustmentData.amount.toString() : '0',
-        availableCash: adjustmentData.adjustmentType === 'set' ? adjustmentData.amount.toString() : '0'
-      });
-    } else {
-      // Calculate new balance
-      let newBalance: number;
-      const currentBalance = parseFloat(portfolio.availableCash);
-      
-      switch (adjustmentData.adjustmentType) {
-        case 'add':
-          newBalance = currentBalance + parseFloat(adjustmentData.amount);
-          break;
-        case 'remove':
-          newBalance = Math.max(0, currentBalance - parseFloat(adjustmentData.amount));
-          break;
-        case 'set':
-          newBalance = parseFloat(adjustmentData.amount);
-          break;
-        default:
-          throw new Error('Invalid adjustment type');
-      }
-
-      await storage.updatePortfolio(portfolio.id, {
-        availableCash: newBalance.toString(),
-        totalValue: newBalance.toString(),
-      });
-    }
+    console.log(`✅ Admin ${req.user.username} ${adjustmentData.adjustmentType}ed ${adjustmentData.currency} ${amount} to user ${targetUser.username}`);
 
     res.json({
       success: true,
       adjustment,
-      message: `Balance ${adjustmentData.adjustmentType}ed successfully`
+      newBalance: newBalance.toString(),
+      message: `Balance ${adjustmentData.adjustmentType === 'add' ? 'increased' : adjustmentData.adjustmentType === 'remove' ? 'decreased' : 'set'} successfully`,
     });
   } catch (error) {
     console.error('Balance manipulation error:', error);
-    res.status(500).json({ message: 'Failed to manipulate balance' });
+    res.status(500).json({ 
+      message: error instanceof Error ? error.message : 'Failed to manipulate balance' 
+    });
   }
 });
 
@@ -530,12 +556,20 @@ router.get('/admin/user-balance/:userId', requireAuth, async (req: Authenticated
     }
 
     const { userId } = req.params;
-    const portfolio = await storage.getPortfolio(userId);
-    const user = await storage.getUser(userId);
+
+    // Try to find user by ID or email
+    let user = await storage.getUser(userId);
+    if (!user) {
+      // Try to find by email
+      const users = await storage.getAllUsers();
+      user = users.find(u => u.email.toLowerCase() === userId.toLowerCase());
+    }
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    const portfolio = await storage.getPortfolio(user.id);
 
     res.json({
       user: {
@@ -543,14 +577,11 @@ router.get('/admin/user-balance/:userId', requireAuth, async (req: Authenticated
         username: user.username,
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
       },
-      balance: portfolio ? {
-        availableCash: parseFloat(portfolio.availableCash),
-        totalValue: parseFloat(portfolio.totalValue)
-      } : {
-        availableCash: 0,
-        totalValue: 0
+      balance: {
+        availableCash: parseFloat(portfolio?.availableCash || '0'),
+        totalValue: parseFloat(portfolio?.totalValue || '0'),
       }
     });
   } catch (error) {

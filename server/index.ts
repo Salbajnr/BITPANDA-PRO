@@ -74,15 +74,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // IMPORTANT: You should change this secret to a value from your environment variables
 app.use(cookieParser(process.env.COOKIE_SECRET || "some-super-secret-and-long-string"));
 
-// Debug: log the CSRF secret and its length so we can verify what the process reads
-const _rawCsrf = process.env.CSRF_SECRET;
-console.log('DEBUG: raw CSRF_SECRET value:', JSON.stringify(_rawCsrf));
-console.log('DEBUG: CSRF_SECRET length:', _rawCsrf ? _rawCsrf.length : 'undefined');
 
-// IMPORTANT: tiny-csrf expects the secret string as the first argument.
-// Pass the raw secret directly.
-const csrfProtection = csrf(_rawCsrf || "some-super-secret-and-long-string-that-is-at-least-32-characters-long");
-app.use(csrfProtection);
 
 app.get('/api/csrf-token', (req, res) => {
   res.json({ csrfToken: req.csrfToken });
@@ -129,6 +121,12 @@ app.use((req, res, next) => {
     const server = await registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      // Check if headers were already sent to avoid double response
+      if (res.headersSent) {
+        console.error(`Error occurred after response sent: ${err.stack || err}`);
+        return;
+      }
+
       if (err.code === 'EBADCSRFTOKEN') {
         res.status(403).json({ message: 'Invalid CSRF token' });
       } else {
@@ -170,11 +168,24 @@ app.use((req, res, next) => {
 
     // All API routes are registered in routes.ts via registerRoutes()
     // Do not duplicate route registrations here
-    
+
     // Register additional CRUD routes
     app.use('/api/withdrawals', withdrawalRoutes);
     app.use('/api/watchlist', watchlistRoutes);
     app.use('/api/api-keys', apiKeysRoutes);
+
+    // Market research routes
+    const marketResearchRoutes = (await import('./market-research-routes')).default;
+    app.use('/api/research', marketResearchRoutes);
+
+    // User management routes
+    const userRoutes = (await import('./user-routes')).default;
+    app.use('/api/user', userRoutes);
+
+    // Analytics routes
+    const analyticsRoutes = (await import('./analytics-routes')).default;
+    app.use('/api/analytics', analyticsRoutes);
+
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route

@@ -107,21 +107,27 @@ class WebSocketManager {
 
       ws.on('error', (error) => {
         console.error(`WebSocket error for IP ${clientIp}:`, error);
-        this.handleUnsubscribe(clientId);
-
-        // Decrement connection count on error with safety check
-        const count = this.connectionsByIp.get(clientIp) || 0;
-        if (count <= 1) {
-          this.connectionsByIp.delete(clientIp);
-          console.log(`✓ Cleaned up connections on error for IP: ${clientIp}`);
-        } else {
-          this.connectionsByIp.set(clientIp, count - 1);
-          console.log(`✓ Error cleanup for IP: ${clientIp} (${count - 1} remaining)`);
-        }
         
-        // Force close the connection
-        if (ws.readyState === ws.OPEN || ws.readyState === ws.CONNECTING) {
-          ws.close();
+        // Only handle cleanup if not already closed
+        if (ws.readyState !== ws.CLOSED) {
+          this.handleUnsubscribe(clientId);
+
+          // Decrement connection count on error with safety check
+          const count = this.connectionsByIp.get(clientIp) || 0;
+          if (count <= 1) {
+            this.connectionsByIp.delete(clientIp);
+            console.log(`✓ Cleaned up connections on error for IP: ${clientIp}`);
+          } else {
+            this.connectionsByIp.set(clientIp, count - 1);
+            console.log(`✓ Error cleanup for IP: ${clientIp} (${count - 1} remaining)`);
+          }
+          
+          // Force close the connection
+          try {
+            ws.close();
+          } catch (e) {
+            // Ignore close errors
+          }
         }
       });
     });

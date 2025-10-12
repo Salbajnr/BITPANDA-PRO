@@ -87,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const metalsTrading = (await import('./metals-trading-routes')).default;
   app.use('/api/metals-trading', metalsTrading);
 
-  // News routes
+  // News routes (including admin endpoints)
   app.use('/api/news', newsRoutes);
 
   // Market research routes
@@ -117,6 +117,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API documentation routes
   const apiDocsRoutes = (await import('./api-docs-routes')).default;
   app.use('/api/docs', apiDocsRoutes);
+
+  // Comprehensive analytics routes
+  const comprehensiveAnalyticsRoutes = (await import('./comprehensive-analytics-routes')).default;
+  app.use('/api/analytics/comprehensive', comprehensiveAnalyticsRoutes);
 
   // ADMIN AUTHROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
@@ -703,6 +707,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Alert routes
   app.use('/api/alerts', alertRoutes);
+
+  // User routes
+  const userRoutes = (await import('./user-routes')).default;
+  app.use('/api/user', userRoutes);
+
+  // Watchlist routes
+  const watchlistRoutes = (await import('./watchlist-routes')).default;
+  app.use('/api/watchlist', watchlistRoutes);
 
   // Chat routes
   const chatRoutes = (await import('./chat-routes')).default;

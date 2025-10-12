@@ -122,10 +122,8 @@ export default function LiveTicker() {
         };
 
         ws.onerror = (error) => {
-          clearTimeout(connectionTimer);
-          console.error('LiveTicker WebSocket error:', error);
+          console.warn('LiveTicker WebSocket error - will retry:', error.type);
           setIsConnected(false);
-          setPrices(defaultPrices);
         };
       } catch (error) {
         console.error('Failed to create WebSocket connection:', error);

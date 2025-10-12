@@ -147,16 +147,21 @@ const adjustBalanceSchema = z.object({
 router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const data = adjustBalanceSchema.parse(req.body);
+    const adjustmentAmount = parseFloat(data.amount);
 
-    const adjustment = await storage.createBalanceAdjustment({
-      adminId: req.user!.id,
-      ...data,
-    });
+    if (isNaN(adjustmentAmount) || adjustmentAmount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
 
-    // Update portfolio balance
+    // Verify target user exists
+    const targetUser = await storage.getUser(data.targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "Target user not found" });
+    }
+
+    // Get or create portfolio
     let portfolio = await storage.getPortfolio(data.targetUserId);
     if (!portfolio) {
-      // Create portfolio if it doesn't exist
       portfolio = await storage.createPortfolio({
         userId: data.targetUserId,
         totalValue: '0',
@@ -168,31 +173,48 @@ router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: Reques
     let newAvailableCash: number;
     const currentTotalValue = parseFloat(portfolio.totalValue);
     const currentAvailableCash = parseFloat(portfolio.availableCash);
-    const adjustmentAmount = parseFloat(data.amount);
 
     switch (data.adjustmentType) {
       case 'add':
         newTotalValue = currentTotalValue + adjustmentAmount;
-        newAvailableCash = data.currency === 'USD' ? currentAvailableCash + adjustmentAmount : currentAvailableCash;
+        newAvailableCash = currentAvailableCash + adjustmentAmount;
         break;
       case 'remove':
         newTotalValue = Math.max(0, currentTotalValue - adjustmentAmount);
-        newAvailableCash = data.currency === 'USD' ? Math.max(0, currentAvailableCash - adjustmentAmount) : currentAvailableCash;
+        newAvailableCash = Math.max(0, currentAvailableCash - adjustmentAmount);
         break;
       case 'set':
         newTotalValue = adjustmentAmount;
-        newAvailableCash = data.currency === 'USD' ? adjustmentAmount : currentAvailableCash;
+        newAvailableCash = adjustmentAmount;
         break;
       default:
-        throw new Error('Invalid adjustment type');
+        return res.status(400).json({ message: 'Invalid adjustment type' });
     }
 
+    // Update portfolio
     await storage.updatePortfolio(portfolio.id, {
       totalValue: newTotalValue.toString(),
       availableCash: newAvailableCash.toString()
     });
 
-    res.json(adjustment);
+    // Create adjustment record
+    const adjustment = await storage.createBalanceAdjustment({
+      adminId: req.user!.id,
+      targetUserId: data.targetUserId,
+      adjustmentType: data.adjustmentType,
+      amount: data.amount,
+      currency: data.currency,
+      reason: data.reason || `Admin ${data.adjustmentType} balance adjustment`,
+    });
+
+    console.log(`✅ Admin balance adjustment: ${data.adjustmentType} ${data.currency} ${data.amount} for user ${targetUser.username}`);
+
+    res.json({
+      success: true,
+      adjustment,
+      newBalance: newAvailableCash.toString(),
+      message: `Balance ${data.adjustmentType === 'add' ? 'increased' : data.adjustmentType === 'remove' ? 'decreased' : 'set'} successfully`,
+    });
   } catch (error) {
     console.error('Balance adjustment error:', error);
     res.status(500).json({ message: 'Failed to adjust balance' });

@@ -30,6 +30,24 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// Get single API key
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const apiKey = await storage.getApiKeyById(id);
+    if (!apiKey || apiKey.userId !== userId) {
+      return res.status(404).json({ message: 'API key not found' });
+    }
+
+    res.json(apiKey);
+  } catch (error) {
+    console.error('Get API key error:', error);
+    res.status(500).json({ message: 'Failed to fetch API key' });
+  }
+});
+
 // Create new API key
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {

@@ -98,7 +98,8 @@ class CryptoService {
     this.isProcessingQueue = true;
 
     while (this.requestQueue.length > 0) {
-      if (this.rateLimitInfo.remaining <= 1) {
+      // Check if we're actually rate limited (remaining is 0 or reset time hasn't passed)
+      if (this.rateLimitInfo.remaining === 0 && this.rateLimitInfo.resetTime > Date.now()) {
         const waitTime = Math.max(0, this.rateLimitInfo.resetTime - Date.now());
         console.log(`⏳ Rate limit reached, waiting ${waitTime}ms`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -239,7 +240,7 @@ class CryptoService {
       );
 
       if (response.status === 429) {
-        console.warn(`⚠️ Rate limited for ${symbol}, using fallback`);
+        console.warn(`⚠️ Rate limited (429) for ${symbol}, using fallback`);
         return this.getFallbackPrice(symbol);
       }
 
@@ -252,7 +253,7 @@ class CryptoService {
       const priceData = data[coinId];
 
       if (!priceData) {
-        console.warn(`⚠️ No price data found for ${symbol}`);
+        console.warn(`⚠️ No price data found for ${symbol} in response`);
         return this.getFallbackPrice(symbol);
       }
 
@@ -354,7 +355,26 @@ class CryptoService {
       const response = await this.rateLimitedFetch(`${this.baseUrl}/search/trending`);
 
       if (response.status === 429) {
-        console.warn('⚠️ Rate limited for trending, using fallback');
+        console.warn('⚠️ Rate limited for trending, trying alternative source');
+        // Try alternative: get top gainers from market data
+        const marketData = await this.getMarketData(undefined, 50);
+        const topGainers = marketData
+          .filter(coin => coin.price_change_percentage_24h > 0)
+          .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+          .slice(0, 7)
+          .map(coin => ({
+            id: coin.id,
+            symbol: coin.symbol,
+            name: coin.name,
+            market_cap_rank: coin.market_cap_rank,
+            small: coin.image
+          }));
+        
+        if (topGainers.length > 0) {
+          this.cache.set(cacheKey, { data: topGainers, timestamp: Date.now() });
+          return topGainers;
+        }
+        
         return this.getFallbackTrendingData();
       }
 

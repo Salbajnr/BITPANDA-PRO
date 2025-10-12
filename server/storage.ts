@@ -2019,11 +2019,11 @@ export class DatabaseStorage implements IStorage {
       .from(deposits)
       .where(eq(deposits.userId, userId))
       .orderBy(desc(deposits.createdAt));
-    
+
     if (limit) {
       query = query.limit(limit);
     }
-    
+
     return await query;
   }
 

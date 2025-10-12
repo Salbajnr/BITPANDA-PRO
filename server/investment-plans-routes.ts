@@ -147,6 +147,80 @@ router.post('/invest', requireAuth, async (req: Request, res: Response) => {
     const userId = req.user!.id;
 
     // Check if user has sufficient balance
+
+
+// Update investment
+router.put('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+    const { notes } = req.body;
+
+    // Verify ownership (you'll need to add this method to storage)
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    const updated = await storage.updateInvestment(id, { notes });
+    res.json(updated);
+  } catch (error) {
+    console.error('Update investment error:', error);
+    res.status(500).json({ message: 'Failed to update investment' });
+  }
+});
+
+// Cancel/Delete investment (only if status allows)
+router.delete('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    // Only allow cancellation if investment is still active and within grace period
+    if (investment.status !== 'active') {
+      return res.status(400).json({ message: 'Cannot cancel this investment' });
+    }
+
+    // Refund the invested amount
+    const portfolio = await storage.getPortfolio(userId);
+    if (portfolio) {
+      const newCash = parseFloat(portfolio.availableCash) + parseFloat(investment.investedAmount);
+      await storage.updatePortfolio(portfolio.id, {
+        availableCash: newCash.toString()
+      });
+    }
+
+    await storage.deleteInvestment(id);
+    res.json({ message: 'Investment cancelled successfully', refundedAmount: investment.investedAmount });
+  } catch (error) {
+    console.error('Cancel investment error:', error);
+    res.status(500).json({ message: 'Failed to cancel investment' });
+  }
+});
+
+// Get single investment details
+router.get('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    res.json(investment);
+  } catch (error) {
+    console.error('Get investment error:', error);
+    res.status(500).json({ message: 'Failed to fetch investment' });
+  }
+});
+
     const portfolio = await storage.getPortfolio(userId);
     if (!portfolio) {
       return res.status(400).json({ message: 'Portfolio not found' });
@@ -158,28 +232,23 @@ router.post('/invest', requireAuth, async (req: Request, res: Response) => {
     }
 
     // Create investment record
-    const investment = {
-      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    const investment = await storage.createInvestment({
       userId,
       planId: data.planId,
-      investedAmount: data.amount,
-      currentValue: data.amount,
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toISOString(), // 1 year from now
+      investedAmount: data.amount.toString(),
+      currentValue: data.amount.toString(),
+      startDate: new Date(),
+      endDate: new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)), // 1 year from now
       status: 'active',
-      expectedReturn: 12.0, // Default expected return
-      actualReturn: 0,
-      createdAt: new Date().toISOString()
-    };
+      expectedReturn: '12.0',
+      actualReturn: '0'
+    });
 
     // Update portfolio balance
     const newAvailableCash = availableCash - data.amount;
     await storage.updatePortfolio(portfolio.id, {
       availableCash: newAvailableCash.toString()
     });
-
-    // Store investment (you might want to add this to your storage layer)
-    // For now, we'll simulate success
 
     res.json(investment);
   } catch (error) {
@@ -192,36 +261,8 @@ router.post('/invest', requireAuth, async (req: Request, res: Response) => {
 router.get('/my-investments', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-
-    // Mock user investments data
-    const mockInvestments = [
-      {
-        id: 'inv_1',
-        planId: 'balanced-portfolio',
-        planName: 'Balanced Portfolio',
-        investedAmount: 5000,
-        currentValue: 5420,
-        startDate: '2024-01-15T00:00:00.000Z',
-        endDate: '2025-01-15T00:00:00.000Z',
-        status: 'active',
-        expectedReturn: 12.0,
-        actualReturn: 8.4
-      },
-      {
-        id: 'inv_2',
-        planId: 'dividend-income',
-        planName: 'Dividend Income',
-        investedAmount: 2500,
-        currentValue: 2680,
-        startDate: '2024-03-01T00:00:00.000Z',
-        endDate: '2025-06-01T00:00:00.000Z',
-        status: 'active',
-        expectedReturn: 9.2,
-        actualReturn: 7.2
-      }
-    ];
-
-    res.json(mockInvestments);
+    const investments = await storage.getUserInvestments(userId);
+    res.json(investments);
   } catch (error) {
     console.error('Get user investments error:', error);
     res.status(500).json({ message: 'Failed to fetch user investments' });

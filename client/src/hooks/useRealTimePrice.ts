@@ -76,9 +76,16 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
   }, [enableAlerts]);
 
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN ||
-        wsRef.current?.readyState === WebSocket.CONNECTING) {
-      return;
+    // Prevent multiple connection attempts
+    if (wsRef.current) {
+      const state = wsRef.current.readyState;
+      if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) {
+        console.log('⚠️ WebSocket already connected/connecting, skipping');
+        return;
+      }
+      // Close stale connection
+      wsRef.current.close();
+      wsRef.current = null;
     }
 
     // Clear any existing reconnect timeout
@@ -97,7 +104,8 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws`;
-
+      
+      console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
@@ -147,29 +155,33 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
       wsRef.current.onclose = (event) => {
         console.log('WebSocket connection closed:', event.code, event.reason);
         setIsConnected(false);
+        wsRef.current = null;
 
-        // Attempt to reconnect if the close was not intentional (e.g., server error)
+        // Only reconnect if not a normal closure and within attempt limits
         if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
+          // Clear any existing timeout first
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+          }
+          
           reconnectAttemptsRef.current++;
-          const reconnectDelay = Math.pow(2, reconnectAttemptsRef.current) * 1000; // Exponential backoff
-          console.log(`Attempting to reconnect in ${reconnectDelay / 1000}s... (Attempt ${reconnectAttemptsRef.current})`);
-          reconnectTimeoutRef.current = setTimeout(connect, reconnectDelay);
+          const reconnectDelay = Math.min(Math.pow(2, reconnectAttemptsRef.current) * 1000, 30000); // Cap at 30s
+          console.log(`🔄 Reconnecting in ${reconnectDelay / 1000}s (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
+          
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectTimeoutRef.current = null;
+            connect();
+          }, reconnectDelay);
         } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-          setConnectionError('Max reconnect attempts reached. Please try again later.');
+          setConnectionError('Max reconnect attempts reached. Please refresh the page.');
         }
       };
 
       wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error('❌ WebSocket error:', error);
         setConnectionError('Connection error - using fallback data');
-        setIsConnected(false); // Ensure state reflects disconnection
-        // Trigger a reconnect attempt on error
-        if (reconnectTimeoutRef.current === null) {
-          reconnectAttemptsRef.current++;
-          const reconnectDelay = Math.pow(2, reconnectAttemptsRef.current) * 1000;
-          console.log(`Attempting to reconnect after error in ${reconnectDelay / 1000}s... (Attempt ${reconnectAttemptsRef.current})`);
-          reconnectTimeoutRef.current = setTimeout(connect, reconnectDelay);
-        }
+        setIsConnected(false);
+        // Don't reconnect here - let onclose handle it to avoid duplicate attempts
       };
     } catch (err) {
       console.error('Failed to create WebSocket connection:', err);
@@ -245,26 +257,41 @@ export function useRealTimePrice(symbols: string[], enableAlerts = false) {
 
     // Cleanup function
     return () => {
-      if (wsRef.current) {
-        // Send unsubscribe message if connected
-        if (wsRef.current.readyState === WebSocket.OPEN) {
-          try {
-            wsRef.current.send(JSON.stringify({ type: 'unsubscribe', symbols: symbols }));
-          } catch (e) {
-            console.error("Error sending unsubscribe message on cleanup:", e);
-          }
-        }
-        // Clear the WebSocket connection
-        wsRef.current.close(1000, 'Component unmounting');
-        wsRef.current = null; // Clear the ref
-      }
-      // Clear any pending reconnect timeouts
+      // Clear any pending reconnect timeouts first
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
+      
+      if (wsRef.current) {
+        const ws = wsRef.current;
+        wsRef.current = null; // Clear ref immediately
+        
+        // Remove event handlers to prevent callbacks during cleanup
+        ws.onopen = null;
+        ws.onmessage = null;
+        ws.onerror = null;
+        ws.onclose = null;
+        
+        // Send unsubscribe message if connected
+        if (ws.readyState === WebSocket.OPEN) {
+          try {
+            ws.send(JSON.stringify({ type: 'unsubscribe', symbols: symbols }));
+          } catch (e) {
+            // Ignore errors during cleanup
+          }
+        }
+        
+        // Close connection
+        if (ws.readyState !== WebSocket.CLOSED) {
+          ws.close(1000, 'Component unmounting');
+        }
+      }
+      
+      // Reset reconnect attempts
+      reconnectAttemptsRef.current = 0;
     };
-  }, [symbols, connect]); // Re-run effect if symbols change
+  }, [symbols]); // Remove 'connect' from dependencies to prevent recreation
 
   return {
     prices,
