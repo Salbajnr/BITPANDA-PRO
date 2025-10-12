@@ -59,7 +59,9 @@ export default function NewsManagementPanel({ className }: NewsManagementPanelPr
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch('/api/news/admin/analytics');
+      const response = await fetch('/api/news/admin/analytics', {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setAnalytics(data);

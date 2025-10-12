@@ -352,7 +352,7 @@ router.delete('/admin/:id', requireAdmin, async (req, res) => {
 });
 
 // Admin: Get analytics
-router.get('/analytics', requireAdmin, async (req, res) => {
+router.get('/admin/analytics', requireAdmin, async (req, res) => {
   try {
     const analytics = await storage.getNewsAnalytics();
     res.json(analytics);

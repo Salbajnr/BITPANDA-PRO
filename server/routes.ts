@@ -87,12 +87,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const metalsTrading = (await import('./metals-trading-routes')).default;
   app.use('/api/metals-trading', metalsTrading);
 
-  // News routes
+  // News routes (including admin endpoints)
   app.use('/api/news', newsRoutes);
-  
-  // News update route (admin only)
-  const newsUpdateRouter = await import('./news-routes');
-  app.use('/api/news', newsUpdateRouter.default);
 
   // Market research routes
   const marketResearchRoutes = (await import('./market-research-routes')).default;

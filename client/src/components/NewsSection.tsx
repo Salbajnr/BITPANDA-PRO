@@ -19,52 +19,7 @@ export default function NewsSection() {
     retry: false,
   });
 
-  // Fallback to crypto news if no articles are available
-  const { data: fallbackNews = [] } = useQuery({
-    queryKey: ['crypto-news-fallback'],
-    queryFn: async () => {
-      try {
-        // Using a simple news API fallback
-        // Disable external API calls for now to prevent errors
-        // const response = await fetch(
-        //   `https://newsapi.org/v2/everything?q=cryptocurrency&sortBy=publishedAt&pageSize=6&apiKey=${import.meta.env.VITE_NEWS_API_KEY || 'demo'}`
-        // );
-        
-        // Use fallback news data instead
-        throw new Error('External API disabled - using fallback data');
-      } catch (error) {
-        console.warn('News API fallback failed:', error);
-      }
-      // Final fallback with static crypto news
-      return [
-        {
-          id: '1',
-          title: 'Bitcoin Reaches New All-Time High as Institutional Adoption Grows',
-          excerpt: 'Major financial institutions continue to add Bitcoin to their balance sheets, driving unprecedented demand...',
-          source: 'CryptoNews',
-          publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          imageUrl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200',
-        },
-        {
-          id: '2',
-          title: 'Ethereum 2.0 Staking Rewards Reach Historic Levels',
-          excerpt: 'The Ethereum network upgrade has led to increased staking participation and higher rewards for validators...',
-          source: 'BlockchainDaily',
-          publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200',
-        },
-        {
-          id: '3',
-          title: 'DeFi Total Value Locked Surpasses $200 Billion',
-          excerpt: 'Decentralized finance protocols continue to grow as users seek higher yields and financial autonomy...',
-          source: 'DeFiPulse',
-          publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-          imageUrl: 'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200',
-        },
-      ];
-    },
-    enabled: newsArticles.length === 0,
-  });
+  // Use news from backend API only
 
   const displayNews = newsArticles.length > 0 ? newsArticles : fallbackNews;
 

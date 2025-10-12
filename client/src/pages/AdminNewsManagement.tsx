@@ -10,9 +10,9 @@ import { ErrorState } from '@/components/ErrorState';
 
 function NewsStatsSection() {
   const { data: newsStats, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/news/analytics'],
+    queryKey: ['/api/news/admin/analytics'],
     queryFn: async () => {
-      const response = await fetch('/api/news/analytics', {
+      const response = await fetch('/api/news/admin/analytics', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch news stats');
