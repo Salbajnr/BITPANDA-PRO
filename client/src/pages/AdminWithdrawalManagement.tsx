@@ -17,6 +17,9 @@ import {
   MessageSquare, UserCheck, FileText, Calendar, Filter,
   TrendingUp, TrendingDown
 } from 'lucide-react';
+import { LoadingCard } from '@/components/LoadingCard';
+import { ErrorState } from '@/components/ErrorState';
+import { EmptyState } from '@/components/EmptyState';
 
 interface Withdrawal {
   id: string;
@@ -366,20 +369,19 @@ export default function AdminWithdrawalManagement() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-12">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-                <p className="text-gray-600">Loading withdrawals...</p>
+              <div className="space-y-4">
+                <LoadingCard count={5} height="h-32" />
               </div>
             ) : filteredWithdrawals.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Withdrawals Found</h3>
-                <p className="text-gray-600">
-                  {statusFilter === 'all' 
+              <EmptyState
+                icon={FileText}
+                title="No Withdrawals Found"
+                description={
+                  statusFilter === 'all' 
                     ? "No withdrawal requests have been submitted yet." 
-                    : `No ${statusFilter.replace('_', ' ')} withdrawals found.`}
-                </p>
-              </div>
+                    : `No ${statusFilter.replace('_', ' ')} withdrawals found.`
+                }
+              />
             ) : (
               <div className="space-y-4">
                 {filteredWithdrawals.map((withdrawal: Withdrawal) => {

@@ -119,7 +119,6 @@ export default function Alerts() {
               </Card>
             </div>
 
-            {/* Main Content */}
             <Tabs defaultValue="alerts" className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="alerts">Price Alerts</TabsTrigger>

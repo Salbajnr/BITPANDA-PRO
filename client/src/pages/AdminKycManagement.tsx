@@ -19,6 +19,8 @@ import {
   ThumbsUpIcon, ThumbsDownIcon, MessageSquareIcon
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { LoadingCard } from "@/components/LoadingCard";
+import { EmptyState } from "@/components/EmptyState";
 
 interface KycVerification {
   id: string;
@@ -185,14 +187,15 @@ export default function AdminKycManagement() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
-          ))}
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
         </div>
-        <div className="h-96 bg-slate-200 dark:bg-slate-700 rounded"></div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <LoadingCard count={5} height="h-24" />
+        </div>
+        <LoadingCard count={1} height="h-96" />
       </div>
     );
   }

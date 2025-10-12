@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,12 +8,38 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
+import {
   MessageCircleIcon, SendIcon, UserIcon, ClockIcon,
   CheckCircleIcon, StarIcon, EyeIcon, MessageSquareIcon,
   PaperclipIcon, FileIcon, ImageIcon, DownloadIcon
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+
+// Placeholder for a loading card component
+const LoadingCard = ({ count, height }: { count: number; height: string }) => {
+  return (
+    <>
+      {[...Array(count)].map((_, i) => (
+        <Card key={i} className={`${height} animate-pulse`}>
+          <CardHeader>
+            <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-2"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-full flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
+              </div>
+              <div className="mt-4 h-8 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </>
+  );
+};
+
 
 interface ChatSession {
   id: string;
@@ -92,7 +117,7 @@ export default function AdminChatManagement() {
         userId: user?.id,
         role: 'admin'
       }));
-      
+
       ws.send(JSON.stringify({
         type: 'join_session',
         sessionId: selectedSession.id,
@@ -103,7 +128,7 @@ export default function AdminChatManagement() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'new_message') {
           queryClient.invalidateQueries({ queryKey: ["/api/support/chat/messages", selectedSession.id] });
         } else if (data.type === 'session_status_changed') {
@@ -253,7 +278,7 @@ export default function AdminChatManagement() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!currentMessage.trim() && !selectedFile) return;
 
     try {
@@ -303,7 +328,7 @@ export default function AdminChatManagement() {
       active: "default",
       ended: "outline"
     };
-    
+
     return (
       <Badge variant={variants[status] || "secondary"}>
         {status.toUpperCase()}
@@ -315,9 +340,17 @@ export default function AdminChatManagement() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-        <div className="h-96 bg-slate-200 dark:bg-slate-700 rounded"></div>
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <LoadingCard count={1} height="h-[700px]" />
+          <div className="lg:col-span-2">
+            <LoadingCard count={1} height="h-[700px]" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -498,9 +531,9 @@ export default function AdminChatManagement() {
                                 {message.senderName} ({message.senderRole})
                               </span>
                             </div>
-                            
+
                             <p className="text-sm mb-2">{message.message}</p>
-                            
+
                             {message.attachmentUrl && (
                               <div className="mt-2 p-2 rounded bg-black/10 dark:bg-white/10">
                                 <div className="flex items-center gap-2">
@@ -524,7 +557,7 @@ export default function AdminChatManagement() {
                                 </div>
                               </div>
                             )}
-                            
+
                             <p className="text-xs opacity-75 mt-1">
                               {new Date(message.createdAt).toLocaleTimeString()}
                             </p>
@@ -585,8 +618,8 @@ export default function AdminChatManagement() {
                         >
                           <PaperclipIcon className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          type="submit" 
+                        <Button
+                          type="submit"
                           disabled={sendMessageMutation.isPending || uploading || (!currentMessage.trim() && !selectedFile)}
                         >
                           {uploading ? "Uploading..." : <SendIcon className="h-4 w-4" />}

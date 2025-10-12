@@ -3,11 +3,13 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import NewsManagementPanel from '@/components/NewsManagementPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Newspaper, TrendingUp, Users, Eye } from 'lucide-react';
+import { Newspaper, TrendingUp, Users, Eye, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { LoadingCard } from '@/components/LoadingCard';
+import { ErrorState } from '@/components/ErrorState';
 
 function NewsStatsSection() {
-  const { data: newsStats } = useQuery({
+  const { data: newsStats, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/news/analytics'],
     queryFn: async () => {
       const response = await fetch('/api/news/analytics', {
@@ -17,6 +19,25 @@ function NewsStatsSection() {
       return response.json();
     }
   });
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <LoadingCard count={4} height="h-24" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mb-8">
+        <ErrorState
+          message="Failed to load news statistics"
+          onRetry={refetch}
+        />
+      </div>
+    );
+  }
 
   const stats = {
     totalArticles: newsStats?.totalArticles || 0,

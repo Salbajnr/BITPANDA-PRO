@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { RefreshCw, Eye, Check, X, FileText, Hash, ExternalLink } from "lucide-react";
+import { RefreshCw, Eye, Check, X, FileText, Hash, ExternalLink, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { LoadingCard } from '@/components/LoadingCard';
+import { ErrorState } from '@/components/ErrorState';
 
 interface Deposit {
   deposit: {
@@ -193,10 +195,16 @@ export default function AdminDepositManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white p-6 flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading deposits...</p>
+      <div className="min-h-screen bg-slate-900 text-white p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <div className="h-8 bg-slate-700 rounded w-64 mb-2 animate-pulse"></div>
+            <div className="h-4 bg-slate-700 rounded w-96 animate-pulse"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <LoadingCard count={4} height="h-24" />
+          </div>
+          <LoadingCard count={3} height="h-48" />
         </div>
       </div>
     );
