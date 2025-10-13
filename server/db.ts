@@ -6,13 +6,6 @@ import * as schema from "@shared/schema";
 
 let databaseUrl = process.env.DATABASE_URL;
 
-// Fallback to Replit PostgreSQL if DATABASE_URL is not set or points to unavailable Supabase
-if ((!databaseUrl || databaseUrl.includes('supabase.co')) && process.env.PGHOST) {
-  const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE } = process.env;
-  databaseUrl = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}`;
-  console.log("🔌 Using Replit PostgreSQL database (fallback)");
-}
-
 if (!databaseUrl) {
   console.error("⚠️  No database URL found. Please set DATABASE_URL in Secrets.");
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
