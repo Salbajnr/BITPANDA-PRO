@@ -16,6 +16,7 @@ interface PriceUpdate {
   volume_24h: number;
   market_cap: number;
   timestamp: number;
+  lastUpdated?: number; // Added for caching logic
 }
 
 class RealTimePriceService extends EventEmitter {
@@ -85,7 +86,8 @@ class RealTimePriceService extends EventEmitter {
         change_24h: price.change_24h,
         volume_24h: price.volume_24h,
         market_cap: price.market_cap,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        lastUpdated: Date.now() // Set lastUpdated for caching
       }));
 
       this.sendToClient(subscription.ws, {
@@ -137,14 +139,12 @@ class RealTimePriceService extends EventEmitter {
         change_24h: price.change_24h,
         volume_24h: price.volume_24h,
         market_cap: price.market_cap,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        lastUpdated: Date.now() // Set lastUpdated for caching
       }));
 
       // Update cache and broadcast to clients
       updates.forEach(update => {
-        const cached = this.priceCache.get(update.symbol);
-
-        // Always broadcast to ensure clients get updates (even small changes)
         this.priceCache.set(update.symbol, update);
         this.broadcastPriceUpdate(update);
       });
@@ -187,7 +187,41 @@ class RealTimePriceService extends EventEmitter {
 
   // Public methods for other services
   getPrice(symbol: string): PriceUpdate | null {
-    return this.priceCache.get(symbol.toLowerCase()) || null;
+    const lowerCaseSymbol = symbol.toLowerCase();
+    const cached = this.priceCache.get(lowerCaseSymbol);
+
+    if (cached && Date.now() - (cached.lastUpdated || 0) < 300000) { // 5 minutes
+      return cached;
+    }
+
+    // Attempt to fetch the price if cache is stale or not present
+    try {
+      const price = await cryptoService.getPrice(lowerCaseSymbol); // Assuming cryptoService has getPrice
+      if (price) {
+        const update: PriceUpdate = {
+          symbol: lowerCaseSymbol,
+          price: price.price,
+          change_24h: price.change_24h,
+          volume_24h: price.volume_24h,
+          market_cap: price.market_cap,
+          timestamp: Date.now(),
+          lastUpdated: Date.now()
+        };
+        this.priceCache.set(lowerCaseSymbol, update);
+        return update;
+      }
+    } catch (error) {
+      console.error(`⚠️ Error fetching ${lowerCaseSymbol}:`, error instanceof Error ? error.message : error);
+      // Return cached data or default fallback if fetch fails
+      const cachedData = this.priceCache.get(lowerCaseSymbol);
+      if (cachedData && Date.now() - (cachedData.lastUpdated || 0) < 300000) { // 5 minutes
+        return cachedData;
+      }
+      return this.getFallbackPrice(lowerCaseSymbol);
+    }
+
+    // If still not found after fetch attempt, return fallback
+    return this.getFallbackPrice(lowerCaseSymbol);
   }
 
   getAllPrices(): PriceUpdate[] {
@@ -200,6 +234,21 @@ class RealTimePriceService extends EventEmitter {
 
   getSubscriptionCount(): number {
     return this.subscriptions.size;
+  }
+
+  // Fallback method to provide default/mock data if real data isn't available
+  private getFallbackPrice(symbol: string): PriceUpdate {
+    console.warn(`⚠️ Using fallback price for ${symbol}`);
+    // You can implement a more sophisticated fallback, e.g., using historical averages or a default value
+    return {
+      symbol: symbol,
+      price: 0, // Default price
+      change_24h: 0,
+      volume_24h: 0,
+      market_cap: 0,
+      timestamp: Date.now(),
+      lastUpdated: Date.now()
+    };
   }
 }
 

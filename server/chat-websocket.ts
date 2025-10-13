@@ -1,4 +1,3 @@
-
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { parse } from 'url';
@@ -22,7 +21,7 @@ class ChatWebSocketManager {
     if (this.wss) {
       this.wss.close();
     }
-    
+
     this.wss = new WebSocketServer({
       noServer: true
     });
@@ -32,7 +31,7 @@ class ChatWebSocketManager {
     server.on('upgrade', (request, socket, head) => {
       try {
         const pathname = new URL(request.url!, `http://${request.headers.host}`).pathname;
-        
+
         if (pathname === '/ws/chat') {
           this.wss!.handleUpgrade(request, socket, head, (ws) => {
             this.wss!.emit('connection', ws, request);
@@ -122,7 +121,7 @@ class ChatWebSocketManager {
 
   private async handleAuthentication(clientId: string, ws: WebSocket, message: any): Promise<void> {
     const { userId, role } = message;
-    
+
     this.clients.set(clientId, {
       ws,
       userId,
@@ -139,7 +138,7 @@ class ChatWebSocketManager {
   private async handleJoinSession(clientId: string, message: any): Promise<void> {
     const { sessionId, userId } = message;
     const client = this.clients.get(clientId);
-    
+
     if (!client) {
       return;
     }
@@ -180,7 +179,7 @@ class ChatWebSocketManager {
   private async handleSendMessage(clientId: string, message: any): Promise<void> {
     const { sessionId, message: messageText, attachmentUrl, messageType } = message;
     const client = this.clients.get(clientId);
-    
+
     if (!client || client.sessionId !== sessionId) {
       return;
     }
@@ -200,7 +199,7 @@ class ChatWebSocketManager {
   private async handleTyping(clientId: string, message: any): Promise<void> {
     const { sessionId, isTyping } = message;
     const client = this.clients.get(clientId);
-    
+
     if (!client || client.sessionId !== sessionId) {
       return;
     }
@@ -215,13 +214,13 @@ class ChatWebSocketManager {
 
   private handleLeaveSession(clientId: string): void {
     const client = this.clients.get(clientId);
-    
+
     if (!client || !client.sessionId) {
       return;
     }
 
     const sessionId = client.sessionId;
-    
+
     // Remove from session clients
     const sessionClients = this.sessionClients.get(sessionId);
     if (sessionClients) {
@@ -244,17 +243,17 @@ class ChatWebSocketManager {
 
   private removeClient(clientId: string): void {
     const client = this.clients.get(clientId);
-    
+
     if (client && client.sessionId) {
       this.handleLeaveSession(clientId);
     }
-    
+
     this.clients.delete(clientId);
   }
 
   private broadcastToSession(sessionId: string, message: any, excludeClientId?: string): void {
     const sessionClients = this.sessionClients.get(sessionId);
-    
+
     if (!sessionClients) {
       return;
     }
@@ -308,10 +307,21 @@ class ChatWebSocketManager {
   }
 
   shutdown(): void {
-    this.clients.clear();
-    this.sessionClients.clear();
-    if (this.wss) {
-      this.wss.close();
+    console.log('💬 Shutting down chat WebSocket server...');
+    try {
+      this.clients.forEach(client => {
+        try {
+          if (client.ws.readyState === WebSocket.OPEN) {
+            client.ws.close(1000, 'Server shutting down');
+          }
+        } catch (error) {
+          console.error('Error closing chat WebSocket connection:', error);
+        }
+      });
+      this.clients.clear();
+      console.log('✅ Chat WebSocket server shutdown complete');
+    } catch (error) {
+      console.error('❌ Error during chat WebSocket shutdown:', error);
     }
   }
 }

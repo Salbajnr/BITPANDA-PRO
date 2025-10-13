@@ -212,20 +212,30 @@ app.use((req, res, next) => {
     // Serve static files from the client dist directory
     app.use(express.static(path.join(__dirname, '../client/dist')));
 
-    // Admin routes - serve admin app
+    // Admin routes - serve admin app for /admin paths
     app.get('/admin*', (req, res) => {
       const adminHtmlPath = path.join(__dirname, '../client/dist/admin.html');
       if (fs.existsSync(adminHtmlPath)) {
         res.sendFile(adminHtmlPath);
       } else {
         // Fallback to development admin.html
-        res.sendFile(path.join(__dirname, '../client/admin.html'));
+        const devAdminPath = path.join(__dirname, '../client/admin.html');
+        if (fs.existsSync(devAdminPath)) {
+          res.sendFile(devAdminPath);
+        } else {
+          res.status(404).send('Admin panel not found');
+        }
       }
     });
 
     // Catch-all handler: send back React's index.html file for SPA routing
     app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+      const indexPath = path.join(__dirname, '../client/dist/index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Application not found');
+      }
     });
 
     // IMPORTANTLY: This catch-all route should be the last route registered.

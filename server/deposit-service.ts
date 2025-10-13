@@ -51,7 +51,7 @@ class DepositService {
   async createDeposit(depositData: DepositRequest) {
     try {
       console.log('Creating deposit:', depositData);
-      
+
       const [newDeposit] = await db
         .insert(deposits)
         .values({
@@ -75,11 +75,17 @@ class DepositService {
 
   async getUserDeposits(userId: string) {
     try {
-      return await db
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
+      const userDeposits = await db
         .select()
         .from(deposits)
         .where(eq(deposits.userId, userId))
         .orderBy(desc(deposits.createdAt));
+
+      return userDeposits || [];
     } catch (error) {
       console.error('Error fetching user deposits:', error);
       throw new Error('Failed to fetch deposits');
@@ -260,12 +266,12 @@ class DepositService {
     try {
       // This is a simplified version - in production you'd use proper aggregation queries
       const allDeposits = await db.select().from(deposits);
-      
+
       const totalDeposits = allDeposits.length;
       const pendingDeposits = allDeposits.filter(d => d.status === 'pending').length;
       const approvedDeposits = allDeposits.filter(d => d.status === 'approved').length;
       const rejectedDeposits = allDeposits.filter(d => d.status === 'rejected').length;
-      
+
       const totalAmount = allDeposits
         .filter(d => d.status === 'approved')
         .reduce((sum, d) => sum + parseFloat(d.amount), 0);

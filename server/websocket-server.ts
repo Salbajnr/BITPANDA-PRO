@@ -107,7 +107,7 @@ class WebSocketManager {
 
       ws.on('error', (error) => {
         console.error(`WebSocket error for IP ${clientIp}:`, error);
-        
+
         // Only handle cleanup if not already closed
         if (ws.readyState !== ws.CLOSED) {
           this.handleUnsubscribe(clientId);
@@ -121,7 +121,7 @@ class WebSocketManager {
             this.connectionsByIp.set(clientIp, count - 1);
             console.log(`✓ Error cleanup for IP: ${clientIp} (${count - 1} remaining)`);
           }
-          
+
           // Force close the connection
           try {
             ws.close();
@@ -210,23 +210,23 @@ class WebSocketManager {
   }
 
   shutdown() {
-    console.log('🔌 Shutting down WebSocket manager...');
-    this.clients.forEach((client) => {
-      if (client.interval) {
-        clearInterval(client.interval);
-      }
-      if (client.ws.readyState === WebSocket.OPEN) {
-        client.ws.close();
-      }
-    });
-    this.clients.clear();
-    this.connectionsByIp.clear(); // Clear IP connection tracking
-
-    if (this.wss) {
-      this.wss.close();
+    console.log('🔌 Shutting down WebSocket server...');
+    try {
+      this.clients.forEach(client => {
+        try {
+          if (client.ws.readyState === WebSocket.OPEN) {
+            client.ws.close(1000, 'Server shutting down');
+          }
+        } catch (error) {
+          console.error('Error closing WebSocket connection:', error);
+        }
+      });
+      this.clients.clear();
+      this.connectionsByIp.clear();
+      console.log('✅ WebSocket server shutdown complete');
+    } catch (error) {
+      console.error('❌ Error during WebSocket shutdown:', error);
     }
-    this.isInitialized = false;
-    console.log('✅ WebSocket manager shutdown complete');
   }
 }
 
