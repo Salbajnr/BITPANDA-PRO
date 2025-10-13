@@ -1,6 +1,7 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { getIdToken } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 
 export interface User {
   id: number;
@@ -11,7 +12,7 @@ export interface User {
   role: string;
   profilePicture?: string;
   isVerified: boolean;
-  firebaseUid?: string;
+  supabaseUid?: string;
 }
 
 export function useAuth() {
@@ -19,15 +20,19 @@ export function useAuth() {
     queryKey: ["auth-user"],
     queryFn: async () => {
       try {
-        // Try to get Firebase ID token
-        const idToken = await getIdToken();
+        // Get Supabase session
+        const { data: { session } } = await supabase.auth.getSession();
 
-        // If we have a Firebase token, sync user first
-        if (idToken) {
+        // If we have a Supabase session, sync user first
+        if (session?.user) {
           try {
-            await apiRequest("POST", "/api/auth/firebase-sync", { idToken });
+            await apiRequest("POST", "/api/auth/supabase-sync", {
+              supabaseUid: session.user.id,
+              email: session.user.email,
+              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+            });
           } catch (syncError) {
-            console.error("Firebase sync error:", syncError);
+            console.error("Supabase sync error:", syncError);
           }
         }
 

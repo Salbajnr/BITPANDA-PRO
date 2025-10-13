@@ -10,15 +10,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
-import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/firebase";
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  User, 
-  Phone, 
-  CheckCircle, 
+import { signInWithGoogle, signUpWithEmail, signInWithEmail } from "@/lib/supabase";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  CheckCircle,
   ArrowLeft,
   Shield,
   Sparkles,
@@ -51,13 +51,13 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [userLoginForm, setUserLoginForm] = useState<LoginData>({ emailOrUsername: "", password: "" });
 
-  const [registerForm, setRegisterForm] = useState<RegisterData>({ 
-    username: "", 
-    email: "", 
-    password: "", 
-    firstName: "", 
-    lastName: "", 
-    phone: "" 
+  const [registerForm, setRegisterForm] = useState<RegisterData>({
+    username: "",
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    phone: ""
   });
   const { toast } = useToast();
   const { showMessage } = useGlobalMessageModal();
@@ -76,11 +76,11 @@ export default function Auth() {
         `Welcome back, ${data.user.firstName}!`,
         "success"
       );
-      
+
       // Invalidate and refetch auth state
       await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
       await queryClient.refetchQueries({ queryKey: ["auth-user"] });
-      
+
       // Small delay to ensure state is updated
       setTimeout(() => {
         navigate('/dashboard');
@@ -134,7 +134,7 @@ export default function Auth() {
       );
       // Invalidate queries to refresh auth state
       queryClient.invalidateQueries({ queryKey: ["auth-user"] });
-      
+
       // Navigate using React Router
       navigate('/dashboard');
     },
@@ -196,7 +196,7 @@ export default function Auth() {
     e.preventDefault();
 
     // Validation
-    if (!registerForm.firstName || !registerForm.lastName || !registerForm.username || 
+    if (!registerForm.firstName || !registerForm.lastName || !registerForm.username ||
         !registerForm.email || !registerForm.password) {
       showMessage(
         "Missing Information",
@@ -217,45 +217,21 @@ export default function Auth() {
 
     // Store registration data in sessionStorage for later use
     sessionStorage.setItem('pendingRegistration', JSON.stringify(registerForm));
-    
+
     // Send OTP to email for verification
     sendOtpMutation.mutate(registerForm.email);
   };
 
   const handleGoogleAuth = async () => {
     try {
-      // Firebase sign-in
-      const result = await signInWithGoogle();
-      
-      if (result && result.user) {
-        // Get Firebase ID token
-        const idToken = await result.user.getIdToken();
-        
-        // Sync with backend
-        const syncResponse = await apiRequest("POST", "/api/auth/firebase-sync", { idToken });
-        
-        showMessage(
-          "Login Successful",
-          `Welcome${syncResponse.user?.firstName ? ', ' + syncResponse.user.firstName : ''}! Redirecting to your dashboard...`,
-          "success"
-        );
-        
-        // Invalidate queries to refresh auth state
-        await queryClient.invalidateQueries({ queryKey: ["auth-user"] });
-        await queryClient.refetchQueries({ queryKey: ["auth-user"] });
-        
-        // Navigate to dashboard
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 500);
-      }
+      await signInWithGoogle();
+      // Supabase will handle the redirect
     } catch (error: any) {
-      console.error("Google auth error:", error);
-      showMessage(
-        "Google Sign-In Failed",
-        error.message || "Unable to sign in with Google. Please try again.",
-        "error"
-      );
+      toast({
+        title: "Authentication Failed",
+        description: error.message || "Failed to sign in with Google",
+        variant: "destructive",
+      });
     }
   };
 
@@ -270,9 +246,9 @@ export default function Auth() {
           {/* Back to home link */}
           <div className="mb-8">
             <Link href="/">
-              <Button 
-                variant="ghost" 
-                className="text-slate-400 hover:text-white hover:bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm transition-all duration-300" 
+              <Button
+                variant="ghost"
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm transition-all duration-300"
                 size="sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -316,15 +292,15 @@ export default function Auth() {
             <CardContent className="space-y-6">
               <Tabs defaultValue="login" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 dark:bg-slate-700/30 backdrop-blur-sm border border-slate-200 dark:border-slate-600/50">
-                  <TabsTrigger 
-                    value="login" 
+                  <TabsTrigger
+                    value="login"
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
                   >
                     <Shield className="w-4 h-4 mr-2" />
                     Sign In
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="register" 
+                  <TabsTrigger
+                    value="register"
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
                   >
                     <User className="w-4 h-4 mr-2" />
@@ -393,9 +369,9 @@ export default function Auth() {
                       </Link>
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]" 
+                    <Button
+                      type="submit"
+                      className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
                       disabled={userLoginMutation.isPending}
                       data-testid="button-login"
                     >
@@ -573,9 +549,9 @@ export default function Auth() {
                       </ul>
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]" 
+                    <Button
+                      type="submit"
+                      className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
                       disabled={sendOtpMutation.isPending || registerMutation.isPending}
                       data-testid="button-register"
                     >

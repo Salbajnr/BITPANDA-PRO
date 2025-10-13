@@ -50,7 +50,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name").default('').notNull(),
   lastName: varchar("last_name").default('').notNull(),
   profileImageUrl: varchar("profile_image_url"),
-  firebaseUid: varchar("firebase_uid").unique(),
+  supabaseUid: varchar("supabase_uid").unique(),
   displayName: varchar("display_name"),
   photoURL: varchar("photo_url"),
   role: userRoleEnum("role").default('user').notNull(),

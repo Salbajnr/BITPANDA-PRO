@@ -1,4 +1,3 @@
-
 // Additional storage methods for complete CRUD operations
 
 import { db } from './db';
@@ -85,10 +84,10 @@ export async function getNewsAnalytics() {
   const [total] = await db
     .select({ count: db.sql`count(*)` })
     .from(newsArticles);
-    
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const [todayCount] = await db
     .select({ count: db.sql`count(*)` })
     .from(newsArticles)
@@ -221,3 +220,37 @@ export async function revokeApiKey(id: string) {
     .set({ isActive: false, updatedAt: new Date() })
     .where(eq(apiKeys.id, id));
 }
+
+// User methods
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result[0];
+}
+
+export async function createUser(data: any): Promise<User> {
+  const [user] = await db.insert(users).values(data).returning();
+  return user;
+}
+
+export async function getUserById(id: string): Promise<User | undefined> {
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updateUser(id: string, data: any): Promise<User | undefined> {
+  const [user] = await db.update(users).set(data).where(eq(users.id, id)).returning();
+  return user;
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  await db.delete(users).where(eq(users.id, id));
+}
+
+export async function getUserBySupabaseUid(supabaseUid: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.supabaseUid, supabaseUid)).limit(1);
+    return result[0];
+  },
+
+  async updateUserSupabaseUid(userId: string, supabaseUid: string): Promise<void> {
+    await db.update(users).set({ supabaseUid }).where(eq(users.id, userId));
+  },

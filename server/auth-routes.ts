@@ -4,40 +4,38 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { sendEmail } from './email-service';
 import { storage } from './storage';
-import { auth } from './firebase';
-
 const router = Router();
 
-// Firebase sync route - create or get user based on Firebase authentication
-router.post('/firebase-sync', async (req, res) => {
+// Supabase sync route - create or get user based on Supabase authentication
+router.post('/supabase-sync', async (req, res) => {
   try {
-    const { uid, email, displayName, photoURL } = z.object({
-      uid: z.string(),
+    const { supabaseUid, email, displayName } = z.object({
+      supabaseUid: z.string(),
       email: z.string().email().nullable(),
       displayName: z.string().nullable().optional(),
-      photoURL: z.string().nullable().optional(),
     }).parse(req.body);
 
-    // Check if user exists by Firebase UID
-    let user = await storage.getUserByFirebaseUid(uid);
+    // Check if user exists by Supabase UID
+    let user = await storage.getUserBySupabaseUid(supabaseUid);
 
     if (!user && email) {
       // Check if user exists by email
       user = await storage.getUserByEmail(email);
 
       if (user) {
-        // Update existing user with Firebase UID
-        await storage.updateUserFirebaseUid(user.id, uid);
+        // Update existing user with Supabase UID
+        await storage.updateUserSupabaseUid(user.id, supabaseUid);
       } else {
         // Create new user
-        const username = email.split('@')[0] + '_' + uid.substring(0, 8);
+        const username = email.split('@')[0] + '_' + supabaseUid.substring(0, 8);
         user = await storage.createUser({
           username,
           email: email || '',
-          password: '', // Firebase handles authentication
-          firebaseUid: uid,
+          password: '', // Supabase handles authentication
+          supabaseUid: supabaseUid,
           displayName: displayName || username,
-          photoURL: photoURL || null,
+          firstName: displayName?.split(' ')[0] || '',
+          lastName: displayName?.split(' ')[1] || '',
         });
       }
     }
@@ -48,8 +46,8 @@ router.post('/firebase-sync', async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error('Firebase sync error:', error);
-    res.status(500).json({ error: 'Failed to sync user with Firebase' });
+    console.error('Supabase sync error:', error);
+    res.status(500).json({ error: 'Failed to sync user with Supabase' });
   }
 });
 
@@ -63,37 +61,7 @@ function generateToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// New Firebase authentication route
-router.post('/firebase', async (req, res) => {
-  try {
-    const { idToken } = z.object({
-      idToken: z.string(),
-    }).parse(req.body);
 
-    const decodedToken = await auth.verifyIdToken(idToken);
-    const { uid, email, name, picture } = decodedToken;
-
-    let user = await storage.getUserByEmail(email as string);
-
-    if (!user) {
-      user = await storage.createUser({
-        email: email as string,
-        name: name || 'Firebase User',
-        firebaseUid: uid,
-        isVerified: true, // Firebase users are considered verified
-        // You might want to add other user properties here
-      });
-    }
-
-    // Here you would typically generate a session token or JWT for your application
-    // For now, we'll just return the user object
-    res.json({ success: true, user });
-
-  } catch (error) {
-    console.error('Firebase auth error:', error);
-    res.status(401).json({ error: 'Invalid Firebase token' });
-  }
-});
 
 // Forgot Password
 router.post('/forgot-password', async (req, res) => {
