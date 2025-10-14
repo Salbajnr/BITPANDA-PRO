@@ -696,7 +696,7 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
 export const watchlist = pgTable('watchlist', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  symbols: text('symbols').array().notNull().default([]),
+  symbols: text('symbols').array().notNull().default(sql`'{}'`),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

@@ -302,8 +302,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remove sensitive data from response
       const { password, ...safeUserData } = fullUser;
 
-      res.json({ 
-        ...safeUserData, 
+      res.json({
+        ...safeUserData,
         portfolio,
         lastLogin: new Date().toISOString(),
         isAuthenticated: true
@@ -340,8 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remove sensitive data from response
       const { password, ...safeUserData } = fullUser;
 
-      res.json({ 
-        ...safeUserData, 
+      res.json({
+        ...safeUserData,
         portfolio,
         lastLogin: new Date().toISOString(),
         isAuthenticated: true
@@ -415,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -527,7 +527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (existing) {
           const newAmount = parseFloat(existing.amount) + parseFloat(tradeData.amount);
           const newAverage = (parseFloat(existing.amount) * parseFloat(existing.averagePurchasePrice) +
-                            parseFloat(tradeData.amount) * parseFloat(tradeData.price)) / newAmount;
+            parseFloat(tradeData.amount) * parseFloat(tradeData.price)) / newAmount;
 
           await storage.upsertHolding({
             portfolioId: portfolio.id,
@@ -594,7 +594,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/simulate-balance', requireAdmin, async (req, res) => {
+  // Admin balance manipulation (direct balance update)
+  app.post('/api/admin/simulate-balance', requireAuth, async (req: Request, res: Response) => {
     try {
       const adminUser = await storage.getUser(req.user!.id);
       if (!adminUser || adminUser.role !== 'admin') {
@@ -603,42 +604,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { targetUserId, adjustmentType, amount, currency, reason } = req.body;
 
+      if (!targetUserId || !adjustmentType || !amount || !currency) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const adjustmentAmount = parseFloat(amount);
+      if (isNaN(adjustmentAmount) || adjustmentAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      // Verify target user exists
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "Target user not found" });
+      }
+
+      // Get or create portfolio
+      let portfolio = await storage.getPortfolio(targetUserId);
+      if (!portfolio) {
+        portfolio = await storage.createPortfolio({
+          userId: targetUserId,
+          totalValue: '0',
+          availableCash: '0'
+        });
+      }
+
+      let newTotalValue: number;
+      let newAvailableCash: number;
+      const currentTotalValue = parseFloat(portfolio.totalValue);
+      const currentAvailableCash = parseFloat(portfolio.availableCash);
+
+      switch (adjustmentType) {
+        case 'add':
+          newTotalValue = currentTotalValue + adjustmentAmount;
+          newAvailableCash = currentAvailableCash + adjustmentAmount;
+          break;
+        case 'remove':
+          newTotalValue = Math.max(0, currentTotalValue - adjustmentAmount);
+          newAvailableCash = Math.max(0, currentAvailableCash - adjustmentAmount);
+          break;
+        case 'set':
+          newTotalValue = adjustmentAmount;
+          newAvailableCash = adjustmentAmount;
+          break;
+        default:
+          return res.status(400).json({ message: 'Invalid adjustment type' });
+      }
+
+      // Update portfolio
+      await storage.updatePortfolio(portfolio.id, {
+        totalValue: newTotalValue.toString(),
+        availableCash: newAvailableCash.toString()
+      });
+
+      // Create adjustment record
       const adjustment = await storage.createBalanceAdjustment({
         adminId: adminUser.id,
         targetUserId,
         adjustmentType,
         amount,
         currency,
-        reason,
+        reason: reason || `Admin ${adjustmentType} balance adjustment`,
       });
 
-      const portfolio = await storage.getPortfolio(targetUserId);
-      if (portfolio) {
-        let newValue: number;
-        const currentValue = parseFloat(portfolio.totalValue);
-        const adjustmentAmount = parseFloat(amount);
+      // Log admin action
+      await storage.logAdminAction({
+        adminId: adminUser.id,
+        action: 'balance_simulation',
+        targetUserId,
+        details: { adjustmentType, amount, currency, reason },
+        timestamp: new Date()
+      });
 
-        switch (adjustmentType) {
-          case 'add':
-            newValue = currentValue + adjustmentAmount;
-            break;
-          case 'remove':
-            newValue = Math.max(0, currentValue - adjustmentAmount);
-            break;
-          case 'set':
-            newValue = adjustmentAmount;
-            break;
-          default:
-            return res.status(400).json({ message: "Invalid adjustment type" });
-        }
+      console.log(`✅ Admin ${adminUser.username || adminUser.id} ${adjustmentType}ed ${currency} ${amount} for user ${targetUser.username}`);
 
-        await storage.updatePortfolio(portfolio.id, {
-          totalValue: newValue.toString(),
-          availableCash: currency === 'USD' ? newValue.toString() : portfolio.availableCash
-        });
-      }
-
-      res.json(adjustment);
+      res.json({
+        success: true,
+        adjustment,
+        newBalance: newAvailableCash.toString(),
+        newTotalValue: newTotalValue.toString(),
+        message: `Balance ${adjustmentType === 'add' ? 'increased' : adjustmentType === 'remove' ? 'decreased' : 'set'} successfully`,
+      });
     } catch (error) {
       console.error("Error simulating balance:", error);
       res.status(500).json({ message: "Failed to simulate balance" });
@@ -700,7 +746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   const adminRoutes = (await import('./admin-routes')).default;
   app.use('/api/admin', adminRoutes);
-  
+
   // Admin auth routes (accessible at /admin/auth/*)
   const adminAuthRoutes = (await import('./admin-auth-routes')).default;
   app.use('/admin', adminAuthRoutes);
