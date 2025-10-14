@@ -7,9 +7,9 @@ export function createSessionMiddleware() {
 
   // Use Replit PostgreSQL if DATABASE_URL points to unavailable Supabase
   let databaseUrl = process.env.DATABASE_URL;
-  if ((!databaseUrl || databaseUrl.includes('supabase.co')) && process.env.PGHOST) {
+  if ((!databaseUrl || databaseUrl.includes('render.com')) && process.env.PGHOST) {
     const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE } = process.env;
-    databaseUrl = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}`;
+    databaseUrl = `postgresql://dbphpapi_user:PwAbkFvraRC2fut81jGZjtHNOgs2lzi0@dpg-d3aj6n24d50c73dbk27g-a.oregon-postgres.render.com/dbphpapi?ssl=true`;
   }
 
   const sessionStore = new pgStore({
