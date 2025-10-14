@@ -250,12 +250,11 @@ export default function LiveTicker() {
                 <span className="text-xs">Live</span>
               </div>
             ) : (
-              <div className="flex items-center space-x-1 text-yellow-400">
+              <div className="flex items-center space-x-1 text-gray-400">
                 <WifiOff className="h-3 w-3" />
-                <span className="text-xs">Offline</span>
+                <span className="text-xs">API</span>
               </div>
-            )}
-          </div>
+            )}</div>
         </div>
       </div>
     </div>
