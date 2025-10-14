@@ -20,19 +20,27 @@ export function useAuth() {
     queryKey: ["auth-user"],
     queryFn: async () => {
       try {
-        // Get Supabase session
-        const { data: { session } } = await supabase.auth.getSession();
-
-        // If we have a Supabase session, sync user first
-        if (session?.user) {
+        // Try to get Supabase session if configured
+        const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        if (isSupabaseConfigured) {
           try {
-            await apiRequest("POST", "/api/auth/supabase-sync", {
-              supabaseUid: session.user.id,
-              email: session.user.email,
-              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
-            });
-          } catch (syncError) {
-            console.error("Supabase sync error:", syncError);
+            const { data: { session } } = await supabase.auth.getSession();
+
+            // If we have a Supabase session, sync user first
+            if (session?.user) {
+              try {
+                await apiRequest("POST", "/api/auth/supabase-sync", {
+                  supabaseUid: session.user.id,
+                  email: session.user.email,
+                  displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+                });
+              } catch (syncError) {
+                console.error("Supabase sync error:", syncError);
+              }
+            }
+          } catch (supabaseError) {
+            console.warn("Supabase session check failed, using backend auth only");
           }
         }
 

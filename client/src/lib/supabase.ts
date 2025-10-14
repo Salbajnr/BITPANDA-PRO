@@ -4,12 +4,33 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
-  console.error('Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your Replit Secrets');
+const isSupabaseConfigured = supabaseUrl && supabaseAnonKey;
+
+if (!isSupabaseConfigured) {
+  console.warn('Supabase is not configured - using backend authentication only');
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+let supabaseClient: any = null;
+try {
+  supabaseClient = isSupabaseConfigured 
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : null;
+} catch (error) {
+  console.error('Supabase initialization failed:', error);
+  supabaseClient = null;
+}
+
+export const supabase = supabaseClient || {
+  auth: {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
+    signUp: async () => ({ data: null, error: new Error('Supabase not configured') }),
+    signInWithOAuth: async () => ({ data: null, error: new Error('Supabase not configured') }),
+    signOut: async () => ({ error: null }),
+    getUser: async () => ({ data: { user: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: null } }),
+  }
+};
 
 // Auth helpers
 export async function signInWithEmail(email: string, password: string) {

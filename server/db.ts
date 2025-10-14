@@ -6,13 +6,20 @@ import * as schema from "@shared/schema";
 
 let databaseUrl = process.env.DATABASE_URL;
 
+if (process.env.PGHOST && process.env.PGPORT && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE) {
+  const encodedPassword = encodeURIComponent(process.env.PGPASSWORD);
+  databaseUrl = `postgresql://${process.env.PGUSER}:${encodedPassword}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+  console.log('🔧 Using Replit PostgreSQL database');
+}
+
 if (!databaseUrl) {
   console.error("⚠️  No database URL found. Please set DATABASE_URL in Secrets.");
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
 } else {
   console.log("🔌 Attempting to connect to database...");
   const dbType = databaseUrl.includes('dpg-d3aj6n24d50c73dbk27g-a') ? 'Render PostgreSQL' : 
-                 databaseUrl.includes('dbphpapi') ? 'Render PostgreSQL' : 'PostgreSQL';
+                 databaseUrl.includes('dbphpapi') ? 'Render PostgreSQL' :
+                 databaseUrl.includes('helium') ? 'Replit PostgreSQL' : 'PostgreSQL';
   console.log(`📍 Using database: ${dbType}`);
 
   try {
