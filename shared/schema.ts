@@ -750,10 +750,6 @@ export type InsertWithdrawalLimit = z.infer<typeof insertWithdrawalLimitSchema>;
 export type BalanceAdjustment = typeof balanceAdjustments.$inferSelect;
 export type InsertBalanceAdjustment = z.infer<typeof insertBalanceAdjustmentSchema>;
 
-// Notification types
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
-
 // Shared wallet address types
 export type SharedWalletAddress = typeof sharedWalletAddresses.$inferSelect;
 export type InsertSharedWalletAddress = z.infer<typeof insertSharedWalletAddressSchema>;
@@ -761,30 +757,6 @@ export type InsertSharedWalletAddress = z.infer<typeof insertSharedWalletAddress
 // Price alert types
 export type PriceAlert = typeof priceAlerts.$inferSelect;
 export type InsertPriceAlert = typeof priceAlerts.$inferInsert;
-
-// Investment plan types
-export type InvestmentPlan = typeof investmentPlans.$inferSelect;
-export type InsertInvestmentPlan = typeof investmentPlans.$inferInsert;
-
-// Savings plan types
-export type SavingsPlan = typeof savingsPlans.$inferSelect;
-export type InsertSavingsPlan = typeof savingsPlans.$inferInsert;
-
-// Staking position types
-export type StakingPosition = typeof stakingPositions.$inferSelect;
-export type InsertStakingPosition = typeof stakingPositions.$inferInsert;
-
-// Lending position types
-export type LendingPosition = typeof lendingPositions.$inferSelect;
-export type InsertLendingPosition = typeof lendingPositions.$inferInsert;
-
-// Loan types
-export type Loan = typeof loans.$inferSelect;
-export type InsertLoan = typeof loans.$inferInsert;
-
-// Audit log types
-export type AuditLog = typeof auditLogs.$inferSelect;
-export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
 // News types
 export type NewsArticle = typeof newsArticles.$inferSelect;
