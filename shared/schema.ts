@@ -501,7 +501,8 @@ export const priceHistory = pgTable('price_history', {
   price: numeric('price', { precision: 20, scale: 8 }).notNull(),
   timestamp: timestamp('timestamp').defaultNow().notNull(),
 }, (table) => ({
-  symbolTimestampIdx: uniqueIndex('symbol_timestamp_idx').on(table.symbol, table.timestamp),
+  symbolIdx: index('price_history_symbol_idx').on(table.symbol),
+  timestampIdx: index('price_history_timestamp_idx').on(table.timestamp),
 }));
 
 export const insertNotificationSchema = createInsertSchema(notifications);

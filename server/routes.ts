@@ -594,7 +594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin balance manipulation (direct balance update)
+  // Admin simulate balance endpoint
   app.post('/api/admin/simulate-balance', requireAuth, async (req: Request, res: Response) => {
     try {
       const adminUser = await storage.getUser(req.user!.id);
