@@ -4,12 +4,15 @@ import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import * as schema from "@shared/schema";
 
+// Prioritize DATABASE_URL from secrets/env over Replit PostgreSQL credentials
 let databaseUrl = process.env.DATABASE_URL;
 
-if (process.env.PGHOST && process.env.PGPORT && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE) {
+if (!databaseUrl && process.env.PGHOST && process.env.PGPORT && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE) {
   const encodedPassword = encodeURIComponent(process.env.PGPASSWORD);
   databaseUrl = `postgresql://${process.env.PGUSER}:${encodedPassword}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
   console.log('🔧 Using Replit PostgreSQL database');
+} else if (databaseUrl) {
+  console.log('🔧 Using external DATABASE_URL');
 }
 
 if (!databaseUrl) {
