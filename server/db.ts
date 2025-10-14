@@ -53,7 +53,9 @@ export const pool = databaseUrl
       idle_timeout: 20,
       connect_timeout: 30,
       max_lifetime: 60 * 30,
-      ssl: databaseUrl.includes('dbphpapi') ? 'require' : false,
+      ssl: (databaseUrl.includes('render.com') || databaseUrl.includes('neon.tech') || databaseUrl.includes('dbphpapi')) 
+        ? 'require' 
+        : false,
       onnotice: () => {}, // Suppress notices
       connection: {
         application_name: 'Bitpandaprodb'

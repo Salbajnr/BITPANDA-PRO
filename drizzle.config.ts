@@ -7,23 +7,23 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL must be set. Please add your PostgreSQL connection string to Secrets.");
 }
 
+// Parse the URL and add SSL parameters if it's a Render/Neon database
+function getConnectionUrl(url: string): string {
+  if (url.includes('render.com') || url.includes('neon.tech') || url.includes('dbphpapi')) {
+    // Check if URL already has query parameters
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}sslmode=require`;
+  }
+  return url;
+}
+
 export default defineConfig({
   out: "./drizzle",
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: databaseUrl,
+    url: getConnectionUrl(databaseUrl),
   },
   verbose: true,
   strict: false,
-  // Add driver options for SSL
-  ...(databaseUrl.includes('render.com') && {
-    driver: 'pg',
-    dbCredentials: {
-      connectionString: databaseUrl,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    }
-  })
 });
