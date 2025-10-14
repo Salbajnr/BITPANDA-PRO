@@ -25,6 +25,9 @@ class RealTimePriceService extends EventEmitter {
   private updateInterval: NodeJS.Timeout | null = null;
   private readonly UPDATE_FREQUENCY = 15000; // 15 seconds for more responsive updates
   private isRunning = false;
+  private cacheTimeout = 60000; // 60 seconds - increased to reduce API calls
+  private lastFetchTime: Map<string, number> = new Map();
+
 
   constructor() {
     super();
@@ -190,7 +193,7 @@ class RealTimePriceService extends EventEmitter {
     const lowerCaseSymbol = symbol.toLowerCase();
     const cached = this.priceCache.get(lowerCaseSymbol);
 
-    if (cached && Date.now() - (cached.lastUpdated || 0) < 300000) { // 5 minutes
+    if (cached && Date.now() - (cached.lastUpdated || 0) < this.cacheTimeout) { // Use cacheTimeout
       return cached;
     }
 
@@ -223,6 +226,54 @@ class RealTimePriceService extends EventEmitter {
       timestamp: Date.now(),
       lastUpdated: Date.now()
     };
+  }
+
+  // Method to fetch price data, with caching and throttling
+  async fetchPriceData(symbol: string): Promise<PriceUpdate> {
+    const lowerCaseSymbol = symbol.toLowerCase();
+    const now = Date.now();
+
+    // Check cache first
+    const cachedData = this.priceCache.get(lowerCaseSymbol);
+    if (cachedData && now - (cachedData.lastUpdated || 0) < this.cacheTimeout) {
+      return cachedData;
+    }
+
+    // Check if we fetched recently (within 10 seconds) to throttle
+    const lastFetch = this.lastFetchTime.get(lowerCaseSymbol);
+    if (lastFetch && now - lastFetch < 10000) {
+      // If fetched recently and still stale, return cached (even if stale) or fallback
+      return cachedData || this.getFallbackPrice(lowerCaseSymbol);
+    }
+
+    this.lastFetchTime.set(lowerCaseSymbol, now); // Record the fetch time
+
+    try {
+      // Fetch from the service
+      const priceDataArray = await cryptoService.getPrices([lowerCaseSymbol]);
+      if (priceDataArray.length === 0) {
+        throw new Error(`No price data found for symbol: ${lowerCaseSymbol}`);
+      }
+      const priceData = priceDataArray[0];
+
+      const update: PriceUpdate = {
+        symbol: priceData.symbol.toLowerCase(),
+        price: priceData.price,
+        change_24h: priceData.change_24h,
+        volume_24h: priceData.volume_24h,
+        market_cap: priceData.market_cap,
+        timestamp: now,
+        lastUpdated: now // Set lastUpdated for caching
+      };
+
+      this.priceCache.set(lowerCaseSymbol, update); // Update cache
+      return update;
+
+    } catch (error) {
+      console.error(`Error fetching price for ${lowerCaseSymbol}:`, error);
+      // Return cached data even if stale, or fallback
+      return cachedData || this.getFallbackPrice(lowerCaseSymbol);
+    }
   }
 }
 

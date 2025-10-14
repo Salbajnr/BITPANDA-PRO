@@ -41,13 +41,18 @@ export const pool = databaseUrl
   ? postgres(databaseUrl, {
       max: 10,
       idle_timeout: 20,
-      connect_timeout: 10,
+      connect_timeout: 30,
       max_lifetime: 60 * 30,
-      ssl: databaseUrl.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
+      ssl: databaseUrl.includes('supabase.co') ? 'require' : false,
       onnotice: () => {}, // Suppress notices
       connection: {
         application_name: 'bitpanda_pro'
-      }
+      },
+      onclose: () => {
+        console.log('⚠️ Database connection closed, attempting reconnect...');
+      },
+      fetch_types: false,
+      prepare: false
     })
   : null;
 

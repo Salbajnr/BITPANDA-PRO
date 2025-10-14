@@ -3323,6 +3323,75 @@ export class DatabaseStorage implements IStorage {
 
   // KYC methods are already implemented above
 
+  // Watchlist operations
+  async getUserWatchlist(userId: string): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      const { watchlist } = await import('@shared/schema');
+      const [userWatchlist] = await db
+        .select()
+        .from(watchlist)
+        .where(eq(watchlist.userId, userId))
+        .limit(1);
+      
+      return userWatchlist || null;
+    } catch (error) {
+      console.error("Error fetching watchlist:", error);
+      return null;
+    }
+  }
+
+  async addToWatchlist(userId: string, symbol: string, name: string): Promise<any> {
+    try {
+      const db = this.ensureDb();
+      const { watchlist } = await import('@shared/schema');
+      
+      const existing = await this.getUserWatchlist(userId);
+      
+      if (existing) {
+        const symbols = existing.symbols || [];
+        if (!symbols.includes(symbol)) {
+          symbols.push(symbol);
+          const [updated] = await db
+            .update(watchlist)
+            .set({ symbols, updatedAt: new Date() })
+            .where(eq(watchlist.userId, userId))
+            .returning();
+          return updated;
+        }
+        return existing;
+      } else {
+        const [created] = await db
+          .insert(watchlist)
+          .values({ userId, symbols: [symbol] })
+          .returning();
+        return created;
+      }
+    } catch (error) {
+      console.error("Error adding to watchlist:", error);
+      throw error;
+    }
+  }
+
+  async removeFromWatchlist(userId: string, symbol: string): Promise<void> {
+    try {
+      const db = this.ensureDb();
+      const { watchlist } = await import('@shared/schema');
+      
+      const existing = await this.getUserWatchlist(userId);
+      if (existing) {
+        const symbols = (existing.symbols || []).filter((s: string) => s !== symbol);
+        await db
+          .update(watchlist)
+          .set({ symbols, updatedAt: new Date() })
+          .where(eq(watchlist.userId, userId));
+      }
+    } catch (error) {
+      console.error("Error removing from watchlist:", error);
+      throw error;
+    }
+  }
+
   // Advanced order management
   async createAdvancedOrder(orderData: any) {
     const db = this.ensureDb();

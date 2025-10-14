@@ -692,6 +692,31 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   timestamp: true,
 });
 
+// New tables for watchlist and advanced orders
+export const watchlist = pgTable('watchlist', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  symbols: text('symbols').array().notNull().default([]),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const advancedOrders = pgTable('advanced_orders', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  symbol: text('symbol').notNull(),
+  orderType: text('order_type').notNull(), // 'limit', 'stop_loss', 'take_profit', 'trailing_stop'
+  side: text('side').notNull(), // 'buy', 'sell'
+  amount: text('amount').notNull(),
+  triggerPrice: text('trigger_price'),
+  limitPrice: text('limit_price'),
+  trailingPercent: text('trailing_percent'),
+  status: text('status').notNull().default('pending'), // 'pending', 'triggered', 'filled', 'cancelled'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  filledAt: timestamp('filled_at'),
+});
+
 
 // Types
 // User types
@@ -794,3 +819,11 @@ export type InsertUserPreferences = typeof userPreferences.$inferInsert;
 // Price History types
 export type PriceHistory = typeof priceHistory.$inferSelect;
 export type InsertPriceHistory = typeof priceHistory.$inferInsert;
+
+// Watchlist types
+export type Watchlist = typeof watchlist.$inferSelect;
+export type InsertWatchlist = typeof watchlist.$inferInsert;
+
+// Advanced Order types
+export type AdvancedOrder = typeof advancedOrders.$inferSelect;
+export type InsertAdvancedOrder = typeof advancedOrders.$inferInsert;

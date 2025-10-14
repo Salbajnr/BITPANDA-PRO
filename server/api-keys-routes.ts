@@ -1,4 +1,3 @@
-
 import { Router, Request, Response } from 'express';
 import { requireAuth } from './simple-auth';
 import { storage } from './storage';
