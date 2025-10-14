@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["kubectl"]
+packages = ["kubectl", "mysql80"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -18,10 +18,6 @@ externalPort = 80
 [[ports]]
 localPort = 36035
 externalPort = 3001
-
-[[ports]]
-localPort = 39175
-externalPort = 3002
 
 [[ports]]
 localPort = 46089
