@@ -194,34 +194,8 @@ class RealTimePriceService extends EventEmitter {
       return cached;
     }
 
-    // Attempt to fetch the price if cache is stale or not present
-    try {
-      const price = await cryptoService.getPrice(lowerCaseSymbol); // Assuming cryptoService has getPrice
-      if (price) {
-        const update: PriceUpdate = {
-          symbol: lowerCaseSymbol,
-          price: price.price,
-          change_24h: price.change_24h,
-          volume_24h: price.volume_24h,
-          market_cap: price.market_cap,
-          timestamp: Date.now(),
-          lastUpdated: Date.now()
-        };
-        this.priceCache.set(lowerCaseSymbol, update);
-        return update;
-      }
-    } catch (error) {
-      console.error(`⚠️ Error fetching ${lowerCaseSymbol}:`, error instanceof Error ? error.message : error);
-      // Return cached data or default fallback if fetch fails
-      const cachedData = this.priceCache.get(lowerCaseSymbol);
-      if (cachedData && Date.now() - (cachedData.lastUpdated || 0) < 300000) { // 5 minutes
-        return cachedData;
-      }
-      return this.getFallbackPrice(lowerCaseSymbol);
-    }
-
-    // If still not found after fetch attempt, return fallback
-    return this.getFallbackPrice(lowerCaseSymbol);
+    // Return cached data even if stale, or fallback
+    return cached || this.getFallbackPrice(lowerCaseSymbol);
   }
 
   getAllPrices(): PriceUpdate[] {

@@ -44,6 +44,10 @@ export const pool = databaseUrl
       connect_timeout: 10,
       max_lifetime: 60 * 30,
       ssl: databaseUrl.includes('supabase.co') ? { rejectUnauthorized: false } : undefined,
+      onnotice: () => {}, // Suppress notices
+      connection: {
+        application_name: 'bitpanda_pro'
+      }
     })
   : null;
 

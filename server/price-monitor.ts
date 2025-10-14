@@ -182,7 +182,7 @@ class PriceMonitorService {
     // For first time checking, compare current price directly with target
     if (lastPrice === undefined) {
       this.lastPrices.set(alert.symbol, currentPrice);
-      
+
       // Trigger immediately if condition is already met
       if (alert.condition === 'above') {
         return currentPrice > targetPrice;

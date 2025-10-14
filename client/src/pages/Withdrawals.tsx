@@ -17,6 +17,7 @@ import {
   CreditCard, Building, Smartphone, RefreshCw, Banknote, 
   Send, Eye, Calendar, Filter, Info, ArrowRight, Wallet
 } from "lucide-react";
+import { WithdrawalConfirmationDialog } from "@/components/WithdrawalConfirmationDialog";
 
 interface Withdrawal {
   id: string;
@@ -100,7 +101,7 @@ export default function Withdrawals() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.payment_method || !formData.amount || !formData.destination_address) {
       toast({
         title: "Validation Error",
@@ -205,7 +206,7 @@ export default function Withdrawals() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <LiveTicker />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

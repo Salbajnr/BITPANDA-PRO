@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
 
@@ -41,12 +40,12 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     reconnectAttempts = 5, 
     reconnectInterval = 3000 
   } = options;
-  
+
   const { user } = useAuth();
   const ws = useRef<WebSocket | null>(null);
   const reconnectCount = useRef(0);
   const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
-  
+
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [prices, setPrices] = useState<Map<string, CryptoPrice>>(new Map());
@@ -100,9 +99,9 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
             'LINK': 'chainlink',
             'UNI': 'uniswap'
           };
-          
+
           const mappedSymbols = symbols.map(symbol => symbolMap[symbol.toUpperCase()] || symbol.toLowerCase());
-          
+
           ws.current?.send(JSON.stringify({
             type: 'subscribe',
             symbols: mappedSymbols,
@@ -151,9 +150,9 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
 
     reconnectCount.current += 1;
     const delay = reconnectInterval * Math.pow(1.5, reconnectCount.current - 1); // Exponential backoff
-    
+
     console.log(`🔄 Attempting to reconnect in ${delay}ms (attempt ${reconnectCount.current}/${reconnectAttempts})`);
-    
+
     reconnectTimer.current = setTimeout(() => {
       connect();
     }, delay);
@@ -180,7 +179,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
             'chainlink': 'LINK',
             'uniswap': 'UNI'
           };
-          
+
           message.data.forEach((price: CryptoPrice) => {
             const displaySymbol = symbolMap[price.symbol.toLowerCase()] || price.symbol.toUpperCase();
             newPrices.set(displaySymbol, {
@@ -198,7 +197,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
           const alertData = message.data as PriceAlert;
           // You can handle alerts here (show notification, etc.)
           console.log('🚨 Price Alert:', alertData);
-          
+
           // Create browser notification if permission granted
           if (Notification.permission === 'granted') {
             new Notification(`Price Alert: ${alertData.symbol}`, {
@@ -237,9 +236,9 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
         'LINK': 'chainlink',
         'UNI': 'uniswap'
       };
-      
+
       const mappedSymbols = newSymbols.map(symbol => symbolMap[symbol.toUpperCase()] || symbol.toLowerCase());
-      
+
       ws.current.send(JSON.stringify({
         type: 'subscribe',
         symbols: mappedSymbols,
@@ -261,12 +260,12 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       clearTimeout(reconnectTimer.current);
       reconnectTimer.current = null;
     }
-    
+
     if (ws.current) {
       ws.current.close(1000, 'Manual disconnect');
       ws.current = null;
     }
-    
+
     setIsConnected(false);
     setIsConnecting(false);
     reconnectCount.current = 0;
@@ -310,19 +309,19 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     isConnected,
     isConnecting,
     connectionError,
-    
+
     // Price data
     prices: getAllPrices(),
     pricesMap: prices,
     lastUpdate,
     getPrice,
-    
+
     // Actions
     connect,
     disconnect,
     subscribe,
     unsubscribe,
-    
+
     // Statistics
     connectedSymbols: symbols,
     reconnectAttempts: reconnectCount.current

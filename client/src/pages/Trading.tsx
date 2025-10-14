@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useGlobalMessageModal } from '@/contexts/MessageModalContext'
 import { useLocation } from "wouter";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface OrderData {

@@ -1,176 +1,135 @@
-import Navbar from "@/components/Navbar";
-import LiveTicker from "@/components/LiveTicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shield, Users, Globe, TrendingUp, Award, Target } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { useLocation } from "wouter";
+import { 
+  Users, Target, Award, Globe, 
+  TrendingUp, Shield, Zap, Heart 
+} from "lucide-react";
 
 export default function About() {
+  const [, navigate] = useLocation();
+
+  const values = [
+    {
+      icon: Shield,
+      title: "Security First",
+      description: "Your assets and data are protected with bank-grade security measures."
+    },
+    {
+      icon: Zap,
+      title: "Innovation",
+      description: "Cutting-edge technology powering seamless trading experiences."
+    },
+    {
+      icon: Users,
+      title: "User-Centric",
+      description: "Built with traders in mind, from beginners to professionals."
+    },
+    {
+      icon: Heart,
+      title: "Trust & Transparency",
+      description: "Clear communication and honest practices in everything we do."
+    }
+  ];
+
+  const milestones = [
+    { year: "2024", title: "Platform Launch", description: "BITPANDA PRO goes live" },
+    { year: "2024", title: "100K+ Users", description: "Reached our first major milestone" },
+    { year: "2024", title: "Multi-Asset Support", description: "Added metals and commodities" },
+    { year: "2025", title: "Global Expansion", description: "Operating in 50+ countries" }
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Navbar />
-      <LiveTicker />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+      <div className="container mx-auto px-4 py-20">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-black mb-6">
-            About BitpandaPro
+          <Badge className="mb-4 bg-green-100 text-green-800 border-green-200">
+            About BITPANDA PRO
+          </Badge>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            Building the Future of
+            <span className="bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent"> Digital Finance</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Leading the future of digital asset trading with innovative dual-market solutions 
-            combining cryptocurrency and precious metals investment opportunities.
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+            We're on a mission to make cryptocurrency and digital asset trading accessible, secure, and profitable for everyone.
           </p>
         </div>
 
-        {/* Mission Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-          <div>
-            <h2 className="text-3xl font-bold text-black mb-6">Our Mission</h2>
-            <p className="text-lg text-gray-600 mb-6">
-              At BitpandaPro, we believe in democratizing access to both digital and traditional 
-              store-of-value assets. Our platform bridges the gap between modern cryptocurrency 
-              trading and time-tested precious metals investment.
-            </p>
-            <p className="text-lg text-gray-600">
-              We provide institutional-grade trading tools with user-friendly interfaces, 
-              making sophisticated investment strategies accessible to everyone.
-            </p>
-          </div>
-          <div className="bg-gradient-to-br from-green-50 to-gray-50 p-8 rounded-2xl">
-            <Target className="w-12 h-12 text-green-500 mb-6" />
-            <h3 className="text-2xl font-bold text-black mb-4">Our Vision</h3>
-            <p className="text-gray-600">
-              To become the world's most trusted platform for dual-asset investment, 
-              where traditional wealth preservation meets digital innovation.
-            </p>
-          </div>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
+        {/* Mission & Vision */}
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardHeader>
-              <Shield className="w-10 h-10 text-green-500 mb-4" />
-              <CardTitle className="text-xl font-bold text-black">
-                Security First
-              </CardTitle>
+              <Target className="w-12 h-12 text-green-400 mb-4" />
+              <CardTitle className="text-2xl text-white">Our Mission</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
-                Bank-grade security with multi-layer protection, cold storage, 
-                and insurance coverage for your digital assets.
+              <p className="text-slate-300">
+                To democratize access to digital assets and empower individuals worldwide with the tools and knowledge to participate in the future of finance.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardHeader>
-              <TrendingUp className="w-10 h-10 text-blue-500 mb-4" />
-              <CardTitle className="text-xl font-bold text-black">
-                Real-Time Data
-              </CardTitle>
+              <Globe className="w-12 h-12 text-purple-400 mb-4" />
+              <CardTitle className="text-2xl text-white">Our Vision</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
-                Live market data from multiple exchanges and precious metals 
-                markets, ensuring you have the most accurate pricing.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <Award className="w-10 h-10 text-yellow-500 mb-4" />
-              <CardTitle className="text-xl font-bold text-black">
-                Award Winning
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Recognized by industry leaders for innovation in dual-asset 
-                trading and exceptional user experience.
+              <p className="text-slate-300">
+                A world where everyone has equal opportunity to build wealth through transparent, secure, and innovative financial technology.
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Stats Section */}
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-12 text-white mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">500K+</div>
-              <div className="text-green-100">Active Users</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">$2.5B</div>
-              <div className="text-green-100">Assets Under Management</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">150+</div>
-              <div className="text-green-100">Supported Assets</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">99.9%</div>
-              <div className="text-green-100">Uptime Guarantee</div>
-            </div>
+        {/* Core Values */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-white text-center mb-8">Our Core Values</h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            {values.map((value, index) => (
+              <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all">
+                <CardContent className="p-6 text-center">
+                  <value.icon className="w-10 h-10 text-green-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">{value.title}</h3>
+                  <p className="text-slate-300 text-sm">{value.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
 
-        {/* Team Section */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-black mb-6">Our Leadership</h2>
-          <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
-            Led by industry veterans with decades of combined experience in traditional 
-            finance, cryptocurrency, and precious metals markets.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <Users className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-2">Sarah Chen</h3>
-              <p className="text-gray-600 mb-2">Chief Executive Officer</p>
-              <p className="text-sm text-gray-500">Former Goldman Sachs, 15+ years in fintech</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <Shield className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-2">Michael Rodriguez</h3>
-              <p className="text-gray-600 mb-2">Chief Technology Officer</p>
-              <p className="text-sm text-gray-500">Former Coinbase, blockchain security expert</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <Globe className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-black mb-2">Emily Watson</h3>
-              <p className="text-gray-600 mb-2">Chief Operations Officer</p>
-              <p className="text-sm text-gray-500">Former APMEX, precious metals specialist</p>
-            </div>
+        {/* Milestones */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-white text-center mb-8">Our Journey</h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            {milestones.map((milestone, index) => (
+              <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20">
+                <CardContent className="p-6">
+                  <div className="text-3xl font-bold text-green-400 mb-2">{milestone.year}</div>
+                  <h3 className="text-lg font-semibold text-white mb-2">{milestone.title}</h3>
+                  <p className="text-slate-300 text-sm">{milestone.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
 
-        {/* CTA Section */}
+        {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-black mb-6">
-            Ready to Start Trading?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of investors who trust BitpandaPro for their dual-asset 
-            investment needs. Start with as little as $10.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-green-500 hover:bg-green-600">
-              Get Started Today
-            </Button>
-            <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:border-green-500 hover:text-green-600">
-              Learn More
-            </Button>
-          </div>
+          <h2 className="text-3xl font-bold text-white mb-4">Join Our Growing Community</h2>
+          <p className="text-slate-300 mb-8">Start your trading journey with BITPANDA PRO today</p>
+          <Button 
+            onClick={() => navigate('/auth')}
+            size="lg" 
+            className="bg-green-600 hover:bg-green-700"
+          >
+            Get Started
+          </Button>
         </div>
       </div>
     </div>
