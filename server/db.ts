@@ -11,8 +11,8 @@ if (!databaseUrl) {
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
 } else {
   console.log("🔌 Attempting to connect to database...");
-  const dbType = databaseUrl.includes('supabase.co') ? 'Supabase PostgreSQL' : 
-                 databaseUrl.includes('helium') ? 'Replit PostgreSQL' : 'PostgreSQL';
+  const dbType = databaseUrl.includes('dpg-d3aj6n24d50c73dbk27g-a') ? 'Render PostgreSQL' : 
+                 databaseUrl.includes('dbphpapi') ? 'Render PostgreSQL' : 'PostgreSQL';
   console.log(`📍 Using database: ${dbType}`);
 
   try {
@@ -43,10 +43,10 @@ export const pool = databaseUrl
       idle_timeout: 20,
       connect_timeout: 30,
       max_lifetime: 60 * 30,
-      ssl: databaseUrl.includes('supabase.co') ? 'require' : false,
+      ssl: databaseUrl.includes('dbphpapi') ? 'require' : false,
       onnotice: () => {}, // Suppress notices
       connection: {
-        application_name: 'bitpanda_pro'
+        application_name: 'Bitpandaprodb'
       },
       onclose: () => {
         console.log('⚠️ Database connection closed, attempting reconnect...');
