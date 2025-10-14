@@ -83,7 +83,7 @@ export default function AdminBalanceManipulator() {
   const [selectedUser, setSelectedUser] = useState<UserBalance | null>(null);
 
   // Fetch users with portfolios
-  const { data: users = [], isLoading: usersLoading } = useQuery<User[], Error>({
+  const { data: users = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<User[], Error>({
     queryKey: ['admin-users'],
     queryFn: async () => {
         const { data, error } = await adminApi.getUsers();
@@ -223,20 +223,32 @@ export default function AdminBalanceManipulator() {
   );
 
   // Balance adjustment mutation
-  const balanceAdjustmentMutation = useMutation<any, Error, any>({
+  const adjustBalanceMutation = useMutation<any, Error, any>({
     mutationFn: async (adjustmentData: any) => {
-      return await apiRequest('/api/admin/balance-adjustment', {
+      const response = await fetch('/api/admin/balance-adjustment', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify(adjustmentData),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to adjust balance');
+      }
+
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Balance Adjustment Successful",
-        description: `User balance has been ${adjustmentType === 'add' ? 'increased' : adjustmentType === 'remove' ? 'decreased' : 'set'} successfully.`,
+        description: data.message || `User balance has been ${adjustmentType === 'add' ? 'increased' : adjustmentType === 'remove' ? 'decreased' : 'set'} successfully.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/balance-adjustments'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-adjustments'] });
+      refetchUsers();
       // Reset form
       setAmount('');
       setReason('');
@@ -275,8 +287,8 @@ export default function AdminBalanceManipulator() {
         title: "Bulk Adjustment Successful",
         description: `${variables.userIds.length} user balances have been adjusted successfully.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/balance-adjustments'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-adjustments'] });
     },
   });
 
@@ -299,7 +311,7 @@ export default function AdminBalanceManipulator() {
       return;
     }
 
-    balanceAdjustmentMutation.mutate({
+    adjustBalanceMutation.mutate({
       targetUserId: selectedUserId,
       adjustmentType,
       amount,
@@ -500,7 +512,7 @@ export default function AdminBalanceManipulator() {
               {/* Action Button */}
               <Button
                 onClick={handleIndividualBalanceAdjustment}
-                disabled={balanceAdjustmentMutation.isPending || !selectedUserId || !amount}
+                disabled={adjustBalanceMutation.isPending || !selectedUserId || !amount}
                 className={`w-full py-3 font-medium transition-colors ${
                   adjustmentType === 'add'
                     ? 'bg-green-600 hover:bg-green-700 text-white'
@@ -509,7 +521,7 @@ export default function AdminBalanceManipulator() {
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
-                {balanceAdjustmentMutation.isPending ? 'Processing...' : 
+                {adjustBalanceMutation.isPending ? 'Processing...' : 
                  adjustmentType === 'add' ? `Add ${amount ? formatAmount(amount, currency) : 'Funds'}` :
                  adjustmentType === 'remove' ? `Remove ${amount ? formatAmount(amount, currency) : 'Funds'}` :
                  `Set Balance to ${amount ? formatAmount(amount, currency) : '0'}`}

@@ -207,12 +207,22 @@ router.post('/balance-adjustment', requireAuth, requireAdmin, async (req: Reques
       reason: data.reason || `Admin ${data.adjustmentType} balance adjustment`,
     });
 
-    console.log(`✅ Admin balance adjustment: ${data.adjustmentType} ${data.currency} ${data.amount} for user ${targetUser.username}`);
+    // Log admin action
+    await storage.logAdminAction({
+      adminId: req.user!.id,
+      action: 'balance_adjustment',
+      targetUserId: data.targetUserId,
+      details: { adjustmentType: data.adjustmentType, amount: data.amount, currency: data.currency, reason: data.reason },
+      timestamp: new Date()
+    });
+
+    console.log(`✅ Admin ${req.user!.username || req.user!.id} ${data.adjustmentType}ed ${data.currency} ${data.amount} for user ${targetUser.username}`);
 
     res.json({
       success: true,
       adjustment,
       newBalance: newAvailableCash.toString(),
+      newTotalValue: newTotalValue.toString(),
       message: `Balance ${data.adjustmentType === 'add' ? 'increased' : data.adjustmentType === 'remove' ? 'decreased' : 'set'} successfully`,
     });
   } catch (error) {
@@ -227,8 +237,17 @@ router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: Reques
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
 
-    const adjustments = await storage.getBalanceAdjustments(userId, page, limit);
-    res.json(adjustments);
+    let adjustments = await storage.getBalanceAdjustments(userId, page, limit);
+    
+    // If storage method doesn't exist, return empty array
+    if (!adjustments) {
+      adjustments = [];
+    }
+
+    // Ensure it's always an array
+    const adjustmentsArray = Array.isArray(adjustments) ? adjustments : [];
+    
+    res.json(adjustmentsArray);
   } catch (error) {
     console.error('Get adjustments error:', error);
     res.status(500).json({ message: 'Failed to fetch adjustments' });
