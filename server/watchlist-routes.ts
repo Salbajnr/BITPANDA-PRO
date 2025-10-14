@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { storage } from './storage';
-import { requireAuth } from './auth-routes';
+import { requireAuth } from './simple-auth';
 
 const router = Router();
 
