@@ -7,11 +7,11 @@ export const config = {
   newsApiKey: process.env.NEWS_API_KEY || '',
   
   // Database
-  databaseUrl: process.env.DATABASE_URL || '',
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://dbphpapi_user:PwAbkFvraRC2fut81jGZjtHNOgs2lzi0@dpg-d3aj6n24d50c73dbk27g-a.oregon-postgres.render.com/dbphpapi',
   
   // Server settings
   port: process.env.PORT || 5000,
-  nodeEnv: process.env.NODE_ENV || 'development',
+  nodeEnv: process.env.NODE_ENV || 'production ',
   
   // Rate limiting
   rateLimitWindow: 15 * 60 * 1000, // 15 minutes
