@@ -169,4 +169,68 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// Batch delete alerts
+router.post('/batch-delete', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Invalid alert IDs' });
+    }
+
+    const results = [];
+    for (const id of ids) {
+      try {
+        const alert = await storage.getAlertById(id);
+        if (alert && alert.userId === userId) {
+          await storage.deleteAlert(id);
+          results.push({ id, success: true });
+        } else {
+          results.push({ id, success: false, error: 'Not found or unauthorized' });
+        }
+      } catch (error) {
+        results.push({ id, success: false, error: error.message });
+      }
+    }
+
+    res.json({ results });
+  } catch (error) {
+    console.error('Batch delete alerts error:', error);
+    res.status(500).json({ message: 'Failed to batch delete alerts' });
+  }
+});
+
+// Batch toggle alerts
+router.post('/batch-toggle', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { ids, isActive } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0 || typeof isActive !== 'boolean') {
+      return res.status(400).json({ message: 'Invalid request data' });
+    }
+
+    const results = [];
+    for (const id of ids) {
+      try {
+        const alert = await storage.getAlertById(id);
+        if (alert && alert.userId === userId) {
+          await storage.updateAlert(id, { isActive });
+          results.push({ id, success: true });
+        } else {
+          results.push({ id, success: false, error: 'Not found or unauthorized' });
+        }
+      } catch (error) {
+        results.push({ id, success: false, error: error.message });
+      }
+    }
+
+    res.json({ results });
+  } catch (error) {
+    console.error('Batch toggle alerts error:', error);
+    res.status(500).json({ message: 'Failed to batch toggle alerts' });
+  }
+});
+
 export default router;

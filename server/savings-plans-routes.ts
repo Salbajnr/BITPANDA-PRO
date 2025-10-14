@@ -259,10 +259,17 @@ router.post('/:planId/pause', requireAuth, async (req: Request, res: Response) =
     const { planId } = req.params;
     const userId = req.user!.id;
 
-    // Update plan status to paused
-    // This would update your storage layer
+    const plan = await storage.getSavingsPlanById(planId);
+    if (!plan || plan.userId !== userId) {
+      return res.status(404).json({ message: 'Savings plan not found' });
+    }
 
-    res.json({ message: 'Savings plan paused successfully' });
+    if (plan.status !== 'active') {
+      return res.status(400).json({ message: 'Only active plans can be paused' });
+    }
+
+    const updated = await storage.updateSavingsPlan(planId, { status: 'paused' });
+    res.json(updated);
   } catch (error) {
     console.error('Pause savings plan error:', error);
     res.status(500).json({ message: 'Failed to pause savings plan' });
@@ -275,13 +282,66 @@ router.post('/:planId/resume', requireAuth, async (req: Request, res: Response) 
     const { planId } = req.params;
     const userId = req.user!.id;
 
-    // Update plan status to active
-    // This would update your storage layer
+    const plan = await storage.getSavingsPlanById(planId);
+    if (!plan || plan.userId !== userId) {
+      return res.status(404).json({ message: 'Savings plan not found' });
+    }
 
-    res.json({ message: 'Savings plan resumed successfully' });
+    if (plan.status !== 'paused') {
+      return res.status(400).json({ message: 'Only paused plans can be resumed' });
+    }
+
+    const updated = await storage.updateSavingsPlan(planId, { status: 'active' });
+    res.json(updated);
   } catch (error) {
     console.error('Resume savings plan error:', error);
     res.status(500).json({ message: 'Failed to resume savings plan' });
+  }
+});
+
+// Withdraw from savings plan
+router.post('/:planId/withdraw', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { planId } = req.params;
+    const userId = req.user!.id;
+    const { amount } = req.body;
+
+    const plan = await storage.getSavingsPlanById(planId);
+    if (!plan || plan.userId !== userId) {
+      return res.status(404).json({ message: 'Savings plan not found' });
+    }
+
+    const totalSaved = parseFloat(plan.totalSaved);
+    const withdrawAmount = parseFloat(amount);
+
+    if (withdrawAmount > totalSaved) {
+      return res.status(400).json({ message: 'Insufficient balance in savings plan' });
+    }
+
+    // Update plan balance
+    const newBalance = totalSaved - withdrawAmount;
+    await storage.updateSavingsPlan(planId, { 
+      totalSaved: newBalance.toString(),
+      status: newBalance === 0 ? 'completed' : plan.status
+    });
+
+    // Add funds back to portfolio
+    const portfolio = await storage.getPortfolio(userId);
+    if (portfolio) {
+      const newCash = parseFloat(portfolio.availableCash) + withdrawAmount;
+      await storage.updatePortfolio(portfolio.id, {
+        availableCash: newCash.toString()
+      });
+    }
+
+    res.json({ 
+      message: 'Withdrawal successful',
+      withdrawnAmount: withdrawAmount,
+      remainingBalance: newBalance
+    });
+  } catch (error) {
+    console.error('Withdraw from savings error:', error);
+    res.status(500).json({ message: 'Failed to withdraw from savings plan' });
   }
 });
 

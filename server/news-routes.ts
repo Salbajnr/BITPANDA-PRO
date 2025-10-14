@@ -295,6 +295,33 @@ router.post('/admin/create', requireAdmin, async (req, res) => {
   }
 });
 
+// Admin: Update news article
+router.put('/admin/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, url, imageUrl, category, coins } = req.body;
+
+    const article = await storage.getNewsArticleById(id);
+    if (!article) {
+      return res.status(404).json({ message: 'News article not found' });
+    }
+
+    const updateData: any = {};
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (url) updateData.url = url;
+    if (imageUrl) updateData.imageUrl = imageUrl;
+    if (category) updateData.category = category;
+    if (coins) updateData.coins = coins;
+
+    const updated = await storage.updateNewsArticle(id, updateData);
+    res.json(updated);
+  } catch (error) {
+    console.error('Update news error:', error);
+    res.status(500).json({ message: 'Failed to update news article' });
+  }
+});
+
 // Admin: Get single news article
 router.get('/admin/:id', requireAdmin, async (req, res) => {
   try {

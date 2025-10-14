@@ -154,19 +154,68 @@ router.put('/my-investments/:id', requireAuth, async (req: Request, res: Respons
   try {
     const { id } = req.params;
     const userId = req.user!.id;
-    const { notes } = req.body;
+    const { notes, autoReinvest } = req.body;
 
-    // Verify ownership (you'll need to add this method to storage)
     const investment = await storage.getInvestmentById(id);
     if (!investment || investment.userId !== userId) {
       return res.status(404).json({ message: 'Investment not found' });
     }
 
-    const updated = await storage.updateInvestment(id, { notes });
+    const updateData: any = {};
+    if (notes !== undefined) updateData.notes = notes;
+    if (autoReinvest !== undefined) updateData.autoReinvest = autoReinvest;
+
+    const updated = await storage.updateInvestment(id, updateData);
     res.json(updated);
   } catch (error) {
     console.error('Update investment error:', error);
     res.status(500).json({ message: 'Failed to update investment' });
+  }
+});
+
+// Pause investment
+router.post('/my-investments/:id/pause', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    if (investment.status !== 'active') {
+      return res.status(400).json({ message: 'Only active investments can be paused' });
+    }
+
+    const updated = await storage.updateInvestment(id, { status: 'paused' });
+    res.json(updated);
+  } catch (error) {
+    console.error('Pause investment error:', error);
+    res.status(500).json({ message: 'Failed to pause investment' });
+  }
+});
+
+// Resume investment
+router.post('/my-investments/:id/resume', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const investment = await storage.getInvestmentById(id);
+    if (!investment || investment.userId !== userId) {
+      return res.status(404).json({ message: 'Investment not found' });
+    }
+
+    if (investment.status !== 'paused') {
+      return res.status(400).json({ message: 'Only paused investments can be resumed' });
+    }
+
+    const updated = await storage.updateInvestment(id, { status: 'active' });
+    res.json(updated);
+  } catch (error) {
+    console.error('Resume investment error:', error);
+    res.status(500).json({ message: 'Failed to resume investment' });
   }
 });
 

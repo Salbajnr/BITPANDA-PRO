@@ -87,6 +87,31 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// Update watchlist item notes/settings
+router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+    const { notes, alertEnabled, targetPrice } = req.body;
+
+    const item = await storage.getWatchlistItem(id);
+    if (!item || item.userId !== userId) {
+      return res.status(404).json({ message: 'Watchlist item not found' });
+    }
+
+    const updateData: any = {};
+    if (notes !== undefined) updateData.notes = notes;
+    if (alertEnabled !== undefined) updateData.alertEnabled = alertEnabled;
+    if (targetPrice !== undefined) updateData.targetPrice = targetPrice;
+
+    const updated = await storage.updateWatchlistItem(id, updateData);
+    res.json(updated);
+  } catch (error) {
+    console.error('Update watchlist item error:', error);
+    res.status(500).json({ message: 'Failed to update watchlist item' });
+  }
+});
+
 // Remove from watchlist
 router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   try {

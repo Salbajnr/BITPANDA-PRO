@@ -129,4 +129,36 @@ router.patch('/:id/toggle', requireAuth, async (req: Request, res: Response) => 
   }
 });
 
+// Batch revoke API keys
+router.post('/batch-revoke', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { ids } = req.body;
+    const userId = req.user!.id;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Invalid API key IDs' });
+    }
+
+    const results = [];
+    for (const id of ids) {
+      try {
+        const apiKey = await storage.getApiKeyById(id);
+        if (apiKey && apiKey.userId === userId) {
+          await storage.revokeApiKey(id);
+          results.push({ id, success: true });
+        } else {
+          results.push({ id, success: false, error: 'Not found or unauthorized' });
+        }
+      } catch (error) {
+        results.push({ id, success: false, error: error.message });
+      }
+    }
+
+    res.json({ results });
+  } catch (error) {
+    console.error('Batch revoke error:', error);
+    res.status(500).json({ message: 'Failed to batch revoke API keys' });
+  }
+});
+
 export default router;
