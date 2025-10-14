@@ -13,6 +13,7 @@ export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
     url: databaseUrl,
+    ssl: databaseUrl.includes('render.com') ? { rejectUnauthorized: false } : false,
   },
   verbose: true,
   strict: false,
