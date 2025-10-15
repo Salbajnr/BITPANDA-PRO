@@ -90,6 +90,11 @@ app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: (req as any).csrfToken?.() || null });
 });
 
+// Health check endpoint for Render
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 /* ==============================
    Logging & Monitoring
 ============================== */
@@ -105,4 +110,15 @@ app.use((req, res, next) => {
     console.log(`${req.method} ${req.originalUrl} [${res.statusCode}] - ${duration}ms`);
   });
   next();
+});
+
+/* ==============================
+   Start Server
+============================== */
+const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on ${HOST}:${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
