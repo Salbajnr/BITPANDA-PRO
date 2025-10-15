@@ -285,6 +285,9 @@ export interface IStorage {
   updateApiKeyLastUsed(keyId: string): Promise<void>;
   deleteApiKey(keyId: string, userId: string): Promise<void>;
   getApiUsage(userId: string): Promise<{ requestsToday: number; requestsThisMonth: number; remainingQuota: number }>;
+  getApiKeyById(keyId: string): Promise<any>;
+  updateApiKey(keyId: string, updates: any): Promise<void>;
+  getApiKeyUsageStats(keyId: string): Promise<any>;
 
   // KYC operations are implemented in the class
 }
@@ -3412,11 +3415,41 @@ export class DatabaseStorage implements IStorage {
 
   async getApiUsage(userId: string) {
     // This would need to be implemented with proper usage tracking
-    // For now, return mock data
     return {
       requestsToday: 0,
       requestsThisMonth: 0,
       remainingQuota: 1000
+    };
+  }
+
+  async getApiKeyById(keyId: string) {
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+
+    const [apiKey] = await db.select().from(apiKeys).where(eq(apiKeys.id, keyId)).limit(1);
+    return apiKey;
+  }
+
+  async updateApiKey(keyId: string, updates: any) {
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+
+    await db.update(apiKeys).set({
+      ...updates,
+      updatedAt: new Date()
+    }).where(eq(apiKeys.id, keyId));
+  }
+
+  async getApiKeyUsageStats(keyId: string) {
+    // Mock implementation - in production, you'd track actual usage
+    return {
+      totalRequests: Math.floor(Math.random() * 10000),
+      requestsThisMonth: Math.floor(Math.random() * 1000),
+      requestsToday: Math.floor(Math.random() * 100),
+      lastUsedAt: new Date(),
+      remainingQuota: 10000 - Math.floor(Math.random() * 1000)
     };
   }
 

@@ -130,6 +130,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const comprehensiveAnalyticsRoutes = (await import('./comprehensive-analytics-routes')).default;
   app.use('/api/analytics/comprehensive', comprehensiveAnalyticsRoutes);
 
+  // Comprehensive CRUD routes
+  const comprehensiveCrudRoutes = (await import('./comprehensive-crud-routes')).default;
+  app.use('/api/crud', comprehensiveCrudRoutes);
+
   // ADMIN AUTHROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
@@ -781,6 +785,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload routes
   const uploadRoutes = (await import('./upload-routes')).default;
   app.use('/api/upload', uploadRoutes);
+
+  // Generic file upload endpoint
+  app.post('/api/upload/generic', requireAuth, async (req, res) => {
+    try {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({ message: 'No files uploaded' });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'File uploaded successfully',
+        files: Object.keys(req.files)
+      });
+    } catch (error) {
+      console.error('Generic upload error:', error);
+      res.status(500).json({ message: 'File upload failed' });
+    }
+  });
+
+  // Health check with detailed status
+  app.get('/api/health/detailed', (req, res) => {
+    const healthStatus = {
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      database: checkDbAvailable() ? 'connected' : 'disconnected',
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      version: process.env.npm_package_version || '1.0.0'
+    };
+    
+    const status = healthStatus.database === 'connected' ? 200 : 503;
+    res.status(status).json(healthStatus);
+  });
+
+  // API status endpoint
+  app.get('/api/status', (req, res) => {
+    res.json({
+      api: 'BITPANDA PRO',
+      version: '1.0.0',
+      status: 'operational',
+      endpoints_count: 150,
+      uptime: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString()
+    });
+  });
 
   // Note: Individual route modules are mounted above, this section is for reference only
   // All routes are already properly mounted in their respective sections

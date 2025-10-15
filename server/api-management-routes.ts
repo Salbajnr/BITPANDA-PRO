@@ -1,9 +1,9 @@
-
 import { Router } from 'express';
 import { requireAuth } from './simple-auth';
 import { storage } from './storage';
 import crypto from 'crypto';
 import { z } from 'zod';
+import bcrypt from 'bcrypt'; // Import bcrypt for hashing
 
 const router = Router();
 
@@ -12,6 +12,11 @@ const createApiKeySchema = z.object({
   permissions: z.array(z.string()).min(1)
 });
 
+// Helper function to generate a secure API key
+function generateApiKey() {
+  return 'bp_' + crypto.randomBytes(32).toString('hex');
+}
+
 // Generate API key
 router.post('/keys', requireAuth, async (req, res) => {
   try {
@@ -19,8 +24,8 @@ router.post('/keys', requireAuth, async (req, res) => {
     const userId = req.user!.id;
 
     // Generate secure API key
-    const apiKey = 'bp_' + crypto.randomBytes(32).toString('hex');
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+    const apiKey = generateApiKey();
+    const keyHash = await bcrypt.hash(apiKey, 10); // Use bcrypt for hashing
 
     const newKey = await storage.createApiKey({
       userId,
@@ -53,7 +58,7 @@ router.get('/keys', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const apiKeys = await storage.getUserApiKeys(userId);
-    
+
     // Don't return the actual keys, only metadata
     const safeKeys = apiKeys.map(key => ({
       id: key.id,
@@ -86,7 +91,7 @@ router.delete('/keys/:keyId', requireAuth, async (req, res) => {
   }
 });
 
-// Get API usage statistics
+// Get API usage statistics for all keys
 router.get('/usage', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
@@ -95,6 +100,118 @@ router.get('/usage', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching API usage:', error);
     res.status(500).json({ message: 'Failed to fetch API usage' });
+  }
+});
+
+// Update API key (e.g., change name or permissions)
+router.patch('/keys/:keyId', requireAuth, async (req, res) => {
+  try {
+    const { keyId } = req.params;
+    const { name, permissions } = req.body;
+
+    // Verify the key belongs to the user
+    const existingKey = await storage.getApiKeyById(keyId);
+    if (!existingKey || existingKey.userId !== req.user!.id) {
+      return res.status(404).json({
+        success: false,
+        message: 'API key not found'
+      });
+    }
+
+    const updates: any = {};
+    if (name) updates.name = name;
+    if (permissions) updates.permissions = permissions;
+
+    await storage.updateApiKey(keyId, updates);
+
+    const updatedKey = await storage.getApiKeyById(keyId);
+
+    res.json({
+      success: true,
+      data: {
+        ...updatedKey,
+        keyHash: undefined // Don't expose the hash
+      }
+    });
+  } catch (error) {
+    console.error('Update API key error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update API key'
+    });
+  }
+});
+
+// Regenerate API key
+router.post('/keys/:keyId/regenerate', requireAuth, async (req, res) => {
+  try {
+    const { keyId } = req.params;
+
+    // Verify the key belongs to the user
+    const existingKey = await storage.getApiKeyById(keyId);
+    if (!existingKey || existingKey.userId !== req.user!.id) {
+      return res.status(404).json({
+        success: false,
+        message: 'API key not found'
+      });
+    }
+
+    // Generate new key
+    const newApiKey = generateApiKey();
+    const keyHash = await bcrypt.hash(newApiKey, 10);
+
+    await storage.updateApiKey(keyId, {
+      keyHash,
+      lastUsed: null,
+      updatedAt: new Date()
+    });
+
+    const updatedKey = await storage.getApiKeyById(keyId);
+
+    res.json({
+      success: true,
+      data: {
+        ...updatedKey,
+        keyHash: undefined, // Don't expose the hash
+        apiKey: newApiKey // Return the new key (only time it's shown)
+      },
+      warning: 'Store this API key securely. It will not be shown again.'
+    });
+  } catch (error) {
+    console.error('Regenerate API key error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to regenerate API key'
+    });
+  }
+});
+
+// Get API key usage statistics
+router.get('/keys/:keyId/usage', requireAuth, async (req, res) => {
+  try {
+    const { keyId } = req.params;
+
+    // Verify the key belongs to the user
+    const existingKey = await storage.getApiKeyById(keyId);
+    if (!existingKey || existingKey.userId !== req.user!.id) {
+      return res.status(404).json({
+        success: false,
+        message: 'API key not found'
+      });
+    }
+
+    const usage = await storage.getApiKeyUsageStats(keyId);
+
+    res.json({
+      success: true,
+      data: usage
+    });
+  } catch (error) {
+    console.error('Get API key usage error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get API key usage'
+    });
   }
 });
 
