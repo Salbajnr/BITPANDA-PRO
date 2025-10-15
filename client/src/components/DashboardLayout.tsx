@@ -21,14 +21,14 @@ export function DashboardLayout({
     <div className="min-h-screen bg-background">
       <Navbar />
       {showTicker && <LiveTicker />}
-      
+
       <div className="flex">
         {showSidebar && (
           <aside className="w-64 min-h-screen bg-card border-r border-border">
             <Sidebar />
           </aside>
         )}
-        
+
         <main className={cn(
           "flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6",
           className

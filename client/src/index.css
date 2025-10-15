@@ -4,6 +4,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive design */
+@layer base {
+  html {
+    font-size: 16px;
+  }
+  
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
+  }
+}
+
+@layer components {
+  /* Mobile-optimized containers */
+  .container-mobile {
+    @apply px-4 mx-auto max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl;
+  }
+  
+  /* Mobile-friendly buttons */
+  .btn-mobile {
+    @apply min-h-[44px] px-4 py-2 text-sm sm:text-base;
+  }
+  
+  /* Mobile cards */
+  .card-mobile {
+    @apply p-4 sm:p-6 rounded-lg shadow-sm border;
+  }
+  
+  /* Mobile navigation */
+  .nav-mobile {
+    @apply fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t z-50;
+  }
+  
+  /* Mobile-optimized tables */
+  .table-mobile {
+    @apply text-xs sm:text-sm;
+  }
+  
+  .table-mobile th,
+  .table-mobile td {
+    @apply px-2 py-2 sm:px-4 sm:py-3;
+  }
+}
+
 /* Professional Trading Platform Theme */
 :root {
   --trading-bg: #0a0e1a;

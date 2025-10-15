@@ -1,4 +1,4 @@
-import { Route, Switch, Redirect, Router } from "wouter";
+import { Route, Switch, Redirect, Router, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -47,7 +47,7 @@ import SavingsPlans from "@/pages/SavingsPlans";
 import Press from "@/pages/Press";
 import Imprint from "@/pages/Imprint";
 import Tutorials from "@/pages/Tutorials";
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { queryClient } from "./lib/queryClient";
 
@@ -143,101 +143,125 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
 }
 
+// Routes component to be rendered inside Router
+function Routes() {
+  return (
+    <Switch>
+      {/* Public Routes */}
+      <Route path="/" component={() => <PublicLayout><Landing /></PublicLayout>} />
+      <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
+      <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
+      <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
+      <Route path="/news" component={() => <PublicLayout><News /></PublicLayout>} />
+      <Route path="/research" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><MarketResearchDashboard /></Suspense></PublicLayout>} />
+      <Route path="/about" component={() => <PublicLayout><About /></PublicLayout>} />
+      <Route path="/features" component={() => <PublicLayout><Features /></PublicLayout>} />
+      <Route path="/help" component={() => <PublicLayout><Help /></PublicLayout>} />
+      <Route path="/contact" component={() => <PublicLayout><Contact /></PublicLayout>} />
+      <Route path="/privacy" component={() => <PublicLayout><Privacy /></PublicLayout>} />
+      <Route path="/terms" component={() => <PublicLayout><Terms /></PublicLayout>} />
+
+      {/* Investment Routes */}
+      <Route path="/stocks" component={Stocks} />
+      <Route path="/etfs" component={Etfs} />
+      <Route path="/crypto-indices" component={CryptoIndices} />
+      <Route path="/precious-metals" component={() => <Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense>} />
+      <Route path="/savings-plans" component={SavingsPlans} />
+      <Route path="/investment-plans" component={() => (
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner />}>
+            <InvestmentPlans />
+          </Suspense>
+        </ProtectedRoute>
+      )} />
+      <Route path="/metals-trading" component={() => <Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense>} />
+      <Route path="/commodities" component={() => <Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense>} />
+      <Route path="/dual-markets" component={DualMarkets} />
+
+      {/* Information Routes */}
+      <Route path="/api-docs" component={API} />
+      <Route path="/press" component={Press} />
+      <Route path="/imprint" component={Imprint} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/academy" component={Academy} />
+      <Route path="/help-center" component={HelpCenter} />
+      <Route path="/user-agreement" component={UserAgreement} />
+      <Route path="/tutorials" component={Tutorials} />
+      <Route path="/security" component={Security} />
+      <Route path="/investor-protection" component={InvestorProtection} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/verify-otp/:type/:email" component={OtpVerification} />
+      <Route path="/reset-password/:token" component={ResetPassword} />
+      <Route path="/api" component={API} />
+      <Route path="/ecosystem" component={Ecosystem} />
+
+      {/* Protected Dashboard Routes */}
+      <Route path="/dashboard" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/portfolio" component={() => <ProtectedRoute><PortfolioTracker /></ProtectedRoute>} />
+      <Route path="/analytics" component={() => <ProtectedRoute><Analytics /></ProtectedRoute>} />
+      <Route path="/trading" component={() => <ProtectedRoute><Trading /></ProtectedRoute>} />
+      <Route path="/advanced-trading" component={() => <ProtectedRoute><AdvancedTrading /></ProtectedRoute>} />
+      <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+      <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />
+      <Route path="/watchlist" component={() => <ProtectedRoute><Watchlist /></ProtectedRoute>} />
+      <Route path="/alerts" component={() => <ProtectedRoute><Alerts /></ProtectedRoute>} />
+      <Route path="/notifications" component={() => <ProtectedRoute><Notifications /></ProtectedRoute>} />
+      <Route path="/deposits" component={() => <ProtectedRoute><Deposits /></ProtectedRoute>} />
+      <Route path="/withdrawals" component={() => <ProtectedRoute><Withdrawals /></ProtectedRoute>} />
+      <Route path="/tax-reporting" component={() => <ProtectedRoute><TaxReporting /></ProtectedRoute>} />
+      <Route path="/risk-management" component={() => <ProtectedRoute><RiskManagement /></ProtectedRoute>} />
+      <Route path="/api-management" component={() => <ProtectedRoute><APIManagement /></ProtectedRoute>} />
+      <Route path="/settings" component={() => <ProtectedRoute><UserSettings /></ProtectedRoute>} />
+
+      {/* KYC Verification Route */}
+      <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
+
+      {/* Asset Details Route - Available to all users */}
+      <Route path="/asset/:symbol" component={({ params }) => <AssetDetails symbol={params.symbol} />} />
+      <Route path="/landing" component={Landing} />
+
+      {/* Admin Login - separate page accessible at /admin-login */}
+      <Route path="/admin-login" component={() => <PublicLayout><AdminLogin /></PublicLayout>} />
+
+      {/* Admin routes - redirect to separate admin app */}
+      <Route path="/admin/:rest*" component={() => {
+        window.location.href = '/admin.html';
+        return null;
+      }} />
+
+      {/* 404 Route */}
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
+        <ThemeProvider defaultTheme="dark" storageKey="bitpanda-theme">
           <LanguageProvider>
             <MessageModalProvider>
               <TooltipProvider>
                 <Router>
-                  <Switch>
-                    {/* Public Routes */}
-                    <Route path="/" component={() => <PublicLayout><Landing /></PublicLayout>} />
-                    <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
-                    <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
-                    <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
-                    <Route path="/news" component={() => <PublicLayout><News /></PublicLayout>} />
-                    <Route path="/research" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><MarketResearchDashboard /></Suspense></PublicLayout>} />
-                    <Route path="/about" component={() => <PublicLayout><About /></PublicLayout>} />
-                    <Route path="/features" component={() => <PublicLayout><Features /></PublicLayout>} />
-                    <Route path="/help" component={() => <PublicLayout><Help /></PublicLayout>} />
-                    <Route path="/contact" component={() => <PublicLayout><Contact /></PublicLayout>} />
-                    <Route path="/privacy" component={() => <PublicLayout><Privacy /></PublicLayout>} />
-                    <Route path="/terms" component={() => <PublicLayout><Terms /></PublicLayout>} />
-
-                    {/* Investment Routes */}
-                    <Route path="/stocks" component={Stocks} />
-                    <Route path="/etfs" component={Etfs} />
-                    <Route path="/crypto-indices" component={CryptoIndices} />
-                    <Route path="/precious-metals" component={() => <Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense>} />
-                    <Route path="/savings-plans" component={SavingsPlans} />
-                    <Route path="/investment-plans" component={() => (
-                      <ProtectedRoute>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <InvestmentPlans />
-                        </Suspense>
-                      </ProtectedRoute>
-                    )} />
-                    <Route path="/metals-trading" component={() => <Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense>} />
-                    <Route path="/commodities" component={() => <Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense>} />
-                    <Route path="/dual-markets" component={DualMarkets} />
-
-                    {/* Information Routes */}
-                    <Route path="/api-docs" component={API} />
-                    <Route path="/press" component={Press} />
-                    <Route path="/imprint" component={Imprint} />
-                    <Route path="/careers" component={Careers} />
-                    <Route path="/academy" component={Academy} />
-                    <Route path="/help-center" component={HelpCenter} />
-                    <Route path="/user-agreement" component={UserAgreement} />
-                    <Route path="/tutorials" component={Tutorials} />
-                    <Route path="/security" component={Security} />
-                    <Route path="/investor-protection" component={InvestorProtection} />
-                    <Route path="/forgot-password" component={ForgotPassword} />
-                    <Route path="/verify-otp/:type/:email" component={OtpVerification} />
-                    <Route path="/reset-password/:token" component={ResetPassword} />
-                    <Route path="/api" component={API} />
-                    <Route path="/ecosystem" component={Ecosystem} />
-
-                    {/* Protected Dashboard Routes */}
-                    <Route path="/dashboard" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                    <Route path="/portfolio" component={() => <ProtectedRoute><PortfolioTracker /></ProtectedRoute>} />
-                    <Route path="/analytics" component={() => <ProtectedRoute><Analytics /></ProtectedRoute>} />
-                    <Route path="/trading" component={() => <ProtectedRoute><Trading /></ProtectedRoute>} />
-                    <Route path="/advanced-trading" component={() => <ProtectedRoute><AdvancedTrading /></ProtectedRoute>} />
-                    <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
-                    <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />
-                    <Route path="/watchlist" component={() => <ProtectedRoute><Watchlist /></ProtectedRoute>} />
-                    <Route path="/alerts" component={() => <ProtectedRoute><Alerts /></ProtectedRoute>} />
-                    <Route path="/notifications" component={() => <ProtectedRoute><Notifications /></ProtectedRoute>} />
-                    <Route path="/deposits" component={() => <ProtectedRoute><Deposits /></ProtectedRoute>} />
-                    <Route path="/withdrawals" component={() => <ProtectedRoute><Withdrawals /></ProtectedRoute>} />
-                    <Route path="/tax-reporting" component={() => <ProtectedRoute><TaxReporting /></ProtectedRoute>} />
-                    <Route path="/risk-management" component={() => <ProtectedRoute><RiskManagement /></ProtectedRoute>} />
-                    <Route path="/api-management" component={() => <ProtectedRoute><APIManagement /></ProtectedRoute>} />
-                    <Route path="/settings" component={() => <ProtectedRoute><UserSettings /></ProtectedRoute>} />
-
-                    {/* KYC Verification Route */}
-                    <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
-
-                    {/* Asset Details Route - Available to all users */}
-                    <Route path="/asset/:symbol" component={({ params }) => <AssetDetails symbol={params.symbol} />} />
-                    <Route path="/landing" component={Landing} />
-
-                    {/* Admin Login - separate page accessible at /admin-login */}
-                    <Route path="/admin-login" component={() => <PublicLayout><AdminLogin /></PublicLayout>} />
-                    
-                    {/* Admin routes - redirect to separate admin app */}
-                    <Route path="/admin/:rest*" component={() => {
-                      window.location.href = '/admin.html';
-                      return null;
-                    }} />
-
-                    {/* 404 Route */}
-                    <Route component={NotFound} />
-                  </Switch>
+                  <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+                    <div className="absolute inset-0 bg-black bg-opacity-20" />
+                    <div className="relative z-10">
+                      <ThemeProvider defaultTheme="dark" storageKey="bitpanda-theme">
+                        <div className="min-h-screen bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
+                          <TooltipProvider>
+                            <LanguageProvider>
+                              <MessageModalProvider>
+                                <QueryClientProvider client={queryClient}>
+                                  <Routes />
+                                </QueryClientProvider>
+                              </MessageModalProvider>
+                            </LanguageProvider>
+                          </TooltipProvider>
+                        </div>
+                      </ThemeProvider>
+                    </div>
+                  </div>
                 </Router>
               </TooltipProvider>
             </MessageModalProvider>
