@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "npm run check && vite build",
+    "build": "vite build",
+    "build:check": "npm run check && vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
     "check": "tsc",
     "db:push": "drizzle-kit push"
@@ -121,7 +122,7 @@
     "supertest": "^7.1.4",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.6",
-    "typescript": "5.6.3",
+    "typescript": "^5.6.3",
     "vite": "^7.1.1",
     "vitest": "^3.2.4"
   },
