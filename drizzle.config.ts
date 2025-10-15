@@ -2,7 +2,10 @@ import { defineConfig } from "drizzle-kit";
 import * as dotenv from "dotenv";
 import dns from "dns";
 
-dotenv.config();
+// Only load .env if DATABASE_URL is not already set (prefer environment variables)
+if (!process.env.DATABASE_URL) {
+  dotenv.config();
+}
 
 // ✅ Force Node to prefer IPv4 for Render DBs
 dns.setDefaultResultOrder("ipv4first");

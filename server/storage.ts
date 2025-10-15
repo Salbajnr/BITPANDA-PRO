@@ -1,7 +1,12 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
 
-import "dotenv/config";
+// Only load .env if DATABASE_URL is not already set (prefer environment variables)
+import dotenv from "dotenv";
+if (!process.env.DATABASE_URL) {
+  dotenv.config();
+}
+
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq, and } from 'drizzle-orm';
