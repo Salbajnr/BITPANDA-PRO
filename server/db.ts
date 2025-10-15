@@ -64,7 +64,10 @@ export const pool = databaseUrl
         console.log('⚠️ Database connection closed, attempting reconnect...');
       },
       fetch_types: false,
-      prepare: false
+      prepare: false,
+      // Force IPv4 to avoid IPv6 connectivity issues on some platforms
+      host_type: 'tcp',
+      socket: undefined
     })
   : null;
 
