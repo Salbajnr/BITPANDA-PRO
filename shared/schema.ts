@@ -819,3 +819,16 @@ export type ApiKey = typeof apiKeys.$inferSelect;
 export type InsertApiKey = typeof apiKeys.$inferInsert;
 
 export const adminActionLogs = pgTable("admin_action_logs", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  adminId: text("admin_id").notNull().references(() => users.id),
+  action: text("action").notNull(),
+  targetId: text("target_id"),
+  targetUserId: text("target_user_id").references(() => users.id),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+});
+
+export type AdminActionLog = typeof adminActionLogs.$inferSelect;
+export type InsertAdminActionLog = typeof adminActionLogs.$inferInsert;
