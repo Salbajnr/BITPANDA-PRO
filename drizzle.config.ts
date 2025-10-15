@@ -9,10 +9,10 @@ if (!databaseUrl) {
 
 // Parse the URL and add SSL parameters if it's a Render/Neon database
 function getConnectionUrl(url: string): string {
-  if (url.includes('render.com') || url.includes('neon.tech') || url.includes('dbphpapi')) {
+  if (url.includes('render.com') || url.includes('neon.tech') || url.includes('dbphpapi') || url.includes('dpg-')) {
     // Check if URL already has query parameters
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}sslmode=require`;
+    return `${url}${separator}sslmode=no-verify`;
   }
   return url;
 }

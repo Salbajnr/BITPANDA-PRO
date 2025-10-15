@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: bitpandapro
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.3
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+    
