@@ -1,4 +1,3 @@
-
 import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
@@ -20,7 +19,7 @@ if (!databaseUrl) {
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
 } else {
   console.log("🔌 Attempting to connect to database...");
-  const dbType = databaseUrl.includes('dpg-d3aj6n24d50c73dbk27g-a') ? 'Render PostgreSQL' : 
+  const dbType = databaseUrl.includes('dpg-d3aj6n24d50c73dbk27g-a') ? 'Render PostgreSQL' :
                  databaseUrl.includes('dbphpapi') ? 'Render PostgreSQL' :
                  databaseUrl.includes('helium') ? 'Replit PostgreSQL' : 'PostgreSQL';
   console.log(`📍 Using database: ${dbType}`);
@@ -29,13 +28,13 @@ if (!databaseUrl) {
     // Extract and encode password if needed
     const urlPattern = /^postgresql:\/\/([^:]+):([^@]+)@(.+)$/;
     const match = databaseUrl.match(urlPattern);
-    
+
     if (match) {
       const [, username, password, rest] = match;
-      
+
       // Check if password needs encoding (contains special characters and is not already encoded)
       const needsEncoding = /[?@$#&%/:=]/.test(password) && !/%.{2}/.test(password);
-      
+
       if (needsEncoding) {
         const encodedPassword = encodeURIComponent(password);
         databaseUrl = `postgresql://${username}:${encodedPassword}@${rest}`;
@@ -49,20 +48,27 @@ if (!databaseUrl) {
 
 export const pool = databaseUrl
   ? postgres(databaseUrl, {
-      max: 10,
-      idle_timeout: 20,
-      connect_timeout: 30,
-      max_lifetime: 60 * 30,
-      ssl: (databaseUrl.includes('render.com') || databaseUrl.includes('neon.tech') || databaseUrl.includes('dbphpapi')) 
-        ? 'require' 
-        : false,
-      onnotice: () => {}, // Suppress notices
+      max: 20,
+      idle_timeout: 30,
+      connect_timeout: 60,
+      // Add retry logic for connection failures
       connection: {
-        application_name: 'Bitpandaprodb'
+        application_name: 'bitpanda-app',
       },
+      onnotice: () => {}, // Suppress notices
       onclose: () => {
-        console.log('⚠️ Database connection closed, attempting reconnect...');
+        if (process.env.NODE_ENV !== 'test') {
+          console.log('⚠️ Database connection closed, attempting reconnect...');
+        }
       },
+      onparameter: (key, value) => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`🔧 Database parameter: ${key}=${value}`);
+        }
+      },
+      ssl: (databaseUrl.includes('render.com') || databaseUrl.includes('neon.tech') || databaseUrl.includes('dbphpapi'))
+        ? 'require'
+        : false,
       fetch_types: false,
       prepare: false,
       // Force IPv4 to avoid IPv6 connectivity issues on some platforms
