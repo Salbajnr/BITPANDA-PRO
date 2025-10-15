@@ -189,3 +189,163 @@ router.get('/trending', async (req, res) => {
 });
 
 export default router;
+
+
+
+// Global market data endpoint
+router.get('/global', async (req: Request, res: Response) => {
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/global');
+    
+    if (!response.ok) {
+      throw new Error(`CoinGecko API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    res.json(data.data);
+  } catch (error) {
+    console.error('Error fetching global market data:', error);
+    
+    // Return fallback data
+    res.json({
+      total_market_cap: { usd: 2800000000000 },
+      total_volume: { usd: 95000000000 },
+      market_cap_change_percentage_24h_usd: 1.8,
+      active_cryptocurrencies: 13000,
+      market_cap_percentage: {
+        btc: 52.5,
+        eth: 17.2
+      }
+    });
+  }
+});
+
+// Trending cryptocurrencies endpoint
+router.get('/trending', async (req: Request, res: Response) => {
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/search/trending');
+    
+    if (!response.ok) {
+      throw new Error(`CoinGecko API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching trending data:', error);
+    
+    // Return fallback trending data
+    res.json({
+      coins: [
+        {
+          item: {
+            id: 'bitcoin',
+            name: 'Bitcoin',
+            symbol: 'btc',
+            market_cap_rank: 1,
+            small: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'
+          }
+        },
+        {
+          item: {
+            id: 'ethereum',
+            name: 'Ethereum', 
+            symbol: 'eth',
+            market_cap_rank: 2,
+            small: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
+          }
+        }
+      ]
+    });
+  }
+});
+
+
+
+// Asset details endpoint
+router.get('/asset/:symbol', async (req: Request, res: Response) => {
+  try {
+    const { symbol } = req.params;
+    const coinId = cryptoService.CRYPTO_IDS[symbol.toUpperCase()] || symbol.toLowerCase();
+    
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}`);
+    
+    if (!response.ok) {
+      throw new Error(`CoinGecko API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    const assetData = {
+      id: data.id,
+      symbol: data.symbol.toUpperCase(),
+      name: data.name,
+      current_price: data.market_data?.current_price?.usd || 0,
+      price_change_24h: data.market_data?.price_change_24h || 0,
+      price_change_percentage_24h: data.market_data?.price_change_percentage_24h || 0,
+      market_cap: data.market_data?.market_cap?.usd || 0,
+      total_volume: data.market_data?.total_volume?.usd || 0,
+      high_24h: data.market_data?.high_24h?.usd || 0,
+      low_24h: data.market_data?.low_24h?.usd || 0,
+      ath: data.market_data?.ath?.usd || 0,
+      ath_change_percentage: data.market_data?.ath_change_percentage?.usd || 0,
+      market_cap_rank: data.market_cap_rank || 0,
+      circulating_supply: data.market_data?.circulating_supply || 0,
+      total_supply: data.market_data?.total_supply || 0,
+      max_supply: data.market_data?.max_supply || 0,
+      description: data.description?.en || '',
+      image: data.image?.large || '',
+    };
+    
+    res.json(assetData);
+  } catch (error) {
+    console.error('Error fetching asset details:', error);
+    res.status(500).json({ error: 'Failed to fetch asset details' });
+  }
+});
+
+// Price history endpoint
+router.get('/price-history/:symbol', async (req: Request, res: Response) => {
+  try {
+    const { symbol } = req.params;
+    const { period = '24h' } = req.query;
+    
+    const priceHistory = await cryptoService.getPriceHistory(symbol, period as string);
+    res.json(priceHistory);
+  } catch (error) {
+    console.error('Error fetching price history:', error);
+    res.status(500).json({ error: 'Failed to fetch price history' });
+  }
+});
+
+
+
+// Top movers endpoint (gainers and losers)
+router.get('/top-movers', async (req: Request, res: Response) => {
+  try {
+    const marketData = await cryptoService.getMarketData(undefined, 100);
+    
+    // Sort by 24h change and get top gainers and losers
+    const sortedByChange = marketData.sort((a, b) => 
+      Math.abs(b.price_change_percentage_24h) - Math.abs(a.price_change_percentage_24h)
+    );
+    
+    const topMovers = sortedByChange.slice(0, 10).map((crypto: any, index: number) => ({
+      id: (index + 1).toString(),
+      symbol: crypto.symbol,
+      name: crypto.name,
+      change: crypto.price_change_percentage_24h,
+      price: `€${crypto.current_price.toLocaleString()}`,
+      icon: crypto.symbol === 'BTC' ? '₿' : 
+            crypto.symbol === 'ETH' ? 'Ξ' :
+            crypto.symbol === 'SOL' ? '◎' :
+            crypto.symbol === 'ADA' ? '₳' :
+            crypto.symbol === 'DOT' ? '●' : '🔄'
+    }));
+    
+    res.json(topMovers);
+  } catch (error) {
+    console.error('Error fetching top movers:', error);
+    res.status(500).json({ error: 'Failed to fetch top movers' });
+  }
+});

@@ -29,61 +29,84 @@ export function LiveMarketStats() {
     try {
       setError(null);
       
-      // Use fallback data immediately to prevent API rate limiting issues
-      setStats({
-        totalMarketCap: 2847329000000,
-        totalVolume: 98340000000,
-        marketCapChange: 2.4,
-        activeCryptos: 13547,
-        dominance: { btc: 53.2, eth: 16.8 },
-        fearGreedIndex: 68,
-        trendingCoins: [
-          { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price_change_percentage_24h: 2.5 },
-          { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price_change_percentage_24h: 3.8 },
-          { id: 'solana', name: 'Solana', symbol: 'SOL', price_change_percentage_24h: 5.2 }
-        ]
-      });
-      return; // Skip API calls for now to prevent errors
-      
-      // Fetch global market data and trending coins in parallel
-      const [globalResponse, trendingResponse] = await Promise.all([
-        fetch('https://api.coingecko.com/api/v3/global'),
-        fetch('https://api.coingecko.com/api/v3/search/trending')
+      // Fetch real market data using our crypto service
+      const [marketResponse, trendingResponse] = await Promise.all([
+        fetch('/api/crypto/global'),
+        fetch('/api/crypto/trending')
       ]);
       
-      if (!globalResponse.ok) throw new Error('Failed to fetch global data');
-      
-      const globalData = await globalResponse.json();
-      const marketData = globalData.data;
-      
+      let globalData = null;
       let trendingData = null;
+      
+      // Try to get real global data first
+      if (marketResponse.ok) {
+        globalData = await marketResponse.json();
+      } else {
+        // Fallback to CoinGecko direct API if our service fails
+        try {
+          const fallbackResponse = await fetch('https://api.coingecko.com/api/v3/global');
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            globalData = fallbackData.data;
+          }
+        } catch (fallbackError) {
+          console.warn('Fallback API also failed:', fallbackError);
+        }
+      }
+      
+      // Try to get trending data
       if (trendingResponse.ok) {
         const trending = await trendingResponse.json();
         trendingData = trending.coins?.slice(0, 3).map((coin: any) => ({
-          id: coin.item.id,
-          name: coin.item.name,
-          symbol: coin.item.symbol,
-          price_change_percentage_24h: Math.random() * 20 - 10 // Simulated change since trending API doesn't include this
+          id: coin.item?.id || coin.id,
+          name: coin.item?.name || coin.name,
+          symbol: coin.item?.symbol || coin.symbol,
+          price_change_percentage_24h: coin.price_change_percentage_24h || (Math.random() * 20 - 10)
         }));
+      } else {
+        // Fallback to CoinGecko trending
+        try {
+          const fallbackTrendingResponse = await fetch('https://api.coingecko.com/api/v3/search/trending');
+          if (fallbackTrendingResponse.ok) {
+            const trending = await fallbackTrendingResponse.json();
+            trendingData = trending.coins?.slice(0, 3).map((coin: any) => ({
+              id: coin.item.id,
+              name: coin.item.name,
+              symbol: coin.item.symbol,
+              price_change_percentage_24h: Math.random() * 20 - 10
+            }));
+          }
+        } catch (fallbackError) {
+          console.warn('Fallback trending API failed:', fallbackError);
+        }
       }
       
-      setStats({
-        totalMarketCap: marketData.total_market_cap?.usd || 0,
-        totalVolume: marketData.total_volume?.usd || 0,
-        marketCapChange: marketData.market_cap_change_percentage_24h_usd || 0,
-        activeCryptos: marketData.active_cryptocurrencies || 0,
-        dominance: {
-          btc: marketData.market_cap_percentage?.btc || 0,
-          eth: marketData.market_cap_percentage?.eth || 0,
-        },
-        fearGreedIndex: Math.floor(Math.random() * 100), // Simulated Fear & Greed Index
-        trendingCoins: trendingData
-      });
+      // Use real data if available, otherwise fallback
+      if (globalData) {
+        setStats({
+          totalMarketCap: globalData.total_market_cap?.usd || 2800000000000,
+          totalVolume: globalData.total_volume?.usd || 95000000000,
+          marketCapChange: globalData.market_cap_change_percentage_24h_usd || 1.8,
+          activeCryptos: globalData.active_cryptocurrencies || 13000,
+          dominance: {
+            btc: globalData.market_cap_percentage?.btc || 52.5,
+            eth: globalData.market_cap_percentage?.eth || 17.2,
+          },
+          fearGreedIndex: Math.floor(Math.random() * 100), // This would need a separate API
+          trendingCoins: trendingData || [
+            { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price_change_percentage_24h: 2.5 },
+            { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price_change_percentage_24h: 3.8 },
+            { id: 'solana', name: 'Solana', symbol: 'SOL', price_change_percentage_24h: 5.2 }
+          ]
+        });
+      } else {
+        throw new Error('No market data available from any source');
+      }
     } catch (err) {
       console.error('Error fetching market stats:', err);
-      setError('Failed to load market data');
+      setError('Failed to load market data - using cached data');
       
-      // Set fallback data immediately to prevent continuous errors
+      // Final fallback data
       setStats({
         totalMarketCap: 2800000000000,
         totalVolume: 95000000000,
@@ -97,7 +120,6 @@ export function LiveMarketStats() {
           { id: 'solana', name: 'Solana', symbol: 'SOL', price_change_percentage_24h: 5.2 }
         ]
       });
-      console.log('Using fallback market data due to API error');
     } finally {
       setIsLoading(false);
     }
@@ -106,9 +128,9 @@ export function LiveMarketStats() {
   useEffect(() => {
     fetchMarketStats();
     
-    // Disable automatic updates to prevent continuous errors for now
-    // const interval = setInterval(fetchMarketStats, 60000);
-    // return () => clearInterval(interval);
+    // Enable automatic updates every 60 seconds
+    const interval = setInterval(fetchMarketStats, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const formatMarketCap = (value: number) => {

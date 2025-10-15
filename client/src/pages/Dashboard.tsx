@@ -177,49 +177,34 @@ export default function Dashboard() {
     return <Redirect to="/auth" />;
   }
 
-  // Mock data for demo
-  const topMovers: TopMover[] = [
-    {
-      id: "1",
-      symbol: "ZERO",
-      name: "ZeroLend",
-      change: 80.42,
-      price: "€1.24",
-      icon: "🔄",
-    },
-    {
-      id: "2",
-      symbol: "REZ",
-      name: "Renzo",
-      change: 54.6,
-      price: "€0.58",
-      icon: "🔄",
-    },
-    {
-      id: "3",
-      symbol: "COW",
-      name: "CoW Protocol",
-      change: 32.0,
-      price: "€2.14",
-      icon: "🔄",
-    },
-    {
-      id: "4",
-      symbol: "BTC",
-      name: "Bitcoin",
-      change: -5.23,
-      price: "€67,432",
-      icon: "₿",
-    },
-    {
-      id: "5",
-      symbol: "ETH",
-      name: "Ethereum",
-      change: -2.14,
-      price: "€3,421",
-      icon: "Ξ",
-    },
-  ];
+  // Fetch real top movers data
+  const [topMovers, setTopMovers] = useState<TopMover[]>([]);
+  
+  useEffect(() => {
+    const fetchTopMovers = async () => {
+      try {
+        const response = await fetch('/api/crypto/top-movers');
+        if (response.ok) {
+          const data = await response.json();
+          setTopMovers(data);
+        } else {
+          throw new Error('Failed to fetch top movers');
+        }
+      } catch (error) {
+        console.warn('Using fallback top movers data:', error);
+        // Fallback data
+        setTopMovers([
+          { id: "1", symbol: "BTC", name: "Bitcoin", change: -5.23, price: "€67,432", icon: "₿" },
+          { id: "2", symbol: "ETH", name: "Ethereum", change: -2.14, price: "€3,421", icon: "Ξ" },
+          { id: "3", symbol: "SOL", name: "Solana", change: 8.42, price: "€124", icon: "◎" },
+          { id: "4", symbol: "ADA", name: "Cardano", change: 4.6, price: "€0.58", icon: "₳" },
+          { id: "5", symbol: "DOT", name: "Polkadot", change: 2.0, price: "€6.14", icon: "●" },
+        ]);
+      }
+    };
+    
+    fetchTopMovers();
+  }, []);
 
   const portfolioValue = portfolioData?.portfolio?.totalValue || "13.36";
   const portfolioChange = -1.69; // Mock percentage change

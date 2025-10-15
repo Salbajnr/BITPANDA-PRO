@@ -53,15 +53,39 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
     const initializePrices = async () => {
       setIsLoading(true);
       
-      // Initialize with mock data if no real-time data available
-      const initialPrices: CryptoPrice[] = symbols.map(symbol => ({
-        symbol,
-        name: getSymbolName(symbol),
-        price: getMockPrice(symbol),
-        change24h: (Math.random() - 0.5) * 10
-      }));
-
-      setPrices(initialPrices);
+      try {
+        // Try to fetch real prices first
+        const response = await fetch('/api/crypto/prices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const realPrices: CryptoPrice[] = data.map((crypto: any) => ({
+            symbol: crypto.symbol,
+            name: crypto.name || getSymbolName(crypto.symbol),
+            price: crypto.price || crypto.current_price,
+            change24h: crypto.change_24h || crypto.price_change_percentage_24h || 0
+          }));
+          setPrices(realPrices);
+        } else {
+          throw new Error('Failed to fetch real prices');
+        }
+      } catch (error) {
+        console.warn('Failed to fetch real prices, using fallback data:', error);
+        
+        // Fallback to mock data only if real data fails
+        const fallbackPrices: CryptoPrice[] = symbols.map(symbol => ({
+          symbol,
+          name: getSymbolName(symbol),
+          price: getMockPrice(symbol),
+          change24h: (Math.random() - 0.5) * 10
+        }));
+        setPrices(fallbackPrices);
+      }
+      
       setIsLoading(false);
     };
 

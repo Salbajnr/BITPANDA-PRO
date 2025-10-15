@@ -42,29 +42,47 @@ export default function AssetDetails({ symbol: propSymbol }: AssetDetailsProps) 
     refetchInterval: 60000,
   });
 
-  // Mock data for demonstration
-  const mockAsset = {
-    id: symbol.toLowerCase(),
-    symbol: symbol,
-    name: symbol === 'BTC' ? 'Bitcoin' : symbol === 'ETH' ? 'Ethereum' : 'Cryptocurrency',
-    current_price: 102326.25,
-    price_change_24h: 1152.00,
-    price_change_percentage_24h: 0.89,
-    market_cap: 2031234567890,
-    total_volume: 28456789123,
-    high_24h: 103456.78,
-    low_24h: 101200.22,
-    ath: 108000.00,
-    ath_change_percentage: -5.25,
-    market_cap_rank: 1,
-    circulating_supply: 19800000,
-    total_supply: 21000000,
-    max_supply: 21000000,
-    description: "Bitcoin is the most popular cryptocurrency, both in terms of mainstream awareness as well as buy and sell volume. It is based on an open-source technology and operates on a decentralized network using blockchain technology.",
-    image: getCryptoLogo(symbol),
-  };
-
-  const asset = assetData || mockAsset;
+  // Fetch real asset data
+  const [asset, setAsset] = useState<any>(null);
+  
+  useEffect(() => {
+    const fetchAssetData = async () => {
+      try {
+        const response = await fetch(`/api/crypto/asset/${symbol}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAsset(data);
+        } else {
+          throw new Error('Failed to fetch asset data');
+        }
+      } catch (error) {
+        console.warn('Using fallback asset data:', error);
+        // Fallback data
+        setAsset({
+          id: symbol.toLowerCase(),
+          symbol: symbol,
+          name: symbol === 'BTC' ? 'Bitcoin' : symbol === 'ETH' ? 'Ethereum' : 'Cryptocurrency',
+          current_price: 102326.25,
+          price_change_24h: 1152.00,
+          price_change_percentage_24h: 0.89,
+          market_cap: 2031234567890,
+          total_volume: 28456789123,
+          high_24h: 103456.78,
+          low_24h: 101200.22,
+          ath: 108000.00,
+          ath_change_percentage: -5.25,
+          market_cap_rank: 1,
+          circulating_supply: 19800000,
+          total_supply: 21000000,
+          max_supply: 21000000,
+          description: "Bitcoin is the most popular cryptocurrency, both in terms of mainstream awareness as well as buy and sell volume. It is based on an open-source technology and operates on a decentralized network using blockchain technology.",
+          image: getCryptoLogo(symbol),
+        });
+      }
+    };
+    
+    fetchAssetData();
+  }, [symbol]);
 
   const timeframes = [
     { label: "1D", value: "1D" },
@@ -75,14 +93,35 @@ export default function AssetDetails({ symbol: propSymbol }: AssetDetailsProps) 
     { label: "Max", value: "Max" },
   ];
 
-  // Mock price history data
-  const mockPriceData = Array.from({ length: 24 }, (_, i) => ({
-    time: `${i}:00`,
-    price: asset.current_price + (Math.random() - 0.5) * 2000,
-    volume: Math.random() * 1000000000,
-  }));
-
-  const chartData = priceHistory || mockPriceData;
+  // Fetch real price history
+  const [chartData, setChartData] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchPriceHistory = async () => {
+      try {
+        const response = await fetch(`/api/crypto/price-history/${symbol}?period=${selectedTimeframe}`);
+        if (response.ok) {
+          const data = await response.json();
+          setChartData(data);
+        } else {
+          throw new Error('Failed to fetch price history');
+        }
+      } catch (error) {
+        console.warn('Using fallback price data:', error);
+        // Generate fallback data only if real data fails
+        const fallbackData = Array.from({ length: 24 }, (_, i) => ({
+          time: `${i}:00`,
+          price: (asset?.current_price || 45000) + (Math.random() - 0.5) * 2000,
+          volume: Math.random() * 1000000000,
+        }));
+        setChartData(fallbackData);
+      }
+    };
+    
+    if (asset) {
+      fetchPriceHistory();
+    }
+  }, [symbol, selectedTimeframe, asset]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
