@@ -306,6 +306,10 @@ class ChatWebSocketManager {
     return this.clients.size;
   }
 
+  init(server: Server): void {
+    this.initialize(server);
+  }
+
   shutdown(): void {
     console.log('💬 Shutting down chat WebSocket server...');
     try {
