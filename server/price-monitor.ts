@@ -86,47 +86,32 @@ class PriceMonitorService {
 
   private async checkPriceAlerts(): Promise<void> {
     try {
-      // Get all active alerts
-      let alerts;
-      try {
-        alerts = await storage.getActivePriceAlerts();
-      } catch (error) {
-        console.error('Error getting active price alerts:', error);
+      // Check if storage methods exist before calling
+      if (typeof storage.getActivePriceAlerts !== 'function') {
+        console.log('⚠️ Price alerts storage method not available, skipping alert checks');
         return;
       }
 
-      if (!alerts || alerts.length === 0) {
-        return;
-      }
+      const activeAlerts = await storage.getActivePriceAlerts();
 
-      // Get unique symbols from alerts
-      const symbols = [...new Set(alerts.map(alert => this.getCoinGeckoId(alert.symbol)))];
+      for (const alert of activeAlerts) {
+        const currentPrice = await this.getCurrentPrice(alert.symbol);
 
-      // Fetch current prices
-      const prices = await this.fetchCurrentPrices(symbols);
+        if (this.shouldTriggerAlert(alert, currentPrice)) {
+          await this.triggerAlert(alert, currentPrice);
 
-      if (!prices) {
-        console.error('Failed to fetch prices for alert checking');
-        return;
-      }
-
-      // Check each alert
-      for (const alert of alerts) {
-        try {
-          const coinGeckoId = this.getCoinGeckoId(alert.symbol);
-          const currentPrice = prices[coinGeckoId]?.usd;
-
-          if (currentPrice && this.shouldTriggerAlert(alert, currentPrice)) {
-            await this.triggerAlert(alert, currentPrice);
+          if (typeof storage.updatePriceAlert === 'function') {
+            await storage.updatePriceAlert(alert.id, { 
+              isActive: false,
+              triggeredAt: new Date() 
+            });
           }
-        } catch (alertError) {
-          console.error(`Error processing alert ${alert.id}:`, alertError);
         }
       }
 
-      console.log(`✅ Checked ${alerts.length} price alerts`);
+      console.log(`✅ Checked ${activeAlerts.length} price alerts`);
     } catch (error) {
-      console.error('Error in checkPriceAlerts:', error);
+      console.error('Error checking price alerts:', error);
     }
   }
 
@@ -228,6 +213,13 @@ class PriceMonitorService {
     } catch (error) {
       console.error('Error triggering alert:', error);
     }
+  }
+
+  // Dummy implementation for getCurrentPrice, as it's used in the modified checkPriceAlerts
+  private async getCurrentPrice(symbol: string): Promise<number> {
+    const coinGeckoId = this.getCoinGeckoId(symbol);
+    const prices = await this.fetchCurrentPrices([coinGeckoId]);
+    return prices?.[coinGeckoId]?.usd || 0;
   }
 }
 

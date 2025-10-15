@@ -167,3 +167,14 @@ const httpServer = app.listen(PORT, HOST, () => {
   priceMonitor.start();
   realTimePriceService.startPriceUpdates();
 })();
+
+// Initialize database
+(async () => {
+  try {
+    await initializeDatabase();
+    console.log("✅ Database initialization completed");
+  } catch (error) {
+    console.error("❌ Database initialization failed:", error);
+    console.log("🔄 Server will continue with limited functionality...");
+  }
+})();

@@ -46,7 +46,6 @@ if (!databaseUrl) {
   }
 }
 
-import { Pool } from 'pg';
 
 export const pool = databaseUrl
   ? new Pool({
@@ -65,7 +64,7 @@ export const db = pool ? drizzle(pool, { schema }) : drizzle({} as any, { schema
 
 // Test connection
 if (pool) {
-  const testConnection = async (retries = 3) => {
+  const testConnection = async (retries = 2) => {
     for (let i = 0; i < retries; i++) {
       try {
         const client = await pool.connect();
@@ -74,16 +73,15 @@ if (pool) {
         console.log("✅ Database connected successfully");
         return;
       } catch (err: any) {
-        console.error(`❌ Database connection attempt ${i + 1} failed:`, err.message);
-        if (i === retries - 1) {
-          console.error("🔧 Please check your DATABASE_URL in Secrets");
-          console.error("⚠️  Database operations will be limited until connection is restored");
-        } else {
-          console.log(`🔄 Retrying in 2 seconds...`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        console.error(`❌ Database connection attempt ${i + 1} failed: ${err.message}`);
+        if (i < retries - 1) {
+          console.log("🔄 Retrying in 1 second...");
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
     }
+    console.error("🔧 Please check your DATABASE_URL environment variable");
+    console.log("⚠️  Database operations will be limited until connection is restored");
   };
 
   testConnection();
