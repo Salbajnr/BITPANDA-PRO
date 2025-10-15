@@ -209,6 +209,10 @@ class WebSocketManager {
     }
   }
 
+  init(httpServer: Server) {
+    this.initialize(httpServer);
+  }
+
   shutdown() {
     console.log('🔌 Shutting down WebSocket server...');
     try {
