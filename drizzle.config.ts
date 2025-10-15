@@ -1,12 +1,16 @@
 import { defineConfig } from "drizzle-kit";
 import * as dotenv from "dotenv";
+import dns from "dns";
 
 dotenv.config();
+
+// ✅ Force Node to prefer IPv4 for Render DBs
+dns.setDefaultResultOrder("ipv4first");
 
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("❌ DATABASE_URL is not set.");
+  throw new Error("❌ DATABASE_URL is not set in .env file");
 }
 
 function getConnectionUrl(url: string): string {
@@ -16,17 +20,14 @@ function getConnectionUrl(url: string): string {
     url.includes("supabase.co") ||
     url.includes("dpg-");
 
-  if (needsSSL) {
-    const separator = url.includes("?") ? "&" : "?";
-    return `${url}${separator}sslmode=no-verify`;
-  }
-  return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return needsSSL ? `${url}${separator}sslmode=no-verify` : url;
 }
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./shared/schema.ts",
-  out: "./drizzle",
+  schema: "./shared/schema.ts", // Path to your schema
+  out: "./drizzle",             // Where to store migrations
   dbCredentials: {
     url: getConnectionUrl(databaseUrl),
   },
