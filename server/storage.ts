@@ -3371,7 +3371,7 @@ export class DatabaseStorage implements IStorage {
     }).returning();
 
     return apiKey;
-  },
+  }
 
   async getUserApiKeys(userId: string) {
     if (!db) {
@@ -3380,7 +3380,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     return db.select().from(apiKeys).where(eq(apiKeys.userId, userId));
-  },
+  }
 
   async getApiKeyByHash(keyHash: string) {
     if (!db) {
@@ -3390,7 +3390,7 @@ export class DatabaseStorage implements IStorage {
 
     const [apiKey] = await db.select().from(apiKeys).where(eq(apiKeys.keyHash, keyHash)).limit(1);
     return apiKey;
-  },
+  }
 
   async updateApiKeyLastUsed(keyId: string) {
     if (!db) {
@@ -3399,7 +3399,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     await db.update(apiKeys).set({ lastUsed: new Date() }).where(eq(apiKeys.id, keyId));
-  },
+  }
 
   async deleteApiKey(keyId: string, userId: string) {
     if (!db) {
@@ -3408,7 +3408,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     await db.delete(apiKeys).where(and(eq(apiKeys.id, keyId), eq(apiKeys.userId, userId)));
-  },
+  }
 
   async getApiUsage(userId: string) {
     // This would need to be implemented with proper usage tracking
@@ -3418,7 +3418,7 @@ export class DatabaseStorage implements IStorage {
       requestsThisMonth: 0,
       remainingQuota: 1000
     };
-  },
+  }
 
   // KYC methods are already implemented above
 
