@@ -17,6 +17,233 @@ interface UseRealTimePricesOptions {
   onConnectionChange?: (connected: boolean) => void;
 }
 
+// Global WebSocket connection manager to prevent multiple connections
+class WebSocketManager {
+  private static instance: WebSocketManager;
+  private ws: WebSocket | null = null;
+  private subscribers = new Set<string>();
+  private callbacks = new Map<string, {
+    onPriceUpdate?: (price: PriceData) => void;
+    onConnectionChange?: (connected: boolean) => void;
+    setPrices: (prices: Map<string, PriceData>) => void;
+    setIsConnected: (connected: boolean) => void;
+    setIsConnecting: (connecting: boolean) => void;
+    setConnectionError: (error: string | null) => void;
+    setLastUpdate: (date: Date | null) => void;
+  }>();
+  private prices = new Map<string, PriceData>();
+  private isConnected = false;
+  private isConnecting = false;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 3;
+
+  static getInstance(): WebSocketManager {
+    if (!WebSocketManager.instance) {
+      WebSocketManager.instance = new WebSocketManager();
+    }
+    return WebSocketManager.instance;
+  }
+
+  subscribe(id: string, callbacks: any) {
+    this.subscribers.add(id);
+    this.callbacks.set(id, callbacks);
+    
+    // Send current prices to new subscriber
+    callbacks.setPrices(new Map(this.prices));
+    callbacks.setIsConnected(this.isConnected);
+    callbacks.setIsConnecting(this.isConnecting);
+    
+    // Start connection if not already connected
+    if (!this.isConnected && !this.isConnecting && this.subscribers.size === 1) {
+      this.connect();
+    }
+  }
+
+  unsubscribe(id: string) {
+    this.subscribers.delete(id);
+    this.callbacks.delete(id);
+    
+    // Close connection if no more subscribers
+    if (this.subscribers.size === 0) {
+      this.disconnect();
+    }
+  }
+
+  private connect() {
+    if (this.isConnecting || this.isConnected) return;
+
+    this.setConnecting(true);
+    this.setConnectionError(null);
+
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      const wsUrl = `${protocol}//${host}/ws`;
+      
+      console.log(`🔌 WebSocketManager connecting to: ${wsUrl}`);
+
+      this.ws = new WebSocket(wsUrl);
+
+      const connectionTimeout = setTimeout(() => {
+        if (this.isConnecting && this.ws) {
+          console.log('⏰ WebSocket connection timeout');
+          this.ws.close();
+        }
+      }, 5000);
+
+      this.ws.onopen = () => {
+        clearTimeout(connectionTimeout);
+        console.log('✅ WebSocketManager connected successfully');
+        this.isConnected = true;
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        this.setConnected(true);
+        this.setConnecting(false);
+
+        // Subscribe to price updates
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+            type: 'subscribe',
+            symbols: ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL']
+          }));
+        }
+      };
+
+      this.ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+
+          if (message.type === 'price_update') {
+            if (Array.isArray(message.data)) {
+              message.data.forEach((priceData: PriceData) => {
+                this.handlePriceUpdate(priceData);
+              });
+            } else if (message.symbol && message.price) {
+              this.handlePriceUpdate({
+                symbol: message.symbol.toUpperCase(),
+                price: message.price,
+                change_24h: message.change_24h || 0,
+                volume_24h: message.volume_24h || 0,
+                market_cap: message.market_cap,
+                timestamp: message.timestamp || Date.now()
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+
+      this.ws.onclose = (event) => {
+        clearTimeout(connectionTimeout);
+        console.log('🔌 WebSocketManager disconnected:', event.code);
+        this.isConnected = false;
+        this.isConnecting = false;
+        this.setConnected(false);
+        this.setConnecting(false);
+
+        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts && this.subscribers.size > 0) {
+          this.attemptReconnect();
+        } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          this.setConnectionError('Connection failed - using fallback data');
+        }
+      };
+
+      this.ws.onerror = (error) => {
+        clearTimeout(connectionTimeout);
+        console.error('🔌 WebSocketManager error:', error);
+        this.isConnected = false;
+        this.isConnecting = false;
+        this.setConnectionError('Connection failed');
+        this.setConnecting(false);
+        this.setConnected(false);
+      };
+
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+      this.isConnecting = false;
+      this.setConnectionError('Failed to create connection');
+      this.setConnecting(false);
+      this.setConnected(false);
+    }
+  }
+
+  private handlePriceUpdate(priceData: PriceData) {
+    const normalizedSymbol = priceData.symbol.toUpperCase();
+    this.prices.set(normalizedSymbol, {
+      ...priceData,
+      symbol: normalizedSymbol
+    });
+
+    // Notify all subscribers
+    this.callbacks.forEach(callback => {
+      callback.setPrices(new Map(this.prices));
+      callback.setLastUpdate(new Date());
+      callback.onPriceUpdate?.(priceData);
+    });
+  }
+
+  private attemptReconnect() {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) return;
+
+    this.reconnectAttempts += 1;
+    const delay = Math.pow(2, this.reconnectAttempts - 1) * 2000;
+
+    console.log(`🔄 WebSocketManager reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
+    this.reconnectTimeout = setTimeout(() => {
+      if (!this.isConnected && this.subscribers.size > 0) {
+        this.connect();
+      }
+    }, delay);
+  }
+
+  private disconnect() {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
+    if (this.ws) {
+      this.ws.onclose = null;
+      this.ws.onerror = null;
+      this.ws.onmessage = null;
+      this.ws.onopen = null;
+      
+      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+        this.ws.close(1000, 'Manager disconnect');
+      }
+      this.ws = null;
+    }
+
+    this.isConnected = false;
+    this.isConnecting = false;
+    this.reconnectAttempts = 0;
+    this.setConnected(false);
+    this.setConnecting(false);
+  }
+
+  private setConnected(connected: boolean) {
+    this.callbacks.forEach(callback => {
+      callback.setIsConnected(connected);
+      callback.onConnectionChange?.(connected);
+    });
+  }
+
+  private setConnecting(connecting: boolean) {
+    this.callbacks.forEach(callback => {
+      callback.setIsConnecting(connecting);
+    });
+  }
+
+  private setConnectionError(error: string | null) {
+    this.callbacks.forEach(callback => {
+      callback.setConnectionError(error);
+    });
+  }
+}
+
 export function useRealTimePrices({
   symbols,
   enabled = true,
@@ -29,221 +256,32 @@ export function useRealTimePrices({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 3; // Reduced from 5
-  const connectionStateRef = useRef<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const subscriberId = useRef<string>(Math.random().toString(36));
+  const wsManager = useRef<WebSocketManager>(WebSocketManager.getInstance());
 
-  const connect = useCallback(() => {
-    if (!enabled || connectionStateRef.current !== 'disconnected') {
-      return;
-    }
-
-    // Close existing connection first
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-
-    connectionStateRef.current = 'connecting';
-    setIsConnecting(true);
-    setConnectionError(null);
-
-    try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const wsUrl = `${protocol}//${host}/ws`;
-      
-      console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
-
-      wsRef.current = new WebSocket(wsUrl);
-
-      // Connection timeout
-      const connectionTimeout = setTimeout(() => {
-        if (connectionStateRef.current === 'connecting' && wsRef.current) {
-          console.log('⏰ WebSocket connection timeout');
-          wsRef.current.close();
-        }
-      }, 5000);
-
-      wsRef.current.onopen = () => {
-        clearTimeout(connectionTimeout);
-        console.log('🔌 Real-time prices WebSocket connected');
-        connectionStateRef.current = 'connected';
-        setIsConnected(true);
-        setIsConnecting(false);
-        reconnectAttemptsRef.current = 0;
-        onConnectionChange?.(true);
-
-        // Subscribe to price updates
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({
-            type: 'subscribe',
-            symbols: ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE', 'DOT', 'AVAX', 'LINK']
-          }));
-        }
-      };
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-
-          if (message.type === 'price_update') {
-            if (Array.isArray(message.data)) {
-              const newPrices = new Map(prices);
-              
-              message.data.forEach((priceData: PriceData) => {
-                const normalizedSymbol = priceData.symbol.toUpperCase();
-                newPrices.set(normalizedSymbol, {
-                  ...priceData,
-                  symbol: normalizedSymbol
-                });
-                onPriceUpdate?.(priceData);
-              });
-
-              setPrices(newPrices);
-              setLastUpdate(new Date());
-            } else if (message.symbol && message.price) {
-              // Single price update
-              const priceData: PriceData = {
-                symbol: message.symbol.toUpperCase(),
-                price: message.price,
-                change_24h: message.change_24h || 0,
-                volume_24h: message.volume_24h || 0,
-                market_cap: message.market_cap,
-                timestamp: message.timestamp || Date.now()
-              };
-
-              setPrices(prev => new Map(prev).set(priceData.symbol, priceData));
-              setLastUpdate(new Date());
-              onPriceUpdate?.(priceData);
-            }
-          } else if (message.type === 'connection') {
-            console.log('📡 WebSocket connection confirmed');
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-
-      wsRef.current.onclose = (event) => {
-        clearTimeout(connectionTimeout);
-        console.log('🔌 Real-time prices WebSocket disconnected:', event.code);
-        connectionStateRef.current = 'disconnected';
-        setIsConnected(false);
-        setIsConnecting(false);
-        onConnectionChange?.(false);
-
-        // Only attempt to reconnect for abnormal closures and within retry limit
-        if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
-          attemptReconnect();
-        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-          setConnectionError('Connection failed - using API data only');
-        }
-      };
-
-      wsRef.current.onerror = (error) => {
-        clearTimeout(connectionTimeout);
-        console.error('🔌 Real-time prices WebSocket error:', error);
-        connectionStateRef.current = 'disconnected';
-        setConnectionError('Connection failed');
-        setIsConnecting(false);
-        setIsConnected(false);
-        onConnectionChange?.(false);
-      };
-
-    } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
-      connectionStateRef.current = 'disconnected';
-      setConnectionError('Failed to create connection');
-      setIsConnecting(false);
-      setIsConnected(false);
-    }
-  }, [enabled, onPriceUpdate, onConnectionChange]);
-
-  const attemptReconnect = useCallback(() => {
-    if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-      return;
-    }
-
-    reconnectAttemptsRef.current += 1;
-    const delay = Math.pow(2, reconnectAttemptsRef.current - 1) * 2000; // Exponential backoff starting at 2s
-
-    console.log(`🔄 Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
-
-    reconnectTimeoutRef.current = setTimeout(() => {
-      if (connectionStateRef.current === 'disconnected') {
-        connect();
-      }
-    }, delay);
-  }, [connect]);
-
-  const disconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-
-    if (wsRef.current) {
-      wsRef.current.onclose = null;
-      wsRef.current.onerror = null;
-      wsRef.current.onmessage = null;
-      wsRef.current.onopen = null;
-      
-      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
-        wsRef.current.close(1000, 'Manual disconnect');
-      }
-      wsRef.current = null;
-    }
-
-    connectionStateRef.current = 'disconnected';
-    setIsConnected(false);
-    setIsConnecting(false);
-    reconnectAttemptsRef.current = 0;
-    onConnectionChange?.(false);
-  }, [onConnectionChange]);
-
-  // Auto-connect when enabled and symbols change
+  // Connect when enabled
   useEffect(() => {
     if (enabled && symbols.length > 0) {
-      // Small delay to prevent rapid reconnections
-      const connectTimeout = setTimeout(() => {
-        connect();
-      }, 100);
-      
-      return () => clearTimeout(connectTimeout);
-    } else if (!enabled) {
-      disconnect();
+      wsManager.current.subscribe(subscriberId.current, {
+        onPriceUpdate,
+        onConnectionChange,
+        setPrices,
+        setIsConnected,
+        setIsConnecting,
+        setConnectionError,
+        setLastUpdate
+      });
+
+      return () => {
+        wsManager.current.unsubscribe(subscriberId.current);
+      };
     }
-  }, [enabled, symbols.join(','), connect, disconnect]);
+  }, [enabled, symbols.join(','), onPriceUpdate, onConnectionChange]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      
-      if (wsRef.current) {
-        wsRef.current.onclose = null;
-        wsRef.current.onerror = null;
-        wsRef.current.onmessage = null;
-        wsRef.current.onopen = null;
-        
-        if (wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.close(1000, 'Component cleanup');
-        }
-        wsRef.current = null;
-      }
-      
-      connectionStateRef.current = 'disconnected';
-      reconnectAttemptsRef.current = 0;
+      wsManager.current.unsubscribe(subscriberId.current);
     };
   }, []);
 
@@ -265,24 +303,15 @@ export function useRealTimePrices({
   }, [prices]);
 
   return {
-    // State
     prices: getAllPrices(),
     pricesMap: prices,
     isConnected,
     isConnecting,
     connectionError,
     lastUpdate,
-
-    // Actions
-    connect,
-    disconnect,
-
-    // Helpers
     getPrice,
     getPriceData,
     getChange,
-
-    // Stats
     connectedSymbols: symbols,
     totalSymbols: prices.size
   };
