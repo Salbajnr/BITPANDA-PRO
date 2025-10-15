@@ -10,7 +10,6 @@ export interface User {
   role: string;
   profilePicture?: string;
   isVerified: boolean;
-  supabaseUid?: string;
 }
 
 export function useAuth() {

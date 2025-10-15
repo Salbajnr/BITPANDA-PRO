@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
-import { signInWithGoogle, signUpWithEmail, signInWithEmail } from "@/lib/supabase";
 import {
   Eye,
   EyeOff,
@@ -223,16 +222,11 @@ export default function Auth() {
   };
 
   const handleGoogleAuth = async () => {
-    try {
-      await signInWithGoogle();
-      // Supabase will handle the redirect
-    } catch (error: any) {
-      toast({
-        title: "Authentication Failed",
-        description: error.message || "Failed to sign in with Google",
-        variant: "destructive",
-      });
-    }
+    toast({
+      title: "Coming Soon",
+      description: "Google authentication will be available soon",
+      variant: "default",
+    });
   };
 
   return (
