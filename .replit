@@ -8,8 +8,8 @@ packages = ["kubectl", "mysql80"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+build = ["sh", "-c", "npm install && npm run build"]
+run = ["sh", "-c", "NODE_ENV=production node dist/index.js"]
 
 [[ports]]
 localPort = 5000
@@ -31,7 +31,7 @@ externalPort = 3000
 PORT = "5000"
 
 [workflows]
-runButton = "Project"
+runButton = "Production"
 
 [[workflows.workflow]]
 name = "Project"
@@ -53,6 +53,15 @@ outputType = "webview"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Production"
+mode = "sequential"
+author = 45324556
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
 
 [agent]
 integrations = ["javascript_database:1.0.0", "firebase_barebones_javascript:1.0.0", "javascript_supabase:1.0.0"]
