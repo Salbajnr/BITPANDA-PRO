@@ -196,11 +196,31 @@ function Routes() {
       <Route path="/ecosystem" component={Ecosystem} />
 
       {/* Protected Dashboard Routes */}
-      <Route path="/dashboard" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/portfolio" component={() => <ProtectedRoute><PortfolioTracker /></ProtectedRoute>} />
-      <Route path="/analytics" component={() => <ProtectedRoute><Analytics /></ProtectedRoute>} />
-      <Route path="/trading" component={() => <ProtectedRoute><Trading /></ProtectedRoute>} />
-      <Route path="/advanced-trading" component={() => <ProtectedRoute><AdvancedTrading /></ProtectedRoute>} />
+      <Route path="/dashboard" component={() => (
+        <ErrorBoundary>
+          <ProtectedRoute><Dashboard /></ProtectedRoute>
+        </ErrorBoundary>
+      )} />
+      <Route path="/portfolio" component={() => (
+        <ErrorBoundary>
+          <ProtectedRoute><PortfolioTracker /></ProtectedRoute>
+        </ErrorBoundary>
+      )} />
+      <Route path="/analytics" component={() => (
+        <ErrorBoundary>
+          <ProtectedRoute><Analytics /></ProtectedRoute>
+        </ErrorBoundary>
+      )} />
+      <Route path="/trading" component={() => (
+        <ErrorBoundary>
+          <ProtectedRoute><Trading /></ProtectedRoute>
+        </ErrorBoundary>
+      )} />
+      <Route path="/advanced-trading" component={() => (
+        <ErrorBoundary>
+          <ProtectedRoute><AdvancedTrading /></ProtectedRoute>
+        </ErrorBoundary>
+      )} />
       <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
       <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />
       <Route path="/watchlist" component={() => <ProtectedRoute><Watchlist /></ProtectedRoute>} />

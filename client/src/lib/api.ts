@@ -220,7 +220,7 @@ export const tradingApi = {
   }) => api.post('/api/trade', orderData),
 
   getOrders: () => api.get('/api/orders'),
-  cancelOrder: (orderId: string) => api.delete(`/api/orders/${id}`),
+  cancelOrder: (orderId: string) => api.delete(`/api/orders/${orderId}`),
 };
 
 export const alertsApi = {

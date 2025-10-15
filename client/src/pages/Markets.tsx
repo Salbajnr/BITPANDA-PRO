@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, TrendingUp, TrendingDown, Star, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Star, DollarSign } from "lucide-react";
 import { getCryptoLogo } from "@/components/CryptoLogos";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
@@ -36,41 +36,67 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState("crypto");
   const [searchTerm, setSearchTerm] = useState(""); // State for search
 
-  // Fetch crypto data
-  const { data: cryptoResponse, isLoading: cryptoLoading, refetch: refetchCrypto } = useQuery({
+  // Fetch crypto data with error handling and retry logic
+  const { data: cryptoResponse, isLoading: cryptoLoading, error: cryptoError, refetch: refetchCrypto } = useQuery({
     queryKey: ['/api/crypto/market-data'],
-    queryFn: () => api.get('/crypto/market-data'),
+    queryFn: () => api.get('/api/crypto/market-data'),
     refetchInterval: 30000,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // Fetch metals data
-  const { data: metalsData, isLoading: metalsLoading, refetch: refetchMetals } = useQuery({
+  const { data: metalsData, isLoading: metalsLoading, error: metalsError, refetch: refetchMetals } = useQuery({
     queryKey: ['/api/metals/market-data'],
     queryFn: () => api.get('/metals/market-data'),
     refetchInterval: 60000,
   });
 
-  // Extract crypto data from response object - handle different response formats
-  let cryptoData: CryptoData[] = [];
+  // Handle different response formats for crypto data
+  const cryptoData: CryptoData[] = Array.isArray(cryptoResponse) ? cryptoResponse : cryptoResponse?.data || [];
 
-  if (cryptoResponse) {
-    if (Array.isArray(cryptoResponse)) {
-      cryptoData = cryptoResponse;
-    } else if (cryptoResponse.data && Array.isArray(cryptoResponse.data)) {
-      cryptoData = cryptoResponse.data;
-    } else if (typeof cryptoResponse === 'object') {
-      // If it's an object with crypto data directly
-      const values = Object.values(cryptoResponse);
-      cryptoData = values.filter((item: any) => 
-        item && typeof item === 'object' && item.symbol && item.current_price
-      ) as CryptoData[];
-    }
+  // Handle errors for crypto data
+  if (cryptoError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <LiveTicker />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Error loading cryptocurrency market data</h2>
+            <p className="text-muted-foreground mb-4">Unable to fetch cryptocurrency market data. Please try again later.</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Ensure cryptoData is always an array
-  if (!Array.isArray(cryptoData)) {
-    cryptoData = [];
+  // Handle errors for metals data (optional, can be added similarly to cryptoError)
+  if (metalsError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <LiveTicker />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Error loading precious metals data</h2>
+            <p className="text-muted-foreground mb-4">Unable to fetch precious metals market data. Please try again later.</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
+
 
   // Filter and sort crypto data
   const filteredCryptos = searchTerm && cryptoData.length > 0 ? 
@@ -265,7 +291,7 @@ export default function Markets() {
                   </Card>
                 ))}
               </div>
-            ) : topCryptos.length === 0 ? (
+            ) : cryptoData.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-400 text-6xl mb-4">📊</div>
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">No Data Available</h3>
@@ -342,6 +368,22 @@ export default function Markets() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            ) : Array.isArray(metalsData) && metalsData.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-6xl mb-4"> 💰</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No Precious Metals Data</h3>
+                <p className="text-gray-500 mb-4">Unable to load precious metals data at this time.</p>
+                <Button 
+                  onClick={() => {
+                    refetchMetals();
+                  }}
+                  variant="outline"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

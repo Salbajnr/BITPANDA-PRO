@@ -22,6 +22,18 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
+// Placeholder for DashboardLayout if it's used elsewhere and needs to be included.
+// If it's a component specific to this file or not needed, remove it.
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className="min-h-screen bg-gray-100">
+    <Navbar />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {children}
+    </div>
+  </div>
+);
+
+
 interface OrderData {
   symbol: string;
   type: 'buy' | 'sell';
@@ -84,12 +96,21 @@ export default function Trading() {
     }
   }, [lastMessage, queryClient]);
 
-  // Fetch crypto market data
-  const { data: cryptoData, isLoading: cryptoLoading } = useQuery({
-    queryKey: ['/api/crypto/markets'],
-    queryFn: () => api.get('/crypto/markets'),
-    refetchInterval: 10000, // Refresh every 10 seconds
+  // Fetch crypto market data with error handling
+  const { data: cryptoResponse, isLoading: cryptoLoading, error: cryptoError } = useQuery({
+    queryKey: ['cryptoData'],
+    queryFn: async () => {
+      const response = await fetch('/api/crypto/market-data');
+      if (!response.ok) throw new Error('Failed to fetch crypto data');
+      return response.json();
+    },
+    refetchInterval: 30000,
   });
+
+  // Handle different response formats
+  const cryptoData = Array.isArray(cryptoResponse) ? cryptoResponse : cryptoResponse?.data || [];
+  const selectedCrypto = Array.isArray(cryptoData) ? cryptoData.find((crypto: any) => crypto.symbol.toUpperCase() === selectedSymbol) : null;
+
 
   // Fetch user portfolio
   const { data: portfolioData, isLoading: portfolioLoading } = useQuery({
@@ -130,7 +151,6 @@ export default function Trading() {
     },
   });
 
-  const selectedCrypto = cryptoData?.find((crypto: any) => crypto.symbol.toUpperCase() === selectedSymbol);
   const currentPrice = selectedCrypto?.current_price || 0;
   const priceChange = selectedCrypto?.price_change_percentage_24h || 0;
 
@@ -236,6 +256,31 @@ export default function Trading() {
           </Card>
         </div>
       </div>
+    );
+  }
+
+  // Add comprehensive error handling for crypto data
+  if (cryptoLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (cryptoError || !Array.isArray(cryptoData)) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-red-600 mb-2">Failed to load trading data</h2>
+            <p className="text-gray-600 mb-4">Please check your connection and try again</p>
+            <Button onClick={() => window.location.reload()}>Reload Page</Button>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
 

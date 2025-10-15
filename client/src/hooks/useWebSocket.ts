@@ -119,6 +119,12 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
         }
       };
 
+      ws.current.onerror = (error) => {
+        console.error('🔌 WebSocket error:', error);
+        setConnectionError('WebSocket connection failed');
+        setIsConnecting(false);
+      };
+
       ws.current.onclose = (event) => {
         console.log('🔌 WebSocket disconnected:', event.code, event.reason);
         setIsConnected(false);
@@ -128,12 +134,6 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
         if (event.code !== 1000 && reconnectCount.current < reconnectAttempts) {
           attemptReconnect();
         }
-      };
-
-      ws.current.onerror = (error) => {
-        console.error('🔌 WebSocket error:', error);
-        setConnectionError('WebSocket connection failed');
-        setIsConnecting(false);
       };
     } catch (error) {
       console.error('Error creating WebSocket connection:', error);
