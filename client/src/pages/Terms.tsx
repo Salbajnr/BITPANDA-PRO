@@ -92,15 +92,7 @@ export default function Terms() {
               These Terms of Service ("Terms") govern your use of BITPANDA PRO's cryptocurrency 
               trading simulation platform and services.
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <AlertTriangle className="h-5 w-5" />
-                <span className="font-semibold">Important Notice</span>
-              </div>
-              <p className="text-yellow-700 mt-2">
-                This is a simulation platform. No real money or actual cryptocurrency is involved in any transactions.
-              </p>
-            </div>
+            
           </div>
         </div>
       </section>

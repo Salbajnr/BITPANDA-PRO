@@ -94,14 +94,14 @@ We reserve the right to suspend or terminate accounts that violate these terms, 
 1. INFORMATION COLLECTION AND PROCESSING
 We collect and process personal information including:
 - Account registration details (name, email, contact information)
-- Trading activity and transaction history within the simulation
+- Trading activity and transaction history
 - Technical data (IP addresses, device information, browser details)
 - Usage patterns and platform interaction data
 
 2. DATA USAGE AND PURPOSE
 Your information is used to:
-- Provide and maintain simulation services
-- Process virtual transactions and maintain records
+- Provide and maintain trading services
+- Process transactions and maintain secure records
 - Communicate important updates and educational content
 - Ensure platform security and prevent unauthorized access
 - Comply with legal and regulatory requirements
@@ -171,32 +171,32 @@ BITPANDA PRO provides cryptocurrency trading simulation services where:
 
 3. TRADING FEATURES AND FUNCTIONALITY
 Available trading options include:
-- Spot trading simulation with major cryptocurrencies
+- Spot trading with major cryptocurrencies
 - Portfolio diversification and asset allocation tools
-- Risk management features including stop-loss simulation
+- Risk management features including stop-loss orders
 - Real-time market data and advanced charting tools
-- Educational trading strategies and backtesting capabilities
+- Advanced trading strategies and analysis tools
 
 4. ORDER EXECUTION AND PROCESSING
-- Orders are processed using simulation algorithms
-- Execution may differ from real market conditions
-- Slippage and market impact are simulated for educational value
+- Orders are processed using advanced trading algorithms
+- Execution depends on current market conditions
+- Slippage and market impact may affect order fills
 - Order types include market, limit, and conditional orders
-- Trade history and performance tracking are maintained
+- Complete trade history and performance tracking are maintained
 
 5. MARKET DATA AND PRICING
-- Prices derived from real cryptocurrency exchanges
-- Data may include intentional delays for educational purposes
-- Market volatility simulation based on historical patterns
-- No guarantee of data accuracy or real-time precision
-- Educational modifications may be applied to enhance learning
+- Prices derived from major cryptocurrency exchanges
+- Real-time data feeds from multiple market sources
+- Market volatility reflects current trading conditions
+- Data accuracy depends on exchange feeds and network conditions
+- Market data is provided for trading and analysis purposes
 
-6. EDUCATIONAL PURPOSE AND LIMITATIONS
+6. PLATFORM PURPOSE AND FEATURES
 This platform is designed to:
-- Teach cryptocurrency trading concepts and strategies
-- Provide risk-free environment for learning and practice
-- Demonstrate portfolio management principles
-- Educate users about market dynamics and analysis
+- Provide professional cryptocurrency trading services
+- Offer comprehensive portfolio management tools
+- Enable advanced market analysis and trading strategies
+- Deliver real-time market data and insights
 - NOT provide investment advice or recommendations
 
 7. PERFORMANCE TRACKING AND ANALYTICS
@@ -208,11 +208,11 @@ This platform is designed to:
 
 8. PLATFORM MODIFICATIONS AND UPDATES
 We reserve the right to:
-- Modify simulation parameters and features
+- Modify trading features and functionality
 - Update available cryptocurrencies and trading pairs
-- Enhance educational content and functionality
-- Reset or modify virtual balances for educational purposes
-- Temporarily suspend services for maintenance or improvements
+- Enhance platform content and capabilities
+- Implement security and performance improvements
+- Temporarily suspend services for maintenance or updates
       `
     },
     {
@@ -222,19 +222,19 @@ We reserve the right to:
       summary: 'Important risk information and educational disclaimers',
       content: `
 1. GENERAL RISK WARNING
-This risk disclosure provides important information about cryptocurrency trading risks. While this is a simulation platform, understanding these risks is crucial for your education:
+This risk disclosure provides important information about cryptocurrency trading risks:
 - Cryptocurrency markets are highly volatile and unpredictable
-- Simulation results do not guarantee real trading performance
+- Trading results may vary significantly based on market conditions
 - Past performance does not indicate future results
-- Real cryptocurrency trading involves substantial risk of loss
+- Cryptocurrency trading involves substantial risk of loss
 
-2. SIMULATION-SPECIFIC RISKS AND LIMITATIONS
-Using this simulation platform involves certain educational limitations:
-- Simulated market conditions may not reflect real trading environments
-- Order execution in simulation may differ significantly from real markets
-- Emotional and psychological factors of real trading are not replicated
-- Market liquidity and slippage may not be accurately simulated
-- Real-world trading costs and fees may not be fully represented
+2. PLATFORM RISKS AND LIMITATIONS
+Using this trading platform involves certain considerations:
+- Market conditions may vary and affect trading outcomes
+- Order execution timing may depend on market conditions
+- Trading involves emotional and psychological factors
+- Market liquidity and slippage may affect trade execution
+- Trading costs and fees apply to all transactions
 
 3. CRYPTOCURRENCY MARKET RISKS (EDUCATIONAL)
 Understanding these market risks is essential for your education:
