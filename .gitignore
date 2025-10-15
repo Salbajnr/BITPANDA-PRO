@@ -1,44 +1,43 @@
-# Environment variables
+# --- ENVIRONMENT VARIABLES ---
 .env
 .env.local
 .env.*.local
 
-# Dependencies
-node_modules
+# --- NODE / DEPENDENCIES ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+*.log
 
-# Build outputs
-dist
-dist-ssr
+# --- BUILD OUTPUTS ---
+dist/
+dist-ssr/
+drizzle/          # Drizzle generated SQL and migrations
 *.local
 
-# Editor directories and files
+# --- EDITORS & SYSTEM FILES ---
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Uploads
+# --- UPLOADS / GENERATED ASSETS ---
 uploads/
 attached_assets/
 
-# Replit
+# --- REPLIT FILES ---
 .replit
 replit.nix
+
+# --- RENDER BLUEPRINT CACHE ---
+.render/

@@ -1,29 +1,35 @@
-
 import { defineConfig } from "drizzle-kit";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL must be set. Please add your PostgreSQL connection string to Secrets.");
+  throw new Error("❌ DATABASE_URL is not set.");
 }
 
-// Parse the URL and add SSL parameters if it's a Render/Neon database
 function getConnectionUrl(url: string): string {
-  if (url.includes('render.com') || url.includes('neon.tech') || url.includes('dbphpapi') || url.includes('dpg-')) {
-    // Check if URL already has query parameters
-    const separator = url.includes('?') ? '&' : '?';
+  const needsSSL =
+    url.includes("render.com") ||
+    url.includes("neon.tech") ||
+    url.includes("supabase.co") ||
+    url.includes("dpg-");
+
+  if (needsSSL) {
+    const separator = url.includes("?") ? "&" : "?";
     return `${url}${separator}sslmode=no-verify`;
   }
   return url;
 }
 
 export default defineConfig({
-  out: "./drizzle",
-  schema: "./shared/schema.ts",
   dialect: "postgresql",
+  schema: "./shared/schema.ts",
+  out: "./drizzle",
   dbCredentials: {
     url: getConnectionUrl(databaseUrl),
   },
   verbose: true,
-  strict: false,
+  strict: true,
 });

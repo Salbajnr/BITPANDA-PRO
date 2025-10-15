@@ -3,29 +3,36 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
+// Conditionally include Cartographer only if environment variables allow
+function loadReplitPlugins() {
+  try {
+    if (process.env.REPL_ID && process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { cartographer } = require("@replit/vite-plugin-cartographer");
+      return [cartographer()];
+    }
+  } catch {
+    console.warn("⚠️ Skipping Replit Cartographer plugin (not available)");
+  }
+  return [];
+}
+
 export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.NODE_ENV !== "development"
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
+    ...loadReplitPlugins(),
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      "@": path.resolve(__dirname, "client", "src"),
+      "@shared": path.resolve(__dirname, "shared"),
+      "@assets": path.resolve(__dirname, "attached_assets"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {

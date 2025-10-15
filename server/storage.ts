@@ -19,6 +19,8 @@ import {
   notifications,
   withdrawals,
   withdrawalLimits,
+  apiKeys,
+  auditLogs,
   type User,
   type InsertUser,
   type Portfolio,
@@ -58,25 +60,42 @@ import {
   type Withdrawal,
   type InsertWithdrawal,
   type WithdrawalLimit,
-  type InsertWithdrawalLimit,
-  apiKeys // Assuming apiKeys schema is imported from @shared/schema
-} from '@shared/schema';
+  type InsertWithdrawalLimit
+} from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray, ne } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  gte,
+  ilike,
+  like,
+  count,
+  and,
+  or,
+  sql,
+  sum,
+  ne,
+  inArray,
+  asc
+} from "drizzle-orm";
 import { hashPassword } from "./simple-auth";
-import crypto from 'crypto';
-import { nanoid } from 'nanoid';
+import { verifyPassword } from "./simple-auth";
+import { nanoid } from "nanoid";
+import crypto from "crypto";
 
-// Helper function to generate IDs
 const generateId = () => nanoid();
 
 type UpsertUser = InsertUser;
 
 export interface IStorage {
-  // User operations
+  // (Only listing commonly used methods here; full implementation below)
+  isDbConnected(): boolean;
+
+  // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByEmailOrUsername(email: string, username: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmailOrUsername(value: string): Promise<User | undefined>;
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
@@ -84,100 +103,34 @@ export interface IStorage {
   updateUserFirebaseUid(userId: string, firebaseUid: string): Promise<void>;
   deleteUser(userId: string): Promise<void>;
 
-  // Portfolio operations
+  // Portfolio & holdings
   getPortfolio(userId: string): Promise<Portfolio | undefined>;
   createPortfolio(portfolio: InsertPortfolio): Promise<Portfolio>;
   updatePortfolio(portfolioId: string, updates: Partial<InsertPortfolio>): Promise<Portfolio>;
-
-  // Holdings operations
   getHoldings(portfolioId: string): Promise<Holding[]>;
   getHolding(portfolioId: string, symbol: string): Promise<Holding | undefined>;
   upsertHolding(holding: InsertHolding): Promise<Holding>;
-  deleteHolding(id: string): Promise<void>;
-  deleteHolding(portfolioId: string, symbol: string): Promise<void>;
+  createHolding(holding: InsertHolding): Promise<Holding>;
+  updateHolding(holdingId: string, updates: Partial<InsertHolding>): Promise<void>;
+  deleteHolding(idOrPortfolioId: string, symbol?: string): Promise<void>;
 
-  // Transaction operations
+  // Transactions
   getTransactions(userId: string, limit?: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getUserTransactions(userId: string, limit?: number): Promise<Transaction[]>;
-  getAllTransactions(params: { page: number, limit: number, userId?: string, type?: string }): Promise<{ transactions: Transaction[], total: number }>;
+  getAllTransactions(params: { page: number; limit: number; userId?: string; type?: string }): Promise<{ transactions: Transaction[]; total: number }>;
   reverseTransaction(transactionId: string, adminId: string, reason: string): Promise<Transaction>;
   getUserTransactionCount(userId: string): Promise<number>;
-  updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined>; // Added for admin feature
+  updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined>;
 
-  // Admin operations
-  getAllUsers(): Promise<User[]>;
-  logAdminAction(action: { adminId: string; action: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void>;
-  getUsers(options: {
-    page: number;
-    limit: number;
-    search?: string;
-    status?: 'active' | 'inactive';
-    role?: 'user' | 'admin';
-  }): Promise<{ users: User[], pagination: { page: number, limit: number, total: number, pages: number } }>;
-  getTransactionsForAdmin(options: {
-    page: number;
-    limit: number;
-    type?: string;
-    status?: string;
-    userId?: string;
-  }): Promise<{ transactions: any[], pagination: { page: number, limit: number, total: number, pages: number } }>;
-  updateTransactionStatus(transactionId: string, status: string, reason: string, adminId: string): Promise<boolean>;
-  deleteUser(userId: string): Promise<boolean>;
-  getPlatformSettings(): Promise<any>;
-  updatePlatformSettings(settings: any, adminId: string): Promise<boolean>;
-  createAuditLog(logData: {
-    adminId: string;
-    action: string;
-    targetId: string;
-    details: any;
-    ipAddress: string;
-    userAgent: string;
-  }): Promise<boolean>;
-  getAuditLogs(options: {
-    page: number;
-    limit: number;
-    action?: string;
-    userId?: string;
-  }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }>;
-  getSystemAnalytics(period?: string): Promise<any>;
-  createBalanceAdjustment(adjustment: InsertBalanceAdjustment): Promise<BalanceAdjustment>;
-  getBalanceAdjustments(userId?: string, page?: number, limit?: number): Promise<BalanceAdjustment[]>;
-  updatePortfolioBalance(userId: string, amount: number): Promise<void>;
-
-  // Notification operations
-  getNotifications(userId: string, limit?: number): Promise<Notification[]>;
-  createNotification(notification: InsertNotification): Promise<Notification>;
-  markNotificationAsRead(notificationId: string): Promise<void>;
-  deleteNotification(notificationId: string): Promise<void>;
-
-  // Price alert operations
-  getPriceAlerts(userId: string): Promise<PriceAlert[]>;
-  createPriceAlert(alert: InsertPriceAlert): Promise<PriceAlert>;
-  updatePriceAlert(id: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert | null>;
-  deletePriceAlert(id: string): Promise<void>;
-  getPriceAlertById(id: string): Promise<PriceAlert | null>;
-
-  // News operations
-  getNewsArticles(limit?: number, category?: string, search?: string): Promise<NewsArticle[]>;
-  getNewsArticleById(id: string): Promise<NewsArticle | null>;
-  createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle>;
-  updateNewsArticle(id: string, updates: Partial<InsertNewsArticle>): Promise<NewsArticle | null>;
-  deleteNewsArticle(id: string): Promise<void>;
-  getNewsAnalytics(): Promise<any>;
-
-  // Deposit operations
+  // Deposits
   createDeposit(deposit: InsertDeposit): Promise<Deposit>;
-  getUserDeposits(userId: string): Promise<Deposit[]>;
+  getUserDeposits(userId: string, limit?: number): Promise<Deposit[]>;
   getAllDeposits(): Promise<any[]>;
   getDepositById(id: string): Promise<Deposit | null>;
   updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit>;
 
-  // Shared wallet address operations
-  getSharedWalletAddresses(): Promise<SharedWalletAddress[]>;
-  createOrUpdateSharedWalletAddress(address: InsertSharedWalletAddress): Promise<SharedWalletAddress>;
-
-  // Withdrawal operations
+  // Withdrawals
   createWithdrawal(withdrawalData: any): Promise<any>;
   getUserWithdrawals(userId: string): Promise<any[]>;
   getAllWithdrawals(): Promise<any[]>;
@@ -187,175 +140,98 @@ export interface IStorage {
   getWithdrawalLimits(userId: string): Promise<any>;
   setWithdrawalLimits(userId: string, limits: { dailyLimit: number; monthlyLimit: number }): Promise<any>;
   calculateWithdrawalFees(amount: number, method: string): Promise<number>;
-  getWithdrawalStats(): Promise<any>;
   cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean>;
 
-  // Analytics operations
-  getAnalyticsOverview(): Promise<any>;
-  getRevenueAnalytics(period: string): Promise<any[]>;
-  getUserAnalytics(period: string): Promise<any>;
-  getActiveSessions(): Promise<any[]>;
-  invalidateUserSessions(userId: string): Promise<void>;
+  // Price alerts & notifications
+  getPriceAlerts(userId: string): Promise<PriceAlert[]>;
+  createPriceAlert(alert: InsertPriceAlert): Promise<PriceAlert>;
+  updatePriceAlert(id: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert | null>;
+  deletePriceAlert(id: string): Promise<void>;
+  getPriceAlertById(id: string): Promise<PriceAlert | null>;
 
-  // System Configuration operations
-  getSystemConfig(): Promise<any>;
-  updateSystemConfig(config: any): Promise<any>;
-
-  // Audit operations
-  // logAdminAction(action: { adminId: string, action: string, targetUserId?: string, details?: any, timestamp: Date }): Promise<void>;
-  // getAuditLogs(params: { page: number, limit: number, action?: string }): Promise<{ logs: any[], total: number }>;
-  logAdminAction(action: { // Updated signature to match implementation
-    adminId: string;
-    action: string;
-    targetId?: string;
-    targetUserId?: string;
-    details?: any;
-    timestamp: Date;
-  }): Promise<void>;
-
-
-  // User Preferences operations
-  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
-  createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
-  updateUserPreferences(userId: string, updates: Partial<InsertUserPreferences>): Promise<UserPreferences>;
-
-  // Price Alert operations
-  getActivePriceAlerts(): Promise<PriceAlert[]>;
-
-  // Notification operations
-  createNotification(data: InsertNotification): Promise<Notification>;
-  getUserNotifications(userId: string, limit?: number): Promise<Notification[]>;
+  getNotifications(userId: string, limit?: number): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationAsRead(notificationId: string): Promise<void>;
+  deleteNotification(notificationId: string): Promise<void>;
   getUnreadNotificationCount(userId: string): Promise<number>;
 
-  // Investment Plans operations
-  getUserInvestmentPlans(userId: string): Promise<any[]>;
-  createInvestmentPlan(data: any): Promise<any>;
-  updateInvestmentPlan(planId: string, userId: string, updates: any): Promise<any>;
-  deleteInvestmentPlan(planId: string, userId: string): Promise<boolean>;
-  executeInvestmentPlan(planId: string, userId: string): Promise<any>;
-  getInvestmentPlanHistory(planId: string, userId: string): Promise<any[]>;
+  // News
+  getNewsArticles(limit?: number, category?: string, search?: string): Promise<NewsArticle[]>;
+  getNewsArticleById(id: string): Promise<NewsArticle | null>;
+  createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle>;
+  updateNewsArticle(id: string, updates: Partial<InsertNewsArticle>): Promise<NewsArticle | null>;
+  deleteNewsArticle(id: string): Promise<void>;
+  getNewsAnalytics(): Promise<any>;
 
-  // Savings Plans operations
-  getUserSavingsPlans(userId: string): Promise<any[]>;
-  createSavingsPlan(data: any): Promise<any>;
-  updateSavingsPlan(planId: string, userId: string, updates: any): Promise<any>;
-  deleteSavingsPlan(planId: string, userId: string): Promise<boolean>;
-  addSavingsPlanContribution(planId: string, userId: string, amount: number, isScheduled: boolean): Promise<any>;
-  getSavingsPlanPerformance(planId: string, userId: string): Promise<any>;
+  // KYC
+  createKycVerification(data: InsertKycVerification): Promise<KycVerification>;
+  getKycVerification(userId: string): Promise<KycVerification | null>;
+  updateKycVerification(id: string, data: Partial<InsertKycVerification>): Promise<KycVerification>;
 
-  // Staking operations
-  getUserStakingPositions(userId: string): Promise<any[]>;
-  createStakingPosition(data: any): Promise<any>;
-  getStakingPosition(positionId: string, userId: string): Promise<any>;
-  updateStakingPosition(positionId: string, updates: any): Promise<any>;
-  getStakingRewards(userId: string): Promise<any[]>;
-  getStakingAnalytics(userId: string): Promise<any>;
+  // Admin / Analytics / Audit operations
+  getAllUsers(): Promise<User[]>;
+  getUsers(options: { page: number; limit: number; search?: string; status?: 'active' | 'inactive'; role?: 'user' | 'admin' }): Promise<{ users: User[]; pagination: any }>;
+  logAdminAction(action: { adminId: string; action: string; targetId?: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void>;
+  createAuditLog(logData: { adminId: string; action: string; targetId: string; details: any; ipAddress: string; userAgent: string }): Promise<boolean>;
+  getAuditLogs(options: { page: number; limit: number; action?: string; userId?: string }): Promise<{ logs: any[]; pagination: any }>;
 
-  // Lending operations
-  getUserLendingPositions(userId: string): Promise<any[]>;
-  createLendingPosition(data: any): Promise<any>;
-  getLendingPosition(positionId: string, userId: string): Promise<any>;
-  updateLendingPosition(positionId: string, updates: any): Promise<any>;
-  getUserLoans(userId: string): Promise<any[]>;
-  createLoan(data: any): Promise<any>;
-  getLoan(loanId: string, userId: string): Promise<any>;
-  updateLoan(loanId: string, updates: any): Promise<any>;
-
-  // Trading System Enhancements
-  validateOrder(orderData: any): Promise<{ isValid: boolean; message?: string }>;
-  calculateTradingFees(amount: number, type: string, orderType: string): Promise<number>;
-  executeTrade(tradeData: any): Promise<any>;
-  getOpenOrders(userId: string): Promise<any[]>;
-  getOrderHistory(userId: string): Promise<any[]>;
-
-  // API Key operations
-  createApiKey(keyData: {
-    userId: string;
-    name: string;
-    keyHash: string;
-    permissions: string[];
-    isActive: boolean;
-    rateLimit: number;
-    createdAt: Date;
-    lastUsed: Date | null;
-  }): Promise<any>;
-  getUserApiKeys(userId: string): Promise<any[]>;
-  getApiKeyByHash(keyHash: string): Promise<any | null>;
-  updateApiKeyLastUsed(keyId: string): Promise<void>;
-  deleteApiKey(keyId: string, userId: string): Promise<void>;
-  getApiUsage(userId: string): Promise<{ requestsToday: number; requestsThisMonth: number; remainingQuota: number }>;
-  getApiKeyById(keyId: string): Promise<any>;
-  updateApiKey(keyId: string, updates: any): Promise<void>;
-  getApiKeyUsageStats(keyId: string): Promise<any>;
-
-  // KYC operations are implemented in the class
+  // Misc / placeholders
+  createInitialUsers(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // Assuming db is initialized and accessible here, or passed in constructor
-  private db = db; // Make db accessible within the class
+  private db = db;
 
   private ensureDb() {
     if (!this.db) {
-      throw new Error('Database not initialized. Please set DATABASE_URL and restart the application.');
+      throw new Error("Database not initialized. Please set DATABASE_URL and restart the application.");
     }
     return this.db;
   }
 
   isDbConnected(): boolean {
     try {
-      return this.db ? true : false;
-    } catch (error) {
+      return !!this.db;
+    } catch {
       return false;
     }
   }
 
+  /* ---------------------------
+     User methods
+  ----------------------------*/
   async getUser(id: string): Promise<User | undefined> {
     const db = this.ensureDb();
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const db = this.ensureDb();
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const db = this.ensureDb();
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
     return user;
   }
 
-  async getUserByEmailOrUsername(emailOrUsername: string, username?: string): Promise<User | undefined> {
+  async getUserByEmailOrUsername(value: string): Promise<User | undefined> {
     const db = this.ensureDb();
-    // If we have both parameters (legacy call), use both
-    if (username) {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(or(eq(users.email, emailOrUsername), eq(users.username, username)));
-      return user;
-    }
-    // If we have only one parameter, check if it's email or username
     const [user] = await db
       .select()
       .from(users)
-      .where(or(eq(users.email, emailOrUsername), eq(users.username, emailOrUsername)));
+      .where(or(eq(users.email, value), eq(users.username, value)))
+      .limit(1);
     return user;
   }
 
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
     const db = this.ensureDb();
-    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid)).limit(1);
     return user;
-  }
-
-  async updateUserFirebaseUid(userId: string, firebaseUid: string): Promise<void> {
-    const db = this.ensureDb();
-    await db.update(users).set({ firebaseUid }).where(eq(users.id, userId));
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
@@ -373,16 +249,34 @@ export class DatabaseStorage implements IStorage {
         target: users.id,
         set: {
           ...userData,
-          updatedAt: new Date(),
-        },
+          updatedAt: new Date()
+        }
       })
       .returning();
     return user;
   }
 
+  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
+    const db = this.ensureDb();
+    await db.update(users).set({ ...updates, updatedAt: new Date() }).where(eq(users.id, userId));
+  }
+
+  async updateUserFirebaseUid(userId: string, firebaseUid: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.update(users).set({ firebaseUid, updatedAt: new Date() }).where(eq(users.id, userId));
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.delete(users).where(eq(users.id, userId));
+  }
+
+  /* ---------------------------
+     Portfolio & Holdings
+  ----------------------------*/
   async getPortfolio(userId: string): Promise<Portfolio | undefined> {
     const db = this.ensureDb();
-    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId));
+    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId)).limit(1);
     return portfolio;
   }
 
@@ -394,17 +288,13 @@ export class DatabaseStorage implements IStorage {
 
   async updatePortfolio(portfolioId: string, updates: Partial<InsertPortfolio>): Promise<Portfolio> {
     const db = this.ensureDb();
-    const [portfolio] = await db
-      .update(portfolios)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(portfolios.id, portfolioId))
-      .returning();
+    const [portfolio] = await db.update(portfolios).set({ ...updates, updatedAt: new Date() }).where(eq(portfolios.id, portfolioId)).returning();
     return portfolio;
   }
 
   async getHoldings(portfolioId: string): Promise<Holding[]> {
+    const db = this.ensureDb();
     try {
-      const db = this.ensureDb();
       return await db.select().from(holdings).where(eq(holdings.portfolioId, portfolioId));
     } catch (error) {
       console.error("Error fetching holdings:", error);
@@ -417,27 +307,19 @@ export class DatabaseStorage implements IStorage {
     const [holding] = await db
       .select()
       .from(holdings)
-      .where(and(eq(holdings.portfolioId, portfolioId), eq(holdings.symbol, symbol)));
+      .where(and(eq(holdings.portfolioId, portfolioId), eq(holdings.symbol, symbol)))
+      .limit(1);
     return holding;
   }
 
   async upsertHolding(holdingData: InsertHolding): Promise<Holding> {
     const existing = await this.getHolding(holdingData.portfolioId, holdingData.symbol);
-
+    const db = this.ensureDb();
     if (existing) {
-      const db = this.ensureDb();
-      const [holding] = await db
-        .update(holdings)
-        .set({ ...holdingData, updatedAt: new Date() })
-        .where(eq(holdings.id, existing.id))
-        .returning();
+      const [holding] = await db.update(holdings).set({ ...holdingData, updatedAt: new Date() }).where(eq(holdings.id, existing.id)).returning();
       return holding;
     } else {
-      const db = this.ensureDb();
-      const [holding] = await db.insert(holdings).values({
-        ...holdingData,
-        assetType: holdingData.assetType || 'crypto' // Default to crypto for backward compatibility
-      }).returning();
+      const [holding] = await db.insert(holdings).values({ ...holdingData, assetType: holdingData.assetType ?? "crypto" }).returning();
       return holding;
     }
   }
@@ -450,404 +332,444 @@ export class DatabaseStorage implements IStorage {
 
   async updateHolding(holdingId: string, updates: Partial<InsertHolding>): Promise<void> {
     const db = this.ensureDb();
-    await db
-      .update(holdings)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(holdings.id, holdingId));
+    await db.update(holdings).set({ ...updates, updatedAt: new Date() }).where(eq(holdings.id, holdingId));
   }
 
-  async deleteHolding(id: string): Promise<void>;
-  async deleteHolding(portfolioId: string, symbol: string): Promise<void>;
   async deleteHolding(idOrPortfolioId: string, symbol?: string): Promise<void> {
     const db = this.ensureDb();
     if (symbol) {
-      // Delete by portfolioId and symbol
-      await db.delete(holdings).where(and(
-        eq(holdings.portfolioId, idOrPortfolioId),
-        eq(holdings.symbol, symbol)
-      ));
+      await db.delete(holdings).where(and(eq(holdings.portfolioId, idOrPortfolioId), eq(holdings.symbol, symbol)));
     } else {
-      // Delete by id
       await db.delete(holdings).where(eq(holdings.id, idOrPortfolioId));
     }
   }
 
   async updatePortfolioBalance(userId: string, amount: number): Promise<void> {
     const db = this.ensureDb();
-    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId));
-    if (!portfolio) {
-      throw new Error('Portfolio not found');
-    }
-
-    const currentBalance = parseFloat(portfolio.availableCash);
-    const newBalance = currentBalance + amount;
-
-    await db
-      .update(portfolios)
-      .set({
-        availableCash: newBalance.toString(),
-        updatedAt: new Date()
-      })
-      .where(eq(portfolios.id, portfolio.id));
+    const [portfolio] = await db.select().from(portfolios).where(eq(portfolios.userId, userId)).limit(1);
+    if (!portfolio) throw new Error("Portfolio not found");
+    const current = parseFloat(String(portfolio.availableCash || "0"));
+    const newVal = (current + amount).toString();
+    await db.update(portfolios).set({ availableCash: newVal, updatedAt: new Date() }).where(eq(portfolios.id, portfolio.id));
   }
 
+  /* ---------------------------
+     Transactions
+  ----------------------------*/
   async getTransactions(userId: string, limit = 50): Promise<Transaction[]> {
     const db = this.ensureDb();
-    return await db
-      .select()
-      .from(transactions)
-      .where(eq(transactions.userId, userId))
-      .orderBy(desc(transactions.createdAt))
-      .limit(limit);
+    return await db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(desc(transactions.createdAt)).limit(limit);
   }
 
-  // Updated createTransaction method with new fields for enhanced trading
   async createTransaction(data: InsertTransaction): Promise<Transaction> {
     const db = this.ensureDb();
     const [transaction] = await db.insert(transactions).values({
       ...data,
-      fee: data.fee || '0',
-      orderType: data.orderType || 'market',
-      stopLoss: data.stopLoss !== undefined ? data.stopLoss : null,
-      takeProfit: data.takeProfit !== undefined ? data.takeProfit : null,
-      slippage: data.slippage || '0.5'
+      id: data.id ?? generateId(),
+      fee: data.fee ?? "0",
+      orderType: data.orderType ?? "market",
+      stopLoss: data.stopLoss ?? null,
+      takeProfit: data.takeProfit ?? null,
+      slippage: data.slippage ?? "0"
     }).returning();
     return transaction;
   }
 
-  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db.update(users).set(updates).where(eq(users.id, userId));
-    } catch (error) {
-      console.error("Error updating user:", error);
-      throw error;
-    }
-  }
-
-  async verifyPassword(userId: string, password: string): Promise<boolean> {
-    try {
-      const user = await this.getUser(userId);
-      if (!user || !user.password) {
-        return false;
-      }
-      const { verifyPassword } = await import('./simple-auth');
-      return await verifyPassword(password, user.password);
-    } catch (error) {
-      console.error("Error verifying password:", error);
-      return false;
-    }
-  }
-
-  async deleteUser(userId: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      // Delete user and cascade will handle related records
-      await db.delete(users).where(eq(users.id, userId));
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      throw error;
-    }
-  }
-
-  async getUserTransactions(userId: string, limit: number = 50): Promise<Transaction[]> {
-    try {
-      const db = this.ensureDb();
-      return await db.select()
-        .from(transactions)
-        .where(eq(transactions.userId, userId))
-        .orderBy(desc(transactions.createdAt))
-        .limit(limit);
-    } catch (error) {
-      console.error("Error fetching user transactions:", error);
-      return [];
-    }
+  async getUserTransactions(userId: string, limit = 50): Promise<Transaction[]> {
+    const db = this.ensureDb();
+    return await db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(desc(transactions.createdAt)).limit(limit);
   }
 
   async getUserTransactionCount(userId: string): Promise<number> {
-    try {
-      const db = this.ensureDb();
-      const [{ count }] = await db
-        .select({ count: sql`count(*)` })
-        .from(transactions)
-        .where(eq(transactions.userId, userId));
-      return Number(count);
-    } catch (error) {
-      console.error("Error counting user transactions:", error);
-      return 0;
-    }
+    const db = this.ensureDb();
+    const [row] = await db.select({ count: sql`count(*)` }).from(transactions).where(eq(transactions.userId, userId));
+    return Number(row?.count ?? 0);
   }
 
-  async getAllTransactions(params: { page: number, limit: number, userId?: string, type?: string }): Promise<{ transactions: Transaction[], total: number }> {
-    try {
-      const { page, limit, userId, type } = params;
-      const offset = (page - 1) * limit;
+  async getAllTransactions(params: { page: number; limit: number; userId?: string; type?: string }): Promise<{ transactions: Transaction[]; total: number }> {
+    const db = this.ensureDb();
+    const { page, limit, userId, type } = params;
+    const offset = (page - 1) * limit;
 
-      const db = this.ensureDb();
-      let query = db.select({
-        id: transactions.id,
-        userId: transactions.userId,
-        type: transactions.type,
-        symbol: transactions.symbol,
-        amount: transactions.amount,
-        price: transactions.price,
-        total: transactions.total,
-        status: transactions.status,
-        createdAt: transactions.createdAt,
-        username: users.username,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName
-      }).from(transactions).leftJoin(users, eq(transactions.userId, users.id));
+    let query = db.select({
+      id: transactions.id,
+      userId: transactions.userId,
+      type: transactions.type,
+      symbol: transactions.symbol,
+      amount: transactions.amount,
+      price: transactions.price,
+      total: transactions.total,
+      status: transactions.status,
+      createdAt: transactions.createdAt,
+      username: users.username,
+      email: users.email
+    }).from(transactions).leftJoin(users, eq(transactions.userId, users.id));
 
-      let countQuery = db.select({ count: sql`count(*)` }).from(transactions);
+    const conditions: any[] = [];
+    if (userId) conditions.push(eq(transactions.userId, userId));
+    if (type) conditions.push(eq(transactions.type, type));
+    if (conditions.length) query = query.where(and(...conditions));
 
-      const conditions = [];
-      if (userId) conditions.push(eq(transactions.userId, userId));
-      if (type) conditions.push(eq(transactions.type, type));
-
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-        countQuery = countQuery.where(and(...conditions));
-      }
-
-      const transactionList = await query
-        .orderBy(desc(transactions.createdAt))
-        .limit(limit)
-        .offset(offset);
-
-      const [{ count }] = await countQuery;
-
-      return { transactions: transactionList, total: Number(count) };
-    } catch (error) {
-      console.error("Error fetching all transactions:", error);
-      return { transactions: [], total: 0 };
-    }
+    const transactionList = await query.orderBy(desc(transactions.createdAt)).limit(limit).offset(offset);
+    let countQuery = db.select({ count: sql`count(*)` }).from(transactions);
+    if (conditions.length) countQuery = countQuery.where(and(...conditions));
+    const [{ count: totalCount }] = await countQuery;
+    return { transactions: transactionList, total: Number(totalCount ?? 0) };
   }
 
   async reverseTransaction(transactionId: string, adminId: string, reason: string): Promise<Transaction> {
-    try {
-      const db = this.ensureDb();
-      const [original] = await db.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
-      if (!original.length) throw new Error('Transaction not found');
-
-      const reversedTransaction = await db.insert(transactions).values({
-        userId: original[0].userId,
-        type: original[0].type === 'buy' ? 'sell' : 'buy',
-        symbol: original[0].symbol,
-        amount: original[0].amount,
-        price: original[0].price,
-        total: original[0].total,
-        status: 'completed'
-      }).returning();
-
-      // Log the reversal
-      await this.logAdminAction({
-        adminId,
-        action: 'reverse_transaction',
-        details: { originalTransactionId: transactionId, reason },
-        timestamp: new Date()
-      });
-
-      return reversedTransaction[0];
-    } catch (error) {
-      console.error("Error reversing transaction:", error);
-      throw error;
-    }
-  }
-
-  // Get all users (admin only)
-  async getAllUsers() {
-    try {
-      const result = await this.db.select().from(users).orderBy(desc(users.createdAt));
-      return result.map(user => ({ ...user, password: undefined }));
-    } catch (error) {
-      console.error("Error getting all users:", error);
-      throw error;
-    }
-  }
-
-  // Enhanced user fetching with filters
-  async getUsers(options: {
-    page: number;
-    limit: number;
-    search?: string;
-    status?: 'active' | 'inactive';
-    role?: 'user' | 'admin';
-  }) {
-    try {
-      let query = this.db.select().from(users);
-
-      // Apply filters
-      if (options.search) {
-        query = query.where(
-          or(
-            like(users.username, `%${options.search}%`),
-            like(users.email, `%${options.search}%`),
-            like(users.firstName, `%${options.search}%`),
-            like(users.lastName, `%${options.search}%`)
-          )
-        );
-      }
-
-      if (options.status) {
-        query = query.where(eq(users.isActive, options.status === 'active'));
-      }
-
-      if (options.role) {
-        query = query.where(eq(users.role, options.role));
-      }
-
-      const offset = (options.page - 1) * options.limit;
-      const result = await query
-        .limit(options.limit)
-        .offset(offset)
-        .orderBy(desc(users.createdAt));
-
-      // Get total count for pagination
-      let countQuery = this.db.select({ count: count() }).from(users);
-      if (options.search) {
-        countQuery = countQuery.where(
-          or(
-            like(users.username, `%${options.search}%`),
-            like(users.email, `%${options.search}%`),
-            like(users.firstName, `%${options.search}%`),
-            like(users.lastName, `%${options.search}%`)
-          )
-        );
-      }
-      if (options.status) {
-        countQuery = countQuery.where(eq(users.isActive, options.status === 'active'));
-      }
-      if (options.role) {
-        countQuery = countQuery.where(eq(users.role, options.role));
-      }
-
-      const totalResult = await countQuery;
-      const total = totalResult[0]?.count || 0;
-
-      return {
-        users: result.map(user => ({ ...user, password: undefined })),
-        pagination: {
-          page: options.page,
-          limit: options.limit,
-          total,
-          pages: Math.ceil(total / options.limit)
-        }
-      };
-    } catch (error) {
-      console.error("Error getting users with filters:", error);
-      throw error;
-    }
-  }
-
-  async createBalanceAdjustment(adjustment: InsertBalanceAdjustment): Promise<BalanceAdjustment> {
-    try {
-      const db = this.ensureDb();
-      const [adjustment] = await db.insert(balanceAdjustments).values(adjustment).returning();
-      return adjustment;
-    } catch (error) {
-      console.error("Error creating balance adjustment:", error);
-      throw new Error("Failed to create balance adjustment");
-    }
-  }
-
-  async getBalanceAdjustments(userId?: string, page: number = 1, limit: number = 50): Promise<BalanceAdjustment[]> {
-    try {
-      const offset = (page - 1) * limit;
-      const db = this.ensureDb();
-      let query = db.select().from(balanceAdjustments);
-
-      if (userId) {
-        query = query.where(eq(balanceAdjustments.targetUserId, userId));
-      }
-
-      const adjustments = await query
-        .orderBy(desc(balanceAdjustments.createdAt))
-        .limit(limit)
-        .offset(offset);
-
-      return adjustments;
-    } catch (error) {
-      console.error("Error fetching balance adjustments:", error);
-      return [];
-    }
-  }
-
-  // Get news articles with filtering
-  async getNewsArticles(limit: number = 10, category?: string, search?: string): Promise<NewsArticle[]> {
-    try {
-      const db = this.ensureDb();
-      let query = db
-        .select()
-        .from(newsArticles);
-
-      if (category) {
-        query = query.where(eq(newsArticles.source, category));
-      }
-
-      if (search) {
-        query = query.where(
-          or(
-            ilike(newsArticles.title, `%${search}%`),
-            ilike(newsArticles.content, `%${search}%`)
-          )
-        );
-      }
-
-      const articles = await query
-        .orderBy(desc(newsArticles.publishedAt))
-        .limit(limit);
-
-      return articles;
-    } catch (error) {
-      console.error('Error fetching news articles:', error);
-      // Return empty array if table doesn't exist
-      if (error?.code === '42P01') {
-        return [];
-      }
-      throw error;
-    }
-  }
-
-  // Get single news article by ID
-  async getNewsArticleById(id: string): Promise<NewsArticle | null> {
-    try {
-      const db = this.ensureDb();
-      const article = await db
-        .select()
-        .from(newsArticles)
-        .where(eq(newsArticles.id, id))
-        .limit(1);
-
-      return article[0] || null;
-    } catch (error) {
-      console.error('Error fetching news article:', error);
-      throw error;
-    }
-  }
-
-  async createNewsArticle(articleData: InsertNewsArticle): Promise<NewsArticle> {
     const db = this.ensureDb();
-    const [article] = await db.insert(newsArticles).values(articleData).returning();
-    return article;
+    const [orig] = await db.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
+    if (!orig) throw new Error("Transaction not found");
+
+    const [reversed] = await db.insert(transactions).values({
+      id: generateId(),
+      userId: orig.userId,
+      type: orig.type === "buy" ? "sell" : "buy",
+      symbol: orig.symbol,
+      amount: orig.amount,
+      price: orig.price,
+      total: orig.total,
+      status: "completed",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+
+    await this.logAdminAction({
+      adminId,
+      action: "reverse_transaction",
+      targetId: transactionId,
+      details: { reason },
+      timestamp: new Date()
+    });
+
+    return reversed;
   }
 
-  // Update news article
-  async updateNewsArticle(id: string, updates: Partial<InsertNewsArticle>): Promise<NewsArticle | null> {
-    try {
-      const db = this.ensureDb();
-      const updated = await db
-        .update(newsArticles)
-        .set(updates)
-        .where(eq(newsArticles.id, id))
-        .returning();
+  async updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined> {
+    const db = this.ensureDb();
+    const [updated] = await db.update(transactions).set({ ...updates, updatedAt: new Date() }).where(eq(transactions.id, transactionId)).returning();
+    return updated;
+  }
 
-      return updated[0] || null;
-    } catch (error) {
-      console.error('Error updating news article:', error);
-      throw error;
+  /* ---------------------------
+     Deposits
+  ----------------------------*/
+  async createDeposit(depositData: InsertDeposit): Promise<Deposit> {
+    const db = this.ensureDb();
+    const [deposit] = await db.insert(deposits).values({
+      ...depositData,
+      id: depositData.id ?? generateId(),
+      createdAt: depositData.createdAt ?? new Date(),
+      updatedAt: depositData.updatedAt ?? new Date()
+    }).returning();
+    return deposit;
+  }
+
+  async getDepositById(id: string): Promise<Deposit | null> {
+    const db = this.ensureDb();
+    const [deposit] = await db.select().from(deposits).where(eq(deposits.id, id)).limit(1);
+    return deposit ?? null;
+  }
+
+  async getUserDeposits(userId: string, limit?: number): Promise<Deposit[]> {
+    const db = this.ensureDb();
+    let q = db.select().from(deposits).where(eq(deposits.userId, userId)).orderBy(desc(deposits.createdAt));
+    if (limit) q = q.limit(limit);
+    return await q;
+  }
+
+  async getAllDeposits(): Promise<any[]> {
+    const db = this.ensureDb();
+    return await db.select({
+      id: deposits.id,
+      userId: deposits.userId,
+      amount: deposits.amount,
+      currency: deposits.currency,
+      status: deposits.status,
+      createdAt: deposits.createdAt,
+      username: users.username,
+      email: users.email
+    }).from(deposits).leftJoin(users, eq(deposits.userId, users.id)).orderBy(desc(deposits.createdAt));
+  }
+
+  async updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit> {
+    const db = this.ensureDb();
+    const [deposit] = await db.update(deposits).set({ ...updates, updatedAt: new Date() }).where(eq(deposits.id, id)).returning();
+    return deposit;
+  }
+
+  /* ---------------------------
+     Shared Wallet Addresses
+  ----------------------------*/
+  async getSharedWalletAddresses(): Promise<SharedWalletAddress[]> {
+    const db = this.ensureDb();
+    return await db.select().from(sharedWalletAddresses).where(eq(sharedWalletAddresses.isActive, true));
+  }
+
+  async createOrUpdateSharedWalletAddress(addressData: InsertSharedWalletAddress): Promise<SharedWalletAddress> {
+    const db = this.ensureDb();
+    const [existing] = await db.select().from(sharedWalletAddresses).where(eq(sharedWalletAddresses.symbol, addressData.symbol)).limit(1);
+    if (existing) {
+      const [updated] = await db.update(sharedWalletAddresses).set({ ...addressData, updatedAt: new Date() }).where(eq(sharedWalletAddresses.symbol, addressData.symbol)).returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(sharedWalletAddresses).values(addressData).returning();
+      return created;
     }
+  }
+
+  /* ---------------------------
+     Withdrawals
+  ----------------------------*/
+  async createWithdrawal(withdrawalData: any): Promise<any> {
+    const db = this.ensureDb();
+    const [result] = await db.insert(withdrawals).values({
+      id: withdrawalData.id ?? generateId(),
+      userId: withdrawalData.userId,
+      amount: withdrawalData.amount,
+      currency: withdrawalData.currency,
+      withdrawalMethod: withdrawalData.withdrawalMethod,
+      destinationAddress: withdrawalData.destinationAddress,
+      destinationDetails: withdrawalData.destinationDetails ?? null,
+      status: withdrawalData.status ?? "pending",
+      fees: withdrawalData.fees ?? "0",
+      netAmount: withdrawalData.netAmount ?? null,
+      confirmationToken: withdrawalData.confirmationToken ?? null,
+      confirmationExpiresAt: withdrawalData.confirmationExpiresAt ? new Date(withdrawalData.confirmationExpiresAt) : null,
+      requestedAt: new Date(),
+      isConfirmed: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    return result;
+  }
+
+  async getUserWithdrawals(userId: string): Promise<any[]> {
+    const db = this.ensureDb();
+    return await db.select().from(withdrawals).where(eq(withdrawals.userId, userId)).orderBy(desc(withdrawals.createdAt));
+  }
+
+  async getAllWithdrawals(): Promise<any[]> {
+    const db = this.ensureDb();
+    return await db.select({
+      id: withdrawals.id,
+      userId: withdrawals.userId,
+      amount: withdrawals.amount,
+      currency: withdrawals.currency,
+      status: withdrawals.status,
+      requestedAt: withdrawals.requestedAt,
+      processedAt: withdrawals.processedAt,
+      completedAt: withdrawals.completedAt,
+      username: users.username,
+      email: users.email
+    }).from(withdrawals).leftJoin(users, eq(withdrawals.userId, users.id)).orderBy(desc(withdrawals.createdAt));
+  }
+
+  async getWithdrawalById(id: string): Promise<any> {
+    const db = this.ensureDb();
+    const [row] = await db.select().from(withdrawals).where(eq(withdrawals.id, id)).limit(1);
+    return row ?? null;
+  }
+
+  async updateWithdrawalStatus(id: string, status: string, adminNotes?: string): Promise<any> {
+    const db = this.ensureDb();
+    const updateData: any = { status, updatedAt: new Date() };
+    if (adminNotes) updateData.adminNotes = adminNotes;
+    if (status === "approved") updateData.reviewedAt = new Date();
+    if (status === "processing") updateData.processedAt = new Date();
+    if (status === "completed") updateData.completedAt = new Date();
+
+    const [result] = await db.update(withdrawals).set(updateData).where(eq(withdrawals.id, id)).returning();
+    return result;
+  }
+
+  async confirmWithdrawal(userId: string, token: string): Promise<any> {
+    const db = this.ensureDb();
+    const [withdrawal] = await db.select().from(withdrawals).where(and(eq(withdrawals.userId, userId), eq(withdrawals.confirmationToken, token))).limit(1);
+    if (!withdrawal) return null;
+    if (withdrawal.confirmationExpiresAt && new Date() > new Date(withdrawal.confirmationExpiresAt)) return null;
+
+    const [confirmed] = await db.update(withdrawals).set({
+      isConfirmed: true,
+      status: "under_review",
+      confirmationToken: null,
+      confirmationExpiresAt: null,
+      updatedAt: new Date()
+    }).where(eq(withdrawals.id, withdrawal.id)).returning();
+    return confirmed;
+  }
+
+  async getWithdrawalLimits(userId: string): Promise<any> {
+    const db = this.ensureDb();
+    const [limits] = await db.select().from(withdrawalLimits).where(eq(withdrawalLimits.userId, userId)).limit(1);
+    if (limits) {
+      return {
+        dailyLimit: parseFloat(String(limits.dailyLimit || "0")),
+        monthlyLimit: parseFloat(String(limits.monthlyLimit || "0")),
+        dailyUsed: parseFloat(String(limits.dailyUsed || "0")),
+        monthlyUsed: parseFloat(String(limits.monthlyUsed || "0"))
+      };
+    }
+
+    const [newLimits] = await db.insert(withdrawalLimits).values({
+      userId,
+      dailyLimit: "10000.00",
+      monthlyLimit: "50000.00",
+      dailyUsed: "0.00",
+      monthlyUsed: "0.00",
+      lastResetDate: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+
+    return {
+      dailyLimit: parseFloat(String(newLimits.dailyLimit)),
+      monthlyLimit: parseFloat(String(newLimits.monthlyLimit)),
+      dailyUsed: parseFloat(String(newLimits.dailyUsed)),
+      monthlyUsed: parseFloat(String(newLimits.monthlyUsed))
+    };
+  }
+
+  async setWithdrawalLimits(userId: string, limits: { dailyLimit: number; monthlyLimit: number }): Promise<any> {
+    const db = this.ensureDb();
+    const [result] = await db.insert(withdrawalLimits).values({
+      userId,
+      dailyLimit: String(limits.dailyLimit),
+      monthlyLimit: String(limits.monthlyLimit),
+      dailyUsed: "0.00",
+      monthlyUsed: "0.00",
+      lastResetDate: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).onConflictDoUpdate({
+      target: withdrawalLimits.userId,
+      set: {
+        dailyLimit: String(limits.dailyLimit),
+        monthlyLimit: String(limits.monthlyLimit),
+        updatedAt: new Date()
+      }
+    }).returning();
+
+    return {
+      dailyLimit: parseFloat(String(result.dailyLimit)),
+      monthlyLimit: parseFloat(String(result.monthlyLimit)),
+      dailyUsed: parseFloat(String(result.dailyUsed)),
+      monthlyUsed: parseFloat(String(result.monthlyUsed))
+    };
+  }
+
+  async calculateWithdrawalFees(amount: number, method: string): Promise<number> {
+    try {
+      const feeRates: Record<string, number> = {
+        bank_transfer: 0.015,
+        crypto_wallet: 0.005,
+        paypal: 0.025,
+        mobile_money: 0.02,
+        other: 0.02
+      };
+      const rate = feeRates[method] ?? 0.02;
+      const fee = amount * rate;
+      const minFee = method === "crypto_wallet" ? 2 : 5;
+      const maxFee = method === "crypto_wallet" ? 50 : 100;
+      return Math.max(minFee, Math.min(fee, maxFee));
+    } catch (error) {
+      console.error("Error calculating withdrawal fees:", error);
+      return 25;
+    }
+  }
+
+  async cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean> {
+    const db = this.ensureDb();
+    const [result] = await db.update(withdrawals).set({ status: "cancelled", updatedAt: new Date() }).where(and(eq(withdrawals.id, withdrawalId), eq(withdrawals.userId, userId))).returning();
+    return !!result;
+  }
+
+  /* ---------------------------
+     Price alerts & Notifications
+  ----------------------------*/
+  async createPriceAlert(alertData: InsertPriceAlert): Promise<PriceAlert> {
+    const db = this.ensureDb();
+    const [alert] = await db.insert(priceAlerts).values({ ...alertData, id: alertData.id ?? generateId(), createdAt: new Date(), updatedAt: new Date() }).returning();
+    return alert;
+  }
+
+  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    const db = this.ensureDb();
+    return await db.select().from(priceAlerts).where(eq(priceAlerts.userId, userId)).orderBy(desc(priceAlerts.createdAt));
+  }
+
+  async getPriceAlertById(id: string): Promise<PriceAlert | null> {
+    const db = this.ensureDb();
+    const [alert] = await db.select().from(priceAlerts).where(eq(priceAlerts.id, id)).limit(1);
+    return alert ?? null;
+  }
+
+  async updatePriceAlert(id: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert | null> {
+    const db = this.ensureDb();
+    const [alert] = await db.update(priceAlerts).set({ ...updates, updatedAt: new Date() }).where(eq(priceAlerts.id, id)).returning();
+    return alert ?? null;
+  }
+
+  async deletePriceAlert(id: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.delete(priceAlerts).where(eq(priceAlerts.id, id));
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const db = this.ensureDb();
+    const [n] = await db.insert(notifications).values({ ...notification, id: notification.id ?? generateId(), createdAt: new Date(), updatedAt: new Date() }).returning();
+    return n;
+  }
+
+  async getNotifications(userId: string, limit = 20): Promise<Notification[]> {
+    const db = this.ensureDb();
+    return await db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt)).limit(limit);
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.update(notifications).set({ isRead: true, updatedAt: new Date() }).where(eq(notifications.id, notificationId));
+  }
+
+  async deleteNotification(notificationId: string): Promise<void> {
+    const db = this.ensureDb();
+    await db.delete(notifications).where(eq(notifications.id, notificationId));
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const db = this.ensureDb();
+    const [row] = await db.select({ count: sql`count(*)` }).from(notifications).where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return Number(row?.count ?? 0);
+  }
+
+  /* ---------------------------
+     News
+  ----------------------------*/
+  async getNewsArticles(limit = 10, category?: string, search?: string): Promise<NewsArticle[]> {
+    const db = this.ensureDb();
+    let q = db.select().from(newsArticles);
+    if (category) q = q.where(eq(newsArticles.source, category));
+    if (search) q = q.where(or(ilike(newsArticles.title, `%${search}%`), ilike(newsArticles.content, `%${search}%`)));
+    return await q.orderBy(desc(newsArticles.publishedAt)).limit(limit);
+  }
+
+  async getNewsArticleById(id: string): Promise<NewsArticle | null> {
+    const db = this.ensureDb();
+    const [row] = await db.select().from(newsArticles).where(eq(newsArticles.id, id)).limit(1);
+    return row ?? null;
+  }
+
+  async createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle> {
+    const db = this.ensureDb();
+    const [created] = await db.insert(newsArticles).values({ ...article, id: article.id ?? generateId(), createdAt: new Date(), updatedAt: new Date() }).returning();
+    return created;
+  }
+
+  async updateNewsArticle(id: string, updates: Partial<InsertNewsArticle>): Promise<NewsArticle | null> {
+    const db = this.ensureDb();
+    const [updated] = await db.update(newsArticles).set({ ...updates, updatedAt: new Date() }).where(eq(newsArticles.id, id)).returning();
+    return updated ?? null;
   }
 
   async deleteNewsArticle(id: string): Promise<void> {
@@ -855,2747 +777,215 @@ export class DatabaseStorage implements IStorage {
     await db.delete(newsArticles).where(eq(newsArticles.id, id));
   }
 
-  // Get news analytics
-  async getNewsAnalytics() {
-    try {
-      const db = this.ensureDb();
-      const totalArticles = await db
-        .select({ count: count() })
-        .from(newsArticles);
-
-      const articlesBySource = await db
-        .select({
-          source: newsArticles.source,
-          count: count()
-        })
-        .from(newsArticles)
-        .groupBy(newsArticles.source);
-
-      const recentArticles = await db
-        .select({ count: count() })
-        .from(newsArticles)
-        .where(gte(newsArticles.publishedAt, sql`NOW() - INTERVAL '7 days'`));
-
-      return {
-        totalArticles: totalArticles[0]?.count || 0,
-        articlesBySource,
-        recentArticles: recentArticles[0]?.count || 0
-      };
-    } catch (error) {
-      console.error('Error fetching news analytics:', error);
-      throw error;
-    }
-  }
-
-  // Price Alerts methods
-  async createPriceAlert(alertData: InsertPriceAlert): Promise<PriceAlert> {
-    try {
-      const db = this.ensureDb();
-      const [alert] = await db.insert(priceAlerts).values(alertData).returning();
-      return alert;
-    } catch (error) {
-      console.error("Error creating price alert:", error);
-      throw error;
-    }
-  }
-
-  async getUserPriceAlerts(userId: string): Promise<PriceAlert[]> {
-    try {
-      const db = this.ensureDb();
-      return await db.select().from(priceAlerts).where(eq(priceAlerts.userId, userId));
-    } catch (error) {
-      console.error('Error fetching user price alerts:', error);
-      return [];
-    }
-  }
-
-  async getPriceAlert(userId: string, symbol: string): Promise<PriceAlert | undefined> {
-    try {
-      const db = this.ensureDb();
-      const [alert] = await db.select()
-        .from(priceAlerts)
-        .where(and(eq(priceAlerts.userId, userId), eq(priceAlerts.symbol, symbol)));
-      return alert;
-    } catch (error) {
-      console.error("Error getting price alert:", error);
-      throw error;
-    }
-  }
-
-  async getPriceAlertById(alertId: string): Promise<PriceAlert | undefined> {
-    try {
-      const db = this.ensureDb();
-      const [alert] = await db.select()
-        .from(priceAlerts)
-        .where(eq(priceAlerts.id, alertId));
-      return alert;
-    } catch (error) {
-      console.error("Error getting price alert:", error);
-      throw error;
-    }
-  }
-
-  async updatePriceAlert(alertId: string, updates: Partial<InsertPriceAlert>): Promise<PriceAlert> {
-    try {
-      const db = this.ensureDb();
-      const [alert] = await db.update(priceAlerts)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(priceAlerts.id, alertId))
-        .returning();
-      return alert;
-    } catch (error) {
-      console.error("Error updating price alert:", error);
-      throw error;
-    }
-  }
-
-  async deletePriceAlert(alertId: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db.delete(priceAlerts)
-        .where(eq(priceAlerts.id, alertId));
-    } catch (error) {
-      console.error("Error deleting price alert:", error);
-      throw error;
-    }
-  }
-
-  async logAdminAction(action: { adminId: string; action: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      const { auditLogs } = await import('@shared/schema');
-      await db.insert(auditLogs).values({
-        adminId: action.adminId,
-        action: action.action,
-        targetId: action.targetId,
-        targetUserId: action.targetUserId,
-        details: action.details ? JSON.stringify(action.details) : null,
-        timestamp: action.timestamp,
-      });
-    } catch (error) {
-      console.error('Error logging admin action:', error);
-    }
-  }
-
-  async getActivePriceAlerts() {
-    try {
-      const db = this.ensureDb();
-      const alerts = await db
-        .select()
-        .from(priceAlerts)
-        .where(and(
-          eq(priceAlerts.isActive, true),
-          eq(priceAlerts.isTriggered, false)
-        ));
-      return alerts;
-    } catch (error) {
-      console.error('Error getting active price alerts:', error);
-      // Return empty array if table doesn't exist or query fails
-      if (error?.code === '42P01') {
-        return [];
-      }
-      return [];
-    }
-  }
-
-  // Get price alerts for user
-  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
-    try {
-      const db = this.ensureDb();
-      const result = await db
-        .select()
-        .from(priceAlerts)
-        .where(eq(priceAlerts.userId, userId))
-        .orderBy(desc(priceAlerts.createdAt));
-
-      return result;
-    } catch (error) {
-      console.error('Error fetching price alerts:', error);
-      // Return empty array if table doesn't exist
-      if (error?.code === '42P01') {
-        return [];
-      }
-      return [];
-    }
-  }
-
-  // Get user price alerts (alias for WebSocket compatibility)
-  async getUserPriceAlerts(userId: string): Promise<PriceAlert[]> {
-    return this.getPriceAlerts(userId);
-  }
-
-  // Notification methods
-  async createNotification(data: InsertNotification): Promise<Notification> {
-    try {
-      const db = this.ensureDb();
-      const [notification] = await db.insert(notifications).values(data).returning();
-      return notification;
-    } catch (error) {
-      console.error("Error creating notification:", error);
-      throw error;
-    }
-  }
-
-  async getUserNotifications(userId: string, limit = 20): Promise<Notification[]> {
-    try {
-      const db = this.ensureDb();
-      const userNotifications = await db.select()
-        .from(notifications)
-        .where(eq(notifications.userId, userId))
-        .orderBy(desc(notifications.createdAt))
-        .limit(limit);
-      return userNotifications;
-    } catch (error) {
-      console.error("Error getting notifications:", error);
-      // Return empty array if table doesn't exist
-      if (error?.code === '42P01') {
-        return [];
-      }
-      return [];
-    }
-  }
-
-  async getNotifications(userId: string, limit = 20): Promise<Notification[]> {
-    return this.getUserNotifications(userId, limit);
-  }
-
-  async getNotification(notificationId: string): Promise<Notification | undefined> {
-    try {
-      const db = this.ensureDb();
-      const [notification] = await db.select()
-        .from(notifications)
-        .where(eq(notifications.id, notificationId));
-      return notification;
-    } catch (error) {
-      console.error("Error getting notification:", error);
-      throw error;
-    }
-  }
-
-  async markNotificationAsRead(notificationId: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db.update(notifications)
-        .set({ isRead: true })
-        .where(eq(notifications.id, notificationId));
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-      throw error;
-    }
-  }
-
-  async getUnreadNotificationCount(userId: string): Promise<number> {
-    try {
-      const db = this.ensureDb();
-      const [result] = await db.select({ count: sql`count(*)` })
-        .from(notifications)
-        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
-      return parseInt(result.count as string) || 0;
-    } catch (error) {
-      console.error("Error fetching unread notification count:", error);
-      return 0;
-    }
-  }
-
-  // Investment Plans operations
-  async getUserInvestmentPlans(userId: string): Promise<any[]> {
-    try {
-      // Mock implementation - in real app, query investment_plans table
-      return [
-        {
-          id: '1',
-          name: 'Bitcoin Dollar-Cost Averaging',
-          assetSymbol: 'BTC',
-          assetName: 'Bitcoin',
-          amount: 50,
-          frequency: 'weekly',
-          totalInvested: 2400,
-          currentValue: 2856,
-          nextExecution: '2025-01-22',
-          status: 'active'
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching investment plans:", error);
-      return [];
-    }
-  }
-
-  async createInvestmentPlan(data: any): Promise<any> {
-    try {
-      // Mock implementation
-      return {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: new Date(),
-        status: 'active'
-      };
-    } catch (error) {
-      console.error("Error creating investment plan:", error);
-      throw error;
-    }
-  }
-
-  async updateInvestmentPlan(planId: string, userId: string, updates: any): Promise<any> {
-    try {
-      // Mock implementation
-      return { id: planId, ...updates, updatedAt: new Date() };
-    } catch (error) {
-      console.error("Error updating investment plan:", error);
-      throw error;
-    }
-  }
-
-  async deleteInvestmentPlan(planId: string, userId: string): Promise<boolean> {
-    try {
-      // Mock implementation
-      return true;
-    } catch (error) {
-      console.error("Error deleting investment plan:", error);
-      return false;
-    }
-  }
-
-  async executeInvestmentPlan(planId: string, userId: string): Promise<any> {
-    try {
-      // Mock implementation
-      return {
-        executionId: Date.now().toString(),
-        planId,
-        amount: 50,
-        price: 45000,
-        executedAt: new Date()
-      };
-    } catch (error) {
-      console.error("Error executing investment plan:", error);
-      return null;
-    }
-  }
-
-  async getInvestmentPlanHistory(planId: string, userId: string): Promise<any[]> {
-    try {
-      // Mock implementation
-      return [
-        {
-          id: '1',
-          planId,
-          amount: 50,
-          price: 45000,
-          executedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching investment plan history:", error);
-      return [];
-    }
-  }
-
-  // Savings Plans operations
-  async getUserSavingsPlans(userId: string): Promise<any[]> {
-    try {
-      // Mock implementation
-      return [
-        {
-          id: '1',
-          name: 'Retirement Fund',
-          goal: 'retirement',
-          targetAmount: 100000,
-          currentAmount: 15000,
-          monthlyContribution: 500,
-          timeHorizon: 20,
-          riskTolerance: 'moderate',
-          expectedReturn: '5-8%',
-          projectedValue: '125000'
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching savings plans:", error);
-      return [];
-    }
-  }
-
-  async createSavingsPlan(data: any): Promise<any> {
-    try {
-      return {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: new Date(),
-        isActive: true
-      };
-    } catch (error) {
-      console.error("Error creating savings plan:", error);
-      throw error;
-    }
-  }
-
-  async updateSavingsPlan(planId: string, userId: string, updates: any): Promise<any> {
-    try {
-      return { id: planId, ...updates, updatedAt: new Date() };
-    } catch (error) {
-      console.error("Error updating savings plan:", error);
-      throw error;
-    }
-  }
-
-  async deleteSavingsPlan(planId: string, userId: string): Promise<boolean> {
-    try {
-      return true;
-    } catch (error) {
-      console.error("Error deleting savings plan:", error);
-      return false;
-    }
-  }
-
-  async addSavingsPlanContribution(planId: string, userId: string, amount: number, isScheduled: boolean): Promise<any> {
-    try {
-      return {
-        id: Date.now().toString(),
-        planId,
-        amount,
-        isScheduled,
-        contributionDate: new Date()
-      };
-    } catch (error) {
-      console.error("Error adding savings plan contribution:", error);
-      return null;
-    }
-  }
-
-  async getSavingsPlanPerformance(planId: string, userId: string): Promise<any> {
-    try {
-      return {
-        planId,
-        totalContributions: 5000,
-        currentValue: 5250,
-        totalReturn: 250,
-        returnPercentage: 5.0,
-        monthlyGrowth: [
-          { month: 'Jan', value: 1000 },
-          { month: 'Feb', value: 2050 },
-          { month: 'Mar', value: 3100 },
-          { month: 'Apr', value: 4200 },
-          { month: 'May', value: 5250 }
-        ]
-      };
-    } catch (error) {
-      console.error("Error fetching savings plan performance:", error);
-      return null;
-    }
-  }
-
-  // Staking operations
-  async getUserStakingPositions(userId: string): Promise<any[]> {
-    try {
-      return [
-        {
-          id: '1',
-          assetSymbol: 'ETH',
-          amount: '10',
-          apy: '5.2%',
-          stakingTerm: '90d',
-          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-          status: 'active',
-          estimatedRewards: '0.42'
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching staking positions:", error);
-      return [];
-    }
-  }
-
-  async createStakingPosition(data: any): Promise<any> {
-    try {
-      return {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: new Date()
-      };
-    } catch (error) {
-      console.error("Error creating staking position:", error);
-      throw error;
-    }
-  }
-
-  async getStakingPosition(positionId: string, userId: string): Promise<any> {
-    try {
-      return {
-        id: positionId,
-        userId,
-        assetSymbol: 'ETH',
-        amount: '10',
-        apy: '5.2%',
-        stakingTerm: '90d',
-        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        status: 'active'
-      };
-    } catch (error) {
-      console.error("Error fetching staking position:", error);
-      return null;
-    }
-  }
-
-  async updateStakingPosition(positionId: string, updates: any): Promise<any> {
-    try {
-      return { id: positionId, ...updates, updatedAt: new Date() };
-    } catch (error) {
-      console.error("Error updating staking position:", error);
-      throw error;
-    }
-  }
-
-  async getStakingRewards(userId: string): Promise<any[]> {
-    try {
-      return [
-        {
-          id: '1',
-          positionId: '1',
-          amount: '0.042',
-          assetSymbol: 'ETH',
-          rewardDate: new Date(),
-          type: 'staking_reward'
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching staking rewards:", error);
-      return [];
-    }
-  }
-
-  async getStakingAnalytics(userId: string): Promise<any> {
-    try {
-      return {
-        totalStaked: '50.5',
-        totalRewards: '2.34',
-        activePositions: 3,
-        averageAPY: '6.8%',
-        totalValue: '52.84'
-      };
-    } catch (error) {
-      console.error("Error fetching staking analytics:", error);
-      return {};
-    }
-  }
-
-  // Withdrawal operations
-  async getUserWithdrawals(userId: string): Promise<any[]> {
-    try {
-      // Mock implementation - in real app, query withdrawals table
-      return [
-        {
-          id: '1',
-          userId,
-          amount: '1000.00',
-          currency: 'USD',
-          withdrawalMethod: 'bank_transfer',
-          destinationAddress: 'Bank Account ****1234',
-          status: 'pending',
-          requestedAt: new Date(),
-          fees: '25.00',
-          netAmount: '975.00'
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching withdrawals:", error);
-      return [];
-    }
-  }
-
-  async getWithdrawalLimits(userId: string): Promise<any> {
-    try {
-      // Mock implementation - in real app, query withdrawal_limits table
-      return {
-        dailyLimit: '10000.00',
-        monthlyLimit: '50000.00',
-        dailyUsed: '0.00',
-        monthlyUsed: '0.00'
-      };
-    } catch (error) {
-      console.error("Error fetching withdrawal limits:", error);
-      return {
-        dailyLimit: '10000.00',
-        monthlyLimit: '50000.00',
-        dailyUsed: '0.00',
-        monthlyUsed: '0.00'
-      };
-    }
-  }
-
-  async calculateWithdrawalFees(amount: number, method: string): Promise<number> {
-    try {
-      // Calculate fees based on method and amount
-      const feeRates = {
-        bank_transfer: 0.025, // 2.5%
-        crypto_wallet: 0.01, // 1%
-        paypal: 0.035, // 3.5%
-        other: 0.02 // 2%
-      };
-
-      const rate = feeRates[method as keyof typeof feeRates] || 0.02;
-      const fee = amount * rate;
-      const minFee = 5; // Minimum $5 fee
-      const maxFee = 100; // Maximum $100 fee
-
-      return Math.max(minFee, Math.min(fee, maxFee));
-    } catch (error) {
-      console.error("Error calculating withdrawal fees:", error);
-      return 25; // Default fee
-    }
-  }
-
-  async createWithdrawal(data: any): Promise<any> {
-    try {
-      // Mock implementation - in real app, insert into withdrawals table
-      return {
-        id: Date.now().toString(),
-        ...data,
-        status: 'pending',
-        requestedAt: new Date(),
-        isConfirmed: false
-      };
-    } catch (error) {
-      console.error("Error creating withdrawal:", error);
-      throw error;
-    }
-  }
-
-  async confirmWithdrawal(userId: string, token: string): Promise<any> {
-    try {
-      // Mock implementation - in real app, verify token and update withdrawal
-      return {
-        id: '1',
-        userId,
-        status: 'under_review',
-        isConfirmed: true,
-        confirmedAt: new Date()
-      };
-    } catch (error) {
-      console.error("Error confirming withdrawal:", error);
-      return null;
-    }
-  }
-
-  async cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean> {
-    try {
-      // Mock implementation - in real app, update withdrawal status to cancelled
-      return true;
-    } catch (error) {
-      console.error("Error cancelling withdrawal:", error);
-      return false;
-    }
-  }
-
-  // Lending operations
-  async getUserLendingPositions(userId: string): Promise<any[]> {
-    try {
-      return [
-        {
-          id: '1',
-          assetSymbol: 'USDC',
-          amount: '1000',
-          apy: '12.5%',
-          startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-          status: 'active',
-          type: 'lend',
-          estimatedEarnings: '5.12'
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching lending positions:", error);
-      return [];
-    }
-  }
-
-  // Chat session operations
-  async getActiveChatSession(userId: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [session] = await db
-        .select()
-        .from(liveChatSessions)
-        .where(and(
-          eq(liveChatSessions.userId, userId),
-          or(
-            eq(liveChatSessions.status, 'waiting'),
-            eq(liveChatSessions.status, 'active')
-          )
-        ))
-        .limit(1);
-
-      return session;
-    } catch (error) {
-      console.error("Error fetching active chat session:", error);
-      return null;
-    }
-  }
-
-  async createChatSession(data: any): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [session] = await db
-        .insert(liveChatSessions)
-        .values({
-          userId: data.userId,
-          subject: data.subject,
-          status: data.status,
-          startedAt: new Date()
-        })
-        .returning();
-
-      return session;
-    } catch (error) {
-      console.error("Error creating chat session:", error);
-      throw error;
-    }
-  }
-
-  async getChatSession(sessionId: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [session] = await db
-        .select()
-        .from(liveChatSessions)
-        .where(eq(liveChatSessions.id, sessionId))
-        .limit(1);
-
-      return session;
-    } catch (error) {
-      console.error("Error fetching chat session:", error);
-      return null;
-    }
-  }
-
-  async getChatMessages(sessionId: string): Promise<any[]> {
-    try {
-      const db = this.ensureDb();
-      const messages = await db
-        .select()
-        .from(liveChatMessages)
-        .where(eq(liveChatMessages.sessionId, sessionId))
-        .orderBy(liveChatMessages.createdAt);
-
-      return messages;
-    } catch (error) {
-      console.error("Error fetching chat messages:", error);
-      return [];
-    }
-  }
-
-  async createChatMessage(data: any): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [message] = await db
-        .insert(liveChatMessages)
-        .values({
-          sessionId: data.sessionId,
-          senderId: data.senderId,
-          message: data.message,
-          messageType: data.messageType || 'text',
-          attachmentUrl: data.attachmentUrl
-        })
-        .returning();
-
-      return message;
-    } catch (error) {
-      console.error("Error creating chat message:", error);
-      throw error;
-    }
-  }
-
-  async updateChatSessionStatus(sessionId: string, status: string, agentId?: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db
-        .update(liveChatSessions)
-        .set({
-          status,
-          agentId,
-          endedAt: status === 'ended' ? new Date() : undefined
-        })
-        .where(eq(liveChatSessions.id, sessionId));
-    } catch (error) {
-      console.error("Error updating chat session status:", error);
-      throw error;
-    }
-  }
-
-  async endChatSession(sessionId: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db
-        .update(liveChatSessions)
-        .set({
-          status: 'ended',
-          endedAt: new Date()
-        })
-        .where(eq(liveChatSessions.id, sessionId));
-    } catch (error) {
-      console.error("Error ending chat session:", error);
-      throw error;
-    }
-  }
-
-  async getChatSessions(options: any): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      let query = db
-        .select({
-          id: liveChatSessions.id,
-          userId: liveChatSessions.userId,
-          agentId: liveChatSessions.agentId,
-          status: liveChatSessions.status,
-          subject: liveChatSessions.subject,
-          startedAt: liveChatSessions.startedAt,
-          endedAt: liveChatSessions.endedAt,
-          user: {
-            username: users.username,
-            email: users.email,
-            firstName: users.firstName,
-            lastName: users.lastName
-          }
-        })
-        .from(liveChatSessions)
-        .leftJoin(users, eq(liveChatSessions.userId, users.id));
-
-      if (options.status) {
-        query = query.where(eq(liveChatSessions.status, options.status));
-      }
-
-      const sessions = await query
-        .orderBy(liveChatSessions.startedAt)
-        .limit(options.limit || 20)
-        .offset((options.page - 1) * (options.limit || 20));
-
-      return { sessions };
-    } catch (error) {
-      console.error("Error fetching chat sessions:", error);
-      return { sessions: [] };
-    }
-  }
-
-  async assignChatSession(sessionId: string, agentId: string, agentName: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db
-        .update(liveChatSessions)
-        .set({
-          agentId,
-          status: 'active'
-        })
-        .where(eq(liveChatSessions.id, sessionId));
-    } catch (error) {
-      console.error("Error assigning chat session:", error);
-      throw error;
-    }
-  }
-
-  async notifyAdminsNewChatSession(session: any): Promise<void> {
-    // This would typically send notifications to online admins
-    console.log(`New chat session created: ${session.id}`);
-  }
-
-  async rateChatSession(sessionId: string, rating: number, feedback?: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db
-        .update(liveChatSessions)
-        .set({ rating, feedback })
-        .where(eq(liveChatSessions.id, sessionId));
-    } catch (error) {
-      console.error("Error rating chat session:", error);
-      throw error;
-    }
-  }
-
-  async getChatSession(sessionId: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [session] = await db
-        .select()
-        .from(liveChatSessions)
-        .where(eq(liveChatSessions.id, sessionId))
-        .limit(1);
-
-      return session;
-    } catch (error) {
-      console.error("Error fetching chat session:", error);
-      return null;
-    }
-  }
-
-  async getChatMessages(sessionId: string): Promise<any[]> {
-    try {
-      const db = this.ensureDb();
-      const messages = await db
-        .select()
-        .from(liveChatMessages)
-        .where(eq(liveChatMessages.sessionId, sessionId))
-        .orderBy(liveChatMessages.createdAt);
-
-      return messages;
-    } catch (error) {
-      console.error("Error fetching chat messages:", error);
-      return [];
-    }
-  }
-
-  async createChatMessage(data: any): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [message] = await db
-        .insert(liveChatMessages)
-        .values({
-          sessionId: data.sessionId,
-          senderId: data.senderId,
-          message: data.message,
-          messageType: data.messageType || 'text',
-          attachmentUrl: data.attachmentUrl
-        })
-        .returning();
-
-      return {
-        ...message,
-        senderName: data.senderName,
-        senderRole: data.senderRole,
-        attachmentName: data.attachmentName,
-        attachmentSize: data.attachmentSize
-      };
-    } catch (error) {
-      console.error("Error creating chat message:", error);
-      throw error;
-    }
-  }
-
-  async updateChatSessionStatus(sessionId: string, status: string, agentId?: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const updateData: any = { status };
-
-      if (agentId && status === 'active') {
-        updateData.agentId = agentId;
-
-        // Get agent name
-        const agent = await this.getUser(agentId);
-        if (agent) {
-          updateData.agentName = `${agent.firstName} ${agent.lastName}`;
-        }
-      }
-
-      if (status === 'ended') {
-        updateData.endedAt = new Date();
-      }
-
-      const [session] = await db
-        .update(liveChatSessions)
-        .set(updateData)
-        .where(eq(liveChatSessions.id, sessionId))
-        .returning();
-
-      return session;
-    } catch (error) {
-      console.error("Error updating chat session status:", error);
-      throw error;
-    }
-  }
-
-  async endChatSession(sessionId: string): Promise<void> {
-    try {
-      await this.updateChatSessionStatus(sessionId, 'ended');
-    } catch (error) {
-      console.error("Error ending chat session:", error);
-      throw error;
-    }
-  }
-
-  async rateChatSession(sessionId: string, rating: number, feedback?: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      await db
-        .update(liveChatSessions)
-        .set({ rating, feedback })
-        .where(eq(liveChatSessions.id, sessionId));
-    } catch (error) {
-      console.error("Error rating chat session:", error);
-      throw error;
-    }
-  }
-
-  async getChatSessions(options: {
-    status?: string;
-    page: number;
-    limit: number;
-  }): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      let query = db
-        .select({
-          session: liveChatSessions,
-          user: {
-            id: users.id,
-            email: users.email,
-            username: users.username,
-            firstName: users.firstName,
-            lastName: users.lastName
-          }
-        })
-        .from(liveChatSessions)
-        .leftJoin(users, eq(liveChatSessions.userId, users.id));
-
-      if (options.status) {
-        query = query.where(eq(liveChatSessions.status, options.status));
-      }
-
-      const offset = (options.page - 1) * options.limit;
-      const sessions = await query
-        .orderBy(desc(liveChatSessions.startedAt))
-        .limit(options.limit)
-        .offset(offset);
-
-      // Get total count
-      let countQuery = db.select({ count: count() }).from(liveChatSessions);
-      if (options.status) {
-        countQuery = countQuery.where(eq(liveChatSessions.status, options.status));
-      }
-
-      const totalResult = await countQuery;
-      const total = totalResult[0]?.count || 0;
-
-      return {
-        sessions: sessions.map(row => ({
-          ...row.session,
-          user: row.user
-        })),
-        pagination: {
-          page: options.page,
-          limit: options.limit,
-          total,
-          pages: Math.ceil(total / options.limit)
-        }
-      };
-    } catch (error) {
-      console.error("Error fetching chat sessions:", error);
-      return { sessions: [], pagination: { page: 1, limit: options.limit, total: 0, pages: 0 } };
-    }
-  }
-
-  async assignChatSession(sessionId: string, agentId: string, agentName: string): Promise<void> {
-    try {
-      await this.updateChatSessionStatus(sessionId, 'active', agentId);
-    } catch (error) {
-      console.error("Error assigning chat session:", error);
-      throw error;
-    }
-  }
-
-  async notifyAdminsNewChatSession(session: any): Promise<void> {
-    try {
-      // Get all admin users
-      const db = this.ensureDb();
-      const admins = await db
-        .select()
-        .from(users)
-        .where(eq(users.role, 'admin'));
-
-      // Create notifications for all admins
-      for (const admin of admins) {
-        await this.createNotification({
-          userId: admin.id,
-          type: 'new_chat_session',
-          title: 'New Chat Session',
-          message: `New support chat session started: ${session.subject}`,
-          data: JSON.stringify({ sessionId: session.id, subject: session.subject })
-        });
-      }
-    } catch (error) {
-      console.error("Error notifying admins of new chat session:", error);
-    }
-  }
-
-  async createLendingPosition(data: any): Promise<any> {
-    try {
-      return {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: new Date()
-      };
-    } catch (error) {
-      console.error("Error creating lending position:", error);
-      throw error;
-    }
-  }
-
-  async getLendingPosition(positionId: string, userId: string): Promise<any> {
-    try {
-      return {
-        id: positionId,
-        userId,
-        assetSymbol: 'USDC',
-        amount: '1000',
-        apy: '12.5%',
-        startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-        status: 'active'
-      };
-    } catch (error) {
-      console.error("Error fetching lending position:", error);
-      return null;
-    }
-  }
-
-  async updateLendingPosition(positionId: string, updates: any): Promise<any> {
-    try {
-      return { id: positionId, ...updates, updatedAt: new Date() };
-    } catch (error) {
-      console.error("Error updating lending position:", error);
-      throw error;
-    }
-  }
-
-  async getUserLoans(userId: string): Promise<any[]> {
-    try {
-      return [
-        {
-          id: '1',
-          assetSymbol: 'USDC',
-          amount: '500',
-          collateralSymbol: 'BTC',
-          collateralAmount: '0.02',
-          interestRate: '8.5',
-          loanTerm: '30d',
-          startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
-          status: 'active'
-        }
-      ];
-    } catch (error) {
-      console.error("Error fetching user loans:", error);
-      return [];
-    }
-  }
-
-  async createLoan(data: any): Promise<any> {
-    try {
-      return {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: new Date()
-      };
-    } catch (error) {
-      console.error("Error creating loan:", error);
-      throw error;
-    }
-  }
-
-  async getLoan(loanId: string, userId: string): Promise<any> {
-    try {
-      return {
-        id: loanId,
-        userId,
-        assetSymbol: 'USDC',
-        amount: '500',
-        collateralSymbol: 'BTC',
-        collateralAmount: '0.02',
-        interestRate: '8.5',
-        startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-        status: 'active'
-      };
-    } catch (error) {
-      console.error("Error fetching loan:", error);
-      return null;
-    }
-  }
-
-  async updateLoan(loanId: string, updates: any): Promise<any> {
-    try {
-      return { id: loanId, ...updates, updatedAt: new Date() };
-    } catch (error) {
-      console.error("Error updating loan:", error);
-      throw error;
-    }
-  }
-
-  // Deposit methods
-  async createDeposit(depositData: InsertDeposit): Promise<Deposit> {
-    const [deposit] = await this.db
-      .insert(deposits)
-      .values({
-        ...depositData,
-        id: nanoid(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning();
-    return deposit;
-  }
-
-  async getDepositById(id: string): Promise<Deposit | null> {
-    const [deposit] = await this.db
-      .select()
-      .from(deposits)
-      .where(eq(deposits.id, id))
-      .limit(1);
-    return deposit || null;
-  }
-
-  async getUserDeposits(userId: string, limit?: number): Promise<Deposit[]> {
-    let query = this.db
-      .select()
-      .from(deposits)
-      .where(eq(deposits.userId, userId))
-      .orderBy(desc(deposits.createdAt));
-
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    return await query;
-  }
-
-  async getAllDeposits(): Promise<any[]> {
-    return await this.db
-      .select({
-        id: deposits.id,
-        userId: deposits.userId,
-        amount: deposits.amount,
-        currency: deposits.currency,
-        assetType: deposits.assetType,
-        paymentMethod: deposits.paymentMethod,
-        status: deposits.status,
-        proofImageUrl: deposits.proofImageUrl,
-        adminNotes: deposits.adminNotes,
-        rejectionReason: deposits.rejectionReason,
-        approvedAt: deposits.approvedAt,
-        createdAt: deposits.createdAt,
-        updatedAt: deposits.updatedAt,
-        username: users.username,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName
-      })
-      .from(deposits)
-      .leftJoin(users, eq(deposits.userId, users.id))
-      .orderBy(desc(deposits.createdAt));
-  }
-
-  async updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit> {
-    const [deposit] = await this.db
-      .update(deposits)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
-      .where(eq(deposits.id, id))
-      .returning();
-    return deposit;
-  }
-
-  // Shared wallet address methods
-  async getSharedWalletAddresses(): Promise<SharedWalletAddress[]> {
-    try {
-      const db = this.ensureDb();
-      return await db
-        .select()
-        .from(sharedWalletAddresses)
-        .where(eq(sharedWalletAddresses.isActive, true))
-        .orderBy(sharedWalletAddresses.symbol);
-    } catch (error) {
-      console.error("Error fetching shared wallet addresses:", error);
-      return [];
-    }
-  }
-
-  async createOrUpdateSharedWalletAddress(addressData: InsertSharedWalletAddress): Promise<SharedWalletAddress> {
-    try {
-      const db = this.ensureDb();
-
-      // Check if address for this symbol already exists
-      const [existing] = await db
-        .select()
-        .from(sharedWalletAddresses)
-        .where(eq(sharedWalletAddresses.symbol, addressData.symbol));
-
-      if (existing) {
-        // Update existing address
-        const [updated] = await db
-          .update(sharedWalletAddresses)
-          .set({
-            ...addressData,
-            updatedAt: new Date()
-          })
-          .where(eq(sharedWalletAddresses.symbol, addressData.symbol))
-          .returning();
-        return updated;
-      } else {
-        // Create new address
-        const [created] = await db
-          .insert(sharedWalletAddresses)
-          .values(addressData)
-          .returning();
-        return created;
-      }
-    } catch (error) {
-      console.error("Error creating/updating shared wallet address:", error);
-      throw error;
-    }
-  }
-
-  // Withdrawal methods
-  async createWithdrawal(withdrawalData: any): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [result] = await db.insert(withdrawals).values({
-        userId: withdrawalData.userId,
-        amount: withdrawalData.amount,
-        currency: withdrawalData.currency,
-        withdrawalMethod: withdrawalData.withdrawalMethod,
-        destinationAddress: withdrawalData.destinationAddress,
-        destinationDetails: withdrawalData.destinationDetails,
-        status: withdrawalData.status || 'pending',
-        fees: withdrawalData.fees || '0',
-        netAmount: withdrawalData.netAmount,
-        confirmationToken: withdrawalData.confirmationToken,
-        confirmationExpiresAt: withdrawalData.confirmationExpiresAt ? new Date(withdrawalData.confirmationExpiresAt) : null,
-        requestedAt: new Date(),
-        isConfirmed: false
-      }).returning();
-      return result;
-    } catch (error) {
-      console.error("Error creating withdrawal:", error);
-      throw error;
-    }
-  }
-
-  async getUserWithdrawals(userId: string): Promise<any[]> {
-    try {
-      const db = this.ensureDb();
-      return await db
-        .select()
-        .from(withdrawals)
-        .where(eq(withdrawals.userId, userId))
-        .orderBy(desc(withdrawals.createdAt));
-    } catch (error) {
-      console.error("Error fetching user withdrawals:", error);
-      return [];
-    }
-  }
-
-  async getAllWithdrawals() {
-    try {
-      const db = this.ensureDb();
-      return await db
-        .select({
-          id: withdrawals.id,
-          userId: withdrawals.userId,
-          withdrawalMethod: withdrawals.withdrawalMethod,
-          amount: withdrawals.amount,
-          currency: withdrawals.currency,
-          destinationAddress: withdrawals.destinationAddress,
-          destinationDetails: withdrawals.destinationDetails,
-          status: withdrawals.status,
-          adminNotes: withdrawals.adminNotes,
-          fees: withdrawals.fees,
-          netAmount: withdrawals.netAmount,
-          requestedAt: withdrawals.requestedAt,
-          processedAt: withdrawals.processedAt,
-          completedAt: withdrawals.completedAt,
-          isConfirmed: withdrawals.isConfirmed,
-          createdAt: withdrawals.createdAt,
-          updatedAt: withdrawals.updatedAt,
-          user: {
-            username: users.username,
-            email: users.email,
-            firstName: users.firstName,
-            lastName: users.lastName
-          }
-        })
-        .from(withdrawals)
-        .leftJoin(users, eq(withdrawals.userId, users.id))
-        .orderBy(desc(withdrawals.createdAt));
-    } catch (error) {
-      console.error("Error fetching all withdrawals:", error);
-      return [];
-    }
-  }
-
-  async getWithdrawalById(id: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [result] = await db
-        .select()
-        .from(withdrawals)
-        .where(eq(withdrawals.id, id))
-        .limit(1);
-      return result;
-    } catch (error) {
-      console.error("Error fetching withdrawal by ID:", error);
-      return null;
-    }
-  }
-
-  async updateWithdrawalStatus(id: string, status: string, adminNotes?: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const updateData: any = {
-        status,
-        updatedAt: new Date()
-      };
-
-      if (adminNotes) {
-        updateData.adminNotes = adminNotes;
-      }
-
-      if (status === 'approved') {
-        updateData.reviewedAt = new Date();
-      } else if (status === 'completed') {
-        updateData.completedAt = new Date();
-      } else if (status === 'processing') {
-        updateData.processedAt = new Date();
-      }
-
-      const [result] = await db
-        .update(withdrawals)
-        .set(updateData)
-        .where(eq(withdrawals.id, id))
-        .returning();
-      return result;
-    } catch (error) {
-      console.error("Error updating withdrawal status:", error);
-      throw error;
-    }
-  }
-
-  async confirmWithdrawal(userId: string, token: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-
-      // Find withdrawal with matching token and user
-      const [withdrawal] = await db
-        .select()
-        .from(withdrawals)
-        .where(and(
-          eq(withdrawals.userId, userId),
-          eq(withdrawals.confirmationToken, token),
-          eq(withdrawals.isConfirmed, false)
-        ))
-        .limit(1);
-
-      if (!withdrawal) {
-        return null;
-      }
-
-      // Check if token is expired
-      if (withdrawal.confirmationExpiresAt && new Date() > withdrawal.confirmationExpiresAt) {
-        return null;
-      }
-
-      // Update withdrawal to confirmed
-      const [confirmed] = await db
-        .update(withdrawals)
-        .set({
-          isConfirmed: true,
-          status: 'under_review',
-          confirmationToken: null,
-          confirmationExpiresAt: null,
-          updatedAt: new Date()
-        })
-        .where(eq(withdrawals.id, withdrawal.id))
-        .returning();
-
-      return confirmed;
-    } catch (error) {
-      console.error("Error confirming withdrawal:", error);
-      return null;
-    }
-  }
-
-  async getWithdrawalLimits(userId: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-
-      // Try to get existing limits
-      const [limits] = await db
-        .select()
-        .from(withdrawalLimits)
-        .where(eq(withdrawalLimits.userId, userId))
-        .limit(1);
-
-      if (limits) {
-        return {
-          dailyLimit: parseFloat(limits.dailyLimit),
-          monthlyLimit: parseFloat(limits.monthlyLimit),
-          dailyUsed: parseFloat(limits.dailyUsed),
-          monthlyUsed: parseFloat(limits.monthlyUsed)
-        };
-      }
-
-      // Create default limits if none exist
-      const [newLimits] = await db
-        .insert(withdrawalLimits)
-        .values({
-          userId,
-          dailyLimit: '10000.00',
-          monthlyLimit: '50000.00',
-          dailyUsed: '0.00',
-          monthlyUsed: '0.00',
-          lastResetDate: new Date()
-        })
-        .returning();
-
-      return {
-        dailyLimit: parseFloat(newLimits.dailyLimit),
-        monthlyLimit: parseFloat(newLimits.monthlyLimit),
-        dailyUsed: parseFloat(newLimits.dailyUsed),
-        monthlyUsed: parseFloat(newLimits.monthlyUsed)
-      };
-    } catch (error) {
-      console.error("Error fetching withdrawal limits:", error);
-      return {
-        dailyLimit: 10000,
-        monthlyLimit: 50000,
-        dailyUsed: 0,
-        monthlyUsed: 0
-      };
-    }
-  }
-
-  async setWithdrawalLimits(userId: string, limits: { dailyLimit: number; monthlyLimit: number }): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [result] = await db
-        .insert(withdrawalLimits)
-        .values({
-          userId,
-          dailyLimit: limits.dailyLimit.toString(),
-          monthlyLimit: limits.monthlyLimit.toString(),
-          dailyUsed: '0.00',
-          monthlyUsed: '0.00',
-          lastResetDate: new Date()
-        })
-        .onConflictDoUpdate({
-          target: withdrawalLimits.userId,
-          set: {
-            dailyLimit: limits.dailyLimit.toString(),
-            monthlyLimit: limits.monthlyLimit.toString(),
-            updatedAt: new Date()
-          }
-        })
-        .returning();
-
-      return {
-        dailyLimit: parseFloat(result.dailyLimit),
-        monthlyLimit: parseFloat(result.monthlyLimit),
-        dailyUsed: parseFloat(result.dailyUsed),
-        monthlyUsed: parseFloat(result.monthlyUsed)
-      };
-    } catch (error) {
-      console.error("Error setting withdrawal limits:", error);
-      throw error;
-    }
-  }
-
-  async calculateWithdrawalFees(amount: number, method: string): Promise<number> {
-    try {
-      const feeRates = {
-        bank_transfer: 0.015, // 1.5%
-        crypto_wallet: 0.005, // 0.5%
-        paypal: 0.025, // 2.5%
-        mobile_money: 0.02, // 2%
-        other: 0.02 // 2%
-      };
-
-      const rate = feeRates[method as keyof typeof feeRates] || 0.02;
-      const fee = amount * rate;
-      const minFee = method === 'crypto_wallet' ? 2 : 5;
-      const maxFee = method === 'crypto_wallet' ? 50 : 100;
-
-      return Math.max(minFee, Math.min(fee, maxFee));
-    } catch (error) {
-      console.error("Error calculating withdrawal fees:", error);
-      return 25; // Default fee
-    }
-  }
-
-  // KYC Verification methods implementation
+  async getNewsAnalytics(): Promise<any> {
+    const db = this.ensureDb();
+    const [total] = await db.select({ count: count() }).from(newsArticles);
+    const bySource = await db.select({ source: newsArticles.source, count: count() }).from(newsArticles).groupBy(newsArticles.source);
+    const [recent] = await db.select({ count: count() }).from(newsArticles).where(gte(newsArticles.publishedAt, sql`NOW() - INTERVAL '7 days'`));
+    return {
+      totalArticles: Number(total?.count ?? 0),
+      articlesBySource: bySource,
+      recentArticles: Number(recent?.count ?? 0)
+    };
+  }
+
+  /* ---------------------------
+     KYC
+  ----------------------------*/
   async createKycVerification(data: InsertKycVerification): Promise<KycVerification> {
-    try {
-      const db = this.ensureDb();
-      const [kyc] = await db.insert(kycVerifications).values(data).returning();
-      return kyc;
-    } catch (error) {
-      console.error("Error creating KYC verification:", error);
-      throw error;
-    }
+    const db = this.ensureDb();
+    const [kyc] = await db.insert(kycVerifications).values({ ...data, id: data.id ?? generateId(), createdAt: new Date(), updatedAt: new Date() }).returning();
+    return kyc;
   }
 
   async getKycVerification(userId: string): Promise<KycVerification | null> {
-    try {
-      const db = this.ensureDb();
-      const [kyc] = await db
-        .select()
-        .from(kycVerifications)
-        .where(eq(kycVerifications.userId, userId))
-        .limit(1);
-      return kyc || null;
-    } catch (error) {
-      console.error("Error fetching KYC verification:", error);
-      return null;
-    }
-  }
-
-  async getKycVerificationById(id: string): Promise<KycVerification | null> {
-    try {
-      const db = this.ensureDb();
-      const [kyc] = await db
-        .select()
-        .from(kycVerifications)
-        .where(eq(kycVerifications.id, id))
-        .limit(1);
-      return kyc || null;
-    } catch (error) {
-      console.error("Error fetching KYC verification by ID:", error);
-      return null;
-    }
+    const db = this.ensureDb();
+    const [kyc] = await db.select().from(kycVerifications).where(eq(kycVerifications.userId, userId)).limit(1);
+    return kyc ?? null;
   }
 
   async updateKycVerification(id: string, data: Partial<InsertKycVerification>): Promise<KycVerification> {
+    const db = this.ensureDb();
+    const [kyc] = await db.update(kycVerifications).set({ ...data, updatedAt: new Date() }).where(eq(kycVerifications.id, id)).returning();
+    return kyc;
+  }
+
+  /* ---------------------------
+     Admin, Audit & Analytics
+  ----------------------------*/
+  async getAllUsers(): Promise<User[]> {
+    const db = this.ensureDb();
+    const result = await db.select().from(users).orderBy(desc(users.createdAt));
+    // hide passwords
+    return result.map(u => ({ ...u, password: undefined } as unknown as User));
+  }
+
+  async getUsers(options: { page: number; limit: number; search?: string; status?: 'active' | 'inactive'; role?: 'user' | 'admin' }): Promise<{ users: User[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
+    const db = this.ensureDb();
+    const { page, limit, search, status, role } = options;
+    let q = db.select().from(users);
+
+    if (search) {
+      q = q.where(or(like(users.username, `%${search}%`), like(users.email, `%${search}%`), like(users.firstName, `%${search}%`), like(users.lastName, `%${search}%`)));
+    }
+    if (status) q = q.where(eq(users.isActive, status === "active"));
+    if (role) q = q.where(eq(users.role, role));
+
+    const offset = (page - 1) * limit;
+    const rows = await q.orderBy(desc(users.createdAt)).limit(limit).offset(offset);
+
+    let countQuery = db.select({ count: count() }).from(users);
+    if (search) countQuery = countQuery.where(or(like(users.username, `%${search}%`), like(users.email, `%${search}%`), like(users.firstName, `%${search}%`), like(users.lastName, `%${search}%`)));
+    if (status) countQuery = countQuery.where(eq(users.isActive, status === "active"));
+    if (role) countQuery = countQuery.where(eq(users.role, role));
+
+    const [{ count: totalCount }] = await countQuery;
+    const total = Number(totalCount ?? 0);
+
+    return {
+      users: rows.map(r => ({ ...r, password: undefined } as unknown as User)),
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    };
+  }
+
+  async logAdminAction(action: { adminId: string; action: string; targetId?: string; targetUserId?: string; details?: any; timestamp: Date }): Promise<void> {
+    const db = this.ensureDb();
     try {
-      const db = this.ensureDb();
-      const [kyc] = await db
-        .update(kycVerifications)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(kycVerifications.id, id))
-        .returning();
-      return kyc;
+      await db.insert(auditLogs).values({
+        id: generateId(),
+        adminId: action.adminId,
+        action: action.action,
+        targetId: action.targetId ?? null,
+        targetUserId: action.targetUserId ?? null,
+        details: action.details ? JSON.stringify(action.details) : null,
+        timestamp: action.timestamp,
+        createdAt: new Date()
+      });
     } catch (error) {
-      console.error("Error updating KYC verification:", error);
-      throw error;
+      console.error("Error logging admin action:", error);
     }
   }
 
-  async getAllKycVerifications(options: {
-    page?: number;
-    limit?: number;
-    status?: 'pending' | 'under_review' | 'approved' | 'rejected';
-    search?: string;
-  }): Promise<{ verifications: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
+  async createAuditLog(logData: { adminId: string; action: string; targetId: string; details: any; ipAddress: string; userAgent: string }): Promise<boolean> {
+    const db = this.ensureDb();
     try {
-      const { page = 1, limit = 20, status, search } = options;
-      const offset = (page - 1) * limit;
-      const db = this.ensureDb();
-
-      let query = db
-        .select({
-          kyc: kycVerifications,
-          user: {
-            id: users.id,
-            email: users.email,
-            username: users.username,
-            firstName: users.firstName,
-            lastName: users.lastName
-          }
-        })
-        .from(kycVerifications)
-        .leftJoin(users, eq(kycVerifications.userId, users.id));
-
-      const conditions = [];
-      if (status) {
-        conditions.push(eq(kycVerifications.status, status));
-      }
-      if (search) {
-        conditions.push(
-          or(
-            ilike(kycVerifications.firstName, `%${search}%`),
-            ilike(kycVerifications.lastName, `%${search}%`),
-            ilike(users.email, `%${search}%`),
-            ilike(users.username, `%${search}%`)
-          )
-        );
-      }
-
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
-
-      const verifications = await query
-        .orderBy(desc(kycVerifications.createdAt))
-        .limit(limit)
-        .offset(offset);
-
-      // Get total count
-      let countQuery = db.select({ count: count() }).from(kycVerifications);
-      if (status) {
-        countQuery = countQuery.where(eq(kycVerifications.status, status));
-      }
-
-      const totalResult = await countQuery;
-      const total = totalResult[0]?.count || 0;
-
-      return {
-        verifications: verifications.map(row => ({
-          ...row.kyc,
-          userEmail: row.user?.email,
-          userUsername: row.user?.username
-        })),
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit)
-        }
-      };
+      await db.insert(auditLogs).values({
+        id: generateId(),
+        adminId: logData.adminId,
+        action: logData.action,
+        targetId: logData.targetId,
+        details: JSON.stringify(logData.details),
+        ipAddress: logData.ipAddress,
+        userAgent: logData.userAgent,
+        timestamp: new Date(),
+        createdAt: new Date()
+      });
+      return true;
     } catch (error) {
-      console.error("Error fetching all KYC verifications:", error);
-      return {
-        verifications: [],
-        pagination: { page: 1, limit: 20, total: 0, pages: 0 }
-      };
-    }
-  }
-
-  async getKycStatistics(): Promise<{ total: number; pending: number; underReview: number; approved: number; rejected: number; approvalRate: number }> {
-    try {
-      const db = this.ensureDb();
-
-      const [total] = await db.select({ count: count() }).from(kycVerifications);
-      const [pending] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'pending'));
-      const [underReview] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'under_review'));
-      const [approved] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'approved'));
-      const [rejected] = await db.select({ count: count() }).from(kycVerifications).where(eq(kycVerifications.status, 'rejected'));
-
-      const totalCount = Number(total.count);
-      const approvedCount = Number(approved.count);
-      const approvalRate = totalCount > 0 ? (approvedCount / totalCount) * 100 : 0;
-
-      return {
-        total: totalCount,
-        pending: Number(pending.count),
-        underReview: Number(underReview.count),
-        approved: approvedCount,
-        rejected: Number(rejected.count),
-        approvalRate: Math.round(approvalRate * 100) / 100
-      };
-    } catch (error) {
-      console.error("Error fetching KYC statistics:", error);
-      return {
-        total: 0,
-        pending: 0,
-        underReview: 0,
-        approved: 0,
-        rejected: 0,
-        approvalRate: 0
-      };
-    }
-  }
-
-  async getWithdrawalStats(): Promise<any> {
-    try {
-      const db = this.ensureDb();
-
-      const totalWithdrawals = await db
-        .select({ count: count() })
-        .from(withdrawals);
-
-      const pendingWithdrawals = await db
-        .select({ count: count() })
-        .from(withdrawals)
-        .where(eq(withdrawals.status, 'pending'));
-
-      const approvedWithdrawals = await db
-        .select({ count: count() })
-        .from(withdrawals)
-        .where(eq(withdrawals.status, 'approved'));
-
-      const totalVolume = await db
-        .select({ total: sum(withdrawals.amount) })
-        .from(withdrawals)
-        .where(eq(withdrawals.status, 'completed'));
-
-      return {
-        totalWithdrawals: Number(totalWithdrawals[0]?.count || 0),
-        pendingWithdrawals: Number(pendingWithdrawals[0]?.count || 0),
-        approvedWithdrawals: Number(approvedWithdrawals[0]?.count || 0),
-        totalVolume: Number(totalVolume[0]?.total || 0)
-      };
-    } catch (error) {
-      console.error("Error fetching withdrawal stats:", error);
-      return {
-        totalWithdrawals: 0,
-        pendingWithdrawals: 0,
-        approvedWithdrawals: 0,
-        totalVolume: 0
-      };
-    }
-  }
-
-  async cancelWithdrawal(userId: string, withdrawalId: string): Promise<boolean> {
-    try {
-      const db = this.ensureDb();
-
-      const [result] = await db
-        .update(withdrawals)
-        .set({
-          status: 'cancelled',
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(withdrawals.id, withdrawalId),
-          eq(withdrawals.userId, userId),
-          or(
-            eq(withdrawals.status, 'pending'),
-            eq(withdrawals.status, 'pending_confirmation')
-          )
-        ))
-        .returning();
-
-      return !!result;
-    } catch (error) {
-      console.error("Error cancelling withdrawal:", error);
+      console.error("Error creating audit log:", error);
       return false;
     }
+  }
+
+  async getAuditLogs(options: { page: number; limit: number; action?: string; userId?: string }): Promise<{ logs: any[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
+    const db = this.ensureDb();
+    const { page, limit, action, userId } = options;
+    let q = db.select().from(auditLogs);
+    if (action) q = q.where(eq(auditLogs.action, action));
+    if (userId) q = q.where(eq(auditLogs.adminId, userId));
+    const offset = (page - 1) * limit;
+    const rows = await q.orderBy(desc(auditLogs.timestamp)).limit(limit).offset(offset);
+    const [{ count: totalCount }] = await db.select({ count: count() }).from(auditLogs);
+    const total = Number(totalCount ?? 0);
+    return { logs: rows, pagination: { page, limit, total, pages: Math.ceil(total / limit) } };
   }
 
   async getAnalyticsOverview(): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const [userCount] = await db.select({ count: sql`count(*)` }).from(users);
-      const [transactionCount] = await db.select({ count: sql`count(*)` }).from(transactions);
-      const [depositCount] = await db.select({ count: sql`count(*)` }).from(deposits);
-
-      const [totalVolume] = await db
-        .select({ total: sql`sum(${transactions.total})` })
-        .from(transactions)
-        .where(eq(transactions.status, 'completed'));
-
-      return {
-        totalUsers: Number(userCount.count),
-        totalTransactions: Number(transactionCount.count),
-        totalDeposits: Number(depositCount.count),
-        totalVolume: Number(totalVolume.total || 0)
-      };
-    } catch (error) {
-      console.error("Error fetching analytics overview:", error);
-      return { totalUsers: 0, totalTransactions: 0, totalDeposits: 0, totalVolume: 0 };
-    }
+    const db = this.ensureDb();
+    const [userCount] = await db.select({ count: sql`count(*)` }).from(users);
+    const [transactionCount] = await db.select({ count: sql`count(*)` }).from(transactions);
+    const [depositCount] = await db.select({ count: sql`count(*)` }).from(deposits);
+    const [totalVolume] = await db.select({ total: sum(transactions.total) }).from(transactions).where(eq(transactions.status, "completed"));
+    return {
+      totalUsers: Number(userCount?.count ?? 0),
+      totalTransactions: Number(transactionCount?.count ?? 0),
+      totalDeposits: Number(depositCount?.count ?? 0),
+      totalVolume: Number(totalVolume?.total ?? 0)
+    };
   }
 
   async getRevenueAnalytics(period: string): Promise<any[]> {
-    try {
-      // Mock revenue analytics - in real app, calculate based on transaction fees
-      const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-      const revenue = [];
-
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        revenue.push({
-          date: date.toISOString().split('T')[0],
-          revenue: Math.random() * 10000 + 5000,
-          transactions: Math.floor(Math.random() * 100) + 50
-        });
-      }
-
-      return revenue;
-    } catch (error) {
-      console.error("Error fetching revenue analytics:", error);
-      return [];
-    }
-  }
-
-  async getUserAnalytics(period: string): Promise<any> {
-    try {
-      const days = period === '30d' ? 30 : 90;
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - days);
-
-      const db = this.ensureDb();
-      const [newUsers] = await db
-        .select({ count: sql`count(*)` })
-        .from(users)
-        .where(gte(users.createdAt, cutoff));
-
-      const [activeUsers] = await db
-        .select({ count: sql`count(*)` })
-        .from(users)
-        .where(and(
-          eq(users.isActive, true),
-          gte(users.createdAt, cutoff)
-        ));
-
-      return {
-        newUsers: Number(newUsers.count),
-        activeUsers: Number(activeUsers.count),
-        growthRate: Math.random() * 20 + 5 // Mock growth rate
-      };
-    } catch (error) {
-      console.error("Error fetching user analytics:", error);
-      return { newUsers: 0, activeUsers: 0, growthRate: 0 };
-    }
-  }
-
-  async getActiveSessions(): Promise<any[]> {
-    try {
-      // Mock active sessions - in real app, query session store
-      return [
-        { userId: '1', ip: '192.168.1.1', userAgent: 'Chrome/91.0', lastActivity: new Date() },
-        { userId: '2', ip: '192.168.1.2', userAgent: 'Firefox/89.0', lastActivity: new Date() }
-      ];
-    } catch (error) {
-      console.error("Error fetching active sessions:", error);
-      return [];
-    }
-  }
-
-  async invalidateUserSessions(userId: string): Promise<void> {
-    try {
-      // Mock session invalidation - in real app, clear from session store
-      console.log(`Invalidating sessions for user ${userId}`);
-    } catch (error) {
-      console.error("Error invalidating user sessions:", error);
-    }
-  }
-
-  async invalidateAllSessions(): Promise<void> {
-    try {
-      // Mock session invalidation - in real app, clear all from session store
-      console.log('Invalidating all user sessions');
-    } catch (error) {
-      console.error("Error invalidating all sessions:", error);
-    }
-  }
-
-  async getSystemConfig(): Promise<any> {
-    try {
-      // Mock system configuration
-      return {
-        maintenance_mode: false,
-        trading_enabled: true,
-        max_daily_withdrawal: 50000,
-        kyc_required: true,
-        api_rate_limit: 100
-      };
-    } catch (error) {
-      console.error("Error fetching system config:", error);
-      return {};
-    }
-  }
-
-  async updateSystemConfig(config: any): Promise<any> {
-    try {
-      // Mock system config update
-      console.log('Updating system config:', config);
-      return config;
-    } catch (error) {
-      console.error("Error updating system config:", error);
-      throw error;
-    }
-  }
-
-  // Audit operations
-  // logAdminAction already implemented above
-
-  async createAuditLog(logData: {
-    adminId: string;
-    action: string;
-    targetId: string;
-    details: any;
-    ipAddress: string;
-    userAgent: string;
-  }): Promise<boolean> {
-    try {
-      const db = this.ensureDb();
-      const { auditLogs } = await import('@shared/schema');
-      await db.insert(auditLogs).values({
-        ...logData,
-        details: JSON.stringify(logData.details),
-        timestamp: new Date(),
+    const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
+    const revenue: any[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      revenue.push({
+        date: date.toISOString().split("T")[0],
+        revenue: Math.round(Math.random() * 10000 + 5000),
+        transactions: Math.floor(Math.random() * 100) + 50
       });
-      return true;
-    } catch (error) {
-      console.error('Error creating audit log:', error);
-      return false;
     }
+    return revenue;
   }
 
-  async getAuditLogs(options: {
-    page: number;
-    limit: number;
-    action?: string;
-    userId?: string;
-  }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
-    try {
-      const db = this.ensureDb();
-      const { auditLogs } = await import('@shared/schema');
-
-      let query = db.select().from(auditLogs);
-
-      if (options.action) {
-        query = query.where(eq(auditLogs.action, options.action));
-      }
-      if (options.userId) {
-        query = query.where(eq(auditLogs.adminId, options.userId));
-      }
-
-      const offset = (options.page - 1) * options.limit;
-      const logs = await query
-        .orderBy(desc(auditLogs.timestamp))
-        .limit(options.limit)
-        .offset(offset);
-
-      const [{ count }] = await db.select({ count: sql`count(*)` }).from(auditLogs);
-
-      return {
-        logs,
-        pagination: {
-          page: options.page,
-          limit: options.limit,
-          total: Number(count),
-          pages: Math.ceil(Number(count) / options.limit)
-        }
-      };
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-      return { logs: [], pagination: { page: 1, limit: 50, total: 0, pages: 0 } };
-    }
-  }
-
-  // User Preferences operations
-  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
-    try {
-      const db = this.ensureDb();
-      const result = await db
-        .select()
-        .from(userPreferences)
-        .where(eq(userPreferences.userId, userId))
-        .limit(1);
-
-      return result[0];
-    } catch (error) {
-      console.error("Error fetching user preferences:", error);
-      return undefined;
-    }
-  }
-
-  async createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences> {
-    try {
-      const db = this.ensureDb();
-      const result = await db
-        .insert(userPreferences)
-        .values(preferences)
-        .returning();
-
-      return result[0];
-    } catch (error) {
-      console.error("Error creating user preferences:", error);
-      throw error;
-    }
-  }
-
-  async updateUserPreferences(userId: string, updates: Partial<InsertUserPreferences>): Promise<UserPreferences> {
-    try {
-      const db = this.ensureDb();
-
-      // Check if preferences exist
-      const existing = await this.getUserPreferences(userId);
-
-      if (!existing) {
-        // Create new preferences with updates
-        return await this.createUserPreferences({ userId, ...updates } as InsertUserPreferences);
-      }
-
-      // Update existing preferences
-      const result = await db
-        .update(userPreferences)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(userPreferences.userId, userId))
-        .returning();
-
-      return result[0];
-    } catch (error) {
-      console.error("Error updating user preferences:", error);
-      throw error;
-    }
-  }
-
-  // Get holdings with current prices
-  async getHoldingsWithPrices(portfolioId: string) {
-    try {
-      const userHoldings = await this.getHoldings(portfolioId);
-      // In production, fetch real prices from crypto API
-      return userHoldings.map(holding => ({
-        ...holding,
-        currentPrice: parseFloat(holding.currentPrice),
-        totalValue: parseFloat(holding.amount) * parseFloat(holding.currentPrice)
-      }));
-    } catch (error) {
-      console.error("Error fetching holdings with prices:", error);
-      return [];
-    }
-  }
-
-  // Get system analytics
-  async getSystemAnalytics(period: string = '30d') {
-    try {
-      const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-
-      // User registration trends
-      const userRegistrations = await this.db
-        .select({
-          date: sql`DATE(${users.createdAt})`.as('date'),
-          count: count()
-        })
-        .from(users)
-        .where(gte(users.createdAt, startDate))
-        .groupBy(sql`DATE(${users.createdAt})`)
-        .orderBy(sql`DATE(${users.createdAt})`);
-
-      // Transaction volume trends
-      const transactionVolume = await this.db
-        .select({
-          date: sql`DATE(${transactions.createdAt})`.as('date'),
-          volume: sum(transactions.total),
-          count: count()
-        })
-        .from(transactions)
-        .where(gte(transactions.createdAt, startDate))
-        .groupBy(sql`DATE(${transactions.createdAt})`)
-        .orderBy(sql`DATE(${transactions.createdAt})`);
-
-      // Most traded assets
-      const topAssets = await this.db
-        .select({
-          symbol: transactions.symbol,
-          totalVolume: sum(transactions.total),
-          transactionCount: count()
-        })
-        .from(transactions)
-        .where(gte(transactions.createdAt, startDate))
-        .groupBy(transactions.symbol)
-        .orderBy(desc(sum(transactions.total)))
-        .limit(10);
-
-      return {
-        userRegistrations,
-        transactionVolume,
-        topAssets,
-        period
-      };
-    } catch (error) {
-      console.error("Error getting system analytics:", error);
-      throw error;
-    }
-  }
-
-  // Get transactions for admin monitoring
-  async getTransactionsForAdmin(options: {
-    page: number;
-    limit: number;
-    type?: string;
-    status?: string;
-    userId?: string;
-  }) {
-    try {
-      let query = this.db
-        .select({
-          id: transactions.id,
-          userId: transactions.userId,
-          type: transactions.type,
-          symbol: transactions.symbol,
-          amount: transactions.amount,
-          price: transactions.price,
-          total: transactions.total,
-          status: transactions.status,
-          createdAt: transactions.createdAt,
-          username: users.username,
-          email: users.email
-        })
-        .from(transactions)
-        .leftJoin(users, eq(transactions.userId, users.id));
-
-      // Apply filters
-      if (options.type) {
-        query = query.where(eq(transactions.type, options.type));
-      }
-      if (options.status) {
-        query = query.where(eq(transactions.status, options.status));
-      }
-      if (options.userId) {
-        query = query.where(eq(transactions.userId, options.userId));
-      }
-
-      const offset = (options.page - 1) * options.limit;
-      const result = await query
-        .limit(options.limit)
-        .offset(offset)
-        .orderBy(desc(transactions.createdAt));
-
-      // Get total count
-      let countQuery = this.db.select({ count: count() }).from(transactions);
-      if (options.type) {
-        countQuery = countQuery.where(eq(transactions.type, options.type));
-      }
-      if (options.status) {
-        countQuery = countQuery.where(eq(transactions.status, options.status));
-      }
-      if (options.userId) {
-        countQuery = countQuery.where(eq(transactions.userId, options.userId));
-      }
-
-      const totalResult = await countQuery;
-      const total = totalResult[0]?.count || 0;
-
-      return {
-        transactions: result,
-        pagination: {
-          page: options.page,
-          limit: options.limit,
-          total,
-          pages: Math.ceil(total / options.limit)
-        }
-      };
-    } catch (error) {
-      console.error("Error getting transactions for admin:", error);
-      throw error;
-    }
-  }
-
-  // Update transaction status (admin action)
-  async updateTransactionStatus(transactionId: string, status: string, reason: string, adminId: string): Promise<boolean> {
-    try {
-      const updatedTransaction = await this.db
-        .update(transactions)
-        .set({
-          status,
-          updatedAt: new Date()
-        })
-        .where(eq(transactions.id, transactionId))
-        .returning();
-
-      // Log admin action
-      await this.logAdminAction({
-        adminId,
-        action: 'transaction_status_update',
-        targetId: transactionId,
-        details: { status, reason, userId: updatedTransaction[0]?.userId },
-        timestamp: new Date()
-      });
-
-      return true;
-    } catch (error) {
-      console.error("Error updating transaction status:", error);
-      throw error;
-    }
-  }
-
-  // Delete user (admin action)
-  async deleteUser(userId: string): Promise<boolean> {
-    try {
-      // Delete user's portfolio first
-      const portfolio = await this.getPortfolio(userId);
-      if (portfolio) {
-        await this.db.delete(holdings).where(eq(holdings.portfolioId, portfolio.id));
-        await this.db.delete(portfolios).where(eq(portfolios.id, portfolio.id));
-      }
-
-      // Delete user's transactions, deposits, etc.
-      await this.db.delete(transactions).where(eq(transactions.userId, userId));
-      await this.db.delete(priceAlerts).where(eq(priceAlerts.userId, userId));
-
-      // Finally delete the user
-      await this.db.delete(users).where(eq(users.id, userId));
-
-      return true;
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      throw error;
-    }
-  }
-
-  // Platform settings management
-  async getPlatformSettings() {
-    try {
-      // This would typically come from a settings table
-      // For now, return default settings
-      return {
-        maintenanceMode: false,
-        registrationEnabled: true,
-        tradingEnabled: true,
-        maxWithdrawalAmount: 50000,
-        minDepositAmount: 10,
-        tradingFeePercentage: 0.1,
-        withdrawalFeePercentage: 0.5,
-        supportedCurrencies: ['USD', 'EUR', 'BTC', 'ETH'],
-        kycRequired: true,
-        apiRateLimits: {
-          requests: 1000,
-          windowMs: 3600000
-        }
-      };
-    } catch (error) {
-      console.error("Error getting platform settings:", error);
-      throw error;
-    }
-  }
-
-  async updatePlatformSettings(settings: any, adminId: string) {
-    try {
-      // Log the settings change
-      await this.createAuditLog({
-        adminId,
-        action: 'settings_update',
-        targetId: 'platform',
-        details: settings,
-        ipAddress: '', // IP address should ideally be passed or obtained from request context
-        userAgent: '' // User agent should ideally be passed or obtained from request context
-      });
-
-      // In a real implementation, you'd save these to a settings table
-      return true;
-    } catch (error) {
-      console.error("Error updating platform settings:", error);
-      throw error;
-    }
-  }
-
-  // Audit logging
-  // logAdminAction already implemented above
-
-  async createAuditLog(logData: {
-    adminId: string;
-    action: string;
-    targetId: string;
-    details: any;
-    ipAddress: string;
-    userAgent: string;
-  }): Promise<boolean> {
-    try {
-      const db = this.ensureDb();
-      const { auditLogs } = await import('@shared/schema');
-      await db.insert(auditLogs).values({
-        ...logData,
-        details: JSON.stringify(logData.details),
-        timestamp: new Date(),
-      });
-      return true;
-    } catch (error) {
-      console.error('Error creating audit log:', error);
-      return false;
-    }
-  }
-
-  async getAuditLogs(options: {
-    page: number;
-    limit: number;
-    action?: string;
-    userId?: string;
-  }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
-    try {
-      const db = this.ensureDb();
-      const { auditLogs } = await import('@shared/schema');
-
-      let query = db.select().from(auditLogs);
-
-      if (options.action) {
-        query = query.where(eq(auditLogs.action, options.action));
-      }
-      if (options.userId) {
-        query = query.where(eq(auditLogs.adminId, options.userId));
-      }
-
-      const offset = (options.page - 1) * options.limit;
-      const logs = await query
-        .orderBy(desc(auditLogs.timestamp))
-        .limit(options.limit)
-        .offset(offset);
-
-      const [{ count }] = await db.select({ count: sql`count(*)` }).from(auditLogs);
-
-      return {
-        logs,
-        pagination: {
-          page: options.page,
-          limit: options.limit,
-          total: Number(count),
-          pages: Math.ceil(Number(count) / options.limit)
-        }
-      };
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-      return { logs: [], pagination: { page: 1, limit: 50, total: 0, pages: 0 } };
-    }
-  }
-
-  // Add this method to create initial users if they don't exist
+  /* ---------------------------
+     System helpers & initial data
+  ----------------------------*/
   async createInitialUsers(): Promise<void> {
     try {
-      // Check if demo user already exists
-      const existingDemoUser = await this.getUserByEmail('demo@example.com');
-      if (existingDemoUser) {
-        console.log('✅ Demo users already exist');
-        return;
-      }
+      const existingDemo = await this.getUserByEmail("demo@example.com");
+      if (existingDemo) return;
 
-      console.log('🌱 Creating initial test users...');
-
-      // Create demo user with proper password hash
-      const demoPasswordHash = await hashPassword('demo123');
-      const demoUser = {
-        id: 'demo-user-id',
-        username: 'demo',
-        email: 'demo@example.com',
+      const demoPasswordHash = await hashPassword("demo123");
+      await this.db.insert(users).values({
+        id: "demo-user-id",
+        username: "demo",
+        email: "demo@example.com",
         password: demoPasswordHash,
-        firstName: 'Demo',
-        lastName: 'User',
-        role: 'user' as const,
+        firstName: "Demo",
+        lastName: "User",
+        role: "user",
         isActive: true,
         isVerified: true,
-        phone: '+1234567890',
-        profileImageUrl: null,
         createdAt: new Date(),
         updatedAt: new Date()
-      };
+      }).onConflictDoNothing();
 
-      await db.insert(users).values(demoUser).onConflictDoNothing();
-
-      // Create test user with proper password hash
-      const testPasswordHash = await hashPassword('test123');
-      const testUser = {
-        id: 'test-user-id',
-        username: 'testuser',
-        email: 'test@bitpanda.com',
+      const testPasswordHash = await hashPassword("test123");
+      await this.db.insert(users).values({
+        id: "test-user-id",
+        username: "testuser",
+        email: "test@bitpanda.com",
         password: testPasswordHash,
-        firstName: 'Test',
-        lastName: 'User',
-        role: 'user' as const,
+        firstName: "Test",
+        lastName: "User",
+        role: "user",
         isActive: true,
         isVerified: true,
-        phone: '+1987654321',
-        profileImageUrl: null,
         createdAt: new Date(),
         updatedAt: new Date()
-      };
+      }).onConflictDoNothing();
 
-      await db.insert(users).values(testUser).onConflictDoNothing();
-
-      // Create admin user with proper password hash
-      const adminPasswordHash = await hashPassword('admin123');
-      const adminUser = {
-        id: 'admin-user-id',
-        username: 'admin',
-        email: 'admin@example.com',
+      const adminPasswordHash = await hashPassword("admin123");
+      await this.db.insert(users).values({
+        id: "admin-user-id",
+        username: "admin",
+        email: "admin@example.com",
         password: adminPasswordHash,
-        firstName: 'Admin',
-        lastName: 'User',
-        role: 'admin' as const,
+        firstName: "Admin",
+        lastName: "User",
+        role: "admin",
         isActive: true,
         isVerified: true,
-        phone: '+1555000000',
-        profileImageUrl: null,
         createdAt: new Date(),
         updatedAt: new Date()
-      };
+      }).onConflictDoNothing();
 
-      await db.insert(users).values(adminUser).onConflictDoNothing();
-
-      console.log('✅ Test users created successfully');
-      console.log('📧 Demo User: demo@example.com / demo123');
-      console.log('📧 Test User: test@bitpanda.com / test123');
-      console.log('👑 Admin User: admin@example.com / admin123');
-
+      console.log("✅ Initial demo/test/admin users created (if they were missing)");
     } catch (error) {
-      console.error('❌ Failed to create initial users:', error);
+      console.error("Failed to create initial users:", error);
     }
-  }
-
-  // Placeholder methods for Enhanced Trading System
-  async validateOrder(orderData: any): Promise<{ isValid: boolean; message?: string }> {
-    console.log("Validating order:", orderData);
-    // TODO: Implement actual order validation logic
-    // - Check for sufficient funds
-    // - Check minimum/maximum order sizes
-    // - Validate stop-loss/take-profit values
-    // - Check for valid symbols and amounts
-    return { isValid: true };
-  }
-
-  async calculateTradingFees(amount: number, type: string, orderType: string): Promise<number> {
-    console.log(`Calculating fees for amount: ${amount}, type: ${type}, orderType: ${orderType}`);
-    // TODO: Implement fee calculation logic based on trading volume, user tier, etc.
-    let feePercentage = 0.001; // Default 0.1% fee
-    if (orderType === 'limit') {
-      feePercentage = 0.0008; // Lower fee for limit orders
-    }
-    return amount * feePercentage;
-  }
-
-  async executeTrade(tradeData: any): Promise<any> {
-    console.log("Executing trade:", tradeData);
-    // TODO: Implement actual trade execution logic
-    // - Create transaction records for buy/sell
-    // - Update user portfolio and holdings
-    // - Handle stop-loss and take-profit triggers
-    // - Calculate and deduct fees
-    // - Return trade confirmation details
-    return { success: true, tradeId: `trade_${Date.now()}` };
-  }
-
-  async getOpenOrders(userId: string): Promise<any[]> {
-    console.log(`Fetching open orders for user: ${userId}`);
-    // TODO: Implement fetching of open orders from a database or order book
-    return [];
-  }
-
-  async getOrderHistory(userId: string): Promise<any[]> {
-    console.log(`Fetching order history for user: ${userId}`);
-    // TODO: Implement fetching of order history from a database
-    return [];
-  }
-
-  // API Key methods
-  async createApiKey(keyData: {
-    userId: string;
-    name: string;
-    keyHash: string;
-    permissions: string[];
-    isActive: boolean;
-    rateLimit: number;
-    createdAt: Date;
-    lastUsed: Date | null;
-  }) {
-    if (!db) {
-      console.error('Database not initialized for createApiKey');
-      throw new Error('Database not available');
-    }
-
-    const [apiKey] = await db.insert(apiKeys).values({
-      id: generateId(),
-      ...keyData
-    }).returning();
-
-    return apiKey;
-  }
-
-  async getUserApiKeys(userId: string) {
-    if (!db) {
-      console.error('Database not initialized for getUserApiKeys');
-      return [];
-    }
-
-    return db.select().from(apiKeys).where(eq(apiKeys.userId, userId));
-  }
-
-  async getApiKeyByHash(keyHash: string) {
-    if (!db) {
-      console.error('Database not initialized for getApiKeyByHash');
-      return null;
-    }
-
-    const [apiKey] = await db.select().from(apiKeys).where(eq(apiKeys.keyHash, keyHash)).limit(1);
-    return apiKey;
-  }
-
-  async updateApiKeyLastUsed(keyId: string) {
-    if (!db) {
-      console.error('Database not initialized for updateApiKeyLastUsed');
-      return;
-    }
-
-    await db.update(apiKeys).set({ lastUsed: new Date() }).where(eq(apiKeys.id, keyId));
-  }
-
-  async deleteApiKey(keyId: string, userId: string) {
-    if (!db) {
-      console.error('Database not initialized for deleteApiKey');
-      return;
-    }
-
-    await db.delete(apiKeys).where(and(eq(apiKeys.id, keyId), eq(apiKeys.userId, userId)));
-  }
-
-  async getApiUsage(userId: string) {
-    // This would need to be implemented with proper usage tracking
-    return {
-      requestsToday: 0,
-      requestsThisMonth: 0,
-      remainingQuota: 1000
-    };
-  }
-
-  async getApiKeyById(keyId: string) {
-    if (!db) {
-      throw new Error('Database connection not available');
-    }
-
-    const [apiKey] = await db.select().from(apiKeys).where(eq(apiKeys.id, keyId)).limit(1);
-    return apiKey;
-  }
-
-  async updateApiKey(keyId: string, updates: any) {
-    if (!db) {
-      throw new Error('Database connection not available');
-    }
-
-    await db.update(apiKeys).set({
-      ...updates,
-      updatedAt: new Date()
-    }).where(eq(apiKeys.id, keyId));
-  }
-
-  async getApiKeyUsageStats(keyId: string) {
-    // Mock implementation - in production, you'd track actual usage
-    return {
-      totalRequests: Math.floor(Math.random() * 10000),
-      requestsThisMonth: Math.floor(Math.random() * 1000),
-      requestsToday: Math.floor(Math.random() * 100),
-      lastUsedAt: new Date(),
-      remainingQuota: 10000 - Math.floor(Math.random() * 1000)
-    };
-  }
-
-  // KYC methods are already implemented above
-
-  // Watchlist operations
-  async getUserWatchlist(userId: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const { watchlist } = await import('@shared/schema');
-      const [userWatchlist] = await db
-        .select()
-        .from(watchlist)
-        .where(eq(watchlist.userId, userId))
-        .limit(1);
-
-      return userWatchlist || null;
-    } catch (error) {
-      console.error("Error fetching watchlist:", error);
-      return null;
-    }
-  }
-
-  async addToWatchlist(userId: string, symbol: string, name: string): Promise<any> {
-    try {
-      const db = this.ensureDb();
-      const { watchlist } = await import('@shared/schema');
-
-      const existing = await this.getUserWatchlist(userId);
-
-      if (existing) {
-        const symbols = existing.symbols || [];
-        if (!symbols.includes(symbol)) {
-          symbols.push(symbol);
-          const [updated] = await db
-            .update(watchlist)
-            .set({ symbols, updatedAt: new Date() })
-            .where(eq(watchlist.userId, userId))
-            .returning();
-          return updated;
-        }
-        return existing;
-      } else {
-        const [created] = await db
-          .insert(watchlist)
-          .values({ userId, symbols: [symbol] })
-          .returning();
-        return created;
-      }
-    } catch (error) {
-      console.error("Error adding to watchlist:", error);
-      throw error;
-    }
-  }
-
-  async removeFromWatchlist(userId: string, symbol: string): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      const { watchlist } = await import('@shared/schema');
-
-      const existing = await this.getUserWatchlist(userId);
-      if (existing) {
-        const symbols = (existing.symbols || []).filter((s: string) => s !== symbol);
-        await db
-          .update(watchlist)
-          .set({ symbols, updatedAt: new Date() })
-          .where(eq(watchlist.userId, userId));
-      }
-    } catch (error) {
-      console.error("Error removing from watchlist:", error);
-      throw error;
-    }
-  }
-
-  // Advanced order management
-  async createAdvancedOrder(orderData: any) {
-    const db = this.ensureDb();
-    const order = {
-      id: crypto.randomUUID(),
-      ...orderData,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    // Store in transactions table with advanced order type
-    const [transaction] = await db
-      .insert(transactions)
-      .values({
-        userId: orderData.userId,
-        symbol: orderData.symbol,
-        type: orderData.side,
-        amount: orderData.amount.toString(),
-        price: (orderData.limitPrice || orderData.triggerPrice || 0).toString(),
-        total: (orderData.amount * (orderData.limitPrice || orderData.triggerPrice || 0)).toString(),
-        status: 'pending',
-        orderType: orderData.type,
-        stopLoss: orderData.triggerPrice?.toString(),
-        takeProfit: orderData.limitPrice?.toString()
-      })
-      .returning();
-
-    return transaction;
-  }
-
-  async getActiveAdvancedOrders(userId: string) {
-    const db = this.ensureDb();
-    const userTransactions = await db
-      .select()
-      .from(transactions)
-      .where(and(
-        eq(transactions.userId, userId),
-        eq(transactions.status, 'pending'),
-        ne(transactions.orderType, 'market')
-      ))
-      .orderBy(desc(transactions.createdAt));
-
-    return userTransactions;
-  }
-
-  async cancelAdvancedOrder(orderId: string, userId: string) {
-    const db = this.ensureDb();
-    const [order] = await db
-      .update(transactions)
-      .set({
-        status: 'cancelled',
-        updatedAt: new Date()
-      })
-      .where(and(
-        eq(transactions.id, parseInt(orderId)),
-        eq(transactions.userId, userId),
-        eq(transactions.status, 'pending')
-      ))
-      .returning();
-
-    return order;
-  }
-
-  // Added updateTransaction method
-  async updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined> {
-    const db = this.ensureDb();
-    const [updatedTransaction] = await db
-      .update(transactions)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(transactions.id, transactionId))
-      .returning();
-    return updatedTransaction;
   }
 }
 

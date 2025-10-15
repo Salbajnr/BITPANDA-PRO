@@ -2,6 +2,7 @@ services:
   - type: web
     name: bitpandapro
     env: node
+    plan: free # or "starter", "standard", etc.
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
@@ -10,10 +11,14 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: bitpanda-db
-          property: connectionString
+        value: postgresql://dbphpapi_user:PwAbkFvraRC2fut81jGZjtHNOgs2lzi0@dpg-d3aj6n24d50c73dbk27g-a.oregon-postgres.render.com/dbphpapi
       - key: PGCONNECT_TIMEOUT
         value: "60"
       - key: PGCOMMAND_TIMEOUT
         value: "60"
+
+# ❌ Remove this block because you already have an external database
+# databases:
+#   - name: bitpanda-db
+#     databaseName: bitpanda
+#     plan: free
