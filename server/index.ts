@@ -164,6 +164,6 @@ const httpServer = app.listen(PORT, HOST, () => {
   chatWebSocketManager.init(httpServer);
 
   // Start price monitoring
-  priceMonitor.startMonitoring();
+  priceMonitor.start();
   realTimePriceService.startPriceUpdates();
 })();
