@@ -58,13 +58,17 @@ import {
   type Withdrawal,
   type InsertWithdrawal,
   type WithdrawalLimit,
-  type InsertWithdrawalLimit
+  type InsertWithdrawalLimit,
+  apiKeys // Assuming apiKeys schema is imported from @shared/schema
 } from '@shared/schema';
 import { db } from "./db";
 import { eq, desc, gte, lte, asc, count, and, or, sql, ilike, like, sum, inArray, ne } from "drizzle-orm";
 import { hashPassword } from "./simple-auth";
 import crypto from 'crypto';
 import { nanoid } from 'nanoid';
+
+// Helper function to generate IDs
+const generateId = () => nanoid();
 
 type UpsertUser = InsertUser;
 
@@ -264,6 +268,23 @@ export interface IStorage {
   executeTrade(tradeData: any): Promise<any>;
   getOpenOrders(userId: string): Promise<any[]>;
   getOrderHistory(userId: string): Promise<any[]>;
+
+  // API Key operations
+  createApiKey(keyData: {
+    userId: string;
+    name: string;
+    keyHash: string;
+    permissions: string[];
+    isActive: boolean;
+    rateLimit: number;
+    createdAt: Date;
+    lastUsed: Date | null;
+  }): Promise<any>;
+  getUserApiKeys(userId: string): Promise<any[]>;
+  getApiKeyByHash(keyHash: string): Promise<any | null>;
+  updateApiKeyLastUsed(keyId: string): Promise<void>;
+  deleteApiKey(keyId: string, userId: string): Promise<void>;
+  getApiUsage(userId: string): Promise<{ requestsToday: number; requestsThisMonth: number; remainingQuota: number }>;
 
   // KYC operations are implemented in the class
 }
@@ -2767,29 +2788,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Audit operations
-  async logAdminAction(action: { // Updated signature to match implementation
-    adminId: string;
-    action: string;
-    targetId?: string;
-    targetUserId?: string;
-    details?: any;
-    timestamp: Date;
-  }): Promise<void> {
-    try {
-      const db = this.ensureDb();
-      const { auditLogs } = await import('@shared/schema');
-      await db.insert(auditLogs).values({
-        adminId: action.adminId,
-        action: action.action,
-        targetId: action.targetId,
-        targetUserId: action.targetUserId,
-        details: action.details ? JSON.stringify(action.details) : null,
-        timestamp: action.timestamp,
-      });
-    } catch (error) {
-      console.error('Error logging admin action:', error);
-    }
-  }
+  // logAdminAction already implemented above
 
   async createAuditLog(logData: {
     adminId: string;
@@ -3157,23 +3156,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Audit logging
-  async logAdminAction(action: {
+  // logAdminAction already implemented above
+
+  async createAuditLog(logData: {
     adminId: string;
     action: string;
-    targetId?: string;
-    targetUserId?: string;
-    details?: any;
-    timestamp: Date;
-  }): Promise<void> {
-    // In a real implementation, this would save to an audit log table
-    console.log('Admin action logged:', {
-      ...action,
-      timestamp: new Date().toISOString()
-    });
-
-    // Placeholder for actual audit log creation if using a real DB
-    // For example, if you have an auditLogs table:
-    // await this.db.insert(auditLogs).values({ ...action, details: action.details ? JSON.stringify(action.details) : null });
+    targetId: string;
+    details: any;
+    ipAddress: string;
+    userAgent: string;
+  }): Promise<boolean> {
+    try {
+      const db = this.ensureDb();
+      const { auditLogs } = await import('@shared/schema');
+      await db.insert(auditLogs).values({
+        ...logData,
+        details: JSON.stringify(logData.details),
+        timestamp: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      return false;
+    }
   }
 
   async getAuditLogs(options: {
@@ -3182,17 +3187,40 @@ export class DatabaseStorage implements IStorage {
     action?: string;
     userId?: string;
   }): Promise<{ logs: any[], pagination: { page: number, limit: number, total: number, pages: number } }> {
-    // This would query from an audit_logs table
-    // For now, return empty results
-    return {
-      logs: [],
-      pagination: {
-        page: options.page,
-        limit: options.limit,
-        total: 0,
-        pages: 0
+    try {
+      const db = this.ensureDb();
+      const { auditLogs } = await import('@shared/schema');
+
+      let query = db.select().from(auditLogs);
+
+      if (options.action) {
+        query = query.where(eq(auditLogs.action, options.action));
       }
-    };
+      if (options.userId) {
+        query = query.where(eq(auditLogs.adminId, options.userId));
+      }
+
+      const offset = (options.page - 1) * options.limit;
+      const logs = await query
+        .orderBy(desc(auditLogs.timestamp))
+        .limit(options.limit)
+        .offset(offset);
+
+      const [{ count }] = await db.select({ count: sql`count(*)` }).from(auditLogs);
+
+      return {
+        logs,
+        pagination: {
+          page: options.page,
+          limit: options.limit,
+          total: Number(count),
+          pages: Math.ceil(Number(count) / options.limit)
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      return { logs: [], pagination: { page: 1, limit: 50, total: 0, pages: 0 } };
+    }
   }
 
   // Add this method to create initial users if they don't exist
@@ -3321,6 +3349,77 @@ export class DatabaseStorage implements IStorage {
     return [];
   }
 
+  // API Key methods
+  async createApiKey(keyData: {
+    userId: string;
+    name: string;
+    keyHash: string;
+    permissions: string[];
+    isActive: boolean;
+    rateLimit: number;
+    createdAt: Date;
+    lastUsed: Date | null;
+  }) {
+    if (!db) {
+      console.error('Database not initialized for createApiKey');
+      throw new Error('Database not available');
+    }
+
+    const [apiKey] = await db.insert(apiKeys).values({
+      id: generateId(),
+      ...keyData
+    }).returning();
+
+    return apiKey;
+  },
+
+  async getUserApiKeys(userId: string) {
+    if (!db) {
+      console.error('Database not initialized for getUserApiKeys');
+      return [];
+    }
+
+    return db.select().from(apiKeys).where(eq(apiKeys.userId, userId));
+  },
+
+  async getApiKeyByHash(keyHash: string) {
+    if (!db) {
+      console.error('Database not initialized for getApiKeyByHash');
+      return null;
+    }
+
+    const [apiKey] = await db.select().from(apiKeys).where(eq(apiKeys.keyHash, keyHash)).limit(1);
+    return apiKey;
+  },
+
+  async updateApiKeyLastUsed(keyId: string) {
+    if (!db) {
+      console.error('Database not initialized for updateApiKeyLastUsed');
+      return;
+    }
+
+    await db.update(apiKeys).set({ lastUsed: new Date() }).where(eq(apiKeys.id, keyId));
+  },
+
+  async deleteApiKey(keyId: string, userId: string) {
+    if (!db) {
+      console.error('Database not initialized for deleteApiKey');
+      return;
+    }
+
+    await db.delete(apiKeys).where(and(eq(apiKeys.id, keyId), eq(apiKeys.userId, userId)));
+  },
+
+  async getApiUsage(userId: string) {
+    // This would need to be implemented with proper usage tracking
+    // For now, return mock data
+    return {
+      requestsToday: 0,
+      requestsThisMonth: 0,
+      remainingQuota: 1000
+    };
+  },
+
   // KYC methods are already implemented above
 
   // Watchlist operations
@@ -3333,21 +3432,21 @@ export class DatabaseStorage implements IStorage {
         .from(watchlist)
         .where(eq(watchlist.userId, userId))
         .limit(1);
-      
+
       return userWatchlist || null;
     } catch (error) {
       console.error("Error fetching watchlist:", error);
       return null;
     }
-  }
+  },
 
   async addToWatchlist(userId: string, symbol: string, name: string): Promise<any> {
     try {
       const db = this.ensureDb();
       const { watchlist } = await import('@shared/schema');
-      
+
       const existing = await this.getUserWatchlist(userId);
-      
+
       if (existing) {
         const symbols = existing.symbols || [];
         if (!symbols.includes(symbol)) {
@@ -3371,13 +3470,13 @@ export class DatabaseStorage implements IStorage {
       console.error("Error adding to watchlist:", error);
       throw error;
     }
-  }
+  },
 
   async removeFromWatchlist(userId: string, symbol: string): Promise<void> {
     try {
       const db = this.ensureDb();
       const { watchlist } = await import('@shared/schema');
-      
+
       const existing = await this.getUserWatchlist(userId);
       if (existing) {
         const symbols = (existing.symbols || []).filter((s: string) => s !== symbol);
@@ -3390,7 +3489,7 @@ export class DatabaseStorage implements IStorage {
       console.error("Error removing from watchlist:", error);
       throw error;
     }
-  }
+  },
 
   // Advanced order management
   async createAdvancedOrder(orderData: any) {
@@ -3420,7 +3519,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return transaction;
-  }
+  },
 
   async getActiveAdvancedOrders(userId: string) {
     const db = this.ensureDb();
@@ -3435,7 +3534,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(transactions.createdAt));
 
     return userTransactions;
-  }
+  },
 
   async cancelAdvancedOrder(orderId: string, userId: string) {
     const db = this.ensureDb();
@@ -3453,7 +3552,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return order;
-  }
+  },
 
   // Added updateTransaction method
   async updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined> {

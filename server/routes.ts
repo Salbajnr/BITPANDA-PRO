@@ -118,6 +118,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const apiDocsRoutes = (await import('./api-docs-routes')).default;
   app.use('/api/docs', apiDocsRoutes);
 
+  // API management routes
+  const apiManagementRoutes = (await import('./api-management-routes')).default;
+  app.use('/api/user/api', apiManagementRoutes);
+
+  // Public API routes (with API key authentication)
+  const publicApiRoutes = (await import('./public-api-routes')).default;
+  app.use('/api/public', publicApiRoutes);
+
   // Comprehensive analytics routes
   const comprehensiveAnalyticsRoutes = (await import('./comprehensive-analytics-routes')).default;
   app.use('/api/analytics/comprehensive', comprehensiveAnalyticsRoutes);

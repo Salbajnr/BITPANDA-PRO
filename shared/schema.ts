@@ -13,6 +13,7 @@ import {
   integer, // Import integer type
   serial, // Import serial type
   uniqueIndex, // Import uniqueIndex
+  json, // Import json type
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -800,3 +801,21 @@ export type InsertWatchlist = typeof watchlist.$inferInsert;
 // Advanced Order types
 export type AdvancedOrder = typeof advancedOrders.$inferSelect;
 export type InsertAdvancedOrder = typeof advancedOrders.$inferInsert;
+
+// API Keys schema and types
+export const apiKeys = pgTable("api_keys", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  keyHash: text("key_hash").notNull().unique(),
+  permissions: json("permissions").$type<string[]>().notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  rateLimit: integer("rate_limit").notNull().default(1000),
+  lastUsed: timestamp("last_used"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+export const adminActionLogs = pgTable("admin_action_logs", {
