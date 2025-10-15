@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Wifi, WifiOff } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { useRealTimePrices } from "../hooks/useRealTimePrices";
 
 interface TickerItem {
   symbol: string;
@@ -20,40 +19,23 @@ interface CryptoPrice {
 
 export default function LiveTicker() {
   const [prices, setPrices] = useState<CryptoPrice[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [fallbackData, setFallbackData] = useState<CryptoPrice[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-
 
   // Fetch crypto data for ticker
   const { data: cryptoData, isError: cryptoIsError, isLoading: cryptoIsLoading } = useQuery<TickerItem[]>({
     queryKey: ['/api/crypto/market-data'],
     queryFn: () => api.get('/api/crypto/market-data'),
-    refetchInterval: 30000,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Fetch metals data for ticker
   const { data: metalsData, isError: metalsIsError, isLoading: metalsIsLoading } = useQuery<TickerItem[]>({
     queryKey: ['/api/metals/market-data'],
     queryFn: () => api.get('/api/metals/market-data'),
-    refetchInterval: 60000,
+    refetchInterval: 60000, // Refetch every minute
   });
 
-  // Get real-time price updates for top crypto symbols
-  const topCryptoSymbols = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'MATIC', 'AVAX', 'LINK', 'UNI'];
-
-  const { 
-    pricesMap: realTimePrices,
-    isConnected: isRealTimeConnected,
-    getPrice,
-    getChange
-  } = useRealTimePrices({
-    symbols: topCryptoSymbols,
-    enabled: true
-  });
-
-
-  // Fallback data when WebSocket fails
+  // Fallback data when API fails
   const defaultPrices: CryptoPrice[] = [
     { symbol: 'BTC', price: 67234.50, change24h: 1234.50, changePercent24h: 1.87 },
     { symbol: 'ETH', price: 3456.78, change24h: -45.23, changePercent24h: -1.29 },
@@ -63,39 +45,27 @@ export default function LiveTicker() {
     { symbol: 'SOL', price: 178.90, change24h: 5.67, changePercent24h: 3.27 }
   ];
 
+  // Update prices from API data or use fallback
   useEffect(() => {
-    // Set fallback data immediately
-    setFallbackData(defaultPrices);
+    if (cryptoData && Array.isArray(cryptoData) && cryptoData.length > 0) {
+      const apiPrices = cryptoData.slice(0, 10).map(item => ({
+        symbol: item.symbol.toUpperCase(),
+        price: item.current_price || 0,
+        change24h: (item.current_price || 0) * ((item.price_change_percentage_24h || 0) / 100),
+        changePercent24h: item.price_change_percentage_24h || 0
+      }));
+      setPrices(apiPrices);
+    } else if (!cryptoIsLoading && (cryptoIsError || !cryptoData)) {
+      // Use fallback data when API fails
+      setPrices(defaultPrices);
+    }
+  }, [cryptoData, cryptoIsError, cryptoIsLoading]);
 
-    // Simulate price updates every 30 seconds to make ticker feel "live"
-    const priceUpdateInterval = setInterval(() => {
-      setPrices(current => current.map(price => ({
-        ...price,
-        price: price.price * (0.999 + Math.random() * 0.002), // Small random variation
-        change24h: price.change24h + (Math.random() - 0.5) * 0.1,
-        changePercent24h: price.changePercent24h + (Math.random() - 0.5) * 0.05
-      })));
-    }, 30000);
-
-    return () => {
-      clearInterval(priceUpdateInterval);
-    };
-  }, []);
-
-  // Combine and prepare ticker data with real-time updates
+  // Create combined ticker items from crypto and metals data
   const tickerItems: TickerItem[] = [
-    // Crypto data with real-time price updates
-    ...(Array.isArray(cryptoData) ? cryptoData.slice(0, 10).map(item => {
-      const realtimePrice = getPrice(item.symbol.toUpperCase());
-      const realtimeChange = getChange(item.symbol.toUpperCase());
-
-      return {
-        ...item,
-        current_price: realtimePrice > 0 ? realtimePrice : item.current_price,
-        price_change_percentage_24h: realtimeChange !== 0 ? realtimeChange : item.price_change_percentage_24h
-      };
-    }) : []),
-    // Metals data (no real-time updates available)
+    // Crypto data
+    ...(Array.isArray(cryptoData) ? cryptoData.slice(0, 10) : []),
+    // Metals data
     ...(Array.isArray(metalsData) ? metalsData.slice(0, 3) : [])
   ];
 
@@ -110,11 +80,8 @@ export default function LiveTicker() {
     return () => clearInterval(interval);
   }, [tickerItems.length]);
 
-
-  // Use fallback data if no prices available from WebSocket
-  const displayPrices = prices.length > 0 ? prices : fallbackData;
-
-  if (displayPrices.length === 0 && cryptoIsLoading && metalsIsLoading) {
+  // Show loading state
+  if (cryptoIsLoading && metalsIsLoading) {
     return (
       <div className="bg-gray-50 border-b border-gray-200 py-2 px-4">
         <div className="flex items-center justify-center text-gray-500 text-sm">
@@ -125,7 +92,8 @@ export default function LiveTicker() {
     );
   }
 
-  if (cryptoIsError || metalsIsError) {
+  // Show error state
+  if (cryptoIsError && metalsIsError) {
     return (
       <div className="bg-red-50 border-b border-red-200 py-2 px-4">
         <div className="flex items-center justify-center text-red-600 text-sm">
@@ -135,7 +103,16 @@ export default function LiveTicker() {
     );
   }
 
-  if (tickerItems.length === 0 && displayPrices.length === 0) {
+  // Use ticker items if available, otherwise use prices from state
+  const displayItems = tickerItems.length > 0 ? tickerItems : 
+    prices.map(price => ({
+      symbol: price.symbol,
+      name: price.symbol,
+      current_price: price.price,
+      price_change_percentage_24h: price.changePercent24h
+    }));
+
+  if (displayItems.length === 0) {
     return (
       <div className="bg-secondary dark:bg-gray-900 py-2 overflow-hidden">
         <div className="animate-pulse flex items-center justify-center">
@@ -150,7 +127,7 @@ export default function LiveTicker() {
       <div className="max-w-7xl mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center overflow-x-auto scrollbar-hide space-x-8">
-            {tickerItems.map((item, index) => {
+            {displayItems.map((item, index) => {
               const isPositive = (item.price_change_percentage_24h || 0) >= 0;
               const formattedPrice = typeof item.current_price === 'number' 
                 ? item.current_price.toLocaleString(undefined, { 
@@ -160,7 +137,7 @@ export default function LiveTicker() {
                 : '0.00';
 
               return (
-                <span key={index} className="flex items-center space-x-2 flex-shrink-0">
+                <span key={`${item.symbol}-${index}`} className="flex items-center space-x-2 flex-shrink-0">
                   <span className="font-semibold text-gray-100">{item.symbol}</span>
                   <span className="text-white font-medium">
                     ${formattedPrice}
@@ -171,10 +148,6 @@ export default function LiveTicker() {
                     <span className="mr-1">{isPositive ? '▲' : '▼'}</span>
                     {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
                   </span>
-                  {/* Show real-time indicator for crypto */}
-                  {topCryptoSymbols.includes(item.symbol.toUpperCase()) && isRealTimeConnected && (
-                    <span className="text-xs text-blue-400 opacity-60">●</span>
-                  )}
                 </span>
               );
             })}
@@ -182,17 +155,11 @@ export default function LiveTicker() {
 
           {/* Connection Status Indicator */}
           <div className="flex items-center space-x-2 flex-shrink-0">
-            {isConnected ? (
-              <div className="flex items-center space-x-1 text-green-400">
-                <Wifi className="h-3 w-3" />
-                <span className="text-xs">Live</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-1 text-gray-400">
-                <WifiOff className="h-3 w-3" />
-                <span className="text-xs">API</span>
-              </div>
-            )}</div>
+            <div className="flex items-center space-x-1 text-green-400">
+              <Wifi className="h-3 w-3" />
+              <span className="text-xs">API</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
