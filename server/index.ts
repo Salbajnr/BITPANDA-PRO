@@ -37,6 +37,9 @@ import { fileURLToPath } from "url";
 
 const app = express();
 
+// Trust proxy for production deployments
+app.set('trust proxy', 1);
+
 /* ==============================
    CORS Middleware
 ============================== */
