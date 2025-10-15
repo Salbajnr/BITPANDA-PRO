@@ -4,6 +4,7 @@ dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { eq, and } from 'drizzle-orm';
 import * as schema from "../shared/schema"; // adjust path if needed
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -152,7 +153,5 @@ class DatabaseStorage {
     }
   }
 }
-
-import { eq, and } from 'drizzle-orm';
 
 export const storage = new DatabaseStorage();
