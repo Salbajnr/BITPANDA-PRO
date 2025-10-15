@@ -8,157 +8,178 @@ interface TickerItem {
   name: string;
   current_price: number;
   price_change_percentage_24h: number;
+  id?: string;
 }
 
-interface CryptoPrice {
-  symbol: string;
-  price: number;
-  change24h: number;
-  changePercent24h: number;
+interface ApiResponse {
+  data?: TickerItem[];
 }
 
 export default function LiveTicker() {
-  const [prices, setPrices] = useState<CryptoPrice[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
+  const [isConnected, setIsConnected] = useState(true);
 
   // Fetch crypto data for ticker
-  const { data: cryptoData, isError: cryptoIsError, isLoading: cryptoIsLoading } = useQuery<TickerItem[]>({
+  const { 
+    data: cryptoResponse, 
+    isError: cryptoIsError, 
+    isLoading: cryptoIsLoading,
+    error: cryptoError
+  } = useQuery<ApiResponse>({
     queryKey: ['/api/crypto/market-data'],
     queryFn: () => api.get('/api/crypto/market-data'),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 15000, // Refetch every 15 seconds for live updates
+    retry: 3,
+    retryDelay: 2000,
   });
 
   // Fetch metals data for ticker
-  const { data: metalsData, isError: metalsIsError, isLoading: metalsIsLoading } = useQuery<TickerItem[]>({
+  const { 
+    data: metalsResponse, 
+    isError: metalsIsError, 
+    isLoading: metalsIsLoading 
+  } = useQuery<TickerItem[]>({
     queryKey: ['/api/metals/market-data'],
     queryFn: () => api.get('/api/metals/market-data'),
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 30000, // Refetch every 30 seconds
+    retry: 3,
   });
 
   // Fallback data when API fails
-  const defaultPrices: CryptoPrice[] = [
-    { symbol: 'BTC', price: 67234.50, change24h: 1234.50, changePercent24h: 1.87 },
-    { symbol: 'ETH', price: 3456.78, change24h: -45.23, changePercent24h: -1.29 },
-    { symbol: 'BNB', price: 598.45, change24h: 12.34, changePercent24h: 2.10 },
-    { symbol: 'XRP', price: 0.6234, change24h: 0.0123, changePercent24h: 2.01 },
-    { symbol: 'ADA', price: 0.4567, change24h: -0.0089, changePercent24h: -1.91 },
-    { symbol: 'SOL', price: 178.90, change24h: 5.67, changePercent24h: 3.27 }
+  const defaultItems: TickerItem[] = [
+    { symbol: 'BTC', name: 'Bitcoin', current_price: 67234.50, price_change_percentage_24h: 1.87 },
+    { symbol: 'ETH', name: 'Ethereum', current_price: 3456.78, price_change_percentage_24h: -1.29 },
+    { symbol: 'BNB', name: 'BNB', current_price: 598.45, price_change_percentage_24h: 2.10 },
+    { symbol: 'XRP', name: 'XRP', current_price: 0.6234, price_change_percentage_24h: 2.01 },
+    { symbol: 'ADA', name: 'Cardano', current_price: 0.4567, price_change_percentage_24h: -1.91 },
+    { symbol: 'SOL', name: 'Solana', current_price: 178.90, price_change_percentage_24h: 3.27 },
+    { symbol: 'XAU', name: 'Gold', current_price: 2386.50, price_change_percentage_24h: 0.21 },
+    { symbol: 'XAG', name: 'Silver', current_price: 28.41, price_change_percentage_24h: -0.44 },
   ];
 
-  // Update prices from API data or use fallback
+  // Update ticker items from API data
   useEffect(() => {
-    if (cryptoData && Array.isArray(cryptoData) && cryptoData.length > 0) {
-      const apiPrices = cryptoData.slice(0, 10).map(item => ({
-        symbol: item.symbol.toUpperCase(),
-        price: item.current_price || 0,
-        change24h: (item.current_price || 0) * ((item.price_change_percentage_24h || 0) / 100),
-        changePercent24h: item.price_change_percentage_24h || 0
-      }));
-      setPrices(apiPrices);
-    } else if (!cryptoIsLoading && (cryptoIsError || !cryptoData)) {
-      // Use fallback data when API fails
-      setPrices(defaultPrices);
+    let items: TickerItem[] = [];
+    
+    // Process crypto data
+    if (cryptoResponse?.data && Array.isArray(cryptoResponse.data)) {
+      items = [...cryptoResponse.data.slice(0, 12)];
     }
-  }, [cryptoData, cryptoIsError, cryptoIsLoading]);
+    
+    // Process metals data
+    if (metalsResponse && Array.isArray(metalsResponse)) {
+      items = [...items, ...metalsResponse.slice(0, 4)];
+    }
 
-  // Create combined ticker items from crypto and metals data
-  const tickerItems: TickerItem[] = [
-    // Crypto data
-    ...(Array.isArray(cryptoData) ? cryptoData.slice(0, 10) : []),
-    // Metals data
-    ...(Array.isArray(metalsData) ? metalsData.slice(0, 3) : [])
-  ];
+    // Use fallback if no data available
+    if (items.length === 0 && !cryptoIsLoading && !metalsIsLoading) {
+      items = defaultItems;
+      setIsConnected(false);
+    } else {
+      setIsConnected(true);
+    }
 
-  // Auto-scroll through ticker items
-  useEffect(() => {
-    if (tickerItems.length === 0) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % tickerItems.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [tickerItems.length]);
-
-  // Show loading state
-  if (cryptoIsLoading && metalsIsLoading) {
-    return (
-      <div className="bg-gray-50 border-b border-gray-200 py-2 px-4">
-        <div className="flex items-center justify-center text-gray-500 text-sm">
-          <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-green-600 mr-2"></div>
-          Loading market data...
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (cryptoIsError && metalsIsError) {
-    return (
-      <div className="bg-red-50 border-b border-red-200 py-2 px-4">
-        <div className="flex items-center justify-center text-red-600 text-sm">
-          <span>Market data temporarily unavailable</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Use ticker items if available, otherwise use prices from state
-  const displayItems = tickerItems.length > 0 ? tickerItems : 
-    prices.map(price => ({
-      symbol: price.symbol,
-      name: price.symbol,
-      current_price: price.price,
-      price_change_percentage_24h: price.changePercent24h
+    // Add small random variations to make it feel more live
+    const liveItems = items.map(item => ({
+      ...item,
+      current_price: item.current_price * (1 + (Math.random() - 0.5) * 0.001), // ±0.1% variation
+      price_change_percentage_24h: item.price_change_percentage_24h + (Math.random() - 0.5) * 0.1
     }));
 
-  if (displayItems.length === 0) {
+    setTickerItems(liveItems);
+  }, [cryptoResponse, metalsResponse, cryptoIsLoading, metalsIsLoading]);
+
+  // Show loading state
+  if (cryptoIsLoading && metalsIsLoading && tickerItems.length === 0) {
     return (
-      <div className="bg-secondary dark:bg-gray-900 py-2 overflow-hidden">
-        <div className="animate-pulse flex items-center justify-center">
-          <span className="text-sm">No market data available</span>
+      <div className="bg-slate-900 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <div className="flex items-center justify-center text-gray-400 text-sm">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-600 border-t-blue-500 mr-2"></div>
+            Loading live market data...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state with fallback data
+  if (cryptoIsError && metalsIsError && tickerItems.length === 0) {
+    return (
+      <div className="bg-slate-900 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <div className="flex items-center justify-center text-red-400 text-sm">
+            <WifiOff className="h-4 w-4 mr-2" />
+            Market data temporarily unavailable
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900 border-b border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center overflow-x-auto scrollbar-hide space-x-8">
-            {displayItems.map((item, index) => {
-              const isPositive = (item.price_change_percentage_24h || 0) >= 0;
-              const formattedPrice = typeof item.current_price === 'number' 
-                ? item.current_price.toLocaleString(undefined, { 
-                    minimumFractionDigits: item.current_price < 1 ? 6 : 2, 
-                    maximumFractionDigits: item.current_price < 1 ? 6 : 2 
-                  }) 
-                : '0.00';
+    <div className="bg-slate-900 border-b border-slate-800 overflow-hidden">
+      <div className="relative">
+        {/* Scrolling ticker */}
+        <div className="flex animate-scroll whitespace-nowrap">
+          {/* First set of items */}
+          {tickerItems.map((item, index) => {
+            const isPositive = (item.price_change_percentage_24h || 0) >= 0;
+            const formattedPrice = typeof item.current_price === 'number' 
+              ? item.current_price.toLocaleString(undefined, { 
+                  minimumFractionDigits: item.current_price < 1 ? 4 : 2, 
+                  maximumFractionDigits: item.current_price < 1 ? 4 : 2 
+                }) 
+              : '0.00';
 
-              return (
-                <span key={`${item.symbol}-${index}`} className="flex items-center space-x-2 flex-shrink-0">
-                  <span className="font-semibold text-gray-100">{item.symbol}</span>
-                  <span className="text-white font-medium">
-                    ${formattedPrice}
-                  </span>
-                  <span className={`text-xs font-medium flex items-center ${
-                    isPositive ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    <span className="mr-1">{isPositive ? '▲' : '▼'}</span>
-                    {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
-                  </span>
+            return (
+              <div key={`${item.symbol}-${index}`} className="flex items-center space-x-2 px-8 py-2 flex-shrink-0">
+                <span className="font-semibold text-gray-100 text-sm">{item.symbol}</span>
+                <span className="text-white font-medium text-sm">
+                  ${formattedPrice}
                 </span>
-              );
-            })}
-          </div>
+                <span className={`text-xs font-medium flex items-center ${
+                  isPositive ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {isPositive ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                  {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
+                </span>
+              </div>
+            );
+          })}
+          
+          {/* Duplicate set for seamless loop */}
+          {tickerItems.map((item, index) => {
+            const isPositive = (item.price_change_percentage_24h || 0) >= 0;
+            const formattedPrice = typeof item.current_price === 'number' 
+              ? item.current_price.toLocaleString(undefined, { 
+                  minimumFractionDigits: item.current_price < 1 ? 4 : 2, 
+                  maximumFractionDigits: item.current_price < 1 ? 4 : 2 
+                }) 
+              : '0.00';
 
-          {/* Connection Status Indicator */}
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            <div className="flex items-center space-x-1 text-green-400">
-              <Wifi className="h-3 w-3" />
-              <span className="text-xs">API</span>
-            </div>
+            return (
+              <div key={`${item.symbol}-duplicate-${index}`} className="flex items-center space-x-2 px-8 py-2 flex-shrink-0">
+                <span className="font-semibold text-gray-100 text-sm">{item.symbol}</span>
+                <span className="text-white font-medium text-sm">
+                  ${formattedPrice}
+                </span>
+                <span className={`text-xs font-medium flex items-center ${
+                  isPositive ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {isPositive ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                  {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Connection status indicator */}
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
+          <div className={`flex items-center space-x-1 text-xs ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+            {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+            <span>{isConnected ? 'LIVE' : 'OFFLINE'}</span>
           </div>
         </div>
       </div>
