@@ -6,50 +6,7 @@ import { sendEmail } from './email-service';
 import { storage } from './storage';
 const router = Router();
 
-// Supabase sync route - create or get user based on Supabase authentication
-router.post('/supabase-sync', async (req, res) => {
-  try {
-    const { supabaseUid, email, displayName } = z.object({
-      supabaseUid: z.string(),
-      email: z.string().email().nullable(),
-      displayName: z.string().nullable().optional(),
-    }).parse(req.body);
-
-    // Check if user exists by Supabase UID
-    let user = await storage.getUserBySupabaseUid(supabaseUid);
-
-    if (!user && email) {
-      // Check if user exists by email
-      user = await storage.getUserByEmail(email);
-
-      if (user) {
-        // Update existing user with Supabase UID
-        await storage.updateUserSupabaseUid(user.id, supabaseUid);
-      } else {
-        // Create new user
-        const username = email.split('@')[0] + '_' + supabaseUid.substring(0, 8);
-        user = await storage.createUser({
-          username,
-          email: email || '',
-          password: '', // Supabase handles authentication
-          supabaseUid: supabaseUid,
-          displayName: displayName || username,
-          firstName: displayName?.split(' ')[0] || '',
-          lastName: displayName?.split(' ')[1] || '',
-        });
-      }
-    }
-
-    if (!user) {
-      return res.status(400).json({ error: 'Failed to sync user' });
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error('Supabase sync error:', error);
-    res.status(500).json({ error: 'Failed to sync user with Supabase' });
-  }
-});
+// Supabase sync route removed - no longer using Supabase authentication
 
 // Helper function to generate OTP
 function generateOTP(): string {

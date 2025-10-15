@@ -246,11 +246,4 @@ export async function deleteUser(id: string): Promise<void> {
   await db.delete(users).where(eq(users.id, id));
 }
 
-export async function getUserBySupabaseUid(supabaseUid: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.supabaseUid, supabaseUid)).limit(1);
-    return result[0];
-  },
-
-  async updateUserSupabaseUid(userId: string, supabaseUid: string): Promise<void> {
-    await db.update(users).set({ supabaseUid }).where(eq(users.id, userId));
-  },
+// Supabase-related methods removed
