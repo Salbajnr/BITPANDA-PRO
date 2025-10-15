@@ -9,19 +9,19 @@ import {
   text,
   timestamp,
   varchar,
-  numeric, // Import numeric type
-  integer, // Import integer type
-  serial, // Import serial type
-  uniqueIndex, // Import uniqueIndex
-  json, // Import json type
+  numeric,
+  integer,
+  serial,
+  uniqueIndex,
+  json,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { nanoid } from 'nanoid';
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm'; // Import InferInsertModel and InferSelectModel
+import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
-// Helper function to generate a unique ID (e.g., for Replit Auth compatibility)
+// Helper function to generate a unique ID
 const generateUniqueId = () => nanoid();
 
 // Session storage table (mandatory for Replit Auth)
@@ -41,12 +41,6 @@ export const assetTypeEnum = pgEnum('asset_type', ['crypto', 'metal']);
 export const transactionTypeEnum = pgEnum('transaction_type', ['buy', 'sell', 'deposit', 'withdrawal']);
 export const depositStatusEnum = pgEnum('deposit_status', ['pending', 'approved', 'rejected']);
 export const paymentMethodEnum = pgEnum('payment_method', ['binance', 'bybit', 'crypto_com', 'bank_transfer', 'other']);
-
-import { pgTable, varchar, decimal, boolean, timestamp, text, jsonb, pgEnum, serial } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
-
-// Define enums first
-export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
 
 // User storage table
 export const users = pgTable("users", {
