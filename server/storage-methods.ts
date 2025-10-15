@@ -146,6 +146,23 @@ export async function deleteAlert(id: string) {
   await db.delete(priceAlerts).where(eq(priceAlerts.id, id));
 }
 
+export async function getActivePriceAlerts() {
+  return await db
+    .select()
+    .from(priceAlerts)
+    .where(eq(priceAlerts.isActive, true))
+    .orderBy(desc(priceAlerts.createdAt));
+}
+
+export async function updatePriceAlert(id: string, data: any) {
+  const [alert] = await db
+    .update(priceAlerts)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(priceAlerts.id, id))
+    .returning();
+  return alert;
+}
+
 // Watchlist
 export async function getUserWatchlist(userId: string) {
   return await db

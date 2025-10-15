@@ -1,6 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { sql } from "drizzle-orm";
-import postgres from "postgres";
+import { Pool } from 'pg';
 import * as schema from "@shared/schema";
 
 // Prioritize DATABASE_URL from secrets/env over Replit PostgreSQL credentials
@@ -46,34 +46,18 @@ if (!databaseUrl) {
   }
 }
 
+import { Pool } from 'pg';
+
 export const pool = databaseUrl
-  ? postgres(databaseUrl, {
+  ? new Pool({
+      connectionString: databaseUrl,
       max: 20,
-      idle_timeout: 30,
-      connect_timeout: 60,
-      // Add retry logic for connection failures
-      connection: {
-        application_name: 'bitpanda-app',
-      },
-      onnotice: () => {}, // Suppress notices
-      onclose: () => {
-        if (process.env.NODE_ENV !== 'test') {
-          console.log('⚠️ Database connection closed, attempting reconnect...');
-        }
-      },
-      onparameter: (key, value) => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log(`🔧 Database parameter: ${key}=${value}`);
-        }
-      },
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 60000,
+      application_name: 'bitpanda-app',
       ssl: (databaseUrl.includes('render.com') || databaseUrl.includes('neon.tech') || databaseUrl.includes('dbphpapi'))
-        ? 'require'
+        ? { rejectUnauthorized: false }
         : false,
-      fetch_types: false,
-      prepare: false,
-      // Force IPv4 to avoid IPv6 connectivity issues on some platforms
-      host_type: 'tcp',
-      socket: undefined
     })
   : null;
 
@@ -84,7 +68,9 @@ if (pool) {
   const testConnection = async (retries = 3) => {
     for (let i = 0; i < retries; i++) {
       try {
-        await db.execute(sql`SELECT 1`);
+        const client = await pool.connect();
+        await client.query('SELECT 1');
+        client.release();
         console.log("✅ Database connected successfully");
         return;
       } catch (err: any) {
