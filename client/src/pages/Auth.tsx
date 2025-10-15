@@ -225,7 +225,6 @@ export default function Auth() {
     toast({
       title: "Coming Soon",
       description: "Google authentication will be available soon",
-      variant: "default",
     });
   };
 

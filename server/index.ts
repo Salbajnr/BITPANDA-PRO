@@ -6,7 +6,6 @@ import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
 import { setupVite, serveStatic, log } from "./vite";
 import { portfolioRoutes } from './portfolio-routes';
-import { seedDatabase } from "./seedData";
 import { webSocketManager } from "./websocket-server";
 import { chatWebSocketManager } from './chat-websocket';
 import { realTimePriceService } from './real-time-price-service';
@@ -151,13 +150,6 @@ app.use((req, res, next) => {
       }
     });
 
-    // Seed database with initial data
-    try {
-      await seedDatabase();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn('⚠️  Database seeding failed (this is normal if already seeded):', errorMessage);
-    }
 
     // Create uploads directory structure
     const uploadsDir = path.join(process.cwd(), 'uploads', 'proofs');
