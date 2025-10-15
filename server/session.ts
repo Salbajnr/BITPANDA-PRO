@@ -5,11 +5,12 @@ export function createSessionMiddleware() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
 
-  // Use Replit PostgreSQL if DATABASE_URL points to unavailable Supabase
+  // Use DATABASE_URL or construct from individual PostgreSQL environment variables
   let databaseUrl = process.env.DATABASE_URL;
-  if ((!databaseUrl || databaseUrl.includes('render.com')) && process.env.PGHOST) {
+  if (!databaseUrl && process.env.PGHOST) {
     const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE } = process.env;
-    databaseUrl = `postgresql://dbphpapi_user:PwAbkFvraRC2fut81jGZjtHNOgs2lzi0@dpg-d3aj6n24d50c73dbk27g-a.oregon-postgres.render.com/dbphpapi?ssl=true`;
+    const encodedPassword = encodeURIComponent(PGPASSWORD || '');
+    databaseUrl = `postgresql://${PGUSER}:${encodedPassword}@${PGHOST}:${PGPORT}/${PGDATABASE}`;
   }
 
   const sessionStore = new pgStore({

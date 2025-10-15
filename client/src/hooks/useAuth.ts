@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { createContext, useContext, useEffect, useState } from 'react';
+import { api } from '../lib/api';
+import { isUnauthorizedError } from '../lib/authUtils';
+
 
 export interface User {
   id: number;

@@ -42,6 +42,12 @@ export const transactionTypeEnum = pgEnum('transaction_type', ['buy', 'sell', 'd
 export const depositStatusEnum = pgEnum('deposit_status', ['pending', 'approved', 'rejected']);
 export const paymentMethodEnum = pgEnum('payment_method', ['binance', 'bybit', 'crypto_com', 'bank_transfer', 'other']);
 
+import { pgTable, varchar, decimal, boolean, timestamp, text, jsonb, pgEnum, serial } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+
+// Define enums first
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
+
 // User storage table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

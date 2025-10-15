@@ -221,6 +221,26 @@ export async function revokeApiKey(id: string) {
     .where(eq(apiKeys.id, id));
 }
 
+import { db } from './db';
+import { users } from '@shared/schema';
+import { eq } from 'drizzle-orm';
+
+// Type definitions
+type User = {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl?: string | null;
+  role: 'user' | 'admin';
+  isActive: boolean;
+  walletBalance: string;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+};
+
 // User methods
 export async function getUserByEmail(email: string): Promise<User | undefined> {
   const result = await db.select().from(users).where(eq(users.email, email)).limit(1);

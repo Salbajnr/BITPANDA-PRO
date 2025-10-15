@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { sendEmail } from './email-service';
