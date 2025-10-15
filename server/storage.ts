@@ -3471,7 +3471,7 @@ export class DatabaseStorage implements IStorage {
       console.error("Error fetching watchlist:", error);
       return null;
     }
-  },
+  }
 
   async addToWatchlist(userId: string, symbol: string, name: string): Promise<any> {
     try {
@@ -3503,7 +3503,7 @@ export class DatabaseStorage implements IStorage {
       console.error("Error adding to watchlist:", error);
       throw error;
     }
-  },
+  }
 
   async removeFromWatchlist(userId: string, symbol: string): Promise<void> {
     try {
@@ -3522,7 +3522,7 @@ export class DatabaseStorage implements IStorage {
       console.error("Error removing from watchlist:", error);
       throw error;
     }
-  },
+  }
 
   // Advanced order management
   async createAdvancedOrder(orderData: any) {
@@ -3552,7 +3552,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return transaction;
-  },
+  }
 
   async getActiveAdvancedOrders(userId: string) {
     const db = this.ensureDb();
@@ -3567,7 +3567,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(transactions.createdAt));
 
     return userTransactions;
-  },
+  }
 
   async cancelAdvancedOrder(orderId: string, userId: string) {
     const db = this.ensureDb();
@@ -3585,7 +3585,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return order;
-  },
+  }
 
   // Added updateTransaction method
   async updateTransaction(transactionId: string, updates: any): Promise<Transaction | undefined> {
