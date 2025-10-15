@@ -240,32 +240,17 @@ export default function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark" storageKey="bitpanda-theme">
-          <LanguageProvider>
-            <MessageModalProvider>
-              <TooltipProvider>
+          <TooltipProvider>
+            <LanguageProvider>
+              <MessageModalProvider>
                 <Router>
-                  <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-                    <div className="absolute inset-0 bg-black bg-opacity-20" />
-                    <div className="relative z-10">
-                      <ThemeProvider defaultTheme="dark" storageKey="bitpanda-theme">
-                        <div className="min-h-screen bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
-                          <TooltipProvider>
-                            <LanguageProvider>
-                              <MessageModalProvider>
-                                <QueryClientProvider client={queryClient}>
-                                  <Routes />
-                                </QueryClientProvider>
-                              </MessageModalProvider>
-                            </LanguageProvider>
-                          </TooltipProvider>
-                        </div>
-                      </ThemeProvider>
-                    </div>
+                  <div className="min-h-screen bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
+                    <Routes />
                   </div>
                 </Router>
-              </TooltipProvider>
-            </MessageModalProvider>
-          </LanguageProvider>
+              </MessageModalProvider>
+            </LanguageProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

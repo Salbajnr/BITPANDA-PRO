@@ -255,7 +255,7 @@ export default function Auth() {
             <div className="flex items-center justify-center space-x-3 mb-6">
               <div className="relative">
                 <img
-                  src="/src/assets/bitpanda-logo.svg"
+                  src="/bitpanda-logo.svg"
                   alt="BITPANDA PRO"
                   className="w-12 h-12 drop-shadow-xl"
                 />

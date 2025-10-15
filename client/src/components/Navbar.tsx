@@ -94,7 +94,7 @@ export default function Navbar() {
             <Link href="/">
               <div className="flex items-center space-x-2 cursor-pointer">
                 <img
-                  src="/src/assets/bitpanda-logo.svg"
+                  src="/bitpanda-logo.svg"
                   alt="BITPANDA PRO"
                   className="w-8 h-8"
                 />

@@ -220,7 +220,7 @@ export const tradingApi = {
   }) => api.post('/api/trade', orderData),
 
   getOrders: () => api.get('/api/orders'),
-  cancelOrder: (orderId: string) => api.delete(`/api/orders/${orderId}`),
+  cancelOrder: (orderId: string) => api.delete(`/api/orders/${id}`),
 };
 
 export const alertsApi = {
@@ -281,7 +281,7 @@ export const adminApi = {
     reason: string;
   }) => api.post('/api/admin/simulate-balance', data),
 
-  getAdjustments: (userId?: string) =>
+  getBalanceAdjustments: (userId?: string) =>
     api.get(`/api/admin/adjustments${userId ? `/${userId}` : ''}`),
 
   createNews: (newsData: {
