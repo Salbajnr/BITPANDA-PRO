@@ -8,8 +8,8 @@ packages = ["kubectl", "mysql80"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["sh", "-c", "npm run build"]
-run = ["sh", "-c", "npm start"]
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]
 
 [[ports]]
 localPort = 5000
@@ -24,6 +24,10 @@ localPort = 36035
 externalPort = 3001
 
 [[ports]]
+localPort = 43535
+externalPort = 3002
+
+[[ports]]
 localPort = 46089
 externalPort = 3000
 
@@ -31,7 +35,7 @@ externalPort = 3000
 PORT = "5000"
 
 [workflows]
-runButton = "Development"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
