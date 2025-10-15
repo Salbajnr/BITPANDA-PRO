@@ -113,12 +113,57 @@ app.use((req, res, next) => {
 });
 
 /* ==============================
+   Route Registration
+============================== */
+registerRoutes(app);
+app.use('/api/crypto', cryptoRoutes);
+app.use('/api/trading', tradingRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/deposits', depositRoutes);
+app.use('/api/withdrawals', withdrawalRoutes);
+app.use('/api/portfolio-analytics', portfolioAnalyticsRoutes);
+app.use('/api/metals', metalsRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/kyc', kycRoutes);
+app.use('/api/market-research', marketResearchRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/investment-plans', investmentPlansRoutes);
+app.use('/api/savings-plans', savingsPlansRoutes);
+app.use('/api/staking', stakingRoutes);
+app.use('/api/lending', lendingRoutes);
+app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/api-keys', apiKeysRoutes);
+
+/* ==============================
    Start Server
 ============================== */
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-app.listen(PORT, HOST, () => {
+const httpServer = app.listen(PORT, HOST, () => {
   console.log(`🚀 Server running on ${HOST}:${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
+
+/* ==============================
+   Vite Setup (Development) or Static Files (Production)
+============================== */
+(async () => {
+  if (process.env.NODE_ENV === 'production') {
+    serveStatic(app);
+  } else {
+    await setupVite(app, httpServer);
+  }
+
+  // Initialize WebSockets
+  webSocketManager.init(httpServer);
+  chatWebSocketManager.init(httpServer);
+
+  // Start price monitoring
+  priceMonitor.startMonitoring();
+  realTimePriceService.startPriceUpdates();
+})();

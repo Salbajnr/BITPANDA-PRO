@@ -106,7 +106,7 @@ class DatabaseStorage {
     return null;
   }
 
-  async updateWithdrawalStatus(id: string, status: string, notes?: string) {
+  async updateWithdrawalStatus(id: string, status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'processing' | 'completed' | 'failed', notes?: string) {
     const [withdrawal] = await db.update(schema.withdrawals)
       .set({ 
         status,
