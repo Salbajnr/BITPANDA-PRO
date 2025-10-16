@@ -35,6 +35,30 @@ export const db = drizzle(pool, { schema });
 
 // ✅ Optional singleton class for structured usage
 class DatabaseStorage {
+  // --- Investment Plan Methods ---
+  async getInvestmentById(id: string) { return { id, userId: '', status: '', totalSaved: '0' }; }
+  async updateInvestment(id: string, updateData: any) { return { id, ...updateData }; }
+  async deleteInvestment(id: string) { return true; }
+  async createInvestment(data: any) { return { id: 'newId', ...data }; }
+  async getUserInvestments(userId: string) { return []; }
+
+  // --- KYC Methods ---
+  async getKycVerification(userId: string) { return { id: 'kycId', userId, status: 'pending' }; }
+  async updateKycVerification(id: string, data: any) { return { id, ...data }; }
+  async createKycVerification(data: any) { return { id: 'kycId', ...data }; }
+  async getAllKycVerifications(filter: any) { return []; }
+  async getKycVerificationById(id: string) { return { id, userId: '', status: 'pending' }; }
+  async getKycStatistics() { return {}; }
+
+  // --- Lending/Loan Methods ---
+  async getUserLendingPositions(userId: string) { return []; }
+  async createLendingPosition(data: any) { return { id: 'lendId', ...data }; }
+  async createLoan(data: any) { return { id: 'loanId', ...data }; }
+  async getUserLoans(userId: string) { return []; }
+  async getLoan(loanId: string, userId: string) { return { id: loanId, userId }; }
+  async updateLoan(loanId: string, data: any) { return { id: loanId, ...data }; }
+  async getLendingPosition(positionId: string, userId: string) { return { id: positionId, userId }; }
+  async updateLendingPosition(positionId: string, data: any) { return { id: positionId, ...data }; }
   async createAuditLog(data: any) { return { id: 'auditId', ...data }; }
   async getNewsArticleById(id: string) { return { id, title: '', description: '', category: '', coins: [], content: '', createdAt: new Date() }; }
   async updateNewsArticle(id: string, data: any) { return { id, ...data }; }
@@ -46,6 +70,7 @@ class DatabaseStorage {
   async getUserAlerts(userId: string) { return []; }
   async createAlert(data: any) { return { id: 'alertId', ...data }; }
   async getTransactions(userId: string) { return []; }
+  async getAllTransactions(opts?: { page?: number; limit?: number; type?: string }) { return { transactions: [], total: 0 }; }
   isDbConnected() { return true; }
   async createPortfolio(data: any) { return { id: 'portfolioId', ...data, availableCash: '0' }; }
   async getUserByEmailOrUsername(email: string, username: string) { return { id: 'userId', email, username, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
@@ -85,7 +110,15 @@ class DatabaseStorage {
   async updateStakingPosition(positionId: string, data: any) { return { id: positionId, ...data }; }
   async createTransaction(data: any) { return { id: 'txId', ...data }; }
   async upsertHolding(data: any) { return { id: 'holdingId', ...data }; }
-  async deleteHolding(portfolioId: string, symbol: string) { return { portfolioId, symbol }; }
+  // Accept either (portfolioId, symbol) OR a single holdingId string
+  async deleteHolding(arg1: string, arg2?: string) {
+    if (arg2) {
+      // portfolioId, symbol
+      return { portfolioId: arg1, symbol: arg2 };
+    }
+    // holdingId
+    return { id: arg1 };
+  }
   async getUserTransactions(userId: string, limit?: number) { return []; }
   // --- END STUBS ---
   public db = db;

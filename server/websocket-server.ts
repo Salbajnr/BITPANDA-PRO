@@ -1,5 +1,11 @@
+
 import { Server } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
+
+// Patch WebSocket type to allow isAlive for our use
+type PatchedWebSocket = WebSocket & {
+  isAlive?: boolean;
+};
 
 interface ClientSubscription {
   ws: WebSocket;
@@ -8,7 +14,7 @@ interface ClientSubscription {
 }
 
 class WebSocketManager {
-  private wss: WebSocketServer | null = null;
+  private wss: any = null;
   private clients: Map<string, ClientSubscription> = new Map();
   private isInitialized = false;
   private connectionsByIp: Map<string, number> = new Map();
@@ -32,10 +38,17 @@ class WebSocketManager {
       const pathname = new URL(request.url || '', `http://${request.headers.host}`).pathname;
 
       if (pathname === '/ws') {
-        // Get client IP
-        const clientIp = request.headers['x-forwarded-for']?.split(',')[0] ||
-                        request.socket.remoteAddress ||
-                        'unknown';
+        // Get client IP (safely handle string | string[])
+                const xffHeader = request.headers['x-forwarded-for'];
+                let clientIp = 'unknown';
+                if (typeof xffHeader === 'string') {
+                  clientIp = xffHeader.split(',')[0].trim();
+                } else if (Array.isArray(xffHeader) && xffHeader.length > 0) {
+                  // If it's an array, take the first element and split in case it contains multiple addresses
+                  clientIp = String(xffHeader[0]).split(',')[0].trim();
+                } else {
+                  clientIp = request.socket.remoteAddress || 'unknown';
+                }
 
         // Check connection limit
         const currentConnections = this.connectionsByIp.get(clientIp) || 0;
@@ -47,7 +60,7 @@ class WebSocketManager {
         }
 
         console.log('🔌 WebSocket upgrade request for:', pathname);
-        this.wss!.handleUpgrade(request, socket, head, (ws) => {
+        this.wss!.handleUpgrade(request, socket, head, (ws: WebSocket) => {
           this.wss!.emit('connection', ws, request);
         });
       } else {
@@ -55,7 +68,7 @@ class WebSocketManager {
       }
     });
 
-    this.wss.on('connection', (ws: WebSocket, request: any) => {
+  this.wss.on('connection', (ws: PatchedWebSocket, request: any) => {
       const clientIp = request.headers['x-forwarded-for']?.split(',')[0] ||
                       request.socket.remoteAddress ||
                       'unknown';
@@ -74,7 +87,7 @@ class WebSocketManager {
         clientId
       }));
 
-      ws.on('message', async (data: Buffer) => {
+  (ws as any).on('message', async (data: any) => {
         try {
           const message = JSON.parse(data.toString());
 
@@ -90,7 +103,7 @@ class WebSocketManager {
         }
       });
 
-      ws.on('close', () => {
+  (ws as any).on('close', () => {
         console.log(`Client disconnected from WebSocket (IP: ${clientIp})`);
         this.handleUnsubscribe(clientId);
 
@@ -105,7 +118,7 @@ class WebSocketManager {
         }
       });
 
-      ws.on('error', (error) => {
+  (ws as any).on('error', (error: any) => {
         console.error(`WebSocket error for IP ${clientIp}:`, error);
 
         // Only handle cleanup if not already closed
@@ -123,11 +136,7 @@ class WebSocketManager {
           }
 
           // Force close the connection
-          try {
-            ws.close();
-          } catch (e) {
-            // Ignore close errors
-          }
+          try { ws.close(); } catch (e) { /* ignore */ }
         }
       });
     });
@@ -237,6 +246,7 @@ class WebSocketManager {
 export const webSocketManager = new WebSocketManager();
 
 export function setupWebSocketServer(server: any) {
+
   const wss = new WebSocketServer({
     server,
     path: '/ws/prices',
@@ -245,14 +255,15 @@ export function setupWebSocketServer(server: any) {
   });
 
   // Track connected clients
-  const clients = new Set<WebSocket>();
+  const clients = new Set<PatchedWebSocket>();
 
-  wss.on('connection', (ws: WebSocket, req: any) => {
+  wss.on('connection', (ws: PatchedWebSocket, req: any) => {
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     console.log(`✅ WebSocket client connected from ${clientIp}`);
 
-    ws.isAlive = true;
-    clients.add(ws);
+
+  ws.isAlive = true;
+  clients.add(ws);
 
     // Send initial connection confirmation
     ws.send(JSON.stringify({
@@ -261,11 +272,11 @@ export function setupWebSocketServer(server: any) {
       timestamp: new Date().toISOString()
     }));
 
-    ws.on('pong', () => {
+    (ws as any).on('pong', () => {
       ws.isAlive = true;
     });
 
-    ws.on('message', (message: string) => {
+    (ws as any).on('message', (message: string) => {
       try {
         const data = JSON.parse(message.toString());
         console.log('📨 Received message:', data);
@@ -282,12 +293,12 @@ export function setupWebSocketServer(server: any) {
       }
     });
 
-    ws.on('close', (code, reason) => {
+    (ws as any).on('close', (code: number, reason: string) => {
       console.log(`❌ WebSocket client disconnected: ${code} - ${reason}`);
       clients.delete(ws);
     });
 
-    ws.on('error', (error) => {
+    (ws as any).on('error', (error: Error) => {
       console.error('❌ WebSocket error:', error);
       clients.delete(ws);
     });
@@ -295,14 +306,18 @@ export function setupWebSocketServer(server: any) {
 
   // Heartbeat to detect broken connections
   const heartbeatInterval = setInterval(() => {
-    wss.clients.forEach((ws: any) => {
+    wss.clients.forEach((ws: PatchedWebSocket) => {
       if (ws.isAlive === false) {
         console.log('🔌 Terminating inactive WebSocket connection');
         clients.delete(ws);
-        return ws.terminate();
+        if (typeof (ws as any).terminate === 'function') {
+          return (ws as any).terminate();
+        }
       }
       ws.isAlive = false;
-      ws.ping();
+      if (typeof (ws as any).ping === 'function') {
+        (ws as any).ping();
+      }
     });
   }, 30000);
 
