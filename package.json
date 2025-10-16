@@ -80,6 +80,7 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.25",
+    "@types/vite":
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
