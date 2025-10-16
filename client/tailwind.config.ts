@@ -1,7 +1,11 @@
 
 export default {
   darkMode: ["class"],
-  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./admin.html"
+  ],
   theme: {
     extend: {
       screens: {
