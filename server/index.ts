@@ -6,7 +6,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
-import { setupVite, serveStatic, log } from "./vite";
+import { setupVite, serveStatic, log } from "./vite-setup";
 import { portfolioRoutes } from "./portfolio-routes";
 import { webSocketManager } from "./websocket-server";
 import { chatWebSocketManager } from "./chat-websocket";
