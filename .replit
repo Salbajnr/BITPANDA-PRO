@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["kubectl", "mysql80"]
+packages = ["kubectl", "mysql80", "postgresql_17_jit"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -14,18 +14,6 @@ run = ["npm", "run", "start"]
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 5173
-externalPort = 5173
-
-[[ports]]
-localPort = 36035
-externalPort = 3001
-
-[[ports]]
-localPort = 44367
-externalPort = 3002
 
 [[ports]]
 localPort = 46089
@@ -38,65 +26,35 @@ PORT = "5000"
 runButton = "Project"
 
 [[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
+name = "Development"
+author = 45324556
+mode = "sequential"
 
 [[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
+task = "shell.exec"
+args = "npm run dev"
 
 [[workflows.workflow]]
-name = "Start application"
+name = "Development"
 author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "webview"
+mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
 
-[[workflows.workflow]]
-name = "Production"
-mode = "sequential"
-author = 45324556
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run build"
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[workflows.workflow]]
-name = "Development"
-author = 45324556
-mode = "sequential"
+name = "Project"
+mode = "parallel"
+author = "agent"
 
 [[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
-name = "Development"
-author = 45324556
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
-name = "Build & Start Production"
-author = 45324556
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run build"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm start"
+task = "workflow.run"
+args = "Development"
 
 [agent]
 integrations = ["javascript_database:1.0.0", "firebase_barebones_javascript:1.0.0", "javascript_supabase:1.0.0"]
