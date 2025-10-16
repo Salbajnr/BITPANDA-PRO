@@ -6,8 +6,11 @@ export const config = {
   // NewsAPI key for real news data
   newsApiKey: process.env.NEWS_API_KEY || '',
   
+  // Metals API key
+  metalsApiKey: process.env.METALS_API_KEY || '',
+  
   // Database
-  databaseUrl: process.env.DATABASE_URL || 'postgresql://dbphpapi_user:PwAbkFvraRC2fut81jGZjtHNOgs2lzi0@dpg-d3aj6n24d50c73dbk27g-a.oregon-postgres.render.com/dbphpapi',
+  databaseUrl: process.env.DATABASE_URL,
   
   // Server settings
   port: process.env.PORT || 5000,

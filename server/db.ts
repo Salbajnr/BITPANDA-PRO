@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { sql } from "drizzle-orm";
 import { Pool } from 'pg';
 import * as schema from "@shared/schema";
+import { formatDatabaseUrl, isDatabaseUrlValid } from "./database-utils";
 
 // Prioritize DATABASE_URL from secrets/env over Replit PostgreSQL credentials
 let databaseUrl = process.env.DATABASE_URL;
@@ -17,6 +18,9 @@ if (!databaseUrl && process.env.PGHOST && process.env.PGPORT && process.env.PGUS
 if (!databaseUrl) {
   console.error("⚠️  No database URL found. Please set DATABASE_URL in Secrets.");
   console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
+} else if (!isDatabaseUrlValid(databaseUrl)) {
+  console.error("⚠️  Invalid database URL format. Please check your DATABASE_URL in Secrets.");
+  console.error("🔧 Expected format: postgresql://user:password@host:port/database");
 } else {
   console.log("🔌 Attempting to connect to database...");
   const dbType = databaseUrl.includes('dpg-d3aj6n24d50c73dbk27g-a') ? 'Render PostgreSQL' :
@@ -29,18 +33,8 @@ if (!databaseUrl) {
     const urlPattern = /^postgresql:\/\/([^:]+):([^@]+)@(.+)$/;
     const match = databaseUrl.match(urlPattern);
 
-    if (match) {
-      const [, username, password, rest] = match;
-
-      // Check if password needs encoding (contains special characters and is not already encoded)
-      const needsEncoding = /[?@$#&%/:=]/.test(password) && !/%.{2}/.test(password);
-
-      if (needsEncoding) {
-        const encodedPassword = encodeURIComponent(password);
-        databaseUrl = `postgresql://${username}:${encodedPassword}@${rest}`;
-        console.log('🔧 Encoded special characters in password');
-      }
-    }
+    databaseUrl = formatDatabaseUrl(databaseUrl);
+    console.log('🔧 Database URL formatted and validated');
   } catch (err) {
     console.error('❌ Error processing database URL:', err);
   }

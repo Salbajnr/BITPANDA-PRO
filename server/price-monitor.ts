@@ -89,6 +89,7 @@ class PriceMonitorService {
       // Check if storage methods exist before calling
       if (typeof storage.getActivePriceAlerts !== 'function') {
         console.log('⚠️ Price alerts storage method not available, skipping alert checks');
+    return;
         return;
       }
 

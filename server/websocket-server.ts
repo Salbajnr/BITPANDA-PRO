@@ -18,7 +18,7 @@ class WebSocketManager {
 
   initialize(httpServer: Server) {
     if (this.isInitialized) {
-      console.log('⚠️ WebSocket manager already initialized');
+      console.warn("⚠️ WebSocket manager already initialized, skipping reinitialization");
       return;
     }
 

@@ -11,6 +11,8 @@ import { portfolioRoutes } from "./portfolio-routes";
 import { webSocketManager } from "./websocket-server";
 import { chatWebSocketManager } from "./chat-websocket";
 import { realTimePriceService } from "./real-time-price-service";
+import { pool } from "./db";
+import { validateEnvironment } from "./env-validator";
 import cryptoRoutes from "./crypto-routes";
 import tradingRoutes from "./trading-routes";
 import adminRoutes from "./admin-routes";
@@ -36,6 +38,11 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 
 const app = express();
+
+// Validate environment variables
+if (!validateEnvironment()) {
+  console.log('⚠️ Server starting with incomplete configuration...');
+}
 
 // Trust proxy for production deployments
 app.set('trust proxy', 1);
@@ -169,6 +176,25 @@ const httpServer = app.listen(PORT, HOST, () => {
 })();
 
 // Initialize database
+async function initializeDatabase() {
+  try {
+    // Test database connection
+    if (!pool) {
+      throw new Error("Database pool not available");
+    }
+    
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    
+    console.log("✅ Database connection verified");
+    return true;
+  } catch (error) {
+    console.error("❌ Database initialization error:", error);
+    throw error;
+  }
+}
+
 (async () => {
   try {
     await initializeDatabase();
