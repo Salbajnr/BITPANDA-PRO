@@ -1,4 +1,15 @@
-import dns from "dns";
+{
+  id: 'holdingId',
+  portfolioId: 'portfolioId',
+  assetType: 'metal', // or 'crypto'
+  symbol: '',
+  name: '',
+  amount: '0',
+  averagePurchasePrice: '0',
+  currentPrice: '0',
+  createdAt: new Date(),
+  updatedAt: new Date()
+}import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Prevent IPv6 networking issues on Render
 
 import "dotenv/config";
