@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --clear-screen=false server/index.ts",
+    "dev": "NODE_ENV=development tsx watch --clear-screen=false server/index.ts",
     "build": "tsc && vite build",
     "start": "NODE_ENV=production node dist/index.js",
     "serve": "vite preview",
