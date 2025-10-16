@@ -1,30 +1,5 @@
 {
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "vite-env.d.ts", "client/src/vite-env.d.ts", "client/src/react-app-env.d.ts"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "**/*.test.tsx", "tests/**/*", "**/*.spec.ts", "**/*.spec.tsx"],
-  "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
-    "noEmit": true,
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "strict": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsx",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
-    "baseUrl": ".",
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "paths": {
-      "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
-    }
-  }
+  "extends": "./server/tsconfig.json",
+  "include": ["server/**/*", "shared/**/*"],
+  "exclude": ["node_modules", "dist", "client"]
 }

@@ -1,4 +1,3 @@
-
 # Render Deployment Guide - Separate Static & Server
 
 This guide explains how to deploy BitpandaPro with the client as a static site and the server as a separate web service on Render.
@@ -32,8 +31,8 @@ This guide explains how to deploy BitpandaPro with the client as a static site a
 - **Region**: Choose closest to your users
 - **Branch**: `main` (or your default branch)
 - **Root Directory**: Leave empty (uses project root)
-- **Build Command**: `npm ci && npm run build:server`
-- **Start Command**: `npm start`
+- **Build Command**: `cd server && npm install && npm run build`
+- **Start Command**: `cd server && npm run start`
 - **Plan**: Free (or upgrade as needed)
 
 ### Step 2: Configure Environment Variables
@@ -82,7 +81,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - **Name**: `bitpandapro-client` (or your preferred name)
 - **Branch**: `main`
 - **Root Directory**: Leave empty
-- **Build Command**: `npm ci && npm run build:client`
+- **Build Command**: `cd client && npm install && npm run build`
 - **Publish Directory**: `dist/public`
 - **Pull Request Previews**: Enabled (optional)
 
