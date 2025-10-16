@@ -63,7 +63,9 @@ class DatabaseStorage {
   async getNewsArticleById(id: string) { return { id, title: '', description: '', category: '', coins: [], content: '', createdAt: new Date() }; }
   async updateNewsArticle(id: string, data: any) { return { id, ...data }; }
   async getNewsAnalytics() { return { total: 0, views: 0, shares: 0 }; }
-  async getHoldings(portfolioId: string) { return [{ id: 'holdingId', portfolioId, symbol: '', amount: '0', name: '', averagePurchasePrice: '0' }]; }
+  async getHoldings(portfolioId: string) {
+    return await db.select().from(schema.holdings).where(eq(schema.holdings.portfolioId, portfolioId));
+  }
   async getActivePriceAlerts() { return []; }
   async updatePriceAlert(id: string, data: any) { return { id, ...data }; }
   async createNotification(data: any) { return { id: 'notificationId', ...data }; }
@@ -119,7 +121,11 @@ class DatabaseStorage {
     // holdingId
     return { id: arg1 };
   }
-  async getUserTransactions(userId: string, limit?: number) { return []; }
+  async getUserTransactions(userId: string, limit?: number) {
+    return await db.select().from(schema.transactions)
+      .where(eq(schema.transactions.userId, userId))
+      .limit(limit || 100);
+  }
   // --- END STUBS ---
   public db = db;
   public schema = schema;
