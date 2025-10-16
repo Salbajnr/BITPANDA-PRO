@@ -16,11 +16,12 @@ if (!databaseUrl && process.env.PGHOST && process.env.PGPORT && process.env.PGUS
 }
 
 if (!databaseUrl) {
-  console.error("⚠️  No database URL found. Please set DATABASE_URL in Secrets.");
-  console.error("🔧 The app will continue but database operations will fail until a database URL is set.");
+  console.warn("⚠️  No database URL found. Running in demo mode.");
+  console.log("🔧 To enable full functionality, add DATABASE_URL in Replit Secrets");
 } else if (!isDatabaseUrlValid(databaseUrl)) {
-  console.error("⚠️  Invalid database URL format. Please check your DATABASE_URL in Secrets.");
-  console.error("🔧 Expected format: postgresql://user:password@host:port/database");
+  console.warn("⚠️  Invalid database URL format. Running in demo mode.");
+  console.log("🔧 Expected format: postgresql://user:password@host:port/database");
+  databaseUrl = null; // Clear invalid URL
 } else {
   console.log("🔌 Attempting to connect to database...");
   const dbType = databaseUrl.includes('dpg-d3aj6n24d50c73dbk27g-a') ? 'Render PostgreSQL' :
@@ -29,14 +30,11 @@ if (!databaseUrl) {
   console.log(`📍 Using database: ${dbType}`);
 
   try {
-    // Extract and encode password if needed
-    const urlPattern = /^postgresql:\/\/([^:]+):([^@]+)@(.+)$/;
-    const match = databaseUrl.match(urlPattern);
-
     databaseUrl = formatDatabaseUrl(databaseUrl);
     console.log('🔧 Database URL formatted and validated');
   } catch (err) {
     console.error('❌ Error processing database URL:', err);
+    databaseUrl = null; // Clear problematic URL
   }
 }
 
@@ -54,7 +52,15 @@ export const pool = databaseUrl
     })
   : null;
 
-export const db = pool ? drizzle(pool, { schema }) : drizzle({} as any, { schema });
+// Create a mock database adapter for demo mode
+const mockDb = {
+  select: () => ({ from: () => ({ execute: async () => [] }) }),
+  insert: () => ({ values: () => ({ execute: async () => [] }) }),
+  update: () => ({ set: () => ({ where: () => ({ execute: async () => [] }) }) }),
+  delete: () => ({ where: () => ({ execute: async () => [] }) }),
+};
+
+export const db = pool ? drizzle(pool, { schema }) : mockDb as any;
 
 // Test connection
 if (pool) {

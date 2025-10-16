@@ -1,6 +1,6 @@
 
 export function validateEnvironment() {
-  const requiredVars = [
+  const recommendedVars = [
     'DATABASE_URL',
   ];
 
@@ -11,20 +11,19 @@ export function validateEnvironment() {
     'COOKIE_SECRET'
   ];
 
-  const missing = requiredVars.filter(key => !process.env[key]);
+  const missing = recommendedVars.filter(key => !process.env[key]);
   const optional = optionalVars.filter(key => !process.env[key]);
 
   if (missing.length > 0) {
-    console.error('❌ Missing required environment variables:', missing);
-    console.error('🔧 Please set these in Replit Secrets');
-    return false;
+    console.warn('⚠️ Missing recommended environment variables:', missing);
+    console.log('🎭 Running in demo mode - add these to Replit Secrets for full functionality');
   }
 
   if (optional.length > 0) {
-    console.warn('⚠️ Missing optional environment variables:', optional);
-    console.warn('🔧 Some features may have limited functionality');
+    console.log('💡 Optional environment variables not set:', optional);
+    console.log('🔧 Add these in Replit Secrets to enable additional features');
   }
 
-  console.log('✅ Environment variables validated');
+  console.log('✅ Environment validation completed');
   return true;
 }

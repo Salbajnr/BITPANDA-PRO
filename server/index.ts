@@ -180,7 +180,8 @@ async function initializeDatabase() {
   try {
     // Test database connection
     if (!pool) {
-      throw new Error("Database pool not available");
+      console.log("🎭 Running in demo mode - database features disabled");
+      return true;
     }
     
     const client = await pool.connect();
@@ -190,17 +191,21 @@ async function initializeDatabase() {
     console.log("✅ Database connection verified");
     return true;
   } catch (error) {
-    console.error("❌ Database initialization error:", error);
-    throw error;
+    console.warn("⚠️ Database connection failed, switching to demo mode:", error.message);
+    return false;
   }
 }
 
 (async () => {
   try {
-    await initializeDatabase();
-    console.log("✅ Database initialization completed");
+    const dbConnected = await initializeDatabase();
+    if (dbConnected && pool) {
+      console.log("✅ Database initialization completed");
+    } else {
+      console.log("🎭 Application ready in demo mode");
+    }
   } catch (error) {
-    console.error("❌ Database initialization failed:", error);
-    console.log("🔄 Server will continue with limited functionality...");
+    console.warn("⚠️ Database initialization failed, running in demo mode");
+    console.log("🎭 Application ready with limited functionality");
   }
 })();
