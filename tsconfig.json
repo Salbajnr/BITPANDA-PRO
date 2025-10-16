@@ -14,7 +14,7 @@
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
-    "types": ["vite/client", "node", "react", "react-dom"],
+    "types": ["vite", "node", "react", "react-dom"],
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
