@@ -7,9 +7,18 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx watch --clear-screen=false server/index.ts",
     "build": "tsc && vite build",
+    "build:server": "tsc",
+    "build:client": "vite build",
     "start": "NODE_ENV=production node dist/index.js",
     "serve": "vite preview",
-    "db:push": "drizzle-kit push"
+    "deploy": "npm install && npm run build && npm run start",
+    "deploy:install": "npm install --production=false",
+    "deploy:build": "npm run build",
+    "deploy:start": "npm run start",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit push",
+    "postinstall": "npm run build:client",
+    "prepare": "npm run build:server"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

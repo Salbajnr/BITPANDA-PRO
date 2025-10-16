@@ -82,24 +82,65 @@ proof_uploads: deposit confirmation files
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
+- Node.js (v20 or higher)
 - PostgreSQL database
-- API keys for CoinGecko and Metals API services
+- API keys for CoinGecko and Metals API services (optional)
 
-### Installation
+### Development Setup
 1. Clone the repository
-2. Install dependencies: `npm install`
-3. Set up environment variables (see .env.example)
-4. Initialize database: `npm run db:migrate`
-5. Seed initial data: `npm run db:seed`
-6. Start development server: `npm run dev`
+   ```bash
+   git clone <repository-url>
+   cd bitpandapro
+   ```
 
-### Environment Variables
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database credentials and API keys
+   ```
+
+4. Initialize database
+   ```bash
+   npm run db:push
+   ```
+
+5. Start development server
+   ```bash
+   npm run dev
+   ```
+
+The app will be available at `http://localhost:5000`
+
+### Production Deployment
+
+For detailed deployment instructions to any platform (Render, Railway, DigitalOcean, AWS, etc.), see **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+
+#### Quick Deploy Commands
+
+```bash
+# Complete deployment (install → build → start)
+npm run deploy
+
+# Or step by step:
+npm run deploy:install  # Install dependencies
+npm run deploy:build    # Build application
+npm run deploy:start    # Start production server
+```
+
+#### Environment Variables
 See `.env.example` for all required environment variables. Key variables include:
-- `DATABASE_URL`: PostgreSQL connection string
-- `VITE_FIREBASE_*`: Firebase configuration
-- `COINGECKO_API_KEY`: CoinGecko API key
-- `SESSION_SECRET`: Session encryption key_URL=http://localhost:5000
+- `DATABASE_URL`: PostgreSQL connection string (required)
+- `NODE_ENV`: Set to 'production' for deployment
+- `PORT`: Server port (default: 5000)
+- `COOKIE_SECRET`: Session encryption key (generate random string)
+- `COINGECKO_API_KEY`: CoinGecko API key (optional)
+- `NEWS_API_KEY`: News API key (optional)
+- `METALS_API_KEY`: Metals API key (optional)
 ```
 
 ## 📁 Project Structure
