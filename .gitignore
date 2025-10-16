@@ -32,8 +32,27 @@ Thumbs.db
 *.sw?
 
 # --- UPLOADS / GENERATED ASSETS ---
+
 uploads/
 attached_assets/
+
+# --- REPLIT FILES ---
+.replit
+replit.md
+replit.nix
+
+# --- FIREBASE FILES ---
+.firebaserc
+firestore.indexes.json
+
+# --- COMPONENTS/TOOLING ---
+components.json
+
+# --- VITEST CONFIG ---
+vitest.config.ts
+
+# --- NPMRC ---
+.npmrc
 
 # --- REPLIT FILES ---
 .replit
