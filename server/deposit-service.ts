@@ -268,13 +268,13 @@ class DepositService {
       const allDeposits = await db.select().from(deposits);
 
       const totalDeposits = allDeposits.length;
-      const pendingDeposits = allDeposits.filter(d => d.status === 'pending').length;
-      const approvedDeposits = allDeposits.filter(d => d.status === 'approved').length;
-      const rejectedDeposits = allDeposits.filter(d => d.status === 'rejected').length;
+  const pendingDeposits = allDeposits.filter((d: { status: string }) => d.status === 'pending').length;
+  const approvedDeposits = allDeposits.filter((d: { status: string }) => d.status === 'approved').length;
+  const rejectedDeposits = allDeposits.filter((d: { status: string }) => d.status === 'rejected').length;
 
       const totalAmount = allDeposits
-        .filter(d => d.status === 'approved')
-        .reduce((sum, d) => sum + parseFloat(d.amount), 0);
+  .filter((d: { status: string }) => d.status === 'approved')
+  .reduce((sum: number, d: { amount: string }) => sum + parseFloat(d.amount), 0);
 
       return {
         totalDeposits,

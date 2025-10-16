@@ -1,38 +1,143 @@
-// Additional storage methods for complete CRUD operations
+// Consolidated storage helper methods for server
 
 import { db } from './db';
-import { eq } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
+import {
+  users,
+  watchlist,
+  investmentPlans,
+  savingsPlans,
+  newsArticles,
+  priceAlerts,
+  apiKeys,
+  transactions,
+} from '@shared/schema';
 
-// Watchlist methods
-export async function getWatchlistItem(id: string) {
-  const [item] = await db.select().from(watchlist).where(eq(watchlist.id, id));
+// ----- News -----
+export async function getNewsArticleById(id: string) {
+  const [article] = await db.select().from(newsArticles).where(eq(newsArticles.id, id)).limit(1);
+  return article || null;
+}
+
+export async function createNewsArticle(data: any) {
+  const [article] = await db.insert(newsArticles).values(data).returning();
+  return article;
+}
+
+export async function updateNewsArticle(id: string, data: any) {
+  const [article] = await db.update(newsArticles).set({ ...data, updatedAt: new Date() }).where(eq(newsArticles.id, id)).returning();
+  return article;
+}
+
+export async function deleteNewsArticle(id: string) {
+  await db.delete(newsArticles).where(eq(newsArticles.id, id));
+}
+
+export async function getNewsAnalytics() {
+  const all = await db.select().from(newsArticles);
+  return {
+    totalArticles: all.length,
+    publishedToday: 0,
+    totalViews: 0,
+    engagementRate: 0,
+  };
+}
+
+// ----- Alerts / Price Alerts -----
+export async function getUserAlerts(userId: string) {
+  return await db.select().from(priceAlerts).where(eq(priceAlerts.userId, userId)).orderBy(desc(priceAlerts.createdAt));
+}
+
+export async function createAlert(data: any) {
+  const [alert] = await db.insert(priceAlerts).values(data).returning();
+  return alert;
+}
+
+export async function getAlertById(id: string) {
+  const [alert] = await db.select().from(priceAlerts).where(eq(priceAlerts.id, id)).limit(1);
+  return alert || null;
+}
+
+export async function updateAlert(id: string, data: any) {
+  const [alert] = await db.update(priceAlerts).set({ ...data, updatedAt: new Date() }).where(eq(priceAlerts.id, id)).returning();
+  return alert;
+}
+
+export async function deleteAlert(id: string) {
+  await db.delete(priceAlerts).where(eq(priceAlerts.id, id));
+}
+
+export async function getActivePriceAlerts() {
+  return await db.select().from(priceAlerts).where(eq(priceAlerts.isActive, true)).orderBy(desc(priceAlerts.createdAt));
+}
+
+// ----- Watchlist -----
+export async function getUserWatchlist(userId: string) {
+  const [list] = await db.select().from(watchlist).where(eq(watchlist.userId, userId)).limit(1);
+  return list || null;
+}
+
+export async function addToWatchlist(data: any) {
+  const [item] = await db.insert(watchlist).values(data).returning();
   return item;
 }
 
-export async function updateWatchlistItem(id: string, data: any) {
-  const [updated] = await db.update(watchlist).set(data).where(eq(watchlist.id, id)).returning();
-  return updated;
+export async function getWatchlistItem(id: string) {
+  const [item] = await db.select().from(watchlist).where(eq(watchlist.id, id)).limit(1);
+  return item || null;
 }
 
-// Investment methods
+export async function updateWatchlistItem(id: string, data: any) {
+  const [item] = await db.update(watchlist).set({ ...data, updatedAt: new Date() }).where(eq(watchlist.id, id)).returning();
+  return item;
+}
+
+export async function removeFromWatchlist(id: string) {
+  await db.delete(watchlist).where(eq(watchlist.id, id));
+}
+
+// ----- API Keys -----
+export async function getUserApiKeys(userId: string) {
+  return await db.select().from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt));
+}
+
+export async function createApiKey(data: any) {
+  const [key] = await db.insert(apiKeys).values(data).returning();
+  return key;
+}
+
+export async function getApiKeyById(id: string) {
+  const [key] = await db.select().from(apiKeys).where(eq(apiKeys.id, id)).limit(1);
+  return key || null;
+}
+
+export async function updateApiKey(id: string, data: any) {
+  const [key] = await db.update(apiKeys).set({ ...data, updatedAt: new Date() }).where(eq(apiKeys.id, id)).returning();
+  return key;
+}
+
+export async function revokeApiKey(id: string) {
+  await db.update(apiKeys).set({ isActive: false, updatedAt: new Date() }).where(eq(apiKeys.id, id));
+}
+
+// ----- Investments / Savings -----
 export async function getInvestmentById(id: string) {
-  const [investment] = await db.select().from(investments).where(eq(investments.id, id));
-  return investment;
+  const [inv] = await db.select().from(investmentPlans).where(eq(investmentPlans.id, id)).limit(1);
+  return inv || null;
 }
 
 export async function updateInvestment(id: string, data: any) {
-  const [updated] = await db.update(investments).set(data).where(eq(investments.id, id)).returning();
+  const [updated] = await db.update(investmentPlans).set(data).where(eq(investmentPlans.id, id)).returning();
   return updated;
 }
 
 export async function deleteInvestment(id: string) {
-  await db.delete(investments).where(eq(investments.id, id));
+  await db.delete(investmentPlans).where(eq(investmentPlans.id, id));
 }
 
-// Savings plan methods
 export async function getSavingsPlanById(id: string) {
-  const [plan] = await db.select().from(savingsPlans).where(eq(savingsPlans.id, id));
-  return plan;
+  const [plan] = await db.select().from(savingsPlans).where(eq(savingsPlans.id, id)).limit(1);
+  return plan || null;
 }
 
 export async function updateSavingsPlan(id: string, data: any) {
@@ -44,221 +149,9 @@ export async function deleteSavingsPlan(id: string) {
   await db.delete(savingsPlans).where(eq(savingsPlans.id, id));
 }
 
-// News methods
-export async function getNewsArticleById(id: string) {
-  const [article] = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
-  return article;
-}
+// ----- Users -----
+export type User = any;
 
-
-import { db } from './db';
-import { 
-  newsArticles, 
-  priceAlerts, 
-  users,
-  watchlistItems,
-  apiKeys
-} from '@shared/schema';
-import { eq, desc, and } from 'drizzle-orm';
-
-// News Articles
-export async function createNewsArticle(data: any) {
-  const [article] = await db.insert(newsArticles).values(data).returning();
-  return article;
-}
-
-export async function updateNewsArticle(id: string, data: any) {
-  const [article] = await db
-    .update(newsArticles)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(newsArticles.id, id))
-    .returning();
-  return article;
-}
-
-export async function deleteNewsArticle(id: string) {
-  await db.delete(newsArticles).where(eq(newsArticles.id, id));
-}
-
-export async function getNewsAnalytics() {
-  const [total] = await db
-    .select({ count: db.sql`count(*)` })
-    .from(newsArticles);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const [todayCount] = await db
-    .select({ count: db.sql`count(*)` })
-    .from(newsArticles)
-    .where(db.sql`${newsArticles.createdAt} >= ${today}`);
-
-  return {
-    totalArticles: Number(total.count || 0),
-    publishedToday: Number(todayCount.count || 0),
-    totalViews: 0,
-    engagementRate: 0
-  };
-}
-
-// Alerts
-export async function getUserAlerts(userId: string) {
-  return await db
-    .select()
-    .from(priceAlerts)
-    .where(eq(priceAlerts.userId, userId))
-    .orderBy(desc(priceAlerts.createdAt));
-}
-
-export async function createAlert(data: any) {
-  const [alert] = await db.insert(priceAlerts).values(data).returning();
-  return alert;
-}
-
-export async function getAlertById(id: string) {
-  const [alert] = await db
-    .select()
-    .from(priceAlerts)
-    .where(eq(priceAlerts.id, id))
-    .limit(1);
-  return alert || null;
-}
-
-export async function getPriceAlert(id: string) {
-  const [alert] = await db
-    .select()
-    .from(priceAlerts)
-    .where(eq(priceAlerts.id, id))
-    .limit(1);
-  return alert || null;
-}
-
-export async function updateAlert(id: string, data: any) {
-  const [alert] = await db
-    .update(priceAlerts)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(priceAlerts.id, id))
-    .returning();
-  return alert;
-}
-
-export async function deleteAlert(id: string) {
-  await db.delete(priceAlerts).where(eq(priceAlerts.id, id));
-}
-
-export async function getActivePriceAlerts() {
-  return await db
-    .select()
-    .from(priceAlerts)
-    .where(eq(priceAlerts.isActive, true))
-    .orderBy(desc(priceAlerts.createdAt));
-}
-
-export async function updatePriceAlert(id: string, data: any) {
-  const [alert] = await db
-    .update(priceAlerts)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(priceAlerts.id, id))
-    .returning();
-  return alert;
-}
-
-// Watchlist
-export async function getUserWatchlist(userId: string) {
-  return await db
-    .select()
-    .from(watchlistItems)
-    .where(eq(watchlistItems.userId, userId))
-    .orderBy(desc(watchlistItems.createdAt));
-}
-
-export async function addToWatchlist(data: any) {
-  const [item] = await db.insert(watchlistItems).values(data).returning();
-  return item;
-}
-
-export async function getWatchlistItem(id: string) {
-  const [item] = await db
-    .select()
-    .from(watchlistItems)
-    .where(eq(watchlistItems.id, id))
-    .limit(1);
-  return item || null;
-}
-
-export async function updateWatchlistItem(id: string, data: any) {
-  const [item] = await db
-    .update(watchlistItems)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(watchlistItems.id, id))
-    .returning();
-  return item;
-}
-
-export async function removeFromWatchlist(id: string) {
-  await db.delete(watchlistItems).where(eq(watchlistItems.id, id));
-}
-
-// API Keys
-export async function getUserApiKeys(userId: string) {
-  return await db
-    .select()
-    .from(apiKeys)
-    .where(eq(apiKeys.userId, userId))
-    .orderBy(desc(apiKeys.createdAt));
-}
-
-export async function createApiKey(data: any) {
-  const [key] = await db.insert(apiKeys).values(data).returning();
-  return key;
-}
-
-export async function getApiKeyById(id: string) {
-  const [key] = await db
-    .select()
-    .from(apiKeys)
-    .where(eq(apiKeys.id, id))
-    .limit(1);
-  return key || null;
-}
-
-export async function updateApiKey(id: string, data: any) {
-  const [key] = await db
-    .update(apiKeys)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(apiKeys.id, id))
-    .returning();
-  return key;
-}
-
-export async function revokeApiKey(id: string) {
-  await db
-    .update(apiKeys)
-    .set({ isActive: false, updatedAt: new Date() })
-    .where(eq(apiKeys.id, id));
-}
-
-import { db } from './db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
-
-// Type definitions
-type User = {
-  id: string;
-  username: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  profileImageUrl?: string | null;
-  role: 'user' | 'admin';
-  isActive: boolean;
-  walletBalance: string;
-  createdAt?: Date | null;
-  updatedAt?: Date | null;
-};
-
-// User methods
 export async function getUserByEmail(email: string): Promise<User | undefined> {
   const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return result[0];
@@ -283,4 +176,9 @@ export async function deleteUser(id: string): Promise<void> {
   await db.delete(users).where(eq(users.id, id));
 }
 
-// Supabase-related methods removed
+// ----- Transactions helper (used by admin routes) -----
+export async function getAllTransactions({ page = 1, limit = 50, type }: { page?: number; limit?: number; type?: string }) {
+  const offset = (page - 1) * limit;
+  const all = await db.select().from(transactions).limit(limit).offset(offset);
+  return { transactions: all, total: all.length };
+}

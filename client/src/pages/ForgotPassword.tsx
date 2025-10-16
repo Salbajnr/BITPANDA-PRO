@@ -16,10 +16,7 @@ export default function ForgotPassword() {
 
   const forgotPasswordMutation = useMutation({
     mutationFn: (email: string) =>
-      apiRequest('/api/auth/forgot-password', { 
-        method: 'POST', 
-        body: { email } 
-      }),
+      apiRequest('POST', '/api/auth/forgot-password', { email }),
     onSuccess: () => {
       setIsSubmitted(true);
       toast({
@@ -30,8 +27,7 @@ export default function ForgotPassword() {
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
+        description: error.message || "Something went wrong. Please try again."
       });
     },
   });
@@ -41,8 +37,7 @@ export default function ForgotPassword() {
     if (!email.trim()) {
       toast({
         title: "Email required",
-        description: "Please enter your email address",
-        variant: "destructive",
+        description: "Please enter your email address"
       });
       return;
     }

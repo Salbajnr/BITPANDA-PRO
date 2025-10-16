@@ -172,7 +172,7 @@ const httpServer = app.listen(PORT, HOST, () => {
 
   // Start price monitoring
   priceMonitor.start();
-  realTimePriceService.startPriceUpdates();
+  (realTimePriceService as any).startPriceUpdates();
 })();
 
 // Initialize database
@@ -191,7 +191,11 @@ async function initializeDatabase() {
     console.log("✅ Database connection verified");
     return true;
   } catch (error) {
-    console.warn("⚠️ Database connection failed, switching to demo mode:", error.message);
+    if (error instanceof Error) {
+      console.warn("⚠️ Database connection failed, switching to demo mode:", error.message);
+    } else {
+      console.warn("⚠️ Database connection failed, switching to demo mode:", error);
+    }
     return false;
   }
 }
