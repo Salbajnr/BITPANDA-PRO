@@ -120,6 +120,16 @@ class DatabaseStorage {
     return { id: arg1 };
   }
   async getUserTransactions(userId: string, limit?: number) { return []; }
+  async getUserTransactionCount(userId: string) { return 0; }
+  async getUserDeposits(userId: string, limit?: number) { return []; }
+  async getAllDeposits() { return []; }
+  async reverseTransaction(transactionId: string, adminId: string, reason?: string) { 
+    return { id: transactionId, reversed: true, reason };
+  }
+  async getBalanceAdjustments(userId?: string, page?: number, limit?: number) { 
+    if (userId) return [];
+    return [];
+  }
   // --- END STUBS ---
   public db = db;
   public schema = schema;

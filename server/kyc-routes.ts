@@ -20,6 +20,20 @@ const requireAdmin = async (req: Request, res: Response, next: any) => {
   }
 };
 
+// Admin middleware
+const requireAdmin = async (req: Request, res: Response, next: any) => {
+  try {
+    const user = await storage.getUser(req.user!.id);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    next();
+  } catch (error) {
+    console.error('Admin check error:', error);
+    res.status(500).json({ message: 'Authorization failed' });
+  }
+};
+
 // KYC submission schema
 const kycSubmissionSchema = z.object({
   firstName: z.string().min(1),
@@ -268,3 +282,51 @@ router.get('/admin/statistics', requireAuth, requireAdmin, async (req: Request, 
 });
 
 export default router;
+
+
+
+// Admin: Get KYC statistics
+router.get('/admin/statistics', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const stats = await storage.getKycStatistics();
+    res.json(stats || {
+      total: 0,
+      pending: 0,
+      underReview: 0,
+      approved: 0,
+      rejected: 0
+    });
+  } catch (error) {
+    console.error('KYC statistics error:', error);
+    res.status(500).json({ message: 'Failed to fetch KYC statistics' });
+  }
+});
+
+// Admin: Bulk review KYC verifications
+router.post('/admin/verifications/bulk-review', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { ids, status, rejectionReason, notes } = req.body;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Invalid verification IDs' });
+    }
+
+    const results = await Promise.all(
+      ids.map(id => storage.updateKycVerification(id, {
+        status,
+        rejectionReason,
+        notes,
+        reviewedAt: new Date(),
+        reviewedBy: req.user!.id
+      }))
+    );
+
+    res.json({ 
+      message: 'Bulk review completed',
+      updated: results.length 
+    });
+  } catch (error) {
+    console.error('Bulk review error:', error);
+    res.status(500).json({ message: 'Failed to complete bulk review' });
+  }
+});

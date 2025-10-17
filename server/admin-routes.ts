@@ -238,7 +238,7 @@ router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: Reques
     const limit = parseInt(req.query.limit as string) || 50;
 
     let adjustments = await storage.getBalanceAdjustments(userId, page, limit);
-    
+
     // If storage method doesn't exist, return empty array
     if (!adjustments) {
       adjustments = [];
@@ -246,7 +246,7 @@ router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: Reques
 
     // Ensure it's always an array
     const adjustmentsArray = Array.isArray(adjustments) ? adjustments : [];
-    
+
     // Enrich with user data
     const enrichedAdjustments = await Promise.all(
       adjustmentsArray.map(async (adj: any) => {
@@ -259,7 +259,7 @@ router.get('/balance-adjustments', requireAuth, requireAdmin, async (req: Reques
         };
       })
     );
-    
+
     res.json({ adjustments: enrichedAdjustments });
   } catch (error) {
     console.error('Get adjustments error:', error);
@@ -529,7 +529,7 @@ router.get('/system-health', requireAuth, requireAdmin, async (req: Request, res
 router.get('/user-sessions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const timeframe = req.query.timeframe as string || '24h';
-    
+
     // Get actual user login history from database
     const users = await storage.getAllUsers();
     const sessions = users.filter(u => u.lastLogin).map(user => ({
@@ -1486,9 +1486,6 @@ router.get('/transactions/stats', requireAuth, requireAdmin, async (req: Request
     res.status(500).json({ message: 'Failed to fetch transaction statistics' });
   }
 });
-
-export default router;
-
 
 // User Activity Tracking
 router.get('/user-sessions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
