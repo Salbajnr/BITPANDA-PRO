@@ -1,44 +1,46 @@
-
 export async function adminApiRequest(
-  method: string,
-  endpoint: string,
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  path: string,
   data?: any
 ): Promise<any> {
-  // Use /admin prefix for auth endpoints, /api/admin for other endpoints
-  const isAuthEndpoint = endpoint.startsWith('/auth');
-  const url = isAuthEndpoint ? `/admin${endpoint}` : `/api/admin${endpoint}`;
-  
-  const config: RequestInit = {
+  const url = `${API_BASE_URL}${path}`;
+
+  const options: RequestInit = {
     method,
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
-    credentials: "include",
+    credentials: 'include',
   };
 
-  if (data && (method === "POST" || method === "PUT" || method === "PATCH")) {
-    config.body = JSON.stringify(data);
+  if (data && method !== 'GET') {
+    options.body = JSON.stringify(data);
   }
 
   try {
-    const response = await fetch(url, config);
+    const response = await fetch(url, options);
 
     if (response.status === 401 || response.status === 403) {
-      // Redirect to login on auth failure
       window.location.href = '/admin/login';
-      throw new Error('Authentication required');
+      throw new Error('Unauthorized');
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.message || `HTTP ${response.status}`);
     }
 
-    return response.json();
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Authentication required') {
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return response.json();
+    }
+
+    return response.text();
+  } catch (error: any) {
+    if (error.message === 'Unauthorized') {
       throw error;
     }
-    throw new Error('Network error or server unavailable');
+    console.error('Admin API request failed:', error);
+    throw new Error(error.message || 'Network request failed');
   }
 }

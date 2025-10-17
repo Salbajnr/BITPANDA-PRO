@@ -308,7 +308,12 @@ export default function AdminDashboard() {
   const usersList = (usersData as any)?.users || [];
   const totalUsers = (usersData as any)?.pagination?.total || 0;
   const transactions = (transactionsDataQuery as any)?.transactions || [];
-  const analyticsOverview = analyticsOverviewData || {};
+  const analyticsOverview = analyticsOverviewData || {
+    totalUsers: 0,
+    totalVolume: 0,
+    totalTransactions: 0,
+    totalDeposits: 0,
+  };
   const adjustments = (adjustmentsData as any)?.adjustments || [];
 
   if (authLoading) {

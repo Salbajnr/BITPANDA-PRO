@@ -152,8 +152,9 @@ app.use((req, res, next) => {
 registerRoutes(app);
 app.use('/api/crypto', cryptoRoutes);
 app.use('/api/trading', tradingRoutes);
+// Admin routes
 app.use('/api/admin', adminRoutes);
-app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/admin', adminAuthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/portfolio', portfolioRoutes);
@@ -182,11 +183,11 @@ async function initializeDatabase() {
       console.log("🎭 Running in demo mode - database features disabled");
       return true;
     }
-    
+
     const client = await pool.connect();
     await client.query('SELECT 1');
     client.release();
-    
+
     console.log("✅ Database connection verified");
     return true;
   } catch (error) {
