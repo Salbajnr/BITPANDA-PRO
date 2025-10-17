@@ -20,7 +20,7 @@ export default defineConfig({
     emptyOutDir: true
   },
   css: {
-    postcss: path.resolve(__dirname, "postcss.config.cjs"),
+    postcss: path.resolve(__dirname, "postcss.config.js"),
   },
   server: {
     host: "0.0.0.0",
