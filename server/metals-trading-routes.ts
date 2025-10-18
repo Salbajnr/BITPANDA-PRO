@@ -123,7 +123,7 @@ router.post('/buy', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error buying metal:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to complete metal purchase' });
   }
@@ -221,7 +221,7 @@ router.post('/sell', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error selling metal:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to complete metal sale' });
   }

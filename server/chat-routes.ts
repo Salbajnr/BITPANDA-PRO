@@ -70,7 +70,7 @@ router.post('/start', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error starting chat session:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to start chat session' });
   }
@@ -131,7 +131,7 @@ router.post('/message', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error sending message:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to send message' });
   }
@@ -157,7 +157,7 @@ router.post('/end', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error ending chat session:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to end chat session' });
   }

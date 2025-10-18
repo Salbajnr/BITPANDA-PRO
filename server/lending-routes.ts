@@ -218,7 +218,7 @@ router.post('/borrow', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error creating loan:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to create loan' });
   }

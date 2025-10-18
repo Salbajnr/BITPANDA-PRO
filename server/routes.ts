@@ -416,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("User registration error:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid input data", errors: error.issues });
       }
       res.status(500).json({ message: "User registration failed" });
     }

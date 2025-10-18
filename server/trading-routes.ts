@@ -398,7 +398,7 @@ router.post('/execute', requireAuth, async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
         message: "Invalid trade data", 
-        errors: error.errors.map(e => e.message)
+        errors: error.issues.map(e => e.message)
       });
     }
     

@@ -81,7 +81,6 @@ class DatabaseStorage {
   async getAllUsers() { return [{ id: 'userId', email: '', username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '' }]; }
   async createBalanceAdjustment(data: any) { return { id: 'adjustmentId', ...data }; }
   async logAdminAction(data: any) { return { id: 'logId', ...data }; }
-  async getBalanceAdjustments(userId: string) { return []; }
   async createNewsArticle(data: any) { return { id: 'newsId', ...data }; }
   async deleteNewsArticle(id: string) { return { id }; }
   async getNewsArticles(limit?: number) { return []; }
@@ -152,6 +151,10 @@ class DatabaseStorage {
     if (userId) return [];
     return [];
   }
+  // Missing methods needed by other modules
+  async getActiveUsers() { return []; }
+  async createSecurityLog(data: any) { return { id: 'securityLogId', ...data }; }
+  async getTransactionCount() { return 0; }
   // --- END STUBS ---
   public db = db;
   public schema = schema;

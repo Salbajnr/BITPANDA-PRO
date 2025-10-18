@@ -54,7 +54,7 @@ router.patch('/profile', requireAuth, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Update profile error:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to update profile' });
   }
@@ -96,7 +96,7 @@ router.post('/change-password', requireAuth, async (req: Request, res: Response)
   } catch (error) {
     console.error('Change password error:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid data', errors: error.errors });
+      return res.status(400).json({ message: 'Invalid data', errors: error.issues });
     }
     res.status(500).json({ message: 'Failed to change password' });
   }
