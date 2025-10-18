@@ -14,29 +14,40 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const savedTheme = (localStorage.getItem("theme") as Theme) || "light";
-    setTheme(savedTheme);
-    
-    // Apply theme immediately
-    document.documentElement.classList.remove("dark", "light");
-    document.documentElement.classList.add(savedTheme);
-    
-    // Set color-scheme for better browser integration
-    document.documentElement.style.colorScheme = savedTheme;
+    try {
+      setMounted(true);
+      const savedTheme = (localStorage.getItem("theme") as Theme) || "light";
+      setTheme(savedTheme);
+      
+      // Apply theme immediately
+      document.documentElement.classList.remove("dark", "light");
+      document.documentElement.classList.add(savedTheme);
+      
+      // Set color-scheme for better browser integration
+      document.documentElement.style.colorScheme = savedTheme;
+    } catch (error) {
+      console.error('ThemeProvider initialization error:', error);
+      // Fallback to light theme
+      setTheme("light");
+      setMounted(true);
+    }
   }, []);
 
   const toggleTheme = () => {
     if (!mounted) return;
     
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    
-    // Remove old theme and add new one
-    document.documentElement.classList.remove("dark", "light");
-    document.documentElement.classList.add(newTheme);
-    document.documentElement.style.colorScheme = newTheme;
+    try {
+      const newTheme = theme === "light" ? "dark" : "light";
+      setTheme(newTheme);
+      localStorage.setItem("theme", newTheme);
+      
+      // Remove old theme and add new one
+      document.documentElement.classList.remove("dark", "light");
+      document.documentElement.classList.add(newTheme);
+      document.documentElement.style.colorScheme = newTheme;
+    } catch (error) {
+      console.error('Theme toggle error:', error);
+    }
   };
 
   // Prevent hydration mismatch
