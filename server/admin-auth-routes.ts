@@ -50,14 +50,13 @@ router.post('/auth/login', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Admin login error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        message: 'Invalid login data', 
-        errors: error.issues 
-      });
+    console.error("Admin login error:", error);
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: "Invalid input data", errors: formatted });
     }
-    res.status(500).json({ message: 'Login failed' });
+    return res.status(500).json({ message: "Login failed", error: formatted });
   }
 });
 

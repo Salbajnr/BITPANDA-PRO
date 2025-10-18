@@ -1,5 +1,5 @@
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { cryptoService } from './crypto-service';
 import { z } from 'zod';
 
@@ -22,11 +22,11 @@ router.get('/price/:symbol', async (req, res) => {
   try {
     const { symbol } = req.params;
     const price = await cryptoService.getPrice(symbol);
-    
+
     if (!price) {
       return res.status(404).json({ message: 'Cryptocurrency not found' });
     }
-    
+
     res.json(price);
   } catch (error) {
     console.error(`Error fetching price for ${req.params.symbol}:`, error);
@@ -38,14 +38,14 @@ router.get('/price/:symbol', async (req, res) => {
 router.post('/prices', async (req, res) => {
   try {
     const { symbols } = req.body;
-    
+
     if (!Array.isArray(symbols)) {
       return res.status(400).json({ message: 'Symbols must be an array' });
     }
-    
+
     const prices = await cryptoService.getPrices(symbols);
     const pricesMap: Record<string, any> = {};
-    
+
     prices.forEach(price => {
       if (price) {
         pricesMap[price.symbol.toLowerCase()] = {
@@ -58,7 +58,7 @@ router.post('/prices', async (req, res) => {
         };
       }
     });
-    
+
     res.json(pricesMap);
   } catch (error) {
     console.error('Error fetching multiple prices:', error);
@@ -70,14 +70,14 @@ router.post('/prices', async (req, res) => {
 router.get('/details/:coinId', async (req, res) => {
   try {
     const { coinId } = req.params;
-    
+
     // For now, return basic details from price data
     const price = await cryptoService.getPrice(coinId);
-    
+
     if (!price) {
       return res.status(404).json({ message: 'Cryptocurrency not found' });
     }
-    
+
     const details = {
       id: coinId.toLowerCase(),
       symbol: price.symbol,
@@ -96,7 +96,7 @@ router.get('/details/:coinId', async (req, res) => {
         blockchain_site: ['#']
       }
     };
-    
+
     res.json(details);
   } catch (error) {
     console.error(`Error fetching details for ${req.params.coinId}:`, error);
@@ -109,10 +109,10 @@ router.get('/market-data', async (req, res) => {
   try {
     // Get top cryptos to calculate market stats
     const topCryptos = await cryptoService.getMarketData(undefined, 100);
-    
+
     const totalMarketCap = topCryptos.reduce((sum, crypto) => sum + (crypto.market_cap || 0), 0);
     const totalVolume = topCryptos.reduce((sum, crypto) => sum + (crypto.total_volume || 0), 0);
-    
+
     const marketData = {
       total_market_cap: { usd: totalMarketCap },
       total_volume: { usd: totalVolume },
@@ -122,7 +122,7 @@ router.get('/market-data', async (req, res) => {
       },
       market_cap_change_percentage_24h_usd: 2.34 // Mock value
     };
-    
+
     res.json(marketData);
   } catch (error) {
     console.error('Error fetching market data:', error);
@@ -134,16 +134,16 @@ router.get('/market-data', async (req, res) => {
 router.get('/search', async (req, res) => {
   try {
     const { query } = req.query;
-    
+
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ message: 'Query parameter is required' });
     }
-    
+
     // Get all cryptos and filter by query
     const allCryptos = await cryptoService.getMarketData(undefined, 100);
-    
+
     const searchResults = allCryptos
-      .filter(crypto => 
+      .filter(crypto =>
         crypto.name.toLowerCase().includes(query.toLowerCase()) ||
         crypto.symbol.toLowerCase().includes(query.toLowerCase())
       )
@@ -155,7 +155,7 @@ router.get('/search', async (req, res) => {
         market_cap_rank: crypto.market_cap_rank,
         thumb: crypto.image || `https://assets.coingecko.com/coins/images/1/thumb/${crypto.symbol.toLowerCase()}.png`
       }));
-    
+
     res.json(searchResults);
   } catch (error) {
     console.error('Error searching cryptocurrencies:', error);
@@ -168,7 +168,7 @@ router.get('/history/:coinId', async (req, res) => {
   try {
     const { coinId } = req.params;
     const { period = '24h' } = req.query;
-    
+
     const history = await cryptoService.getPriceHistory(coinId, period as string);
     res.json(history);
   } catch (error) {
@@ -188,7 +188,7 @@ router.get('/trending', async (req, res) => {
   }
 });
 
-export default router;
+// (exported at bottom)
 
 
 
@@ -196,16 +196,16 @@ export default router;
 router.get('/global', async (req: Request, res: Response) => {
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/global');
-    
+
     if (!response.ok) {
       throw new Error(`CoinGecko API error: ${response.status}`);
     }
-    
-    const data = await response.json();
+
+    const data: any = await response.json();
     res.json(data.data);
   } catch (error) {
     console.error('Error fetching global market data:', error);
-    
+
     // Return fallback data
     res.json({
       total_market_cap: { usd: 2800000000000 },
@@ -224,16 +224,16 @@ router.get('/global', async (req: Request, res: Response) => {
 router.get('/trending', async (req: Request, res: Response) => {
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/search/trending');
-    
+
     if (!response.ok) {
       throw new Error(`CoinGecko API error: ${response.status}`);
     }
-    
-    const data = await response.json();
+
+    const data: any = await response.json();
     res.json(data);
   } catch (error) {
     console.error('Error fetching trending data:', error);
-    
+
     // Return fallback trending data
     res.json({
       coins: [
@@ -249,7 +249,7 @@ router.get('/trending', async (req: Request, res: Response) => {
         {
           item: {
             id: 'ethereum',
-            name: 'Ethereum', 
+            name: 'Ethereum',
             symbol: 'eth',
             market_cap_rank: 2,
             small: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
@@ -266,16 +266,16 @@ router.get('/trending', async (req: Request, res: Response) => {
 router.get('/asset/:symbol', async (req: Request, res: Response) => {
   try {
     const { symbol } = req.params;
-    const coinId = cryptoService.CRYPTO_IDS[symbol.toUpperCase()] || symbol.toLowerCase();
-    
+    const coinId = (cryptoService as any).CRYPTO_IDS_PUBLIC?.[symbol.toUpperCase()] || symbol.toLowerCase();
+
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}`);
-    
+
     if (!response.ok) {
       throw new Error(`CoinGecko API error: ${response.status}`);
     }
-    
-    const data = await response.json();
-    
+
+    const data: any = await response.json();
+
     const assetData = {
       id: data.id,
       symbol: data.symbol.toUpperCase(),
@@ -296,7 +296,7 @@ router.get('/asset/:symbol', async (req: Request, res: Response) => {
       description: data.description?.en || '',
       image: data.image?.large || '',
     };
-    
+
     res.json(assetData);
   } catch (error) {
     console.error('Error fetching asset details:', error);
@@ -309,7 +309,7 @@ router.get('/price-history/:symbol', async (req: Request, res: Response) => {
   try {
     const { symbol } = req.params;
     const { period = '24h' } = req.query;
-    
+
     const priceHistory = await cryptoService.getPriceHistory(symbol, period as string);
     res.json(priceHistory);
   } catch (error) {
@@ -324,28 +324,30 @@ router.get('/price-history/:symbol', async (req: Request, res: Response) => {
 router.get('/top-movers', async (req: Request, res: Response) => {
   try {
     const marketData = await cryptoService.getMarketData(undefined, 100);
-    
+
     // Sort by 24h change and get top gainers and losers
-    const sortedByChange = marketData.sort((a, b) => 
+    const sortedByChange = marketData.sort((a, b) =>
       Math.abs(b.price_change_percentage_24h) - Math.abs(a.price_change_percentage_24h)
     );
-    
+
     const topMovers = sortedByChange.slice(0, 10).map((crypto: any, index: number) => ({
       id: (index + 1).toString(),
       symbol: crypto.symbol,
       name: crypto.name,
       change: crypto.price_change_percentage_24h,
       price: `€${crypto.current_price.toLocaleString()}`,
-      icon: crypto.symbol === 'BTC' ? '₿' : 
-            crypto.symbol === 'ETH' ? 'Ξ' :
-            crypto.symbol === 'SOL' ? '◎' :
+      icon: crypto.symbol === 'BTC' ? '₿' :
+        crypto.symbol === 'ETH' ? 'Ξ' :
+          crypto.symbol === 'SOL' ? '◎' :
             crypto.symbol === 'ADA' ? '₳' :
-            crypto.symbol === 'DOT' ? '●' : '🔄'
+              crypto.symbol === 'DOT' ? '●' : '🔄'
     }));
-    
+
     res.json(topMovers);
   } catch (error) {
     console.error('Error fetching top movers:', error);
     res.status(500).json({ error: 'Failed to fetch top movers' });
   }
 });
+
+export default router;

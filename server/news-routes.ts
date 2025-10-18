@@ -96,14 +96,14 @@ router.get('/', async (req, res) => {
       const dbNews = await storage.getNewsArticles(limit);
       if (dbNews && dbNews.length > 0) {
         let filteredNews = dbNews;
-        
+
         if (category && category !== 'all') {
-          filteredNews = dbNews.filter(article => 
-            article.category === category || 
+          filteredNews = dbNews.filter(article =>
+            article.category === category ||
             (article.coins && article.coins.includes(category))
           );
         }
-        
+
         return res.json(filteredNews.slice(0, limit));
       }
     } catch (dbError) {
@@ -114,7 +114,7 @@ router.get('/', async (req, res) => {
     try {
       const trendingResponse = await fetch('https://api.coingecko.com/api/v3/search/trending');
       if (trendingResponse.ok) {
-        const trendingData = await trendingResponse.json();
+        const trendingData: any = await trendingResponse.json();
         const trendingNews = trendingData.coins?.slice(0, limit).map((coin: any) => ({
           id: coin.item.id,
           title: `${coin.item.name} (${coin.item.symbol}) - Trending #${coin.item.market_cap_rank || 'N/A'}`,
@@ -130,7 +130,7 @@ router.get('/', async (req, res) => {
           sentiment: 'positive',
           coins: [coin.item.symbol.toLowerCase()]
         }));
-        
+
         if (trendingNews.length > 0) {
           return res.json(trendingNews);
         }
@@ -141,10 +141,10 @@ router.get('/', async (req, res) => {
 
     // Use fallback news data
     let articles = [...fallbackNews];
-    
+
     if (category && category !== 'all') {
-      articles = articles.filter(article => 
-        article.category === category || 
+      articles = articles.filter(article =>
+        article.category === category ||
         (article.coins && article.coins.includes(category))
       );
     }
@@ -237,10 +237,10 @@ router.get('/search', async (req, res) => {
     });
   } catch (error) {
     console.error('Error searching news:', error);
-    res.status(500).json({ 
-      articles: [], 
-      totalResults: 0, 
-      status: 'error' 
+    res.status(500).json({
+      articles: [],
+      totalResults: 0,
+      status: 'error'
     });
   }
 });
@@ -259,7 +259,7 @@ router.get('/categories', (req, res) => {
       'blockchain',
       'market-analysis'
     ];
-    
+
     res.json(categories);
   } catch (error) {
     console.error('Error fetching news categories:', error);
@@ -327,7 +327,7 @@ router.get('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const article = await storage.getNewsArticleById(id);
-    
+
     if (!article) {
       return res.status(404).json({ message: 'News article not found' });
     }

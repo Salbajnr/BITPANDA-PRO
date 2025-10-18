@@ -76,6 +76,11 @@ class CryptoService {
     'ZEC': 'zcash'
   };
 
+  // Expose mapping for external use
+  public get CRYPTO_IDS_PUBLIC() {
+    return this.CRYPTO_IDS;
+  }
+
   private isValidCacheEntry(entry: { data: any; timestamp: number }): boolean {
     return Date.now() - entry.timestamp < this.cacheTimeout;
   }
@@ -249,7 +254,7 @@ class CryptoService {
         return this.getFallbackPrice(symbol);
       }
 
-      const data: CoinGeckoResponse = await response.json();
+      const data: any = await response.json();
       const priceData = data[coinId];
 
       if (!priceData) {
@@ -323,8 +328,9 @@ class CryptoService {
       }
 
       const data = await response.json();
-      if (data.prices && Array.isArray(data.prices)) {
-        const formattedData = data.prices.map(([timestamp, price]: [number, number]) => ({
+      const maybeData: any = data;
+      if (maybeData.prices && Array.isArray(maybeData.prices)) {
+        const formattedData = maybeData.prices.map(([timestamp, price]: [number, number]) => ({
           timestamp: new Date(timestamp).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
@@ -369,12 +375,12 @@ class CryptoService {
             market_cap_rank: coin.market_cap_rank,
             small: coin.image
           }));
-        
+
         if (topGainers.length > 0) {
           this.cache.set(cacheKey, { data: topGainers, timestamp: Date.now() });
           return topGainers;
         }
-        
+
         return this.getFallbackTrendingData();
       }
 
@@ -383,8 +389,9 @@ class CryptoService {
       }
 
       const data = await response.json();
-      if (data.coins && Array.isArray(data.coins)) {
-        const trending = data.coins.map((coin: any) => ({
+      const maybeTrending: any = data;
+      if (maybeTrending.coins && Array.isArray(maybeTrending.coins)) {
+        const trending = maybeTrending.coins.map((coin: any) => ({
           id: coin.item.id,
           symbol: coin.item.symbol,
           name: coin.item.name,

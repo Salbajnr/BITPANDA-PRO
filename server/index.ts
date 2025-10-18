@@ -5,6 +5,7 @@ dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 import express from "express";
 import cookieParser from "cookie-parser";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
@@ -18,6 +19,7 @@ import { liveAnalyticsService } from "./live-analytics-service";
 import { validateEnvironment } from "./env-validator";
 import { pool } from "./db";
 
+// ESM __dirname shim
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -155,18 +157,37 @@ app.use("/api/*", (req, res) => {
   res.status(404).json({ message: "API endpoint not found" });
 });
 
-// === SPA FALLBACK (Production) ===
-if (process.env.NODE_ENV === "production") {
-  app.get("*", (req, res) => {
-    const indexPath = path.resolve(__dirname, "..", "dist", "public", "index.html");
-    res.sendFile(indexPath);
-  });
-}
+// Catch-all handler: send back React app for any non-API routes
+app.get('*', (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+
+  // In development, let Vite handle it
+  if (process.env.NODE_ENV !== 'production') {
+    return next();
+  }
+
+  // In production, serve the React app
+  const prodIndex = path.resolve(__dirname, '..', 'dist', 'public', 'index.html');
+  if (fs.existsSync(prodIndex)) {
+    return res.sendFile(prodIndex);
+  }
+
+  // Fallback to previous path for older setups
+  const legacyIndex = path.resolve(__dirname, '..', 'client', 'dist', 'index.html');
+  if (fs.existsSync(legacyIndex)) {
+    return res.sendFile(legacyIndex);
+  }
+
+  res.status(404).send('Client build not found. Make sure the client is built to ../dist/public');
+});
 
 // === SERVER START ===
 // In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3001)
-const PORT = process.env.NODE_ENV === "production" 
-  ? Number(process.env.PORT) || 5000 
+const PORT = process.env.NODE_ENV === "production"
+  ? Number(process.env.PORT) || 5000
   : Number(process.env.BACKEND_PORT) || 3001;
 const HOST = process.env.HOST || "0.0.0.0";
 

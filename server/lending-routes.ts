@@ -96,7 +96,7 @@ router.get('/positions', requireAuth, async (req, res) => {
 router.post('/lend', requireAuth, async (req, res) => {
   try {
     const { assetSymbol, amount } = req.body;
-    
+
     // Validate lending pool
     const pool = lendingPools.find(p => p.symbol === assetSymbol);
     if (!pool) {
@@ -105,8 +105,8 @@ router.post('/lend', requireAuth, async (req, res) => {
 
     // Validate amount
     if (amount < pool.minAmount || amount > pool.maxAmount) {
-      return res.status(400).json({ 
-        message: `Amount must be between ${pool.minAmount} and ${pool.maxAmount} ${pool.symbol}` 
+      return res.status(400).json({
+        message: `Amount must be between ${pool.minAmount} and ${pool.maxAmount} ${pool.symbol}`
       });
     }
 
@@ -148,7 +148,7 @@ router.post('/lend', requireAuth, async (req, res) => {
 router.post('/borrow', requireAuth, async (req, res) => {
   try {
     const loanData = createLoanSchema.parse(req.body);
-    
+
     // Validate collateral ratio
     const requiredRatio = collateralRatios[loanData.collateralSymbol as keyof typeof collateralRatios];
     if (!requiredRatio) {
@@ -161,8 +161,8 @@ router.post('/borrow', requireAuth, async (req, res) => {
     const actualRatio = (collateralValue / loanValue) * 100;
 
     if (actualRatio < requiredRatio) {
-      return res.status(400).json({ 
-        message: `Insufficient collateral. Required: ${requiredRatio}%, Provided: ${actualRatio.toFixed(2)}%` 
+      return res.status(400).json({
+        message: `Insufficient collateral. Required: ${requiredRatio}%, Provided: ${actualRatio.toFixed(2)}%`
       });
     }
 
@@ -217,8 +217,10 @@ router.post('/borrow', requireAuth, async (req, res) => {
     res.json(loan);
   } catch (error) {
     console.error('Error creating loan:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid input data', errors: formatted });
     }
     res.status(500).json({ message: 'Failed to create loan' });
   }
@@ -239,7 +241,7 @@ router.get('/loans', requireAuth, async (req, res) => {
 router.post('/repay/:loanId', requireAuth, async (req, res) => {
   try {
     const { amount } = req.body;
-    
+
     const loan = await storage.getLoan(req.params.loanId, req.user!.id);
     if (!loan) {
       return res.status(404).json({ message: 'Loan not found' });
@@ -254,8 +256,8 @@ router.post('/repay/:loanId', requireAuth, async (req, res) => {
     const totalOwed = parseFloat(loan.amount) + interest;
 
     if (amount < totalOwed) {
-      return res.status(400).json({ 
-        message: `Insufficient repayment. Total owed: ${totalOwed.toFixed(6)} ${loan.assetSymbol}` 
+      return res.status(400).json({
+        message: `Insufficient repayment. Total owed: ${totalOwed.toFixed(6)} ${loan.assetSymbol}`
       });
     }
 
@@ -290,7 +292,7 @@ router.post('/repay/:loanId', requireAuth, async (req, res) => {
       });
     }
 
-    res.json({ 
+    res.json({
       message: 'Loan repaid successfully',
       principal: loan.amount,
       interest: interest,
@@ -316,7 +318,7 @@ router.post('/withdraw/:positionId', requireAuth, async (req, res) => {
 
     // Calculate earned interest
     const interest = await calculateLendingInterest(position);
-    
+
     // Update position
     await storage.updateLendingPosition(req.params.positionId, {
       status: 'completed',
@@ -336,7 +338,7 @@ router.post('/withdraw/:positionId', requireAuth, async (req, res) => {
       }
     }
 
-    res.json({ 
+    res.json({
       message: 'Successfully withdrawn from lending position',
       principal: position.amount,
       interest: interest,
@@ -380,10 +382,10 @@ async function calculateLoanInterest(loan: any): Promise<number> {
   const startDate = new Date(loan.startDate);
   const now = new Date();
   const daysElapsed = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   const annualRate = parseFloat(loan.interestRate) / 100;
   const dailyRate = annualRate / 365;
-  
+
   const interest = parseFloat(loan.amount) * dailyRate * daysElapsed;
   return Math.max(0, interest);
 }
@@ -392,10 +394,10 @@ async function calculateLendingInterest(position: any): Promise<number> {
   const startDate = new Date(position.startDate);
   const now = new Date();
   const daysElapsed = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   const annualRate = parseFloat(position.apy.replace('%', '')) / 100;
   const dailyRate = annualRate / 365;
-  
+
   const interest = parseFloat(position.amount) * dailyRate * daysElapsed;
   return Math.max(0, interest);
 }
