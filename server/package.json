@@ -4,10 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=production tsx watch --clear-screen=false --ignore '../node_modules/**' --ignore '../client/**' index.ts",
-    "build": "echo Skipping TypeScript compilation for production build && node -e \"const fs=require('fs');const path=require('path');if(!fs.existsSync('../dist'))fs.mkdirSync('../dist',{recursive:true});console.log('Build directory created');\"",
+    "dev": "cross-env NODE_ENV=development tsx watch --clear-screen=false --ignore '../node_modules/**' --ignore '../client/**' index.ts",
     "build": "tsc",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "cross-env NODE_ENV=production node dist/index.js",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit push"
   },
@@ -26,7 +25,7 @@
     "nanoid": "^5.1.6",
     "pg": "^8.16.3",
     "tsx": "^4.20.6",
-    "vite": "^7.1.10"
+    "vite": "^7.1.10",
     "ws": "^8.18.3",
     "zod": "^4.1.12",
     "cross-env": "^7.0.3"
