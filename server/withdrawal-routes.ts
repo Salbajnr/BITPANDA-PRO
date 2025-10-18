@@ -313,7 +313,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 
     // Update withdrawal status
-    await storage.updateWithdrawalStatus(id, 'cancelled', 'Cancelled by user');
+    await storage.updateWithdrawalStatus(id, 'rejected', 'Cancelled by user');
 
     res.json({ 
       message: 'Withdrawal cancelled successfully and funds returned to your account',

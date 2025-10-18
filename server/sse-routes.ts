@@ -5,7 +5,7 @@ const router = Router();
 
 // Store active SSE connections
 declare global {
-  var sseClients: Map<string, express.Response> | undefined;
+  var sseClients: Map<string, Response> | undefined;
 }
 
 global.sseClients = global.sseClients || new Map();
