@@ -4,8 +4,6 @@ dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 
 import express from "express";
 import cookieParser from "cookie-parser";
-import path from "path";
-import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
 import { portfolioRoutes } from "./portfolio-routes";
