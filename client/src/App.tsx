@@ -148,7 +148,7 @@ function Routes() {
   return (
     <Switch>
       {/* Public Routes */}
-      <Route path="/" component={() => <PublicLayout><Landing /></PublicLayout>} />
+      <Route path="/" exact component={() => <PublicLayout><Landing /></PublicLayout>} />
       <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
       <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
       <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />

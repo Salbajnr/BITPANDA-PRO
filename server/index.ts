@@ -201,7 +201,21 @@ app.use('/api/upload', uploadRoutes);
 registerProofUploadRoutes(app);
 app.use('/api/sse', sseRoutes);
 
-
+// Catch-all handler: send back React app for any non-API routes
+app.get('*', (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  
+  // In development, let Vite handle it
+  if (process.env.NODE_ENV !== 'production') {
+    return next();
+  }
+  
+  // In production, serve the React app
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
 
 // Initialize database
 async function initializeDatabase() {
