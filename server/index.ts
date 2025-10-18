@@ -71,6 +71,7 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     "http://localhost:5000",
     "http://127.0.0.1:5000",
+    "https://bitpanda-pro-frontnd.onrender.com",
     "https://*.onrender.com",
     "https://*.replit.app",
     "https://*.replit.dev",
