@@ -77,8 +77,8 @@ class DatabaseStorage {
   async createPortfolio(data: any) { return { id: 'portfolioId', ...data, availableCash: '0' }; }
   async getUserByEmail(email: string) { return { id: 'userId', email, username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
   async getUserByUsername(username: string) { return { id: 'userId', email: '', username, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
-  async createUser(data: any) { return { id: 'userId', ...data, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
-  async getAllUsers() { return [{ id: 'userId', email: '', username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '' }]; }
+  async createUser(data: any) { return { id: 'userId', ...data, password: '', role: 'user', isActive: true, firstName: '', lastName: '', createdAt: new Date(), lastLogin: new Date() }; }
+  async getAllUsers() { return [{ id: 'userId', email: '', username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '', createdAt: new Date(), lastLogin: new Date() }]; }
   async createBalanceAdjustment(data: any) { return { id: 'adjustmentId', ...data }; }
   async logAdminAction(data: any) { return { id: 'logId', ...data }; }
   async createNewsArticle(data: any) { return { id: 'newsId', ...data }; }
@@ -89,7 +89,7 @@ class DatabaseStorage {
   async deleteSavingsPlan(planId: string) { return { id: planId }; }
   // --- MISSING METHODS (STUBS, TODO: IMPLEMENT) ---
   async getUser(userId: string) { 
-    if (!db) return { id: userId, password: '', role: 'user', email: '', username: '', isActive: true };
+    if (!db) return { id: userId, password: '', role: 'user', email: '', username: '', isActive: true, firstName: '', lastName: '' };
     const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
     return user || null;
   }
@@ -155,6 +155,32 @@ class DatabaseStorage {
   async getActiveUsers() { return []; }
   async createSecurityLog(data: any) { return { id: 'securityLogId', ...data }; }
   async getTransactionCount() { return 0; }
+  async getActiveSessions() { return []; }
+  async invalidateUserSessions(userId: string) { return true; }
+  async invalidateAllSessions() { return true; }
+  async getSystemConfig() { return {}; }
+  async updateSystemConfig(config: any) { return config; }
+  async updateTransaction(txId: string, data: any) { return { id: txId, ...data }; }
+  async getAuditLogs(filter?: any) { return []; }
+  async getApiKeyById(id: string) { return { id, userId: '', key: '', status: 'active' }; }
+  async revokeApiKey(id: string) { return { id, status: 'revoked' }; }
+  async createApiKey(data: any) { return { id: 'apiKeyId', ...data }; }
+  async getUserApiKeys(userId: string) { return []; }
+  async deleteApiKey(id: string) { return true; }
+  async getApiUsage(apiKeyId: string) { return { requests: 0, lastUsed: new Date() }; }
+  async updateApiKey(id: string, data: any) { return { id, ...data }; }
+  async getApiKeyUsageStats(id: string) { return { total: 0, daily: 0, monthly: 0 }; }
+  async getApiKeyByHash(hash: string) { return { id: 'keyId', userId: '', hash, status: 'active' }; }
+  async updateApiKeyLastUsed(id: string) { return true; }
+  async getActiveChatSession(userId: string) { return null; }
+  async createChatSession(data: any) { return { id: 'sessionId', ...data }; }
+  async notifyAdminsNewChatSession(sessionId: string) { return true; }
+  async getChatSession(id: string) { return { id, userId: '', status: 'active' }; }
+  async getChatMessages(sessionId: string) { return []; }
+  async createChatMessage(data: any) { return { id: 'msgId', ...data }; }
+  async updateChatSessionStatus(id: string, status: string) { return { id, status }; }
+  async endChatSession(id: string) { return { id, status: 'closed' }; }
+  async rateChatSession(id: string, rating: number, feedback?: string) { return { id, rating, feedback }; }
   // --- END STUBS ---
   public db = db;
   public schema = schema;
