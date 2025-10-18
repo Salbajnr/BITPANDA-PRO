@@ -9,7 +9,7 @@ if (!process.env.DATABASE_URL) {
 
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import * as schema from "../shared/schema"; // adjust path if needed
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -90,7 +90,28 @@ class DatabaseStorage {
   async getUserSavingsPlans(userId: string) { return [{ id: 'planId', userId, status: 'active', totalSaved: '0' }]; }
   async deleteSavingsPlan(planId: string) { return { id: planId }; }
   // --- MISSING METHODS (STUBS, TODO: IMPLEMENT) ---
-  async getUser(userId: string) { return { id: userId, password: '', role: 'user' }; }
+  async getUser(userId: string) { 
+    if (!db) return { id: userId, password: '', role: 'user', email: '', username: '', isActive: true };
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+    return user || null;
+  }
+  async getUserByEmailOrUsername(emailOrUsername: string) {
+    if (!db) return null;
+    const [user] = await db.select().from(schema.users)
+      .where(
+        (emailOrUsername.includes('@')) 
+          ? eq(schema.users.email, emailOrUsername)
+          : eq(schema.users.username, emailOrUsername)
+      ).limit(1);
+    return user || null;
+  }
+  async verifyPassword(userId: string, password: string) {
+    if (!db) return false;
+    const user = await this.getUser(userId);
+    if (!user) return false;
+    // In production, use bcrypt.compare(password, user.password)
+    return user.password === password; // Temporary stub
+  }
   async getSavingsPlanById(planId: string) { return { id: planId, status: 'active' }; }
   async updateSavingsPlan(planId: string, data: any) { return { id: planId, ...data }; }
   async updateUser(userId: string, data: any) { return { id: userId, ...data }; }
