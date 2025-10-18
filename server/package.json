@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "npx -p typescript tsc --noEmitOnError false || true",
-    "build:transpile": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --transpile-only --project tsconfig.server.json src/index.ts",
-    "start": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --transpile-only --project tsconfig.server.json src/index.ts",
-    "dev": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --project tsconfig.server.json src/index.ts",
+    "build:transpile": "NODE_OPTIONS='--max-old-space-size=4096' npx tsx --transpile-only index.ts",
+    "start": "NODE_OPTIONS='--max-old-space-size=4096' npx tsx index.ts",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' npx tsx index.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
