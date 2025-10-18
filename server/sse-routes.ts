@@ -31,17 +31,17 @@ router.get('/notifications/stream', requireAuth, (req: Request, res: Response) =
   })}\n\n`);
 
   // Store connection
-  activeConnections.set(userId, res);
+  global.sseClients!.set(userId, res);
 
   // Handle client disconnect
   req.on('close', () => {
     console.log(`📡 SSE client disconnected: ${userId}`);
-    activeConnections.delete(userId);
+    global.sseClients!.delete(userId);
   });
 
   req.on('error', (error) => {
     console.error(`📡 SSE error for user ${userId}:`, error);
-    activeConnections.delete(userId);
+    global.sseClients!.delete(userId);
   });
 
   console.log(`📡 SSE client connected: ${userId}`);
@@ -73,17 +73,17 @@ router.get('/admin/stream', requireAuth, (req: Request, res: Response) => {
   })}\n\n`);
 
   // Store connection with admin prefix
-  activeConnections.set(`admin_${adminId}`, res);
+  global.sseClients!.set(`admin_${adminId}`, res);
 
   // Handle client disconnect
   req.on('close', () => {
     console.log(`📡 Admin SSE client disconnected: ${adminId}`);
-    activeConnections.delete(`admin_${adminId}`);
+    global.sseClients!.delete(`admin_${adminId}`);
   });
 
   req.on('error', (error) => {
     console.error(`📡 Admin SSE error for ${adminId}:`, error);
-    activeConnections.delete(`admin_${adminId}`);
+    global.sseClients!.delete(`admin_${adminId}`);
   });
 
   console.log(`📡 Admin SSE client connected: ${adminId}`);
@@ -91,26 +91,26 @@ router.get('/admin/stream', requireAuth, (req: Request, res: Response) => {
 
 // Function to send SSE event to specific user
 export const sendSSEToUser = (userId: string, data: any) => {
-  const connection = activeConnections.get(userId);
+  const connection = global.sseClients!.get(userId);
   if (connection) {
     try {
       connection.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (error) {
       console.error(`Error sending SSE to user ${userId}:`, error);
-      activeConnections.delete(userId);
+      global.sseClients!.delete(userId);
     }
   }
 };
 
 // Function to send SSE event to all connected users
 export const broadcastSSE = (data: any) => {
-  activeConnections.forEach((connection, userId) => {
+  global.sseClients!.forEach((connection, userId) => {
     if (!userId.startsWith('admin_')) {
       try {
         connection.write(`data: ${JSON.stringify(data)}\n\n`);
       } catch (error) {
         console.error(`Error broadcasting SSE to user ${userId}:`, error);
-        activeConnections.delete(userId);
+        global.sseClients!.delete(userId);
       }
     }
   });
@@ -118,13 +118,13 @@ export const broadcastSSE = (data: any) => {
 
 // Function to send SSE event to all admin connections
 export const broadcastSSEToAdmins = (data: any) => {
-  activeConnections.forEach((connection, userId) => {
+  global.sseClients!.forEach((connection, userId) => {
     if (userId.startsWith('admin_')) {
       try {
         connection.write(`data: ${JSON.stringify(data)}\n\n`);
       } catch (error) {
         console.error(`Error broadcasting SSE to admin ${userId}:`, error);
-        activeConnections.delete(userId);
+        global.sseClients!.delete(userId);
       }
     }
   });
@@ -132,8 +132,8 @@ export const broadcastSSEToAdmins = (data: any) => {
 
 // Function to get connection stats
 export const getSSEStats = () => {
-  const totalConnections = activeConnections.size;
-  const adminConnections = Array.from(activeConnections.keys()).filter(id => id.startsWith('admin_')).length;
+  const totalConnections = global.sseClients!.size;
+  const adminConnections = Array.from(global.sseClients!.keys()).filter(id => id.startsWith('admin_')).length;
   const userConnections = totalConnections - adminConnections;
 
   return {
