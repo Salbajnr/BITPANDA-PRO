@@ -42,6 +42,15 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import sseRoutes from "./sse-routes";
+import publicApiRoutes from "./public-api-routes";
+import apiDocsRoutes from "./api-docs-routes";
+import analyticsRoutes from "./analytics-routes";
+import comprehensiveAnalyticsRoutes from "./comprehensive-analytics-routes";
+import apiManagementRoutes from "./api-management-routes";
+import metalsTrading from "./metals-trading-routes";
+import comprehensiveCrudRoutes from "./comprehensive-crud-routes";
+import uploadRoutes from "./upload-routes";
+import proofUploadRoutes from "./proof-upload-routes";
 
 const app = express();
 
