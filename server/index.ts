@@ -10,7 +10,11 @@ import { setupVite, serveStatic, log } from "./vite-setup";
 import { portfolioRoutes } from "./portfolio-routes";
 import { webSocketManager } from "./websocket-server";
 import { chatWebSocketManager } from "./chat-websocket";
+import { adminWebSocketManager } from "./admin-websocket";
 import { realTimePriceService } from "./real-time-price-service";
+import { portfolioRealtimeService } from "./portfolio-realtime-service";
+import { pushNotificationService } from "./push-notification-service";
+import { liveAnalyticsService } from "./live-analytics-service";
 import { pool } from "./db";
 import { validateEnvironment } from "./env-validator";
 import cryptoRoutes from "./crypto-routes";
@@ -36,6 +40,7 @@ import apiKeysRoutes from "./api-keys-routes";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import sseRoutes from "./sse-routes";
 
 const app = express();
 
@@ -152,6 +157,40 @@ app.use('/api/lending', lendingRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/api-keys', apiKeysRoutes);
 
+// Apply routes
+app.use('/api/auth', authRoutes);
+app.use('/api/crypto', cryptoRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/trading', tradingRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/deposits', depositRoutes);
+app.use('/api/withdrawals', withdrawalRoutes);
+app.use('/api/keys', apiKeysRoutes);
+app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/metals', metalsRoutes);
+app.use('/api/public', publicApiRoutes);
+app.use('/api/docs', apiDocsRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/comprehensive-analytics', comprehensiveAnalyticsRoutes);
+app.use('/api/portfolio-analytics', portfolioAnalyticsRoutes);
+app.use('/api/support/chat', chatRoutes);
+app.use('/api/kyc', kycRoutes);
+app.use('/api/api-management', apiManagementRoutes);
+app.use('/api/market-research', marketResearchRoutes);
+app.use('/api/savings-plans', savingsPlansRoutes);
+app.use('/api/investment-plans', investmentPlansRoutes);
+app.use('/api/staking', stakingRoutes);
+app.use('/api/lending', lendingRoutes);
+app.use('/api/metals-trading', metalsTrading);
+app.use('/api/crud', comprehensiveCrudRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/proof-upload', proofUploadRoutes);
+app.use('/api/sse', sseRoutes);
+
 
 
 // Initialize database
@@ -194,13 +233,25 @@ async function initializeDatabase() {
       await setupVite(app, httpServer);
     }
 
-    // Initialize WebSockets
+    // Initialize WebSocket servers
     webSocketManager.init(httpServer);
     chatWebSocketManager.init(httpServer);
+    adminWebSocketManager.init(httpServer);
 
-    // Start price monitoring
+    // Start real-time services
+    realTimePriceService.start();
+    portfolioRealtimeService.start();
+    liveAnalyticsService.start();
     priceMonitor.start();
-    (realTimePriceService as any).startPriceUpdates();
+
+    console.log('🚀 All real-time services initialized');
+    console.log('📡 WebSocket endpoints:');
+    console.log('  - /ws (price updates)');
+    console.log('  - /ws/chat (chat system)');
+    console.log('  - /ws/admin (admin dashboard)');
+    console.log('📡 SSE endpoints:');
+    console.log('  - /api/sse/notifications/stream (user notifications)');
+    console.log('  - /api/sse/admin/stream (admin updates)');
 
     // Initialize database
     const dbConnected = await initializeDatabase();
@@ -214,3 +265,25 @@ async function initializeDatabase() {
     console.log("🎭 Application ready with limited functionality");
   }
 })();
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT signal received: closing HTTP server and real-time services.');
+  
+  // Shutdown all real-time services
+  webSocketManager.shutdown();
+  chatWebSocketManager.shutdown();
+  adminWebSocketManager.shutdown();
+  realTimePriceService.stop();
+  portfolioRealtimeService.stop();
+  liveAnalyticsService.stop();
+  priceMonitor.stop();
+
+  // Close the database pool
+  if (pool) {
+    await pool.end();
+    console.log('✅ Database pool closed.');
+  }
+
+  console.log('👋 Server gracefully shut down.');
+  process.exit(0);
+});
