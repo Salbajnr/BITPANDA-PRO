@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run build:client && npm run build:server",
+    "build": "npm run build:server",
     "build:client": "cd client && npm install && npm run build",
     "build:server": "cd server && npm install && npx -p typescript tsc --noEmitOnError false || true",
     "start": "NODE_ENV=production cd server && NODE_OPTIONS='--max-old-space-size=4096' npx tsx index.ts",
