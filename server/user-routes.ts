@@ -11,7 +11,7 @@ router.get('/profile', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const user = await storage.getUser(userId);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -44,7 +44,7 @@ router.patch('/profile', requireAuth, async (req: Request, res: Response) => {
     const data = updateProfileSchema.parse(req.body);
 
     const updatedUser = await storage.updateUser(userId, data);
-    
+
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -53,10 +53,12 @@ router.patch('/profile', requireAuth, async (req: Request, res: Response) => {
     res.json(userWithoutPassword);
   } catch (error) {
     console.error('Update profile error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to update profile' });
+    res.status(500).json({ message: 'Failed to update profile', error: formatted });
   }
 });
 
@@ -83,7 +85,7 @@ router.post('/change-password', requireAuth, async (req: Request, res: Response)
     // Verify current password
     const bcrypt = await import('bcrypt');
     const isValid = await bcrypt.compare(data.currentPassword, user.password);
-    
+
     if (!isValid) {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
@@ -95,10 +97,12 @@ router.post('/change-password', requireAuth, async (req: Request, res: Response)
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to change password' });
+    res.status(500).json({ message: 'Failed to change password', error: formatted });
   }
 });
 
@@ -205,7 +209,7 @@ router.delete('/account', requireAuth, async (req: Request, res: Response) => {
     // Verify password
     const bcrypt = await import('bcrypt');
     const isValid = await bcrypt.compare(password, user.password);
-    
+
     if (!isValid) {
       return res.status(400).json({ message: 'Incorrect password' });
     }
@@ -214,7 +218,7 @@ router.delete('/account', requireAuth, async (req: Request, res: Response) => {
     await storage.deleteUser(userId);
 
     // Destroy session
-    req.session?.destroy(() => {});
+    req.session?.destroy(() => { });
 
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {

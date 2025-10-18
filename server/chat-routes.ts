@@ -30,7 +30,7 @@ router.get('/active', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const session = await storage.getActiveChatSession(userId);
-    
+
     if (!session) {
       return res.status(404).json({ message: 'No active chat session' });
     }
@@ -51,9 +51,9 @@ router.post('/start', requireAuth, async (req, res) => {
     // Check if user already has an active session
     const existingSession = await storage.getActiveChatSession(userId);
     if (existingSession) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'You already have an active chat session',
-        session: existingSession 
+        session: existingSession
       });
     }
 
@@ -69,10 +69,12 @@ router.post('/start', requireAuth, async (req, res) => {
     res.json(session);
   } catch (error) {
     console.error('Error starting chat session:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid input data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to start chat session' });
+    res.status(500).json({ message: 'Failed to start chat session', error: formatted });
   }
 });
 
@@ -113,7 +115,7 @@ router.post('/message', requireAuth, async (req, res) => {
     const message = await storage.createChatMessage({
       sessionId: messageData.sessionId,
       senderId: userId,
-      senderName: `${user.firstName} ${user.lastName}`,
+      senderName: `${(user as any).firstName || ''} ${(user as any).lastName || ''}`,
       senderRole: user.role,
       message: messageData.message,
       messageType: messageData.messageType,
@@ -130,10 +132,12 @@ router.post('/message', requireAuth, async (req, res) => {
     res.json(message);
   } catch (error) {
     console.error('Error sending message:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid input data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to send message' });
+    res.status(500).json({ message: 'Failed to send message', error: formatted });
   }
 });
 
@@ -156,10 +160,12 @@ router.post('/end', requireAuth, async (req, res) => {
     res.json({ message: 'Chat session ended' });
   } catch (error) {
     console.error('Error ending chat session:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid input data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to end chat session' });
+    res.status(500).json({ message: 'Failed to end chat session', error: formatted });
   }
 });
 
@@ -184,7 +190,9 @@ router.post('/rate', requireAuth, async (req, res) => {
     res.json({ message: 'Rating submitted successfully' });
   } catch (error) {
     console.error('Error rating chat session:', error);
-    res.status(500).json({ message: 'Failed to submit rating' });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    res.status(500).json({ message: 'Failed to submit rating', error: formatted });
   }
 });
 
@@ -218,8 +226,8 @@ router.post('/admin/assign', requireAuth, async (req, res) => {
     }
 
     const { sessionId } = req.body;
-    
-    await storage.assignChatSession(sessionId, user.id, `${user.firstName} ${user.lastName}`);
+
+    await storage.assignChatSession(sessionId, user.id, `${(user as any).firstName || ''} ${(user as any).lastName || ''}`);
 
     res.json({ message: 'Session assigned successfully' });
   } catch (error) {

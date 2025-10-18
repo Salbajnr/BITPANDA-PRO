@@ -12,7 +12,8 @@ const createWithdrawalSchema = z.object({
   currency: z.string().default('USD'),
   withdrawalMethod: z.enum(['bank_transfer', 'crypto_wallet', 'paypal', 'mobile_money', 'other']),
   destinationAddress: z.string().min(1),
-  destinationDetails: z.record(z.any()).optional(),
+  // z.record requires key and value types in this Zod version
+  destinationDetails: z.record(z.string(), z.any()).optional(),
   notes: z.string().optional(),
 });
 
@@ -63,7 +64,7 @@ router.post('/calculate-fees', requireAuth, async (req, res) => {
   try {
     const { amount, method } = req.body;
     const fees = await storage.calculateWithdrawalFees(parseFloat(amount), method);
-    res.json({ 
+    res.json({
       fees: fees.toString(),
       netAmount: (parseFloat(amount) - fees).toString()
     });
@@ -96,13 +97,13 @@ router.post('/request', requireAuth, async (req, res) => {
     const monthlyRemaining = parseFloat(limits.monthlyLimit) - parseFloat(limits.monthlyUsed);
 
     if (amount > dailyRemaining) {
-      return res.status(400).json({ 
-        message: `Daily withdrawal limit exceeded. Remaining: $${dailyRemaining.toFixed(2)}` 
+      return res.status(400).json({
+        message: `Daily withdrawal limit exceeded. Remaining: $${dailyRemaining.toFixed(2)}`
       });
     }
     if (amount > monthlyRemaining) {
-      return res.status(400).json({ 
-        message: `Monthly withdrawal limit exceeded. Remaining: $${monthlyRemaining.toFixed(2)}` 
+      return res.status(400).json({
+        message: `Monthly withdrawal limit exceeded. Remaining: $${monthlyRemaining.toFixed(2)}`
       });
     }
 
@@ -140,7 +141,7 @@ router.post('/request', requireAuth, async (req, res) => {
     // TODO: Send confirmation email with token
     console.log(`Withdrawal confirmation token for user ${req.user!.id}: ${confirmationToken}`);
 
-    res.json({ 
+    res.json({
       message: 'Withdrawal request created. Please check your email to confirm within 30 minutes.',
       withdrawalId: withdrawal.id,
       requiresConfirmation: true,
@@ -150,10 +151,12 @@ router.post('/request', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating withdrawal:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid request data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if ((error as any)?.errors) {
+      return res.status(400).json({ message: 'Invalid request data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to create withdrawal request' });
+    res.status(500).json({ message: 'Failed to create withdrawal request', error: formatted });
   }
 });
 
@@ -170,7 +173,7 @@ router.post('/confirm', requireAuth, async (req, res) => {
     // Update withdrawal status to under_review
     await storage.updateWithdrawalStatus(withdrawal.id, 'under_review', 'Confirmed by user, awaiting admin review');
 
-    res.json({ 
+    res.json({
       message: 'Withdrawal confirmed successfully. Your request is now under review by our team.',
       withdrawal: {
         ...withdrawal,
@@ -190,8 +193,8 @@ router.post('/:id/approve', requireAuth, requireAdmin, async (req, res) => {
     const { adminNotes } = adminActionSchema.parse(req.body);
 
     const withdrawal = await storage.updateWithdrawalStatus(
-      id, 
-      'approved', 
+      id,
+      'approved',
       adminNotes || 'Withdrawal approved by admin'
     );
 
@@ -206,7 +209,7 @@ router.post('/:id/approve', requireAuth, requireAdmin, async (req, res) => {
     // Log admin action
     console.log(`Admin ${req.user!.id} approved withdrawal ${id}`);
 
-    res.json({ 
+    res.json({
       message: 'Withdrawal approved and processing initiated',
       withdrawal: {
         ...withdrawal,
@@ -239,15 +242,15 @@ router.post('/:id/reject', requireAuth, requireAdmin, async (req, res) => {
 
     // Update withdrawal status
     const updatedWithdrawal = await storage.updateWithdrawalStatus(
-      id, 
-      'rejected', 
+      id,
+      'rejected',
       adminNotes || rejectionReason || 'Withdrawal rejected by admin'
     );
 
     // Log admin action
     console.log(`Admin ${req.user!.id} rejected withdrawal ${id}: ${rejectionReason}`);
 
-    res.json({ 
+    res.json({
       message: 'Withdrawal rejected and funds returned to user account',
       withdrawal: updatedWithdrawal,
       refundedAmount: withdrawal.amount
@@ -265,8 +268,8 @@ router.post('/:id/complete', requireAuth, requireAdmin, async (req, res) => {
     const { adminNotes } = adminActionSchema.parse(req.body);
 
     const withdrawal = await storage.updateWithdrawalStatus(
-      id, 
-      'completed', 
+      id,
+      'completed',
       adminNotes || 'Withdrawal successfully completed'
     );
 
@@ -277,7 +280,7 @@ router.post('/:id/complete', requireAuth, requireAdmin, async (req, res) => {
     // Log admin action
     console.log(`Admin ${req.user!.id} completed withdrawal ${id}`);
 
-    res.json({ 
+    res.json({
       message: 'Withdrawal marked as completed',
       withdrawal
     });
@@ -315,7 +318,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     // Update withdrawal status
     await storage.updateWithdrawalStatus(id, 'rejected', 'Cancelled by user');
 
-    res.json({ 
+    res.json({
       message: 'Withdrawal cancelled successfully and funds returned to your account',
       refundedAmount: withdrawal.amount
     });
@@ -347,7 +350,7 @@ router.post('/limits/:userId', requireAuth, requireAdmin, async (req, res) => {
       monthlyLimit: parseFloat(monthlyLimit)
     });
 
-    res.json({ 
+    res.json({
       message: 'Withdrawal limits updated successfully',
       limits
     });

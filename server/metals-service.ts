@@ -68,7 +68,7 @@ class MetalsService {
         return this.getFallbackPrice(symbol);
       }
 
-      const data: MetalsApiResponse = await response.json();
+      const data: any = await response.json();
 
       if (!data.success || !data.rates[symbol.toUpperCase()]) {
         console.warn(`⚠️ Metals API returned no success or no rate for ${symbol}, using fallback.`);

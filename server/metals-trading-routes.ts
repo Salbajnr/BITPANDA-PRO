@@ -41,7 +41,7 @@ router.post('/buy', requireAuth, async (req, res) => {
     const totalCost = parseFloat(tradeData.total);
 
     if (availableCash < totalCost) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: "Insufficient funds",
         available: availableCash,
         required: totalCost
@@ -69,7 +69,7 @@ router.post('/buy', requireAuth, async (req, res) => {
 
     // Update or create holding
     const existingHolding = await storage.getHolding(portfolio.id, tradeData.symbol);
-    
+
     if (existingHolding) {
       const newAmount = parseFloat(existingHolding.amount) + parseFloat(tradeData.amount);
       const newAverage = (
@@ -100,7 +100,7 @@ router.post('/buy', requireAuth, async (req, res) => {
 
     // Update portfolio cash
     const newCash = availableCash - totalCost;
-    await storage.updatePortfolio(portfolio.id, { 
+    await storage.updatePortfolio(portfolio.id, {
       availableCash: newCash.toString(),
       totalValue: (parseFloat(portfolio.totalValue) + totalCost).toString()
     });
@@ -122,10 +122,13 @@ router.post('/buy', requireAuth, async (req, res) => {
 
   } catch (error) {
     console.error('Error buying metal:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid input data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to complete metal purchase' });
+
+    res.status(500).json({ message: 'Failed to complete metal purchase', error: formatted });
   }
 });
 
@@ -152,7 +155,7 @@ router.post('/sell', requireAuth, async (req, res) => {
     const sellAmount = parseFloat(tradeData.amount);
 
     if (availableAmount < sellAmount) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: "Insufficient metal amount",
         available: availableAmount,
         requested: sellAmount
@@ -180,7 +183,7 @@ router.post('/sell', requireAuth, async (req, res) => {
 
     // Update holding
     const newAmount = availableAmount - sellAmount;
-    
+
     if (newAmount > 0) {
       await storage.upsertHolding({
         portfolioId: portfolio.id,
@@ -198,7 +201,7 @@ router.post('/sell', requireAuth, async (req, res) => {
 
     // Update portfolio cash
     const newCash = parseFloat(portfolio.availableCash) + parseFloat(tradeData.total);
-    await storage.updatePortfolio(portfolio.id, { 
+    await storage.updatePortfolio(portfolio.id, {
       availableCash: newCash.toString(),
       totalValue: (parseFloat(portfolio.totalValue) - parseFloat(tradeData.total)).toString()
     });
@@ -220,10 +223,13 @@ router.post('/sell', requireAuth, async (req, res) => {
 
   } catch (error) {
     console.error('Error selling metal:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid input data', errors: formatted });
     }
-    res.status(500).json({ message: 'Failed to complete metal sale' });
+
+    res.status(500).json({ message: 'Failed to complete metal sale', error: formatted });
   }
 });
 
@@ -232,7 +238,7 @@ router.get('/holdings', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const portfolio = await storage.getPortfolio(userId);
-    
+
     if (!portfolio) {
       return res.status(404).json({ message: "Portfolio not found" });
     }
@@ -272,7 +278,7 @@ router.get('/history', requireAuth, async (req, res) => {
     const userId = req.user!.id;
     const transactions = await storage.getUserTransactions(userId, 100);
     const metalTransactions = transactions.filter(t => t.assetType === 'metal');
-    
+
     res.json(metalTransactions);
   } catch (error) {
     console.error('Error fetching metal trading history:', error);
@@ -291,7 +297,7 @@ router.get('/admin/transactions', requireAuth, requireAdmin, async (req, res) =>
     });
 
     const metalTransactions = transactions.transactions.filter(t => t.assetType === 'metal');
-    
+
     res.json({
       transactions: metalTransactions,
       total: metalTransactions.length
@@ -306,7 +312,7 @@ router.get('/admin/transactions', requireAuth, requireAdmin, async (req, res) =>
 router.post('/admin/price-override', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { symbol, price, reason } = req.body;
-    
+
     // Create audit log for price override
     await storage.createAuditLog({
       adminId: req.user!.id,

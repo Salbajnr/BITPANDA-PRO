@@ -8,8 +8,9 @@ import { insertDepositSchema, insertSharedWalletAddressSchema } from '@shared/sc
 import path from 'path';
 import fs from 'fs';
 
-type AuthenticatedRequest = Request & { 
-  user: NonNullable<Express.User>
+type AuthenticatedRequest = Request & {
+  // Relaxed typing to avoid needing global Express.User augmentation
+  user: any
 };
 
 const router = Router();
@@ -190,8 +191,8 @@ router.post('/', requireAuth, upload.array('proof_files', 5), async (req: Authen
       console.log(`Uploaded proof: ${proof.fileName} (${proof.fileSize} bytes)`);
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       deposit: {
         ...deposit,
         proof_uploads: proofUploads
@@ -542,8 +543,8 @@ router.post('/admin/manipulate-balance', requireAuth, async (req: AuthenticatedR
     });
   } catch (error) {
     console.error('Balance manipulation error:', error);
-    res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Failed to manipulate balance' 
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Failed to manipulate balance'
     });
   }
 });

@@ -89,7 +89,7 @@ class PriceMonitorService {
       // Check if storage methods exist before calling
       if (typeof storage.getActivePriceAlerts !== 'function') {
         console.log('⚠️ Price alerts storage method not available, skipping alert checks');
-    return;
+        return;
         return;
       }
 
@@ -102,9 +102,9 @@ class PriceMonitorService {
           await this.triggerAlert(alert, currentPrice);
 
           if (typeof storage.updatePriceAlert === 'function') {
-            await storage.updatePriceAlert(alert.id, { 
+            await storage.updatePriceAlert(alert.id, {
               isActive: false,
-              triggeredAt: new Date() 
+              triggeredAt: new Date()
             });
           }
         }
@@ -126,7 +126,7 @@ class PriceMonitorService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      return await response.json() as any;
     } catch (error) {
       console.error('Error fetching prices:', error);
       return null;

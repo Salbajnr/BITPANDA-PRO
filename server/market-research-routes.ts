@@ -386,7 +386,7 @@ const podcasts = [
         bio: 'Former Goldman Sachs strategist'
       },
       {
-        name: 'Michael Rodriguez', 
+        name: 'Michael Rodriguez',
         title: 'DeFi Researcher',
         bio: 'Ethereum Foundation contributor'
       }
@@ -409,31 +409,31 @@ const podcasts = [
 router.get('/reports', async (req, res) => {
   try {
     const { category, premium, author, limit = 10, offset = 0 } = req.query;
-    
+
     let filteredReports = [...marketReports];
-    
+
     if (category && category !== 'all') {
-      filteredReports = filteredReports.filter(report => 
+      filteredReports = filteredReports.filter(report =>
         report.category.toLowerCase() === category.toString().toLowerCase()
       );
     }
-    
+
     if (premium !== undefined) {
-      filteredReports = filteredReports.filter(report => 
+      filteredReports = filteredReports.filter(report =>
         report.premium === (premium === 'true')
       );
     }
-    
+
     if (author) {
-      filteredReports = filteredReports.filter(report => 
+      filteredReports = filteredReports.filter(report =>
         report.author.toLowerCase().includes(author.toString().toLowerCase())
       );
     }
-    
+
     const startIndex = parseInt(offset.toString());
     const endIndex = startIndex + parseInt(limit.toString());
     const paginatedReports = filteredReports.slice(startIndex, endIndex);
-    
+
     res.json({
       reports: paginatedReports,
       total: filteredReports.length,
@@ -450,14 +450,14 @@ router.get('/reports/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const report = marketReports.find(r => r.id === id);
-    
+
     if (!report) {
       return res.status(404).json({ message: 'Research report not found' });
     }
-    
+
     // Increment view count (in production, store in database)
     report.views += 1;
-    
+
     res.json(report);
   } catch (error) {
     console.error('Error fetching report:', error);
@@ -469,31 +469,31 @@ router.get('/reports/:id', async (req, res) => {
 router.get('/insights', async (req, res) => {
   try {
     const { analyst, sentiment, asset, limit = 10, offset = 0 } = req.query;
-    
+
     let filteredInsights = [...analystInsights];
-    
+
     if (analyst) {
-      filteredInsights = filteredInsights.filter(insight => 
+      filteredInsights = filteredInsights.filter(insight =>
         insight.analyst.name.toLowerCase().includes(analyst.toString().toLowerCase())
       );
     }
-    
+
     if (sentiment && sentiment !== 'all') {
-      filteredInsights = filteredInsights.filter(insight => 
+      filteredInsights = filteredInsights.filter(insight =>
         insight.sentiment === sentiment
       );
     }
-    
+
     if (asset) {
-      filteredInsights = filteredInsights.filter(insight => 
+      filteredInsights = filteredInsights.filter(insight =>
         insight.assets.some(a => a.toLowerCase().includes(asset.toString().toLowerCase()))
       );
     }
-    
+
     const startIndex = parseInt(offset.toString());
     const endIndex = startIndex + parseInt(limit.toString());
     const paginatedInsights = filteredInsights.slice(startIndex, endIndex);
-    
+
     res.json({
       insights: paginatedInsights,
       total: filteredInsights.length,
@@ -509,28 +509,28 @@ router.get('/insights', async (req, res) => {
 router.get('/commentary', async (req, res) => {
   try {
     const { priority, asset, limit = 20 } = req.query;
-    
+
     let filteredCommentary = [...liveCommentary];
-    
+
     if (priority && priority !== 'all') {
-      filteredCommentary = filteredCommentary.filter(comment => 
+      filteredCommentary = filteredCommentary.filter(comment =>
         comment.priority === priority
       );
     }
-    
+
     if (asset) {
-      filteredCommentary = filteredCommentary.filter(comment => 
+      filteredCommentary = filteredCommentary.filter(comment =>
         comment.assets.some(a => a.toLowerCase().includes(asset.toString().toLowerCase()))
       );
     }
-    
+
     // Sort by timestamp (newest first)
-    filteredCommentary.sort((a, b) => 
+    filteredCommentary.sort((a, b) =>
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-    
+
     const limitedCommentary = filteredCommentary.slice(0, parseInt(limit.toString()));
-    
+
     res.json({
       commentary: limitedCommentary,
       total: filteredCommentary.length
@@ -545,11 +545,11 @@ router.get('/commentary', async (req, res) => {
 router.post('/commentary', async (req, res) => {
   try {
     const { title, content, author, priority, assets, impact } = req.body;
-    
+
     if (!title || !content || !author) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
-    
+
     const newCommentary = {
       id: Date.now().toString(),
       timestamp: new Date().toISOString(),
@@ -560,15 +560,22 @@ router.post('/commentary', async (req, res) => {
       priority: priority || 'medium',
       assets: assets || [],
       impact: impact || 'neutral'
+      ,
+      sourceData: {
+        volume24h: 0,
+        volumeChange: 0,
+        largeOrders: 0,
+        exchangesAffected: []
+      }
     };
-    
+
     liveCommentary.unshift(newCommentary);
-    
+
     // Keep only last 100 commentary items
     if (liveCommentary.length > 100) {
       liveCommentary = liveCommentary.slice(0, 100);
     }
-    
+
     res.status(201).json(newCommentary);
   } catch (error) {
     console.error('Error adding commentary:', error);
@@ -580,25 +587,25 @@ router.post('/commentary', async (req, res) => {
 router.get('/podcasts', async (req, res) => {
   try {
     const { category, host, limit = 10, offset = 0 } = req.query;
-    
+
     let filteredPodcasts = [...podcasts];
-    
+
     if (category && category !== 'all') {
-      filteredPodcasts = filteredPodcasts.filter(podcast => 
+      filteredPodcasts = filteredPodcasts.filter(podcast =>
         podcast.category.toLowerCase() === category.toString().toLowerCase()
       );
     }
-    
+
     if (host) {
-      filteredPodcasts = filteredPodcasts.filter(podcast => 
+      filteredPodcasts = filteredPodcasts.filter(podcast =>
         podcast.host.toLowerCase().includes(host.toString().toLowerCase())
       );
     }
-    
+
     const startIndex = parseInt(offset.toString());
     const endIndex = startIndex + parseInt(limit.toString());
     const paginatedPodcasts = filteredPodcasts.slice(startIndex, endIndex);
-    
+
     res.json({
       podcasts: paginatedPodcasts,
       total: filteredPodcasts.length,
@@ -615,11 +622,11 @@ router.get('/podcasts/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const podcast = podcasts.find(p => p.id === id);
-    
+
     if (!podcast) {
       return res.status(404).json({ message: 'Podcast not found' });
     }
-    
+
     res.json(podcast);
   } catch (error) {
     console.error('Error fetching podcast:', error);
@@ -631,11 +638,11 @@ router.get('/podcasts/:id', async (req, res) => {
 router.get('/search', async (req, res) => {
   try {
     const { query, type = 'all', limit = 20 } = req.query;
-    
+
     if (!query) {
       return res.status(400).json({ message: 'Search query is required' });
     }
-    
+
     const searchTerm = query.toString().toLowerCase();
     const results: any = {
       reports: [],
@@ -643,7 +650,7 @@ router.get('/search', async (req, res) => {
       podcasts: [],
       commentary: []
     };
-    
+
     if (type === 'all' || type === 'reports') {
       results.reports = marketReports.filter(report =>
         report.title.toLowerCase().includes(searchTerm) ||
@@ -652,7 +659,7 @@ router.get('/search', async (req, res) => {
         report.tags.some(tag => tag.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     if (type === 'all' || type === 'insights') {
       results.insights = analystInsights.filter(insight =>
         insight.title.toLowerCase().includes(searchTerm) ||
@@ -661,7 +668,7 @@ router.get('/search', async (req, res) => {
         insight.assets.some(asset => asset.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     if (type === 'all' || type === 'podcasts') {
       results.podcasts = podcasts.filter(podcast =>
         podcast.title.toLowerCase().includes(searchTerm) ||
@@ -670,7 +677,7 @@ router.get('/search', async (req, res) => {
         podcast.keyTopics.some(topic => topic.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     if (type === 'all' || type === 'commentary') {
       results.commentary = liveCommentary.filter(comment =>
         comment.title.toLowerCase().includes(searchTerm) ||
@@ -678,7 +685,7 @@ router.get('/search', async (req, res) => {
         comment.assets.some(asset => asset.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     res.json(results);
   } catch (error) {
     console.error('Error searching content:', error);
@@ -710,12 +717,12 @@ router.get('/analytics', async (req, res) => {
         reports: marketReports.length,
         insights: analystInsights.length,
         podcasts: podcasts.length,
-        commentary: liveCommentary.filter(c => 
+        commentary: liveCommentary.filter(c =>
           new Date(c.timestamp).getTime() > Date.now() - 24 * 60 * 60 * 1000
         ).length
       }
     };
-    
+
     res.json(analytics);
   } catch (error) {
     console.error('Error fetching analytics:', error);

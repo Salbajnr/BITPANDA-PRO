@@ -103,7 +103,7 @@ class TradingEngine {
 
     orderBook.spread = orderBook.asks[0].price - orderBook.bids[0].price;
     this.orderBooks.set(symbol, orderBook);
-    
+
     return orderBook;
   }
 
@@ -121,9 +121,9 @@ class TradingEngine {
   }> {
     const orderBook = await this.getOrderBook(symbol);
     const slippage = this.calculateSlippage(symbol, amount, side);
-    
+
     let executionPrice: number;
-    
+
     if (side === 'buy') {
       // For buy orders, use ask price + slippage
       executionPrice = orderBook.asks[0].price * (1 + slippage);
@@ -145,7 +145,7 @@ class TradingEngine {
     executionPrice: number;
   }> {
     const orderBook = await this.getOrderBook(symbol);
-    
+
     // Simple limit order execution logic
     if (side === 'buy' && price >= orderBook.asks[0].price) {
       // Immediate fill if buy price meets or exceeds best ask
@@ -182,11 +182,11 @@ function validateOrderAmount(amount: number): { valid: boolean; message?: string
   if (amount < TRADING_CONFIG.MIN_ORDER_AMOUNT) {
     return { valid: false, message: `Minimum order amount is $${TRADING_CONFIG.MIN_ORDER_AMOUNT}` };
   }
-  
+
   if (amount > TRADING_CONFIG.MAX_ORDER_AMOUNT) {
     return { valid: false, message: `Maximum order amount is $${TRADING_CONFIG.MAX_ORDER_AMOUNT.toLocaleString()}` };
   }
-  
+
   return { valid: true };
 }
 
@@ -194,11 +194,11 @@ function validateStopLoss(currentPrice: number, stopLoss: number, orderType: str
   if (side === 'buy' && stopLoss >= currentPrice) {
     return { valid: false, message: 'Stop loss must be below current price for buy orders' };
   }
-  
+
   if (side === 'sell' && stopLoss <= currentPrice) {
     return { valid: false, message: 'Stop loss must be above current price for sell orders' };
   }
-  
+
   return { valid: true };
 }
 
@@ -206,22 +206,22 @@ function validateStopLoss(currentPrice: number, stopLoss: number, orderType: str
 router.post('/execute', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    
+
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
     }
-    
+
     const portfolio = await storage.getPortfolio(userId);
-    
+
     if (!portfolio) {
       return res.status(404).json({ message: "Portfolio not found" });
     }
 
     const tradeData = executeTradeSchema.parse(req.body);
-    
+
     const amount = parseFloat(tradeData.amount);
     const requestedPrice = tradeData.price ? parseFloat(tradeData.price) : null;
-    
+
     // Validate order amount
     const amountValidation = validateOrderAmount(amount);
     if (!amountValidation.valid) {
@@ -281,23 +281,23 @@ router.post('/execute', requireAuth, async (req: Request, res: Response) => {
     // Validate sufficient funds/holdings
     if (tradeData.type === 'buy') {
       const availableCash = parseFloat(portfolio.availableCash);
-      
+
       if (netTotal > availableCash) {
-        return res.status(400).json({ 
-          message: `Insufficient funds. Required: $${netTotal.toFixed(2)}, Available: $${availableCash.toFixed(2)}` 
+        return res.status(400).json({
+          message: `Insufficient funds. Required: $${netTotal.toFixed(2)}, Available: $${availableCash.toFixed(2)}`
         });
       }
     } else {
       const holding = await storage.getHolding(portfolio.id, tradeData.symbol);
-      
+
       if (!holding) {
         return res.status(400).json({ message: "No holdings found for this asset" });
       }
 
       const currentAmount = parseFloat(holding.amount);
       if (executedAmount > currentAmount) {
-        return res.status(400).json({ 
-          message: `Insufficient holdings. Required: ${executedAmount}, Available: ${currentAmount}` 
+        return res.status(400).json({
+          message: `Insufficient holdings. Required: ${executedAmount}, Available: ${currentAmount}`
         });
       }
     }
@@ -317,18 +317,18 @@ router.post('/execute', requireAuth, async (req: Request, res: Response) => {
       takeProfit: tradeData.takeProfit || null,
       slippage: executionResult.slippage?.toString() || '0',
     };
-    
+
     const transaction = await storage.createTransaction(transactionData);
 
     // Execute portfolio updates for completed orders
     if (transactionData.status === 'completed') {
       if (tradeData.type === 'buy') {
         const existing = await storage.getHolding(portfolio.id, tradeData.symbol);
-        
+
         if (existing) {
           const newAmount = parseFloat(existing.amount) + executedAmount;
           const newAverage = (
-            parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) + 
+            parseFloat(existing.averagePurchasePrice) * parseFloat(existing.amount) +
             executionPrice * executedAmount
           ) / newAmount;
 
@@ -353,14 +353,14 @@ router.post('/execute', requireAuth, async (req: Request, res: Response) => {
 
         // Update portfolio cash
         const newCash = parseFloat(portfolio.availableCash) - netTotal;
-        await storage.updatePortfolio(portfolio.id, { 
-          availableCash: newCash.toString() 
+        await storage.updatePortfolio(portfolio.id, {
+          availableCash: newCash.toString()
         });
       } else {
         // Handle sell orders
         const holding = await storage.getHolding(portfolio.id, tradeData.symbol);
         const newAmount = parseFloat(holding!.amount) - executedAmount;
-        
+
         if (newAmount <= 0.00000001) { // Account for floating point precision
           await storage.deleteHolding(portfolio.id, tradeData.symbol);
         } else {
@@ -376,8 +376,8 @@ router.post('/execute', requireAuth, async (req: Request, res: Response) => {
 
         // Update portfolio cash
         const newCash = parseFloat(portfolio.availableCash) + netTotal;
-        await storage.updatePortfolio(portfolio.id, { 
-          availableCash: newCash.toString() 
+        await storage.updatePortfolio(portfolio.id, {
+          availableCash: newCash.toString()
         });
       }
     }
@@ -394,15 +394,14 @@ router.post('/execute', requireAuth, async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error("Execute trade error:", error);
-    
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        message: "Invalid trade data", 
-        errors: error.issues.map(e => e.message)
-      });
+
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: "Invalid trade data", errors: formatted.map(e => (e as any).message || e) });
     }
-    
-    res.status(500).json({ message: "Failed to execute trade" });
+
+    res.status(500).json({ message: "Failed to execute trade", error: formatted });
   }
 });
 
@@ -411,7 +410,7 @@ router.get('/orderbook/:symbol', requireAuth, async (req: Request, res: Response
   try {
     const { symbol } = req.params;
     const orderBook = await tradingEngine.getOrderBook(symbol.toUpperCase());
-    
+
     res.json({
       symbol: symbol.toUpperCase(),
       bids: orderBook.bids.slice(0, 10).map(bid => [
@@ -439,25 +438,25 @@ router.get('/history', requireAuth, async (req: Request, res: Response) => {
     const symbol = req.query.symbol as string;
     const type = req.query.type as string;
     const status = req.query.status as string;
-    
+
     const transactions = await storage.getUserTransactions(userId, limit);
-    
+
     let filteredTransactions = transactions;
-    
+
     if (symbol) {
-      filteredTransactions = filteredTransactions.filter(t => 
+      filteredTransactions = filteredTransactions.filter(t =>
         t.symbol.toUpperCase() === symbol.toUpperCase()
       );
     }
-    
+
     if (type) {
       filteredTransactions = filteredTransactions.filter(t => t.type === type);
     }
-    
+
     if (status) {
       filteredTransactions = filteredTransactions.filter(t => t.status === status);
     }
-    
+
     res.json(filteredTransactions);
   } catch (error) {
     console.error("Get trading history error:", error);
@@ -470,20 +469,20 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const transactions = await storage.getUserTransactions(userId, 1000);
-    
+
     const stats = {
       totalTrades: transactions.length,
       totalVolume: transactions.reduce((sum, t) => sum + parseFloat(t.total), 0),
       totalFees: transactions.reduce((sum, t) => sum + parseFloat(t.fee || '0'), 0),
       successRate: transactions.filter(t => t.status === 'completed').length / transactions.length * 100,
-      averageTradeSize: transactions.length > 0 ? 
+      averageTradeSize: transactions.length > 0 ?
         transactions.reduce((sum, t) => sum + parseFloat(t.total), 0) / transactions.length : 0,
       favoriteAssets: transactions.reduce((acc: Record<string, number>, t) => {
         acc[t.symbol] = (acc[t.symbol] || 0) + 1;
         return acc;
       }, {})
     };
-    
+
     res.json(stats);
   } catch (error) {
     console.error("Get trading stats error:", error);
@@ -496,7 +495,7 @@ router.post('/calculate-fees', requireAuth, (req: Request, res: Response) => {
   try {
     const { amount, price, type, orderType } = req.body;
     const grossTotal = parseFloat(amount) * parseFloat(price);
-    
+
     // Determine fee rate based on order type
     let feeRate = TRADING_CONFIG.TRADING_FEE_RATE;
     if (orderType === 'market') {
@@ -504,7 +503,7 @@ router.post('/calculate-fees', requireAuth, (req: Request, res: Response) => {
     } else if (orderType === 'limit') {
       feeRate = TRADING_CONFIG.MAKER_FEE_RATE;
     }
-    
+
     const tradingFee = calculateTradingFee(grossTotal, feeRate);
     const netTotal = type === 'buy' ? grossTotal + tradingFee : grossTotal - tradingFee;
 

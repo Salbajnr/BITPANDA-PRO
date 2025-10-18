@@ -86,7 +86,7 @@ router.get('/positions', requireAuth, async (req, res) => {
 router.post('/stake', requireAuth, async (req, res) => {
   try {
     const stakeData = createStakeSchema.parse(req.body);
-    
+
     // Validate staking pool exists
     const pool = stakingPools.find(p => p.symbol === stakeData.assetSymbol);
     if (!pool) {
@@ -95,8 +95,8 @@ router.post('/stake', requireAuth, async (req, res) => {
 
     // Validate amount
     if (stakeData.amount < pool.minAmount || stakeData.amount > pool.maxAmount) {
-      return res.status(400).json({ 
-        message: `Amount must be between ${pool.minAmount} and ${pool.maxAmount} ${pool.symbol}` 
+      return res.status(400).json({
+        message: `Amount must be between ${pool.minAmount} and ${pool.maxAmount} ${pool.symbol}`
       });
     }
 
@@ -137,8 +137,10 @@ router.post('/stake', requireAuth, async (req, res) => {
     res.json(stake);
   } catch (error) {
     console.error('Error creating stake:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid input data', errors: error.issues });
+    const { formatErrorForResponse } = await import('./lib/errorUtils');
+    const formatted = formatErrorForResponse(error);
+    if (Array.isArray(formatted)) {
+      return res.status(400).json({ message: 'Invalid input data', errors: formatted });
     }
     res.status(500).json({ message: 'Failed to create stake' });
   }
@@ -158,7 +160,7 @@ router.post('/unstake/:positionId', requireAuth, async (req, res) => {
 
     // Calculate rewards
     const rewards = await calculateStakingRewards(position);
-    
+
     // Update position status
     await storage.updateStakingPosition(req.params.positionId, {
       status: 'completed',
@@ -178,7 +180,7 @@ router.post('/unstake/:positionId', requireAuth, async (req, res) => {
       }
     }
 
-    res.json({ 
+    res.json({
       message: 'Successfully unstaked',
       originalAmount: position.amount,
       rewards: rewards,
@@ -243,10 +245,10 @@ async function calculateStakingRewards(position: any): Promise<number> {
   const startDate = new Date(position.startDate);
   const now = new Date();
   const daysStaked = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   const annualRate = parseFloat(position.apy.replace('%', '')) / 100;
   const dailyRate = annualRate / 365;
-  
+
   const rewards = parseFloat(position.amount) * dailyRate * daysStaked;
   return Math.max(0, rewards);
 }

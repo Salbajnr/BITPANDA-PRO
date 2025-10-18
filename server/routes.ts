@@ -187,10 +187,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Admin login error:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input data" });
+      const { formatErrorForResponse } = await import('./lib/errorUtils');
+      const formatted = formatErrorForResponse(error);
+      if (Array.isArray(formatted)) {
+        return res.status(400).json({ message: "Invalid input data", errors: formatted });
       }
-      res.status(500).json({ message: "Login failed" });
+      res.status(500).json({ message: "Login failed", error: formatted });
     }
   });
 
@@ -267,10 +269,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Login error:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input data" });
+      const { formatErrorForResponse } = await import('./lib/errorUtils');
+      const formatted = formatErrorForResponse(error);
+      if (Array.isArray(formatted)) {
+        return res.status(400).json({ message: "Invalid input data", errors: formatted });
       }
-      res.status(500).json({ message: "Login failed" });
+      res.status(500).json({ message: "Login failed", error: formatted });
     }
   });
 
@@ -415,10 +419,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("User registration error:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input data", errors: error.issues });
+      const { formatErrorForResponse } = await import('./lib/errorUtils');
+      const formatted = formatErrorForResponse(error);
+      if (Array.isArray(formatted)) {
+        return res.status(400).json({ message: "Invalid input data", errors: formatted });
       }
-      res.status(500).json({ message: "User registration failed" });
+      res.status(500).json({ message: "User registration failed", error: formatted });
     }
   });
 
@@ -792,9 +798,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.files || Object.keys(req.files).length === 0) {
         return res.status(400).json({ message: 'No files uploaded' });
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: 'File uploaded successfully',
         files: Object.keys(req.files)
       });
@@ -814,7 +820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       memory: process.memoryUsage(),
       version: process.env.npm_package_version || '1.0.0'
     };
-    
+
     const status = healthStatus.database === 'connected' ? 200 : 503;
     res.status(status).json(healthStatus);
   });
