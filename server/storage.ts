@@ -15,23 +15,25 @@ import * as schema from "../shared/schema"; // adjust path if needed
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("❌ DATABASE_URL is not set in environment variables.");
+  console.warn("⚠️  No DATABASE_URL found. Running in demo mode.");
+  console.log("🔧 To enable full functionality, set DATABASE_URL environment variable");
+  console.log("📝 Example: DATABASE_URL=postgresql://username:password@host:port/database");
 }
 
 // ✅ Append sslmode for hosted DBs
-const connectionString = databaseUrl.includes("sslmode=")
+const connectionString = databaseUrl?.includes("sslmode=")
   ? databaseUrl
-  : `${databaseUrl}?sslmode=no-verify`;
+  : databaseUrl ? `${databaseUrl}?sslmode=no-verify` : undefined;
 
-const pool = new Pool({
+const pool = databaseUrl ? new Pool({
   connectionString,
   ssl: {
     rejectUnauthorized: false, // Render uses managed SSL certs
   },
-});
+}) : null;
 
 // ✅ Initialize Drizzle ORM
-export const db = drizzle(pool, { schema });
+export const db = pool ? drizzle(pool, { schema }) : null;
 
 // ✅ Optional singleton class for structured usage
 class DatabaseStorage {

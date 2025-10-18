@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'wouter';
+import { Redirect } from 'wouter';
 import { LoadingSpinner } from './ui/loading-spinner';
 
 interface DashboardLayoutProps {
@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   if (!user) {
-    return <Navigate to="/auth" />;
+    return <Redirect to="/auth" />;
   }
 
   return (

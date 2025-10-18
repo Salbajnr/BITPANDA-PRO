@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development tsx watch --clear-screen=false --ignore '../node_modules/**' --ignore '../client/**' index.ts",
+    "dev": "cross-env NODE_ENV=development tsx watch --clear-screen=false --ignore '../node_modules/**' --ignore '../client/**' index.ts",
     "build": "tsc",
-    "start": "NODE_ENV=production node ../dist/index.js",
+    "start": "cross-env NODE_ENV=production node ../dist/index.js",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit push"
   },
@@ -39,6 +39,7 @@
     "@types/pg": "^8.15.5",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.0.4",
+    "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.5",
     "typescript": "^5.4.5",
     "vite": "^7.1.10"
