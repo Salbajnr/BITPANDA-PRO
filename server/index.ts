@@ -75,6 +75,7 @@ app.use((req, res, next) => {
     "https://*.replit.app",
     "https://*.replit.dev",
     ...(process.env.REPLIT_DOMAINS?.split(",") || []),
+    ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
   ];
 
   const origin = req.headers.origin;
