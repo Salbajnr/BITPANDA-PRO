@@ -8,7 +8,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
-import { setupVite, serveStatic } from "./vite-setup";
 import { portfolioRoutes } from "./portfolio-routes";
 import { webSocketManager } from "./websocket-server";
 import { chatWebSocketManager } from "./chat-websocket";
@@ -17,7 +16,7 @@ import { realTimePriceService } from "./real-time-price-service";
 import { portfolioRealtimeService } from "./portfolio-realtime-service";
 import { liveAnalyticsService } from "./live-analytics-service";
 import { validateEnvironment } from "./env-validator";
-import { pool, testConnection } from "./db";
+import { pool } from "./db";
 
 // === ROUTES ===
 import cryptoRoutes from "./crypto-routes";
@@ -141,35 +140,26 @@ app.use("/api/sse", sseRoutes);
 registerProofUploadRoutes(app);
 app.use("/api/support/chat", chatRoutes);
 
-// === CATCH-ALL FRONTEND HANDLER ===
-app.get("*", (req, res, next) => {
-  if (req.path.startsWith("/api/")) return next();
-  if (process.env.NODE_ENV !== "production") return next();
-
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+// === 404 HANDLER FOR API ===
+app.use("*", (req, res) => {
+  res.status(404).json({ message: "API endpoint not found" });
 });
 
 // === SERVER START ===
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || "0.0.0.0";
 
 (async () => {
   try {
-    const httpServer = app.listen(PORT, HOST, async () => {
-      console.log(`🚀 Server running on ${HOST}:${PORT}`);
+    const httpServer = app.listen(PORT, HOST, () => {
+      console.log(`🚀 Backend API Server running on ${HOST}:${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-
-      // ✅ Test database connection after startup
-      await testConnection();
+      if (pool) {
+        console.log("✅ Database connection pool initialized");
+      } else {
+        console.log("⚠️ Running in demo mode (no database)");
+      }
     });
-
-    if (process.env.NODE_ENV === "production") {
-      serveStatic(app);
-    } else {
-      await setupVite(app, httpServer);
-    }
 
     // === INIT WEBSOCKETS ===
     webSocketManager.init(httpServer);
