@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx watch --clear-screen=false --ignore '../node_modules/**' --ignore '../client/**' index.ts",
     "build": "echo Skipping TypeScript compilation for production build && node -e \"const fs=require('fs');const path=require('path');if(!fs.existsSync('../dist'))fs.mkdirSync('../dist',{recursive:true});console.log('Build directory created');\"",
-    "build:tsc": "tsc",
-    "start": "NODE_ENV=production tsx index.js",
+    "build": "npm run build:tsc",
+    "start": "NODE_ENV=production node dist/index.js",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit push"
   },
