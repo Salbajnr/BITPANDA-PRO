@@ -4,6 +4,8 @@ dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 
 import express from "express";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
 import { portfolioRoutes } from "./portfolio-routes";
@@ -15,6 +17,9 @@ import { portfolioRealtimeService } from "./portfolio-realtime-service";
 import { liveAnalyticsService } from "./live-analytics-service";
 import { validateEnvironment } from "./env-validator";
 import { pool } from "./db";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // === ROUTES ===
 import cryptoRoutes from "./crypto-routes";
@@ -103,6 +108,13 @@ app.use((req, res, next) => {
   next();
 });
 
+// === STATIC FILES (Production) ===
+if (process.env.NODE_ENV === "production") {
+  const staticPath = path.resolve(__dirname, "..", "dist", "public");
+  app.use(express.static(staticPath));
+  console.log(`📁 Serving static files from: ${staticPath}`);
+}
+
 // === ROUTES ===
 registerRoutes(app);
 
@@ -139,13 +151,23 @@ registerProofUploadRoutes(app);
 app.use("/api/support/chat", chatRoutes);
 
 // === 404 HANDLER FOR API ===
-app.use("*", (req, res) => {
+app.use("/api/*", (req, res) => {
   res.status(404).json({ message: "API endpoint not found" });
 });
 
+// === SPA FALLBACK (Production) ===
+if (process.env.NODE_ENV === "production") {
+  app.get("*", (req, res) => {
+    const indexPath = path.resolve(__dirname, "..", "dist", "public", "index.html");
+    res.sendFile(indexPath);
+  });
+}
+
 // === SERVER START ===
-// Backend runs on port 3001 internally, frontend on port 5000 (public)
-const PORT = Number(process.env.BACKEND_PORT) || 3001;
+// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3001)
+const PORT = process.env.NODE_ENV === "production" 
+  ? Number(process.env.PORT) || 5000 
+  : Number(process.env.BACKEND_PORT) || 3001;
 const HOST = process.env.HOST || "0.0.0.0";
 
 (async () => {
