@@ -146,7 +146,8 @@ app.use("*", (req, res) => {
 });
 
 // === SERVER START ===
-const PORT = Number(process.env.PORT) || 3000;
+// Backend runs on port 3001 internally, frontend on port 5000 (public)
+const PORT = Number(process.env.BACKEND_PORT) || 3001;
 const HOST = process.env.HOST || "0.0.0.0";
 
 (async () => {
