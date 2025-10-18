@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch --clear-screen=false --ignore '../node_modules/**' --ignore '../client/**' index.ts",
-    "build": "tsc",
+    "build": "npm install --include=dev && tsc",
     "start": "node dist/index.js",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit push"

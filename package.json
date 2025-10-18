@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "echo 'Use the Replit workflows to run the application'",
+    "dev": "npm run dev:server & npm run dev:client",
+    "dev:server": "cd server && npm install && npm run dev",
+    "dev:client": "cd client && npm install && npm run dev",
     "build": "npm run build:server && npm run build:client",
-    "build:server": "cd server && npm install && npm run build",
+    "build:server": "cd server && npm run build",
     "build:client": "cd client && npm install && npm run build",
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
-    "start": "cd server && npm run start"
+    "start": "cd server && npm start"
   },
   "workspaces": [
     "server",
