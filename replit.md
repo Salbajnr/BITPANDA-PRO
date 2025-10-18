@@ -2,17 +2,19 @@
 
 This project is a cryptocurrency simulation platform named "BITPANDA PRO," designed to offer a realistic trading experience with full admin control over simulated balances. It supports two user roles—Admin and Normal User—each with distinct authentication and access controls. The platform aims to mimic a live crypto trading environment so accurately that users cannot differentiate between real and simulated operations, focusing on providing a comprehensive, simulated trading ecosystem.
 
-## Recent Changes (October 16, 2025)
-- **COMPLETED IMPORT TO REPLIT ENVIRONMENT:**
-  - Successfully installed all project dependencies (server and client packages)
-  - Fixed database configuration to use SSL connection for external PostgreSQL
-  - Resolved module conflict by renaming server/vite.ts to server/vite-setup.ts
-  - Configured tsx watch to ignore client and node_modules to prevent restart loops
-  - Application running successfully on port 5000 with full-stack integration
-  - Vite development server serving React frontend with HMR support
+## Recent Changes (October 18, 2025)
+- **SEPARATED FRONTEND AND BACKEND ARCHITECTURE:**
+  - Completely separated server (backend) and client (frontend) into independent applications
+  - Backend API runs on port 3001 as pure REST API server (no frontend serving)
+  - Frontend runs independently on port 5000 using Vite dev server
+  - Configured Vite proxy to route /api and /uploads requests from frontend to backend
+  - Removed Vite middleware integration from backend (deleted server/vite-setup.ts)
+  - Updated CORS configuration to support separated architecture
+  - Created separate workflows: "Backend API" and "Frontend"
+  - Cleaned up redundant files: firestore.indexes.json, render.yaml, render-static.yaml, RENDER_DEPLOYMENT_GUIDE.md
   - Database connected and verified (30+ tables operational)
   - WebSocket services initialized for real-time features
-  - Cleaned up duplicate workflows and optimized development setup
+  - Both frontend and backend running successfully with proper communication
 
 ## Previous Changes (October 15, 2025)
 - **MIGRATED TO RENDER POSTGRESQL:**
@@ -53,7 +55,7 @@ Preferred communication style: Simple, everyday language.
 The frontend is a React.js single-page application built with TypeScript. It uses Vite for fast development and optimized production builds. UI components are developed with Radix UI and styled using Tailwind CSS, supporting dark/light mode. State management is handled by TanStack React Query for server state, and Wouter is used for client-side routing. Authentication currently uses traditional email/password login, with Firebase Google Sign-In planned for future integration.
 
 ## Backend Architecture
-The backend is a REST API built with Node.js and Express.js. It handles user authentication through traditional email/password methods with bcrypt password hashing. Express sessions with PostgreSQL storage manage session data. Role-based access control is enforced via middleware, separating admin and user operations. Vite middleware is integrated for seamless full-stack development.
+The backend is a pure REST API built with Node.js and Express.js, running independently on port 3001. It handles user authentication through traditional email/password methods with bcrypt password hashing. Express sessions with PostgreSQL storage manage session data. Role-based access control is enforced via middleware, separating admin and user operations. The backend serves only JSON API responses and does not serve frontend assets. CORS is configured to allow requests from the frontend application.
 
 ## Data Storage Solutions
 The application utilizes PostgreSQL hosted on Render for its database. Drizzle ORM is used for type-safe database operations, defining schemas for users, portfolios, holdings, transactions, balance adjustments, and news articles. Drizzle Kit manages schema migrations. A dedicated sessions table in PostgreSQL handles authentication state persistence.
