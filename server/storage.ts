@@ -75,7 +75,6 @@ class DatabaseStorage {
   async getAllTransactions(opts?: { page?: number; limit?: number; type?: string }) { return { transactions: [], total: 0 }; }
   isDbConnected() { return true; }
   async createPortfolio(data: any) { return { id: 'portfolioId', ...data, availableCash: '0' }; }
-  async getUserByEmailOrUsername(email: string, username: string) { return { id: 'userId', email, username, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
   async getUserByEmail(email: string) { return { id: 'userId', email, username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
   async getUserByUsername(username: string) { return { id: 'userId', email: '', username, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
   async createUser(data: any) { return { id: 'userId', ...data, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }

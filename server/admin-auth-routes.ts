@@ -42,11 +42,11 @@ router.post('/auth/login', async (req: Request, res: Response) => {
     res.json({
       admin: {
         id: user.id,
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
+        username: user.username || '',
+        email: user.email || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        role: user.role || 'admin',
       },
     });
   } catch (error) {
@@ -72,11 +72,11 @@ router.get('/auth/user', requireAuth, async (req: Request, res: Response) => {
 
     res.json({
       id: user.id,
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
+      username: user.username || '',
+      email: user.email || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      role: user.role || 'admin',
     });
   } catch (error) {
     console.error('Get admin user error:', error);
