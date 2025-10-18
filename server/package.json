@@ -7,7 +7,7 @@
     "dev": "NODE_ENV=development tsx watch --clear-screen=false --ignore '../node_modules/**' --ignore '../client/**' index.ts",
     "build": "echo Skipping TypeScript compilation for production build && node -e \"const fs=require('fs');const path=require('path');if(!fs.existsSync('../dist'))fs.mkdirSync('../dist',{recursive:true});console.log('Build directory created');\"",
     "build:tsc": "tsc",
-    "start": "NODE_ENV=production tsx index.ts",
+    "start": "NODE_ENV=production tsx index.js",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit push"
   },
@@ -28,8 +28,7 @@
     "tsx": "^4.20.6",
     "ws": "^8.18.3",
     "zod": "^4.1.12",
-    "cross-env": "^7.0.3",
-    "vite": "^7.1.10" // Moved from devDependencies to dependencies
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -43,6 +42,7 @@
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.0.4",
     "drizzle-kit": "^0.31.5",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vite": "^7.1.10"
   }
-}}
+}
