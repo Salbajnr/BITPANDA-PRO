@@ -1,4 +1,3 @@
-
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { storage } from './storage';
@@ -15,9 +14,9 @@ const adminLoginSchema = z.object({
 router.post('/auth/login', async (req: Request, res: Response) => {
   try {
     const { emailOrUsername, password } = adminLoginSchema.parse(req.body);
-    
+
     const user = await storage.getUserByEmailOrUsername(emailOrUsername);
-    
+
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -27,7 +26,7 @@ router.post('/auth/login', async (req: Request, res: Response) => {
     }
 
     const isValidPassword = await storage.verifyPassword(user.id, password);
-    
+
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -53,7 +52,10 @@ router.post('/auth/login', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Admin login error:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: error.errors[0].message });
+      return res.status(400).json({ 
+        message: 'Invalid login data', 
+        errors: error.issues 
+      });
     }
     res.status(500).json({ message: 'Login failed' });
   }
@@ -63,7 +65,7 @@ router.post('/auth/login', async (req: Request, res: Response) => {
 router.get('/auth/user', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = await storage.getUser(req.user!.id);
-    
+
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: "Admin access required" });
     }
