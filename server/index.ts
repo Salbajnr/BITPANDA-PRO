@@ -113,8 +113,19 @@ app.use((req, res, next) => {
 // === STATIC FILES (Production) ===
 if (process.env.NODE_ENV === "production") {
   const staticPath = path.resolve(__dirname, "..", "dist", "public");
-  app.use(express.static(staticPath));
-  console.log(`📁 Serving static files from: ${staticPath}`);
+  
+  // Check if the static build directory exists
+  if (fs.existsSync(staticPath)) {
+    app.use(express.static(staticPath, {
+      maxAge: '1y',
+      etag: true,
+      lastModified: true
+    }));
+    console.log(`📁 Serving static files from: ${staticPath}`);
+  } else {
+    console.warn(`⚠️ Static build directory not found at: ${staticPath}`);
+    console.warn(`⚠️ Run 'npm run build:client' to create production build`);
+  }
 }
 
 // === ROUTES ===

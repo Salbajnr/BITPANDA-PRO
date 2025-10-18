@@ -4,14 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npx -p typescript tsc --noEmitOnError false || true",
-    "build:transpile": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --transpile-only --project tsconfig.server.json src/index.ts",
-    "start": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --transpile-only --project tsconfig.server.json src/index.ts",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm install && npm run build",
+    "build:server": "cd server && npm install && npx -p typescript tsc --noEmitOnError false || true",
+    "start": "NODE_ENV=production cd server && NODE_OPTIONS='--max-old-space-size=4096' npx tsx index.ts",
     "dev": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --project tsconfig.server.json src/index.ts",
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "db:generate": "cd server && drizzle-kit generate",
+    "db:push": "cd server && drizzle-kit push",
+    "db:migrate": "cd server && drizzle-kit migrate",
+    "db:studio": "cd server && drizzle-kit studio",
     "test": "echo \"Error: no test specified\" && exit 1"
    },
   "workspaces": [
