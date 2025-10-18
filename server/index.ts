@@ -1,4 +1,4 @@
-import "dotenv/config";
+
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 
