@@ -99,27 +99,6 @@ app.use(cookieParser(process.env.COOKIE_SECRET || "super-secret-fallback"));
 const PORT = Number(process.env.PORT) || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-const httpServer = app.listen(PORT, HOST, () => {
-  console.log(`🚀 Server running on ${HOST}:${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
-
-(async () => {
-  if (process.env.NODE_ENV === 'production') {
-    serveStatic(app);
-  } else {
-    await setupVite(app, httpServer);
-  }
-
-  // Initialize WebSockets
-  webSocketManager.init(httpServer);
-  chatWebSocketManager.init(httpServer);
-
-  // Start price monitoring
-  priceMonitor.start();
-  (realTimePriceService as any).startPriceUpdates();
-})();
-
 app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: (req as any).csrfToken?.() || null });
 });
@@ -202,6 +181,28 @@ async function initializeDatabase() {
 
 (async () => {
   try {
+    // Start HTTP server
+    const httpServer = app.listen(PORT, HOST, async () => {
+      console.log(`🚀 Server running on ${HOST}:${PORT}`);
+      console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+
+    // Setup Vite or static files
+    if (process.env.NODE_ENV === 'production') {
+      serveStatic(app);
+    } else {
+      await setupVite(app, httpServer);
+    }
+
+    // Initialize WebSockets
+    webSocketManager.init(httpServer);
+    chatWebSocketManager.init(httpServer);
+
+    // Start price monitoring
+    priceMonitor.start();
+    (realTimePriceService as any).startPriceUpdates();
+
+    // Initialize database
     const dbConnected = await initializeDatabase();
     if (dbConnected && pool) {
       console.log("✅ Database initialization completed");
