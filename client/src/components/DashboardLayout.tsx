@@ -1,39 +1,36 @@
-import { ReactNode } from "react";
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
-import LiveTicker from "./LiveTicker";
-import { cn } from "@/lib/utils";
+import { ReactNode } from 'react';
+import Sidebar from './Sidebar';
+import { useAuth } from '@/hooks/useAuth';
+import { Navigate } from 'wouter';
+import { LoadingSpinner } from './ui/loading-spinner';
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  showSidebar?: boolean;
-  showTicker?: boolean;
-  className?: string;
 }
 
-export function DashboardLayout({ 
-  children, 
-  showSidebar = false, 
-  showTicker = true,
-  className 
-}: DashboardLayoutProps) {
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" />;
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      {showTicker && <LiveTicker />}
-
-      <div className="flex">
-        {showSidebar && (
-          <aside className="w-64 min-h-screen bg-card border-r border-border">
-            <Sidebar />
-          </aside>
-        )}
-
-        <main className={cn(
-          "flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6",
-          className
-        )}>
-          {children}
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="flex h-screen">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900">
+          <div className="p-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>

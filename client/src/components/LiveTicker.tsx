@@ -60,12 +60,12 @@ export default function LiveTicker() {
   // Update ticker items from API data
   useEffect(() => {
     let items: TickerItem[] = [];
-    
+
     // Process crypto data
     if (cryptoResponse?.data && Array.isArray(cryptoResponse.data)) {
       items = [...cryptoResponse.data.slice(0, 12)];
     }
-    
+
     // Process metals data
     if (metalsResponse && Array.isArray(metalsResponse)) {
       items = [...items, ...metalsResponse.slice(0, 4)];
@@ -118,10 +118,18 @@ export default function LiveTicker() {
   }
 
   return (
-    <div className="bg-slate-900 border-b border-slate-800 overflow-hidden">
-      <div className="relative">
-        {/* Scrolling ticker */}
-        <div className="flex animate-scroll whitespace-nowrap">
+    <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="relative h-8">
+        <div 
+          className="flex items-center h-full space-x-8 animate-scroll"
+          style={{
+            animationDuration: '30s',
+            animationTimingFunction: 'linear',
+            animationIterationCount: 'infinite',
+            transform: 'translateX(100%)'
+          }}
+        >
+          {/* Scrolling ticker */}
           {/* First set of items */}
           {tickerItems.map((item, index) => {
             const isPositive = (item.price_change_percentage_24h || 0) >= 0;
@@ -134,7 +142,7 @@ export default function LiveTicker() {
 
             return (
               <div key={`${item.symbol}-${index}`} className="flex items-center space-x-2 px-8 py-2 flex-shrink-0">
-                <span className="font-semibold text-gray-100 text-sm">{item.symbol}</span>
+                <span className="font-semibold text-gray-100 dark:text-gray-300 text-sm">{item.symbol}</span>
                 <span className="text-white font-medium text-sm">
                   ${formattedPrice}
                 </span>
@@ -147,7 +155,7 @@ export default function LiveTicker() {
               </div>
             );
           })}
-          
+
           {/* Duplicate set for seamless loop */}
           {tickerItems.map((item, index) => {
             const isPositive = (item.price_change_percentage_24h || 0) >= 0;
@@ -160,7 +168,7 @@ export default function LiveTicker() {
 
             return (
               <div key={`${item.symbol}-duplicate-${index}`} className="flex items-center space-x-2 px-8 py-2 flex-shrink-0">
-                <span className="font-semibold text-gray-100 text-sm">{item.symbol}</span>
+                <span className="font-semibold text-gray-100 dark:text-gray-300 text-sm">{item.symbol}</span>
                 <span className="text-white font-medium text-sm">
                   ${formattedPrice}
                 </span>
@@ -174,7 +182,7 @@ export default function LiveTicker() {
             );
           })}
         </div>
-        
+
         {/* Connection status indicator */}
         <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
           <div className={`flex items-center space-x-1 text-xs ${isConnected ? 'text-green-400' : 'text-red-400'}`}>

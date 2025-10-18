@@ -21,9 +21,11 @@ import {
   Activity,
   AlertTriangle,
   ArrowDownLeft,
-  FileText
+  FileText,
+  LogOut
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button"; // Assuming Button is in this path
 
 // Dummy SidebarMenuButton component for demonstration purposes
 // In a real app, this would likely be imported from a UI library
@@ -53,11 +55,14 @@ interface SidebarProps {
 
 export default function Sidebar({ portfolioData, isOpen = false, onClose }: SidebarProps) {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth(); // Assuming logout function is available
 
   const portfolio = portfolioData?.portfolio;
   const totalValue = portfolio ? parseFloat(portfolio.totalValue) : 0;
   const dailyChange = totalValue * 0.0229; // Mock 2.29% daily change
+
+  // Mock totalBalance for the user profile section
+  const totalBalance = totalValue; 
 
   const navigationItems = [
     { href: "/dashboard", label: "Dashboard", icon: LineChart },
@@ -91,6 +96,11 @@ export default function Sidebar({ portfolioData, isOpen = false, onClose }: Side
   // Placeholder for currentPath and navigate if not defined in the original context
   // In a real application, these would come from a routing library like Wouter or React Router
   const currentPath = location; 
+
+  const handleLogout = () => {
+    logout(); // Call the logout function from useAuth
+    if (onClose) onClose(); // Close mobile sidebar if open
+  };
 
   return (
     <>

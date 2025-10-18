@@ -82,26 +82,20 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 sticky top-0 z-50 transition-all duration-300 ${
-      scrolled
-        ? 'shadow-lg'
-        : 'shadow-sm'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Bitpanda Style */}
-          <div className="flex items-center">
-            <Link href="/">
-              <div className="flex items-center space-x-2 cursor-pointer">
-                <img
-                  src="/bitpanda-logo.svg"
-                  alt="BITPANDA PRO"
-                  className="w-8 h-8"
-                />
-                <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">BITPANDAPRO</span>
-              </div>
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center space-x-3 hover:opacity-90 transition-opacity">
+            <img
+              src="/bitpanda-logo.svg"
+              alt="Bitpanda Logo"
+              className="w-8 h-8"
+            />
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Bitpanda</h1>
+            </div>
+          </Link>
 
           {/* Desktop Navigation - Professional Menubar */}
           <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
@@ -214,7 +208,7 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/academy')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 border border-transparent hover:border-green-200 dark:hover:border-green-800 group">
+                      <div className="w-full flex items-start gap-3 p-4 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 border border-transparent hover:border-green-200 dark:hover:border-green-800 group">
                         <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                           <BookOpen className="w-5 h-5 text-green-500" />
                         </div>
@@ -228,7 +222,7 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/news')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group">
+                      <div className="w-full flex items-start gap-3 p-4 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group">
                         <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                           <Newspaper className="w-5 h-5 text-blue-500" />
                         </div>
@@ -242,7 +236,7 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/tutorials')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800 group">
+                      <div className="w-full flex items-start gap-3 p-4 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800 group">
                         <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                           <Users className="w-5 h-5 text-purple-500" />
                         </div>
@@ -268,7 +262,7 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/about-us')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group">
+                      <div className="w-full flex items-start gap-3 p-4 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 group">
                         <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                           <Home className="w-5 h-5 text-blue-500" />
                         </div>
@@ -282,7 +276,7 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/careers')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 border border-transparent hover:border-green-200 dark:hover:border-green-800 group">
+                      <div className="w-full flex items-start gap-3 p-4 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 border border-transparent hover:border-green-200 dark:hover:border-green-800 group">
                         <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                           <Users className="w-5 h-5 text-green-500" />
                         </div>
@@ -297,7 +291,7 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/press')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 border border-transparent hover:border-red-200 dark:hover:border-red-800 group">
+                      <div className="w-full flex items-start gap-3 p-4 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 border border-transparent hover:border-red-200 dark:hover:border-red-800 group">
                         <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                           <Shield className="w-5 h-5 text-red-500" />
                         </div>
@@ -311,7 +305,7 @@ export default function Navbar() {
                       className="p-0 cursor-pointer"
                       onClick={() => navigate('/help-center')}
                     >
-                      <div className="w-full flex items-start gap-3 p-4 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800 group">
+                      <div className="w-full flex items-start gap-3 p-4 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 border border-transparent hover:border-purple-200 dark:hover:border-purple-800 group">
                         <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                           <HelpCircle className="w-5 h-5 text-purple-500" />
                         </div>
