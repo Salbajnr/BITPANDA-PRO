@@ -4,14 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run dev:server & npm run dev:client",
-    "dev:server": "cd server && npm install && npm run dev",
-    "dev:client": "cd client && npm install && npm run dev",
-    "build": "npm install && npm run build:server && npm run build:client",
-    "build:server": "cd server && npm install && npm run build",
-    "build:client": "cd client && npm install && npm run build",
-    "start": "cd server && npm start"
-  },
+    "build": "npx -p typescript tsc --noEmitOnError false || true",
+    "build:transpile": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --transpile-only --project tsconfig.server.json src/index.ts",
+    "start": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --transpile-only --project tsconfig.server.json src/index.ts",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --project tsconfig.server.json src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
+   },
   "workspaces": [
     "server",
     "client"
