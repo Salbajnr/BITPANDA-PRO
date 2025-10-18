@@ -1,7 +1,8 @@
+import "dotenv/config";
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Prevent IPv6 networking issues on Render
 
-import "dotenv/config";
+
 import express, { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
