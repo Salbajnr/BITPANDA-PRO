@@ -27,6 +27,8 @@ import AdminQuickActions from '@/components/AdminQuickActions';
 import AdminRiskManagement from '@/components/AdminRiskManagement';
 import AdminComplianceDashboard from '@/components/AdminComplianceDashboard';
 import AdminServerMonitoring from '@/components/AdminServerMonitoring';
+import { useAdminWebSocket } from "@/hooks/useAdminWebSocket";
+import { useSSENotifications } from "@/hooks/useSSENotifications";
 
 interface User {
   id: string;
@@ -118,6 +120,16 @@ export default function AdminDashboard() {
     maxWithdrawalAmount: 50000
   });
 
+  // Real-time data states
+  const [realtimeStats, setRealtimeStats] = useState({
+    systemLoad: '0%',
+    activeConnections: 0,
+    cpuUsage: '0%',
+    memoryUsage: '0%'
+  });
+  const [recentUserActivity, setRecentUserActivity] = useState([]);
+  const [systemAlerts, setSystemAlerts] = useState([]);
+
   // Fetch users with pagination
   const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
     queryKey: [`/api/admin/users?page=${currentPage}&search=${encodeURIComponent(searchTerm)}&status=${userStatusFilter}&role=${userRoleFilter}`],
@@ -141,6 +153,16 @@ export default function AdminDashboard() {
     queryKey: ["/api/admin/balance-adjustments"],
     retry: 1,
   });
+
+  // Admin WebSocket hook
+  const { latestStats, latestActivity, latestAlerts } = useAdminWebSocket({
+    onStatsUpdate: (stats) => setRealtimeStats(stats),
+    onActivityUpdate: (activity) => setRecentUserActivity(activity),
+    onAlertUpdate: (alert) => setSystemAlerts(alert),
+  });
+
+  // SSE Notifications hook
+  const { notifications } = useSSENotifications();
 
   // Balance adjustment mutation
   const adjustBalanceMutation = useMutation({
@@ -504,25 +526,61 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
 
-                {/* Recent Activity */}
+                {/* Real-time System Health */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>System Health</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div className="flex items-center space-x-3">
+                        <Activity className="h-8 w-8 text-primary" />
+                        <div>
+                          <p className="text-sm text-slate-500">System Load</p>
+                          <p className="text-xl font-bold">{realtimeStats.systemLoad}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Users className="h-8 w-8 text-primary" />
+                        <div>
+                          <p className="text-sm text-slate-500">Active Connections</p>
+                          <p className="text-xl font-bold">{realtimeStats.activeConnections}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Monitor className="h-8 w-8 text-primary" />
+                        <div>
+                          <p className="text-sm text-slate-500">CPU Usage</p>
+                          <p className="text-xl font-bold">{realtimeStats.cpuUsage}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <PieChart className="h-8 w-8 text-primary" />
+                        <div>
+                          <p className="text-sm text-slate-500">Memory Usage</p>
+                          <p className="text-xl font-bold">{realtimeStats.memoryUsage}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Recent Activity & Alerts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Recent Balance Adjustments</CardTitle>
+                      <CardTitle>Recent User Activity</CardTitle>
+                      <CardDescription>Real-time feed of user actions</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        {adjustments.slice(0, 5).map((adj: any) => (
-                          <div key={adj.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <div className="space-y-3 max-h-72 overflow-y-auto">
+                        {recentUserActivity.slice(0, 5).map((activity: any) => (
+                          <div key={activity.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                             <div>
-                              <p className="font-medium">
-                                {adj.adjustmentType.charAt(0).toUpperCase() + adj.adjustmentType.slice(1)} ${adj.amount}
-                              </p>
-                              <p className="text-sm text-slate-500">{new Date(adj.createdAt).toLocaleString()}</p>
+                              <p className="font-medium">{activity.description}</p>
+                              <p className="text-sm text-slate-500">User: {activity.userId} • {new Date(activity.timestamp).toLocaleTimeString()}</p>
                             </div>
-                            <Badge variant={adj.adjustmentType === 'add' ? 'default' : 'destructive'}>
-                              {adj.adjustmentType}
-                            </Badge>
+                            <Badge variant="outline">{activity.type}</Badge>
                           </div>
                         ))}
                       </div>
@@ -531,30 +589,48 @@ export default function AdminDashboard() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>System Status</CardTitle>
+                      <CardTitle>System Alerts</CardTitle>
+                      <CardDescription>Critical alerts from system components</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span>Trading System</span>
-                          <Badge className="bg-green-100 text-green-800">Online</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>User Registration</span>
-                          <Badge className="bg-green-100 text-green-800">Active</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>Deposit Processing</span>
-                          <Badge className="bg-green-100 text-green-800">Running</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>API Services</span>
-                          <Badge className="bg-green-100 text-green-800">Healthy</Badge>
-                        </div>
+                      <div className="space-y-3 max-h-72 overflow-y-auto">
+                        {systemAlerts.slice(0, 5).map((alert: any) => (
+                          <div key={alert.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-800/20 rounded-lg">
+                            <div>
+                              <p className="font-medium text-red-700 dark:text-red-300">{alert.message}</p>
+                              <p className="text-sm text-red-500">Source: {alert.source} • {new Date(alert.timestamp).toLocaleString()}</p>
+                            </div>
+                            <Badge variant="destructive">Critical</Badge>
+                          </div>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Recent Balance Adjustments (from original code) */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Balance Adjustments</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {adjustments.slice(0, 5).map((adj: any) => (
+                        <div key={adj.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                          <div>
+                            <p className="font-medium">
+                              {adj.adjustmentType.charAt(0).toUpperCase() + adj.adjustmentType.slice(1)} ${adj.amount}
+                            </p>
+                            <p className="text-sm text-slate-500">{new Date(adj.createdAt).toLocaleString()}</p>
+                          </div>
+                          <Badge variant={adj.adjustmentType === 'add' ? 'default' : 'destructive'}>
+                            {adj.adjustmentType}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
 
@@ -1063,7 +1139,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-red-100">Security Alerts</p>
-                          <p className="text-3xl font-bold">3</p>
+                          <p className="text-3xl font-bold">{systemAlerts.length}</p>
                         </div>
                         <AlertTriangle className="h-12 w-12 text-red-200" />
                       </div>
@@ -1415,7 +1491,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-slate-600 dark:text-slate-400">Pending Notifications</p>
-                          <p className="text-3xl font-bold">47</p>
+                          <p className="text-3xl font-bold">{notifications.filter(n => n.status === 'pending').length}</p>
                         </div>
                         <Bell className="h-8 w-8 text-blue-600" />
                       </div>
@@ -1427,7 +1503,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-slate-600 dark:text-slate-400">Sent Today</p>
-                          <p className="text-3xl font-bold">1,247</p>
+                          <p className="text-3xl font-bold">1,247</p> {/* This might need real-time update */}
                         </div>
                         <Mail className="h-8 w-8 text-green-600" />
                       </div>
@@ -1439,7 +1515,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-slate-600 dark:text-slate-400">Failed Delivery</p>
-                          <p className="text-3xl font-bold">12</p>
+                          <p className="text-3xl font-bold">{notifications.filter(n => n.status === 'failed').length}</p>
                         </div>
                         <AlertTriangle className="h-8 w-8 text-red-600" />
                       </div>
@@ -1655,7 +1731,7 @@ export default function AdminDashboard() {
             )}
 
             {/* Default/Placeholder Section */}
-            {!['dashboard', 'users', 'transactions', 'analytics', 'system-health', 'user-activity', 'quick-actions', 'security', 'system', 'api-management', 'risk-management', 'compliance', 'server-monitoring', 'audit-logs', 'kyc'].includes(activeSection) && (
+            {!['dashboard', 'users', 'transactions', 'analytics', 'system-health', 'user-activity', 'quick-actions', 'security', 'system', 'api-management', 'risk-management', 'compliance', 'server-monitoring', 'audit-logs', 'kyc', 'notifications'].includes(activeSection) && (
               <Card>
                 <CardHeader>
                   <CardTitle>{sidebarItems.find(item => item.id === activeSection)?.label || 'Section'}</CardTitle>

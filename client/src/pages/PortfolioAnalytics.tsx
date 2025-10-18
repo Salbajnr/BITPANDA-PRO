@@ -18,6 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSSENotifications } from '@/hooks/useSSENotifications';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 
@@ -68,9 +69,33 @@ export default function PortfolioAnalytics() {
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('7d');
 
+  // Real-time portfolio updates
+  const { notifications } = useSSENotifications({
+    autoConnect: true,
+    showToasts: false
+  });
+
   useEffect(() => {
     fetchPortfolioData();
   }, [timeframe]);
+
+  // Listen for real-time portfolio updates
+  useEffect(() => {
+    const portfolioUpdates = notifications.filter(n => n.type === 'portfolio_update');
+    if (portfolioUpdates.length > 0) {
+      const latestUpdate = portfolioUpdates[0];
+      if (latestUpdate.data && portfolioData) {
+        setPortfolioData(prev => prev ? {
+          ...prev,
+          totalValue: latestUpdate.data.totalValue,
+          totalPnL: latestUpdate.data.change24h,
+          totalPnLPercentage: latestUpdate.data.changePercent,
+          dayPnL: latestUpdate.data.change24h,
+          dayPnLPercentage: latestUpdate.data.changePercent
+        } : null);
+      }
+    }
+  }, [notifications, portfolioData]);
 
   const fetchPortfolioData = async () => {
     try {

@@ -22,6 +22,7 @@ import tradingRoutes from "./trading-routes";
 import adminRoutes from "./admin-routes";
 import adminAuthRoutes from "./admin-auth-routes";
 import authRoutes from "./auth-routes";
+import userRoutes from './user-routes';
 import alertRoutes from "./alert-routes";
 import depositRoutes from "./deposit-routes";
 import withdrawalRoutes from "./withdrawal-routes";
@@ -268,7 +269,7 @@ async function initializeDatabase() {
 
 process.on('SIGINT', async () => {
   console.log('SIGINT signal received: closing HTTP server and real-time services.');
-  
+
   // Shutdown all real-time services
   webSocketManager.shutdown();
   chatWebSocketManager.shutdown();
