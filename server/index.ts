@@ -66,21 +66,23 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser(process.env.COOKIE_SECRET || "super-secret-fallback"));
 
-// 🔥 **YOUR EXACT URLS - CORS CONFIG**
+// === CORS ===
 app.use((req, res, next) => {
   const allowedOrigins = [
-    "http://localhost:3000",                    // Dev frontend
-    "http://127.0.0.1:3000",                   // Dev frontend
-    "https://bitpanda-pro-frontnd.onrender.com", // ✅ YOUR FRONTEND
-    ...(process.env.ALLOWED_ORIGINS?.split(",") || []),
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+    "https://*.onrender.com",
+    "https://*.replit.app",
+    "https://*.replit.dev",
+    ...(process.env.REPLIT_DOMAINS?.split(",") || []),
   ];
 
   const origin = req.headers.origin;
-  const allowed = allowedOrigins.includes(origin || "");
+  const allowed = allowedOrigins.some(
+    (a) => a === origin || (a.includes("*") && origin?.endsWith(a.replace("*", "")))
+  );
 
-  if (allowed || !origin) {
-    res.header("Access-Control-Allow-Origin", origin || "*");
-  }
+  if (allowed || !origin) res.header("Access-Control-Allow-Origin", origin || "*");
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header(
@@ -88,19 +90,13 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token"
   );
 
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
+  if (req.method === "OPTIONS") res.sendStatus(200);
+  else next();
 });
 
 // === HEALTH CHECK ===
 app.get("/health", (req, res) => {
-  res.status(200).json({ 
-    status: "ok", 
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV,
-    port: process.env.PORT,
-    frontend: "https://bitpanda-pro-frontnd.onrender.com"
-  });
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // === LOGGING ===
@@ -113,9 +109,22 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Static files (will skip - frontend is separate)
+// === STATIC FILES (Production) ===
 if (process.env.NODE_ENV === "production") {
-  console.log("📁 Frontend served separately at: https://bitpanda-pro-frontnd.onrender.com");
+  const staticPath = path.resolve(__dirname, "..", "dist", "public");
+  
+  // Check if the static build directory exists
+  if (fs.existsSync(staticPath)) {
+    app.use(express.static(staticPath, {
+      maxAge: '1y',
+      etag: true,
+      lastModified: true
+    }));
+    console.log(`📁 Serving static files from: ${staticPath}`);
+  } else {
+    console.warn(`⚠️ Static build directory not found at: ${staticPath}`);
+    console.warn(`⚠️ Run 'npm run build:client' to create production build`);
+  }
 }
 
 // === ROUTES ===
@@ -158,33 +167,50 @@ app.use("/api/*", (req, res) => {
   res.status(404).json({ message: "API endpoint not found" });
 });
 
-// ✅ API-ONLY in production (frontend separate)
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api/')) return res.status(404).json({ message: "API endpoint not found" });
-  
-  if (process.env.NODE_ENV !== 'production') {
-    return res.status(404).json({ 
-      message: "API Server Only", 
-      frontend: "https://bitpanda-pro-frontnd.onrender.com",
-      api: "https://bitpanda-pro.onrender.com" 
-    });
+// Catch-all handler: send back React app for any non-API routes
+app.get('*', (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return next();
   }
-  
-  res.redirect(301, "https://bitpanda-pro-frontnd.onrender.com");
+
+  // In development, let Vite handle it
+  if (process.env.NODE_ENV !== 'production') {
+    return next();
+  }
+
+  // In production, serve the React app
+  const prodIndex = path.resolve(__dirname, '..', 'dist', 'public', 'index.html');
+  if (fs.existsSync(prodIndex)) {
+    return res.sendFile(prodIndex);
+  }
+
+  // Fallback to previous path for older setups
+  const legacyIndex = path.resolve(__dirname, '..', 'client', 'dist', 'index.html');
+  if (fs.existsSync(legacyIndex)) {
+    return res.sendFile(legacyIndex);
+  }
+
+  res.status(404).send('Client build not found. Make sure the client is built to ../dist/public');
 });
 
-// === SERVER START === ✅ RENDER PERFECT
-const PORT = Number(process.env.PORT) || 10000;
-const HOST = "0.0.0.0";
+// === SERVER START ===
+// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3001)
+const PORT = process.env.NODE_ENV === "production"
+  ? Number(process.env.PORT) || 5000
+  : Number(process.env.BACKEND_PORT) || 3001;
+const HOST = process.env.HOST || "0.0.0.0";
 
 (async () => {
   try {
     const httpServer = app.listen(PORT, HOST, () => {
-      console.log(`🚀 Backend API Server: https://bitpanda-pro.onrender.com`);
-      console.log(`🌐 Frontend: https://bitpanda-pro-frontnd.onrender.com`);
+      console.log(`🚀 Backend API Server running on ${HOST}:${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-      console.log(`🔌 Port: ${PORT}`);
-      if (pool) console.log("✅ Database connected");
+      if (pool) {
+        console.log("✅ Database connection pool initialized");
+      } else {
+        console.log("⚠️ Running in demo mode (no database)");
+      }
     });
 
     // === INIT WEBSOCKETS ===
@@ -198,16 +224,16 @@ const HOST = "0.0.0.0";
     liveAnalyticsService.start();
     priceMonitor.start();
 
-    console.log("✅ BitPanda Pro FULLY LIVE! 🎉");
+    console.log("✅ All real-time services initialized");
   } catch (err) {
-    console.error("❌ Server failed:", err);
-    process.exit(1);
+    console.error("❌ Server initialization failed:", err);
   }
 })();
 
 // === GRACEFUL SHUTDOWN ===
 process.on("SIGINT", async () => {
-  console.log("🛑 Shutting down BitPanda Pro...");
+  console.log("🛑 SIGINT received — shutting down...");
+
   webSocketManager.shutdown();
   chatWebSocketManager.shutdown();
   adminWebSocketManager.shutdown();
@@ -215,7 +241,12 @@ process.on("SIGINT", async () => {
   portfolioRealtimeService.stop();
   liveAnalyticsService.stop();
   priceMonitor.stop();
-  if (pool) await pool.end();
-  console.log("👋 Goodbye!");
+
+  if (pool) {
+    await pool.end();
+    console.log("✅ Database pool closed.");
+  }
+
+  console.log("👋 Server gracefully shut down.");
   process.exit(0);
 });
