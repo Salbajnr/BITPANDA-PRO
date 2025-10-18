@@ -259,7 +259,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="dark" storageKey="bitpanda-theme">
+        <ThemeProvider>
           <TooltipProvider>
             <LanguageProvider>
               <MessageModalProvider>
