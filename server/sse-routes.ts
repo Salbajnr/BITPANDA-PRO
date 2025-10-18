@@ -1,11 +1,14 @@
-
 import { Router, Request, Response } from 'express';
 import { requireAuth } from './simple-auth';
 
 const router = Router();
 
 // Store active SSE connections
-const activeConnections = new Map<string, Response>();
+declare global {
+  var sseClients: Map<string, express.Response> | undefined;
+}
+
+global.sseClients = global.sseClients || new Map();
 
 // SSE endpoint for notifications
 router.get('/notifications/stream', requireAuth, (req: Request, res: Response) => {
@@ -138,6 +141,24 @@ export const getSSEStats = () => {
     users: userConnections,
     admins: adminConnections
   };
+};
+
+// --- Portfolio Real-time Updates ---
+
+// TODO: Implement real-time WebSocket connections for portfolio updates.
+// This will involve setting up a WebSocket server and broadcasting portfolio changes
+// to connected clients. We'll need to integrate this with the client-side hooks
+// to ensure seamless updates.
+
+// For now, we can simulate this by using the existing SSE mechanism to broadcast
+// portfolio updates to all connected users when changes occur.
+
+// Placeholder function to simulate portfolio update broadcast
+export const broadcastPortfolioUpdate = (portfolioData: any) => {
+  console.log('Broadcasting portfolio update:', portfolioData);
+  // In a real implementation, this would broadcast via WebSockets.
+  // For now, we'll use SSE to broadcast to all connected users.
+  broadcastSSE({ type: 'portfolio_update', data: portfolioData });
 };
 
 export default router;

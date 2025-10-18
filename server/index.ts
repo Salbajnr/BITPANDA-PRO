@@ -50,7 +50,7 @@ import apiManagementRoutes from "./api-management-routes";
 import metalsTrading from "./metals-trading-routes";
 import comprehensiveCrudRoutes from "./comprehensive-crud-routes";
 import uploadRoutes from "./upload-routes";
-import proofUploadRoutes from "./proof-upload-routes";
+import { registerProofUploadRoutes } from "./proof-upload-routes";
 
 const app = express();
 
@@ -198,7 +198,7 @@ app.use('/api/lending', lendingRoutes);
 app.use('/api/metals-trading', metalsTrading);
 app.use('/api/crud', comprehensiveCrudRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/proof-upload', proofUploadRoutes);
+registerProofUploadRoutes(app);
 app.use('/api/sse', sseRoutes);
 
 

@@ -1,4 +1,3 @@
-
 import { EventEmitter } from 'events';
 import { storage } from './storage';
 import { adminWebSocketManager } from './admin-websocket';
@@ -63,7 +62,7 @@ class PortfolioRealtimeService extends EventEmitter {
     try {
       // Get all active users with portfolios
       const users = await this.getActiveUsers();
-      
+
       for (const user of users) {
         await this.updateUserPortfolio(user.id);
       }
@@ -130,9 +129,9 @@ class PortfolioRealtimeService extends EventEmitter {
 
   private async calculateHoldingsValues(holdings: any[]) {
     const { cryptoService } = await import('./crypto-service');
-    
+
     const updatedHoldings = [];
-    
+
     for (const holding of holdings) {
       try {
         const priceData = await cryptoService.getPrice(holding.symbol);
