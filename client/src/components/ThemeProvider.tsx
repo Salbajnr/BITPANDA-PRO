@@ -10,32 +10,43 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Initialize theme immediately to prevent flash
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem("theme") as Theme) || "light";
-    }
-    return "light";
-  });
+  const [theme, setTheme] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const savedTheme = (localStorage.getItem("theme") as Theme) || "light";
     setTheme(savedTheme);
     
-    // Ensure the dark class is properly applied
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    // Apply theme immediately
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(savedTheme);
+    
+    // Set color-scheme for better browser integration
+    document.documentElement.style.colorScheme = savedTheme;
   }, []);
 
   const toggleTheme = () => {
+    if (!mounted) return;
+    
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
+    
+    // Remove old theme and add new one
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(newTheme);
+    document.documentElement.style.colorScheme = newTheme;
   };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <ThemeContext.Provider value={{ theme: "light", toggleTheme: () => {} }}>
+        {children}
+      </ThemeContext.Provider>
+    );
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

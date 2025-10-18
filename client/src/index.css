@@ -62,12 +62,16 @@
 }
 
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
     border-color: hsl(var(--border));
   }
   
   html {
     scroll-behavior: smooth;
+    height: 100%;
   }
   
   body {
@@ -77,17 +81,41 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
   }
   
-  /* Prevent layout shift during theme changes */
+  #root {
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  /* Ensure theme classes work properly */
+  .light {
+    color-scheme: light;
+  }
+  
   .dark {
     color-scheme: dark;
   }
   
-  /* Ensure transitions are smooth */
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* Smooth transitions for theme changes */
   * {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+    transition-duration: 200ms;
   }
 }
