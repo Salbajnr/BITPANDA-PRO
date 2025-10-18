@@ -32,7 +32,7 @@ import {
   ArrowUpIcon,
   AlertCircle,
 } from "lucide-react";
-import { Link, useLocation, useRoute, useLocation as useNavigate } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 import { Redirect } from "wouter";
 
 // Get navigate function
