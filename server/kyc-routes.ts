@@ -1,24 +1,29 @@
-
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth } from './simple-auth';
 import { storage } from './storage';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 
-// Admin middleware
-const requireAdmin = async (req: Request, res: Response, next: any) => {
-  try {
-    const user = await storage.getUser(req.user!.id);
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ message: "Admin access required" });
+// Configure multer for file uploads
+const uploadDir = path.join(process.cwd(), 'uploads', 'kyc');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDir,
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, `${uniqueSuffix}-${file.originalname}`);
     }
-    next();
-  } catch (error) {
-    console.error('Admin check error:', error);
-    res.status(500).json({ message: 'Authorization failed' });
-  }
-};
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 // Admin middleware
 const requireAdmin = async (req: Request, res: Response, next: any) => {
@@ -61,8 +66,8 @@ router.post('/submit', requireAuth, async (req: Request, res: Response) => {
     // Check if KYC already exists
     const existingKyc = await storage.getKycVerification(userId);
     if (existingKyc && existingKyc.status !== 'rejected') {
-      return res.status(400).json({ 
-        message: 'KYC verification already submitted or approved' 
+      return res.status(400).json({
+        message: 'KYC verification already submitted or approved'
       });
     }
 
@@ -96,7 +101,7 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const kyc = await storage.getKycVerification(userId);
-    
+
     if (!kyc) {
       return res.status(404).json({ message: 'No KYC verification found' });
     }
@@ -145,11 +150,11 @@ router.get('/admin/verifications', requireAuth, requireAdmin, async (req: Reques
     const status = req.query.status as string;
     const search = req.query.search as string;
 
-    const verifications = await storage.getAllKycVerifications({ 
-      page, 
-      limit, 
-      status, 
-      search 
+    const verifications = await storage.getAllKycVerifications({
+      page,
+      limit,
+      status,
+      search
     });
 
     res.json(verifications);
@@ -164,14 +169,14 @@ router.get('/admin/verifications/:id', requireAuth, requireAdmin, async (req: Re
   try {
     const { id } = req.params;
     const verification = await storage.getKycVerificationById(id);
-    
+
     if (!verification) {
       return res.status(404).json({ message: 'KYC verification not found' });
     }
 
     // Get user details
     const user = await storage.getUser(verification.userId);
-    
+
     res.json({ ...verification, user });
   } catch (error) {
     console.error('Get KYC verification error:', error);
@@ -282,51 +287,3 @@ router.get('/admin/statistics', requireAuth, requireAdmin, async (req: Request, 
 });
 
 export default router;
-
-
-
-// Admin: Get KYC statistics
-router.get('/admin/statistics', requireAuth, requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const stats = await storage.getKycStatistics();
-    res.json(stats || {
-      total: 0,
-      pending: 0,
-      underReview: 0,
-      approved: 0,
-      rejected: 0
-    });
-  } catch (error) {
-    console.error('KYC statistics error:', error);
-    res.status(500).json({ message: 'Failed to fetch KYC statistics' });
-  }
-});
-
-// Admin: Bulk review KYC verifications
-router.post('/admin/verifications/bulk-review', requireAuth, requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const { ids, status, rejectionReason, notes } = req.body;
-    
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: 'Invalid verification IDs' });
-    }
-
-    const results = await Promise.all(
-      ids.map(id => storage.updateKycVerification(id, {
-        status,
-        rejectionReason,
-        notes,
-        reviewedAt: new Date(),
-        reviewedBy: req.user!.id
-      }))
-    );
-
-    res.json({ 
-      message: 'Bulk review completed',
-      updated: results.length 
-    });
-  } catch (error) {
-    console.error('Bulk review error:', error);
-    res.status(500).json({ message: 'Failed to complete bulk review' });
-  }
-});
