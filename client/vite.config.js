@@ -10,7 +10,8 @@ const __dirname = path.dirname(__filename);
 // Production API URL
 const API_BASE_URL = 'https://bitpanda-pro.onrender.com';
 
-export default defineConfig({
+// Base configuration
+const config = {
   plugins: [react()],
   resolve: {
     alias: {
@@ -18,31 +19,31 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared'),
     },
   },
-  base: '/', // Base public path when served in production
+  base: '/',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: false, // Disable source maps for production
-    minify: 'terser', // Minify with terser
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.logs in production
-        drop_debugger: true, // Remove debugger statements
-      },
-    },
+    sourcemap: false,
+    // Use default minification (esbuild in production)
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor libraries into separate chunks
           react: ['react', 'react-dom', 'react-router-dom'],
-          vendor: ['axios', 'lodash'], // Add other large dependencies here
+          vendor: ['axios', 'lodash'],
         },
       },
     },
   },
-  define: {
+};
+
+// Only add environment variables in production
+if (process.env.NODE_ENV === 'production') {
+  config.define = {
     'process.env.NODE_ENV': '"production"',
     'import.meta.env.VITE_API_BASE_URL': `"${API_BASE_URL}"`,
     'import.meta.env.VITE_API_URL': `"${API_BASE_URL}"`
-  },
-});
+  };
+}
+
+export default defineConfig(config);
