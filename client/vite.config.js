@@ -1,11 +1,23 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// ESM __dirname shim
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Production API URL
 const API_BASE_URL = 'https://bitpanda-pro.onrender.com';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@shared': path.resolve(__dirname, '../shared'),
+    },
+  },
   base: '/', // Base public path when served in production
   build: {
     outDir: '../dist/client',

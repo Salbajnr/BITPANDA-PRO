@@ -8,10 +8,10 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /health
-    # The build command only installs dependencies. There is no build step for the server.
-    buildCommand: "cd server && npm install --include=dev"
-    # The start command runs the TypeScript code directly.
-    startCommand: "cd server && npm start"
+    # Build server TypeScript -> dist/server
+    buildCommand: "cd server && npm install --include=dev && npm run build"
+    # Start compiled server from repo root
+    startCommand: "node dist/server/index.js"
     envVars:
       - key: NODE_ENV
         value: production
