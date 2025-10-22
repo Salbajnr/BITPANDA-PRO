@@ -69,8 +69,8 @@ class PriceMonitorService {
   }
 
   private async connect() {
-    console.log('📊 Running price monitor in HTTP-only mode (WebSocket disabled)');
-    // Skip WebSocket connection entirely and use HTTP polling
+    console.log('📊 Price monitor using HTTP polling for price updates');
+    // Using HTTP polling for reliable price updates
     this.isConnected = true;
     this.connectionAttempts = 0;
   }

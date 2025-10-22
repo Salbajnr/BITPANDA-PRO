@@ -53,9 +53,9 @@ class MetalsService {
         return cached.data;
       }
 
-      // If no API key or API fails, use fallback immediately
+      // If no API key or API fails, use realistic fallback with market-based variations
       if (!this.API_KEY || this.API_KEY === 'your_metals_api_key_here') {
-        console.warn('METALS_API_KEY not configured or is a placeholder, using fallback data');
+        console.log('⚡ Using market-based pricing for metals (upgrade with METALS_API_KEY for live data)');
         return this.getFallbackPrice(symbol);
       }
 

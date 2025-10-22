@@ -10,7 +10,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
     // Check if SendGrid API key is available
     if (!process.env.SENDGRID_API_KEY) {
-      console.log('📧 Mock Email Sent:', {
+      console.log('📧 Email notification logged (configure SENDGRID_API_KEY to send real emails):', {
         to: params.to,
         subject: params.subject,
         preview: params.html?.substring(0, 100) + '...' || params.text?.substring(0, 100) + '...'
@@ -35,8 +35,8 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   } catch (error) {
     console.error('❌ SendGrid email error:', error);
     
-    // Fall back to mock mode
-    console.log('📧 Mock Email Sent (fallback):', {
+    // Fall back to logging mode
+    console.log('📧 Email notification logged (SendGrid unavailable):', {
       to: params.to,
       subject: params.subject,
       preview: params.html?.substring(0, 100) + '...' || params.text?.substring(0, 100) + '...'
