@@ -31,7 +31,9 @@
     "vite": "^7.1.10",
     "ws": "^8.18.3",
     "zod": "^4.1.12",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "cheerio": "^1.0.0-rc.12",
+    "@types/cheerio": "^0.22.35"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

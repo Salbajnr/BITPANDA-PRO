@@ -13,11 +13,16 @@ RUN npm install
 
 # Install server dependencies
 WORKDIR /app/server
-RUN npm install --production
+# Install all dependencies including devDependencies for build
+RUN npm install
 
 # Install client dependencies and build
 WORKDIR /app/client
 RUN npm install && npm run build
+
+# Production dependencies only
+WORKDIR /app/server
+RUN npm prune --production
 
 # Production stage
 FROM node:18-alpine
@@ -28,6 +33,10 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server/ /app/
 COPY --from=builder /app/client/dist /app/client/dist
+
+# Ensure node_modules is properly set up
+WORKDIR /app
+RUN npm ci --only=production
 
 # Set environment to production
 ENV NODE_ENV=production
