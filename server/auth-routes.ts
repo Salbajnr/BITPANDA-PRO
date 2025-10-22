@@ -51,8 +51,9 @@ router.post('/forgot-password', async (req, res) => {
 
     console.log(`Password reset token generated for user ${user.id}`);
 
-    // Send email
-    const resetLink = `${process.env.BASE_URL || 'http://localhost:5000'}/reset-password/${token}`;
+    // Send email with correct base URL
+    const baseUrl = process.env.BASE_URL || process.env.CLIENT_URL || 'https://bitpandapro.onrender.com';
+    const resetLink = `${baseUrl}/reset-password/${token}`;
 
     const emailSent = await sendEmail({
       to: email,
@@ -191,9 +192,18 @@ router.post('/send-otp', async (req, res) => {
       });
 
       console.log(`✅ OTP generated and stored for ${email} (${type})`);
+      console.log(`🔐 OTP CODE: ${otp} - Valid for 5 minutes`);
     } else {
       console.log(`⚠️ OTP for ${email} (${type}): ${otp} (DB not available)`);
     }
+    
+    // Always log OTP for development/debugging
+    console.log(`\n📧 ========== OTP VERIFICATION CODE ==========`);
+    console.log(`Email: ${email}`);
+    console.log(`Type: ${type}`);
+    console.log(`Code: ${otp}`);
+    console.log(`Expires: 5 minutes`);
+    console.log(`============================================\n`);
 
     // Send OTP email
     const subject = type === 'registration' 
@@ -348,10 +358,19 @@ router.post('/resend-otp', async (req, res) => {
         attempts: '0'
       });
 
-      console.log(`New OTP generated and stored for ${email} (${type}): ${otp}`);
+      console.log(`New OTP generated and stored for ${email} (${type})`);
+      console.log(`🔐 NEW OTP CODE: ${otp} - Valid for 5 minutes`);
     } else {
       console.log(`New OTP for ${email} (${type}): ${otp} (DB not available)`);
     }
+    
+    // Always log OTP for development/debugging
+    console.log(`\n📧 ========== RESENT OTP VERIFICATION CODE ==========`);
+    console.log(`Email: ${email}`);
+    console.log(`Type: ${type}`);
+    console.log(`Code: ${otp}`);
+    console.log(`Expires: 5 minutes`);
+    console.log(`===================================================\n`);
 
     // Send OTP email
     try {
