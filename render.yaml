@@ -29,7 +29,7 @@ services:
     autoDeploy: true
     buildCommand: |
       cd client && \
-      npm install && \
+      npm install --include=dev && \
       npm run build
     staticPublishPath: ./client/dist
     envVars:
