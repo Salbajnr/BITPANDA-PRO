@@ -137,21 +137,54 @@ app.use((req, res, next) => {
   next();
 });
 
-// API-only mode - No static file serving
-console.log('🚀 Running in API-only mode');
-console.log('ℹ️ Client is being served separately');
-
-// Remove any existing static file serving middleware
-app.get('*', (req, res, next) => {
-  if (!req.path.startsWith('/api/')) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Not Found',
-      details: 'This is an API-only server. Please use the client application to access this resource.'
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  const clientBuildPath = path.join(process.cwd(), '../client/dist');
+  
+  // Check if client build exists
+  if (fs.existsSync(clientBuildPath)) {
+    console.log('🚀 Serving static files from:', clientBuildPath);
+    
+    // Serve static files
+    app.use(express.static(clientBuildPath));
+    
+    // Handle client-side routing - return index.html for non-API routes
+    app.get('*', (req, res) => {
+      if (!req.path.startsWith('/api/')) {
+        return res.sendFile(path.join(clientBuildPath, 'index.html'));
+      }
+      res.status(404).json({ message: 'API endpoint not found' });
+    });
+  } else {
+    console.warn('⚠️  Client build not found. Running in API-only mode.');
+    
+    // In production but no client build found
+    app.get('*', (req, res, next) => {
+      if (!req.path.startsWith('/api/')) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Client not found',
+          details: 'The client application is not available. Please check the deployment.'
+        });
+      }
+      next();
     });
   }
-  next();
-});
+} else {
+  // In development, run in API-only mode
+  console.log('🚀 Running in development mode - API-only');
+  
+  app.get('*', (req, res, next) => {
+    if (!req.path.startsWith('/api/')) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Development API Server',
+        details: 'This is an API-only development server. The client should be running separately.'
+      });
+    }
+    next();
+  });
+}
 
 // === ROUTES ===
 registerRoutes(app);

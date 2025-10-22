@@ -7,10 +7,14 @@ services:
     autoDeploy: true
     healthCheckPath: /health
     buildCommand: |
-      cd server && \
-      npm install && \
+      # Install and build the client
+      cd client && \
+      npm install --include=dev && \
+      npm run build && \
+      cd ../server && \
+      npm install --include=dev && \
       npm run build
-    startCommand: "npx tsx server/index.ts"
+    startCommand: "NODE_ENV=production npx tsx server/index.ts"
     envVars:
       - key: NODE_ENV
         value: production
