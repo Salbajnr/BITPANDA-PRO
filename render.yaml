@@ -6,8 +6,11 @@ services:
     plan: free
     autoDeploy: true
     healthCheckPath: /health
-    buildCommand: "cd server && npm install --production"
-    startCommand: "node server/index.js"
+    buildCommand: |
+      cd server && \
+      npm install && \
+      npm run build
+    startCommand: "node dist/server/index.js"
     envVars:
       - key: NODE_ENV
         value: production
