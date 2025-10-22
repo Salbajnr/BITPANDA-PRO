@@ -119,6 +119,18 @@ app.use((req, res, next) => {
 console.log('🚀 Running in API-only mode');
 console.log('ℹ️ Client is being served separately');
 
+// Remove any existing static file serving middleware
+app.get('*', (req, res, next) => {
+  if (!req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Not Found',
+      details: 'This is an API-only server. Please use the client application to access this resource.'
+    });
+  }
+  next();
+});
+
 // === ROUTES ===
 registerRoutes(app);
 
