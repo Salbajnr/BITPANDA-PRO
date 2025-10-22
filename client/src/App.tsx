@@ -163,11 +163,12 @@ function Routes() {
       <Route path="/terms" component={() => <PublicLayout><Terms /></PublicLayout>} />
 
       {/* Investment Routes */}
-      <Route path="/stocks" component={Stocks} />
-      <Route path="/etfs" component={Etfs} />
-      <Route path="/crypto-indices" component={CryptoIndices} />
-      <Route path="/precious-metals" component={() => <Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense>} />
-      <Route path="/savings-plans" component={SavingsPlans} />
+      <Route path="/stocks" component={() => <PublicLayout><Stocks /></PublicLayout>} />
+      <Route path="/etfs" component={() => <PublicLayout><Etfs /></PublicLayout>} />
+      <Route path="/crypto-indices" component={() => <PublicLayout><CryptoIndices /></PublicLayout>} />
+      <Route path="/precious-metals" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense></PublicLayout>} />
+      <Route path="/savings-plans" component={() => <PublicLayout><SavingsPlans /></PublicLayout>} />
+      <Route path="/about-us" component={() => <PublicLayout><About /></PublicLayout>} />
       <Route path="/investment-plans" component={() => (
         <ProtectedRoute>
           <Suspense fallback={<LoadingSpinner />}>
@@ -180,21 +181,21 @@ function Routes() {
       <Route path="/dual-markets" component={DualMarkets} />
 
       {/* Information Routes */}
-      <Route path="/api-docs" component={API} />
-      <Route path="/press" component={Press} />
-      <Route path="/imprint" component={Imprint} />
-      <Route path="/careers" component={Careers} />
-      <Route path="/academy" component={Academy} />
-      <Route path="/help-center" component={HelpCenter} />
-      <Route path="/user-agreement" component={UserAgreement} />
-      <Route path="/tutorials" component={Tutorials} />
-      <Route path="/security" component={Security} />
-      <Route path="/investor-protection" component={InvestorProtection} />
-      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/api-docs" component={() => <PublicLayout><API /></PublicLayout>} />
+      <Route path="/press" component={() => <PublicLayout><Press /></PublicLayout>} />
+      <Route path="/imprint" component={() => <PublicLayout><Imprint /></PublicLayout>} />
+      <Route path="/careers" component={() => <PublicLayout><Careers /></PublicLayout>} />
+      <Route path="/academy" component={() => <PublicLayout><Academy /></PublicLayout>} />
+      <Route path="/help-center" component={() => <PublicLayout><HelpCenter /></PublicLayout>} />
+      <Route path="/user-agreement" component={() => <PublicLayout><UserAgreement /></PublicLayout>} />
+      <Route path="/tutorials" component={() => <PublicLayout><Tutorials /></PublicLayout>} />
+      <Route path="/security" component={() => <PublicLayout><Security /></PublicLayout>} />
+      <Route path="/investor-protection" component={() => <PublicLayout><InvestorProtection /></PublicLayout>} />
+      <Route path="/forgot-password" component={() => <PublicLayout><ForgotPassword /></PublicLayout>} />
       <Route path="/verify-otp/:type/:email" component={OtpVerification} />
       <Route path="/reset-password/:token" component={ResetPassword} />
-      <Route path="/api" component={API} />
-      <Route path="/ecosystem" component={Ecosystem} />
+      <Route path="/api" component={() => <PublicLayout><API /></PublicLayout>} />
+      <Route path="/ecosystem" component={() => <PublicLayout><Ecosystem /></PublicLayout>} />
 
       {/* Protected Dashboard Routes */}
       <Route path="/dashboard" component={() => (

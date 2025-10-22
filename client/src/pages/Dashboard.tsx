@@ -179,7 +179,7 @@ export default function Dashboard() {
 
   // Fetch real top movers data
   const [topMovers, setTopMovers] = useState<TopMover[]>([]);
-  
+
   useEffect(() => {
     const fetchTopMovers = async () => {
       try {
@@ -202,7 +202,7 @@ export default function Dashboard() {
         ]);
       }
     };
-    
+
     fetchTopMovers();
   }, []);
 
@@ -667,7 +667,7 @@ export default function Dashboard() {
                         key={mover.id}
                         className="flex items-center justify-between p-4 hover:bg-slate-700/50 transition-colors cursor-pointer"
                         data-testid={`mover-card-${mover.symbol}`}
-                        onClick={() => navigate(`/trading?symbol=${mover.symbol}`)}
+                        onClick={() => setLocation(`/trading?symbol=${mover.symbol}`)}
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-slate-500 font-mono text-sm">#{index + 1}</div>
@@ -697,7 +697,7 @@ export default function Dashboard() {
                         key={mover.id}
                         className="flex items-center justify-between p-4 hover:bg-slate-700/50 transition-colors cursor-pointer"
                         data-testid={`mover-card-${mover.symbol}`}
-                        onClick={() => navigate(`/trading?symbol=${mover.symbol}`)}
+                        onClick={() => setLocation(`/trading?symbol=${mover.symbol}`)}
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-slate-500 font-mono text-sm">#{index + 1}</div>
