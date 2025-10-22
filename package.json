@@ -4,12 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run build:server",
-    "build:client": "cd client && npm install && npm run build",
-    "build:server": "cd server && npm install && npx -p typescript tsc --noEmitOnError false || true",
-    "start": "NODE_ENV=production cd server && NODE_OPTIONS='--max-old-space-size=4096' npx tsx index.ts",
-    "dev": "NODE_OPTIONS='--max-old-space-size=4096' npx ts-node --project tsconfig.server.json src/index.ts",
-    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "build": "npm run install:all && npm run build:client && npm run build:server",
+    "build:client": "cd client && npm ci && npm run build",
+    "build:server": "cd server && npm ci && npx tsc --noEmitOnError false || true",
+    "start": "NODE_ENV=production node --max-old-space-size=4096 server/dist/index.js",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && NODE_OPTIONS='--max-old-space-size=4096' npx tsx watch index.ts",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "npm ci && cd client && npm ci && cd ../server && npm ci",
     "db:generate": "cd server && drizzle-kit generate",
     "db:push": "cd server && drizzle-kit push",
     "db:migrate": "cd server && drizzle-kit migrate",
@@ -24,5 +26,8 @@
   "dependencies": {
     "@types/cheerio": "^0.22.35",
     "cheerio": "^1.1.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
