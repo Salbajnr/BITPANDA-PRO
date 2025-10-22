@@ -1,33 +1,20 @@
 # Server Service
 services:
   # Server (Web Service)
+  # This service runs your Node.js backend.
   - type: web
     name: bitpanda-pro-server
     env: node
     plan: free
     autoDeploy: true
     healthCheckPath: /health
-    buildCommand: cd server && npm install && npm run build
-    startCommand: npm start
+    # The build command only installs dependencies. There is no build step for the server.
+    buildCommand: "cd server && npm install --include=dev"
+    # The start command runs the TypeScript code directly.
+    startCommand: "cd server && npm start"
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000 # Render will override this, but it's good practice to set it
-      # IMPORTANT: Add your secret environment variables (like database URL, JWT secrets, etc.)
-      # in the Render dashboard, NOT here.
-
-  # Client (Static Site)
-  - type: static
-    name: bitpanda-pro-client
-    plan: free
-    autoDeploy: true
-    buildCommand: cd client && npm install && npm run build
-    staticPublishPath: client/dist
-    routes:
-      - type: rewrite
-        source: "/*"
-        destination: "/index.html"
       - key: NODE_OPTIONS
         value: --max-old-space-size=4096
       - key: PORT
@@ -35,17 +22,19 @@ services:
       # Add your environment variables here or in Render's dashboard
       # - key: DATABASE_URL
       #   sync: false
-      # - key: JWT_SECRET
-      #   sync: false
-      # - key: SESSION_SECRET
-      #   sync: false
-      # - key: SESSION_SECRET_REFRESH
-      #   sync: false
-      # - key: CSRF_TOKEN
-      #   sync: false
-      # - key: SENDERGRID_API_KEY
-      #   sync: false
-      # - key: COINGECKO_API_KEY
-      #   sync: false
-      # - key: METALS_API_KEY
-      #   sync: false
+
+  # Client (Static Site)
+  # This service builds and serves your React frontend.
+  - type: static
+    name: bitpanda-pro-client
+    plan: free
+    autoDeploy: true
+    # The build command installs dependencies and then runs 'vite build'.
+    buildCommand: "cd client && npm install --include=dev && npm run build"
+    # Render will serve the files from this directory.
+    staticPublishPath: client/dist
+    # This rewrite rule is essential for client-side routing to work.
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"

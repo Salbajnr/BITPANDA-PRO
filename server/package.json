@@ -4,9 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc", 
-    "build:transpile": "NODE_OPTIONS='--max-old-space-size=4096' npx tsx --transpile-only index.ts",
-    "start": "node --max-old-space-size=4096 dist/index.js",
+    "start": "NODE_OPTIONS='--max-old-space-size=4096' tsx index.ts",
     "dev": "NODE_OPTIONS='--max-old-space-size=4096' npx tsx index.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
