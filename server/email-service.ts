@@ -1,4 +1,3 @@
-
 import sgMail from '@sendgrid/mail';
 
 // Email service using SendGrid
@@ -18,13 +17,13 @@ const getBaseUrl = () => {
 // Initialize SendGrid with API key
 const initializeSendGrid = () => {
   const apiKey = process.env.SENDGRID_API_KEY;
-  
+
   if (!apiKey) {
     console.warn('⚠️ SENDGRID_API_KEY not configured - emails will only be logged');
     console.warn('⚠️ Set SENDGRID_API_KEY in Secrets to enable email delivery');
     return false;
   }
-  
+
   try {
     sgMail.setApiKey(apiKey);
     console.log('✅ SendGrid initialized successfully');
@@ -49,7 +48,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       console.log('Subject:', params.subject);
       console.log('Preview:', params.html?.substring(0, 200) + '...' || params.text?.substring(0, 200) + '...');
       console.log('================================================\n');
-      
+
       // For development, still return true so auth flow continues
       return true;
     }
@@ -72,14 +71,14 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     return true;
   } catch (error: any) {
     console.error('❌ SendGrid email error:', error?.response?.body || error?.message || error);
-    
+
     // Log the email content for debugging
     console.log('\n📧 ========== FAILED EMAIL DETAILS ==========');
     console.log('To:', params.to);
     console.log('Subject:', params.subject);
     console.log('Error:', error?.response?.body?.errors || error?.message);
     console.log('===========================================\n');
-    
+
     // Return true so auth flow continues even if email fails (development fallback)
     // In production, you might want to return false and handle the error differently
     return true;

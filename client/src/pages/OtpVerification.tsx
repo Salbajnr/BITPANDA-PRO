@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -8,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldIcon, CheckCircleIcon, RotateCcwIcon, TimerIcon, ArrowLeftIcon, Sparkles } from "lucide-react";
+import { ShieldIcon, CheckCircleIcon, RotateCcwIcon, TimerIcon, ArrowLeftIcon, Sparkles, Shield, AlertCircle, Loader2 } from "lucide-react";
 
 export default function OtpVerification() {
   const { type, email } = useParams<{ type: string; email: string }>();
@@ -18,6 +17,7 @@ export default function OtpVerification() {
   const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null); // State for error messages
 
   const decodedEmail = decodeURIComponent(email || "");
 
@@ -36,12 +36,14 @@ export default function OtpVerification() {
       }),
     onSuccess: () => {
       setIsSuccess(true);
+      setError(null); // Clear any previous errors on success
       toast({
         title: "Verification successful",
         description: "Your OTP has been verified successfully.",
       });
     },
     onError: (error: any) => {
+      setError(error.message || "Invalid OTP code. Please try again."); // Set error message
       toast({
         title: "Verification failed",
         description: error.message || "Invalid OTP code. Please try again.",
@@ -59,12 +61,14 @@ export default function OtpVerification() {
     onSuccess: () => {
       setTimeLeft(300); // Reset timer
       setOtp(""); // Clear OTP input
+      setError(null); // Clear any previous errors on resend
       toast({
         title: "OTP resent",
         description: "A new verification code has been sent to your email.",
       });
     },
     onError: (error: any) => {
+      setError(error.message || "Could not resend OTP. Please try again."); // Set error message
       toast({
         title: "Failed to resend",
         description: error.message || "Could not resend OTP. Please try again.",
@@ -75,8 +79,10 @@ export default function OtpVerification() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Clear previous errors on submit attempt
 
     if (!otp || otp.length !== 6) {
+      setError("Please enter a 6-digit verification code");
       toast({
         title: "Invalid OTP",
         description: "Please enter a 6-digit verification code",
@@ -86,6 +92,7 @@ export default function OtpVerification() {
     }
 
     if (!type || !decodedEmail) {
+      setError("This verification link is invalid or malformed");
       toast({
         title: "Invalid verification link",
         description: "This verification link is invalid or malformed",
@@ -102,7 +109,9 @@ export default function OtpVerification() {
   };
 
   const handleResend = () => {
+    setError(null); // Clear previous errors on resend attempt
     if (!type || !decodedEmail) {
+      setError("Invalid email or verification type");
       toast({
         title: "Cannot resend",
         description: "Invalid email or verification type",
@@ -120,23 +129,23 @@ export default function OtpVerification() {
   const handleContinue = async () => {
     if (type === 'registration') {
       const pendingRegistrationData = sessionStorage.getItem('pendingRegistration');
-      
+
       if (pendingRegistrationData) {
         try {
           const registrationData = JSON.parse(pendingRegistrationData);
-          
+
           const res = await apiRequest('/api/user/auth/register', {
             method: 'POST',
             body: registrationData
           });
-          
+
           sessionStorage.removeItem('pendingRegistration');
-          
+
           toast({
             title: "Registration Complete",
             description: "Your account has been created successfully!",
           });
-          
+
           setLocation("/dashboard");
         } catch (error: any) {
           toast({
@@ -144,7 +153,7 @@ export default function OtpVerification() {
             description: error.message || "Unable to complete registration. Please try again.",
             variant: "destructive",
           });
-          
+
           setLocation("/auth");
         }
       } else {
@@ -194,7 +203,7 @@ export default function OtpVerification() {
       <div className="min-h-screen bg-white dark:bg-slate-900 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(34,197,94,0.1),transparent)]" />
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        
+
         <div className="relative flex items-center justify-center min-h-screen p-4">
           <div className="w-full max-w-md">
             <Card className="bg-white dark:bg-slate-800/40 backdrop-blur-xl border-slate-200 dark:border-slate-700/50 shadow-xl dark:shadow-2xl">
@@ -236,136 +245,93 @@ export default function OtpVerification() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(34,197,94,0.1),transparent)]" />
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-      
-      <div className="relative flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-md">
-          <div className="mb-8">
-            <Link href="/auth">
-              <Button
-                variant="ghost"
-                className="text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm transition-all duration-300"
-                size="sm"
-              >
-                <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                Back to Login
-              </Button>
-            </Link>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-border">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+            <Shield className="w-8 h-8 text-primary-foreground" />
           </div>
+          <CardTitle className="text-2xl text-foreground">Verify Your Email</CardTitle>
+          <p className="text-muted-foreground mt-2">
+            We've sent a verification code to {decodedEmail}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="otp" className="text-gray-700 dark:text-slate-300">Verification Code</Label>
+              <Input
+                id="otp"
+                type="text"
+                placeholder="Enter 6-digit code"
+                value={otp}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setOtp(value);
+                }}
+                className="text-center text-2xl font-mono tracking-widest bg-white dark:bg-slate-700/30 border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 h-14"
+                maxLength={6}
+                required
+                data-testid="input-otp"
+              />
+            </div>
 
-          <Card className="bg-white dark:bg-slate-800/40 backdrop-blur-xl border-slate-200 dark:border-slate-700/50 shadow-xl dark:shadow-2xl">
-            <CardHeader>
-              <div className="text-center mb-6">
-                <div className="flex items-center justify-center space-x-3 mb-4">
-                  <div className="relative">
-                    <img
-                      src="/bitpanda-logo.svg"
-                      alt="BITPANDA PRO"
-                      className="w-12 h-12 drop-shadow-xl"
-                    />
-                    <div className="absolute inset-0 bg-green-400/20 rounded-full blur-xl animate-pulse" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                      BITPANDA PRO
-                    </h1>
-                    <div className="flex items-center justify-center mt-1">
-                      <Sparkles className="w-3 h-3 text-green-400 mr-1" />
-                      <span className="text-xs text-green-400 font-medium">SECURE VERIFICATION</span>
-                    </div>
-                  </div>
-                </div>
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                <span>{error}</span>
               </div>
-              <CardTitle className="flex items-center text-gray-900 dark:text-white justify-center">
-                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
-                  <ShieldIcon className="h-5 w-5 text-blue-400" />
-                </div>
-                {getTitle()}
-              </CardTitle>
-              <CardDescription className="text-slate-600 dark:text-slate-400 text-center">
-                {getDescription()}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="otp" className="text-gray-700 dark:text-slate-300">Verification Code</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="Enter 6-digit code"
-                    value={otp}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setOtp(value);
-                    }}
-                    className="text-center text-2xl font-mono tracking-widest bg-white dark:bg-slate-700/30 border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 h-14"
-                    maxLength={6}
-                    required
-                    data-testid="input-otp"
-                  />
-                </div>
+            )}
 
-                <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600/50">
-                  {timeLeft > 0 ? (
-                    <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center justify-center gap-2">
-                      <TimerIcon className="w-4 h-4" />
-                      Code expires in {formatTime(timeLeft)}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center justify-center gap-2">
-                      <TimerIcon className="w-4 h-4" />
-                      Code has expired. Please request a new one.
-                    </p>
-                  )}
-                </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={verifyOtpMutation.isPending || otp.length !== 6}
+              className="w-full"
+              data-testid="button-verify-otp"
+            >
+              {verifyOtpMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                'Verify Email'
+              )}
+            </Button>
+          </form>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-                  disabled={verifyOtpMutation.isPending || otp.length !== 6}
-                  data-testid="button-verify-otp"
-                >
-                  {verifyOtpMutation.isPending ? "Verifying..." : "Verify Code"}
-                </Button>
-              </form>
+          <div className="mt-6 space-y-3">
+            <div className="text-center">
+              <Button
+                variant="outline"
+                onClick={handleResend}
+                disabled={resendOtpMutation.isPending || timeLeft > 240}
+                className="w-full bg-white dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600/50"
+                data-testid="button-resend-otp"
+              >
+                <RotateCcwIcon className="h-4 w-4 mr-2" />
+                {resendOtpMutation.isPending ? "Resending..." : "Resend Code"}
+              </Button>
+              {timeLeft > 240 && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Wait {formatTime(timeLeft - 240)} before requesting a new code
+                </p>
+              )}
+            </div>
 
-              <div className="mt-6 space-y-3">
-                <div className="text-center">
-                  <Button
-                    variant="outline"
-                    onClick={handleResend}
-                    disabled={resendOtpMutation.isPending || timeLeft > 240}
-                    className="w-full bg-white dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600/50"
-                    data-testid="button-resend-otp"
-                  >
-                    <RotateCcwIcon className="h-4 w-4 mr-2" />
-                    {resendOtpMutation.isPending ? "Resending..." : "Resend Code"}
-                  </Button>
-                  {timeLeft > 240 && (
-                    <p className="text-xs text-slate-500 mt-1">
-                      Wait {formatTime(timeLeft - 240)} before requesting a new code
-                    </p>
-                  )}
-                </div>
-
-                <div className="text-center">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Having trouble?{" "}
-                    <Link href="/help-center">
-                      <span className="text-blue-500 hover:text-blue-600 cursor-pointer font-medium">
-                        Contact Support
-                      </span>
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            <div className="text-center">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Having trouble?{" "}
+                <Link href="/help-center">
+                  <span className="text-blue-500 hover:text-blue-600 cursor-pointer font-medium">
+                    Contact Support
+                  </span>
+                </Link>
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
