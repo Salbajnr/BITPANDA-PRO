@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "cd client && npm run build",
+    "preview": "vite preview",
     "build:client": "npm run build",
     "preview:client": "npm run preview"
   },
