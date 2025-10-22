@@ -20,7 +20,7 @@ export default defineConfig({
   },
   base: '/', // Base public path when served in production
   build: {
-    outDir: '../dist/client',
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false, // Disable source maps for production
     minify: 'terser', // Minify with terser
