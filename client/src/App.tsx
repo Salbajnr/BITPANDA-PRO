@@ -49,6 +49,7 @@ import Imprint from "@/pages/Imprint";
 import Tutorials from "@/pages/Tutorials";
 import { lazy, Suspense, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary';
 import { queryClient } from "./lib/queryClient";
 
 // Additional pages imported in the changes
@@ -197,29 +198,39 @@ function Routes() {
 
       {/* Protected Dashboard Routes */}
       <Route path="/dashboard" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><Dashboard /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Dashboard">
+            <Dashboard />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/portfolio" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><PortfolioTracker /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Portfolio Tracker">
+            <PortfolioTracker />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/analytics" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><Analytics /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Analytics">
+            <Analytics />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/trading" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><Trading /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Trading">
+            <Trading />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/advanced-trading" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><AdvancedTrading /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Advanced Trading">
+            <AdvancedTrading />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
       <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />
