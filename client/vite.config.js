@@ -20,11 +20,29 @@ const config = {
     },
   },
   base: '/',
+  server: {
+    host: '0.0.0.0',
+    port: 5000,
+    strictPort: true,
+    hmr: {
+      clientPort: 5000,
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/ws': {
+        target: 'ws://localhost:3000',
+        ws: true,
+      },
+    },
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
-    // Use default minification (esbuild in production)
     minify: 'esbuild',
     rollupOptions: {
       output: {
