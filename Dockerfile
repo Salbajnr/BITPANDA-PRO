@@ -20,7 +20,14 @@ RUN npm install
 WORKDIR /app/client
 RUN npm install && npm run build
 
-# Production dependencies only
+# Create the dist directory in the server
+WORKDIR /app
+RUN mkdir -p dist/public
+
+# Move the built client files to the server's dist directory
+RUN mv client/dist/* dist/public/
+
+# Install production dependencies for server
 WORKDIR /app/server
 RUN npm prune --production
 
@@ -32,10 +39,10 @@ WORKDIR /app
 # Copy built files from builder
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server/ /app/
-COPY --from=builder /app/client/dist /app/client/dist
+COPY --from=builder /app/dist /app/dist
 
 # Ensure node_modules is properly set up
-WORKDIR /app
+WORKDIR /app/server
 RUN npm ci --only=production
 
 # Set environment to production

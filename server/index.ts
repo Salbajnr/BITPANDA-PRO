@@ -115,22 +115,38 @@ app.use((req, res, next) => {
   next();
 });
 
-// === STATIC FILES (Production) ===
-if (process.env.NODE_ENV === "production") {
-  const staticPath = path.resolve(__dirname, "..", "dist", "public");
-  
-  // Check if the static build directory exists
-  if (fs.existsSync(staticPath)) {
-    app.use(express.static(staticPath, {
-      maxAge: '1y',
-      etag: true,
-      lastModified: true
-    }));
-    console.log(`📁 Serving static files from: ${staticPath}`);
-  } else {
-    console.warn(`⚠️ Static build directory not found at: ${staticPath}`);
-    console.warn(`⚠️ Run 'npm run build:client' to create production build`);
+// === STATIC FILES ===
+const staticPaths = [
+  // Production path (Docker)
+  path.resolve(__dirname, '..', 'dist', 'public'),
+  // Development path (local)
+  path.resolve(__dirname, '..', '..', 'client', 'dist')
+];
+
+let staticServed = false;
+
+for (const staticPath of staticPaths) {
+  try {
+    if (fs.existsSync(staticPath)) {
+      app.use(express.static(staticPath, {
+        maxAge: '1y',
+        etag: true,
+        lastModified: true,
+        index: false
+      }));
+      console.log(`📁 Serving static files from: ${staticPath}`);
+      staticServed = true;
+      break;
+    }
+  } catch (error) {
+    console.warn(`⚠️ Error accessing static path ${staticPath}:`, error.message);
   }
+}
+
+if (!staticServed) {
+  console.warn('⚠️ No static build directory found. Client app will not be served.');
+  console.warn('⚠️ For development: Run "npm run dev" in the client directory');
+  console.warn('⚠️ For production: Run "npm run build:client" before starting the server');
 }
 
 // === ROUTES ===
