@@ -10,12 +10,18 @@ interface EmailParams {
   html?: string;
 }
 
+// Get base URL for email links
+const getBaseUrl = () => {
+  return process.env.BASE_URL || process.env.CLIENT_URL || 'https://bitpandapro.onrender.com';
+};
+
 // Initialize SendGrid with API key
 const initializeSendGrid = () => {
   const apiKey = process.env.SENDGRID_API_KEY;
   
   if (!apiKey) {
     console.warn('⚠️ SENDGRID_API_KEY not configured - emails will only be logged');
+    console.warn('⚠️ Set SENDGRID_API_KEY in Secrets to enable email delivery');
     return false;
   }
   
@@ -30,6 +36,8 @@ const initializeSendGrid = () => {
 };
 
 const isSendGridInitialized = initializeSendGrid();
+
+export { getBaseUrl };
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {

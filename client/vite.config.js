@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Production API URL
-const API_BASE_URL = 'https://bitpanda-pro.onrender.com';
+const API_BASE_URL = 'https://bitpandapro.onrender.com';
 
 // Base configuration
 const config = {
