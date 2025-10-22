@@ -1,5 +1,6 @@
 # --- ENVIRONMENT VARIABLES ---
 .env
+.env.example
 .env.local
 .env.*.local
 .env.development

@@ -17,6 +17,7 @@ import { portfolioRealtimeService } from "./portfolio-realtime-service";
 import { liveAnalyticsService } from "./live-analytics-service";
 import { validateEnvironment } from "./env-validator";
 import { pool } from "./db";
+import { healthRouter } from "./health";
 
 // ESM __dirname shim
 const __filename = fileURLToPath(import.meta.url);
@@ -62,9 +63,12 @@ validateEnvironment();
 
 // === BASIC CONFIG ===
 app.set("trust proxy", 1);
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser(process.env.COOKIE_SECRET || "super-secret-fallback"));
+
+// Health check endpoint
+app.use(healthRouter);
 
 // === CORS ===
 app.use((req, res, next) => {

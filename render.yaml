@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: bitpanda-pro
+    env: node
+    build:
+      dockerfile: Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=4096
+      - key: PORT
+        value: 3000
+    healthCheckPath: /api/health
+    autoDeploy: true
+    plan: free
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=4096
+      - key: PORT
+        value: 3000
+      # Add your environment variables here or in Render's dashboard
+      # - key: DATABASE_URL
+      #   sync: false
+      # - key: JWT_SECRET
+      #   sync: false
+      # - key: SESSION_SECRET
+      #   sync: false
+      # - key: SESSION_SECRET_REFRESH
+      #   sync: false
+      # - key: CSRF_TOKEN
+      #   sync: false
+      # - key: SENDERGRID_API_KEY
+      #   sync: false
+      # - key: COINGECKO_API_KEY
+      #   sync: false
+      # - key: METALS_API_KEY
+      #   sync: false
