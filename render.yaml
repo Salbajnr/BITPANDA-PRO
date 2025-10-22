@@ -1,3 +1,4 @@
+# Server Service
 services:
   - type: web
     name: bitpanda-pro
@@ -11,13 +12,37 @@ services:
         value: --max-old-space-size=4096
       - key: PORT
         value: 3000
+      - key: CLIENT_URL
+        value: https://bitpanda-pro.onrender.com
+      - key: ALLOWED_ORIGINS
+        value: https://bitpanda-pro.onrender.com,https://bitpanda-pro-frontend.onrender.com
     healthCheckPath: /api/health
     autoDeploy: true
     plan: free
     numInstances: 1
+    buildCommand: cd server && npm ci && npm run build
+    startCommand: npm start
+
+  # Client Service (if you want to deploy it separately)
+  - type: web
+    name: bitpanda-pro-frontend
+    env: node
+    build:
+      dockerfile: client/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
+      - key: VITE_API_BASE_URL
+        value: /api
+      - key: VITE_API_URL
+        value: https://bitpanda-pro.onrender.com
+    staticPublishPath: ./client/dist
+    buildCommand: cd client && npm ci && npm run build
+    staticPublishDir: ./dist
+    routes:
+      - type: rewrite
+        source: '/*'
+        destination: '/index.html'
       - key: NODE_OPTIONS
         value: --max-old-space-size=4096
       - key: PORT

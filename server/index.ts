@@ -70,34 +70,56 @@ app.use(cookieParser(process.env.COOKIE_SECRET || "super-secret-fallback"));
 // Health check endpoint
 app.use(healthRouter);
 
-// === CORS ===
+// === CORS Configuration ===
 app.use((req, res, next) => {
   const allowedOrigins = [
-    "http://localhost:5000",
-    "http://127.0.0.1:5000",
+    // Development
+    "http://localhost:5173", // Vite dev server
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    
+    // Production
+    "https://bitpanda-pro.onrender.com",
     "https://bitpanda-pro-frontnd.onrender.com",
+    
+    // Wildcard domains for subdomains
     "https://*.onrender.com",
-    "https://*.replit.app",
-    "https://*.replit.dev",
-    ...(process.env.REPLIT_DOMAINS?.split(",") || []),
-    ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
-  ];
+    
+    // Environment variables
+    ...(process.env.CLIENT_URL?.split(',') || []),
+    ...(process.env.ALLOWED_ORIGINS?.split(',') || [])
+  ].filter(Boolean); // Remove any empty strings
 
   const origin = req.headers.origin;
-  const allowed = allowedOrigins.some(
-    (a) => a === origin || (a.includes("*") && origin?.endsWith(a.replace("*", "")))
-  );
-
-  if (allowed || !origin) res.header("Access-Control-Allow-Origin", origin || "*");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token"
-  );
-
-  if (req.method === "OPTIONS") res.sendStatus(200);
-  else next();
+  const isAllowed = allowedOrigins.some(allowedOrigin => {
+    // Exact match
+    if (allowedOrigin === origin) return true;
+    
+    // Wildcard subdomain match
+    if (allowedOrigin.startsWith('*.')) {
+      const domain = allowedOrigin.substring(2); // Remove '*.'
+      return origin?.endsWith(domain);
+    }
+    
+    return false;
+  });
+  
+  // Set CORS headers
+  if (isAllowed && origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  // Continue to the next middleware
+  next();
 });
 
 // === HEALTH CHECK ===
