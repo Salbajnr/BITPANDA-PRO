@@ -167,7 +167,7 @@ class CryptoService {
     }
 
     try {
-      let url = `${this.baseUrl}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=1h,24h,7d`;
+      let url = `${this.baseUrl}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`;
 
       if (symbols && symbols.length > 0) {
         const coinIds = symbols.map(s => this.CRYPTO_IDS[s.toUpperCase()] || s.toLowerCase()).join(',');
@@ -315,7 +315,7 @@ class CryptoService {
 
       const coinId = this.CRYPTO_IDS[symbol.toUpperCase() as keyof typeof this.CRYPTO_IDS] || symbol.toLowerCase();
       const response = await this.rateLimitedFetch(
-        `${this.baseUrl}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=${days === '1' ? 'hourly' : 'daily'}`
+        `${this.baseUrl}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
       );
 
       if (response.status === 429) {
