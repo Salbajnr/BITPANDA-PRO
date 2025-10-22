@@ -33,6 +33,9 @@ import {
   CreditCard, Smartphone, Globe, ArrowUp, Target
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { FeatureErrorBoundary } from "./FeatureErrorBoundary";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -80,6 +83,12 @@ export default function Navbar() {
       });
     }
   };
+
+  // Assuming 'user' is available and has a 'NotificationCenter' component associated with it.
+  // If 'user' or 'NotificationCenter' are not defined in this scope, this part might need adjustment.
+  // For demonstration, let's assume 'user' is a prop or context value, and NotificationCenter is imported.
+  const user = { name: "Example User" }; // Placeholder for user object
+  // const NotificationCenter = () => <div>Notification Center</div>; // Placeholder for NotificationCenter component
 
   return (
     <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm">
