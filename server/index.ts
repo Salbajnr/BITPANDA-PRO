@@ -139,7 +139,11 @@ app.use((req, res, next) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  const clientBuildPath = path.join(process.cwd(), '../client/dist');
+  // Look for client build in both possible locations
+  let clientBuildPath = path.join(process.cwd(), 'client/dist');
+  if (!fs.existsSync(clientBuildPath)) {
+    clientBuildPath = path.join(process.cwd(), '../client/dist');
+  }
   
   // Check if client build exists
   if (fs.existsSync(clientBuildPath)) {
