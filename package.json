@@ -24,6 +24,7 @@
     "client"
   ],
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "@types/cheerio": "^0.22.35",
     "cheerio": "^1.1.2"
   },
