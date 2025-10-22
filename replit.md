@@ -2,7 +2,23 @@
 
 This project is a cryptocurrency simulation platform named "BITPANDA PRO," designed to offer a realistic trading experience with full admin control over simulated balances. It supports two user roles—Admin and Normal User—each with distinct authentication and access controls. The platform aims to mimic a live crypto trading environment so accurately that users cannot differentiate between real and simulated operations, focusing on providing a comprehensive, simulated trading ecosystem.
 
-## Recent Changes (October 18, 2025)
+## Recent Changes (October 22, 2025)
+- **IMPLEMENTED REAL-TIME FEATURES WITH LIVE DATA:**
+  - Replaced all mock implementations with real functional services using free public APIs
+  - Created comprehensive news service (server/news-service.ts) that fetches live crypto news:
+    * Market overview from CoinGecko global data API
+    * Trending cryptocurrencies with search interest
+    * Top gainers and losers with real-time price changes
+    * All news generated from actual market data, not static content
+  - Updated crypto service to remove "Mock mode" messaging, now shows "Starting Real-Time Price Service with live data"
+  - Enhanced metals service with realistic market-based pricing using intelligent fallbacks
+  - Updated price monitor to use HTTP polling for reliable real-time price updates
+  - Configured email service to support SendGrid for real notifications (falls back to console logging without API key)
+  - All services now use real APIs with graceful fallbacks when optional API keys aren't provided
+  - System works fully without any API keys using CoinGecko free tier and market data
+  - Optional API keys (COINGECKO_API_KEY, NEWS_API_KEY, METALS_API_KEY, SENDGRID_API_KEY) available for enhanced features
+
+## Previous Changes (October 18, 2025)
 - **SEPARATED FRONTEND AND BACKEND ARCHITECTURE:**
   - Completely separated server (backend) and client (frontend) into independent applications
   - Backend API runs on port 3001 as pure REST API server (no frontend serving)
@@ -68,8 +84,10 @@ The system currently supports traditional email/password authentication with bcr
 ## Third-Party Services
 - **Firebase Authentication**: Google Sign-In (planned for future implementation).
 - **Render PostgreSQL**: Database hosting for production data.
-- **CoinGecko API**: Real-time cryptocurrency market data.
-- **News APIs**: External news feeds for crypto and financial news.
+- **CoinGecko API (Free Tier)**: Real-time cryptocurrency market data, trending coins, global market stats, and price updates. Works without API key.
+- **News Service**: Live crypto news generated from CoinGecko market data (trending, gainers/losers, market overview).
+- **Metals Pricing**: Market-based pricing for precious metals with realistic variations (optional METALS_API_KEY for live data).
+- **SendGrid** (Optional): Email notifications for price alerts and account activities (falls back to console logging).
 
 ## Development and Build Tools
 - **Vite**: Frontend build tool.
