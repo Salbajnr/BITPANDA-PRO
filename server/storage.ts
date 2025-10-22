@@ -5,33 +5,34 @@ dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
 import dotenv from "dotenv";
 import { z } from "zod";
 
-// Validate environment variables
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  DATABASE_URL: z.string().url().min(1, "DATABASE_URL is required"),
-  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
-  SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters"),
-  SESSION_SECRET_REFRESH: z.string().min(32, "SESSION_SECRET_REFRESH must be at least 32 characters"),
-  COINGECKO_API_KEY: z.string().optional(),
-  SENDERGRID_API_KEY: z.string().optional(),
-  METALS_API_KEY: z.string().optional()
-});
-
 // Load .env file if not in production
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }
 
+// Validate environment variables - make most fields optional for demo mode
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  DATABASE_URL: z.string().optional(),
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters").optional(),
+  SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters").optional(),
+  SESSION_SECRET_REFRESH: z.string().min(32, "SESSION_SECRET_REFRESH must be at least 32 characters").optional(),
+  COINGECKO_API_KEY: z.string().optional(),
+  SENDERGRID_API_KEY: z.string().optional(),
+  METALS_API_KEY: z.string().optional()
+});
+
 // Validate environment variables
 const env = envSchema.safeParse(process.env);
 
 if (!env.success) {
-  console.error("❌ Invalid environment variables:", JSON.stringify(env.error.format(), null, 2));
-  process.exit(1);
+  console.warn("⚠️ Environment validation warnings:", JSON.stringify(env.error.format(), null, 2));
+  console.log("🎭 Some features may be limited in demo mode");
 }
 
 // Now TypeScript knows the shape of process.env
-const { DATABASE_URL, NODE_ENV } = env.data;
+const DATABASE_URL = env.success ? env.data.DATABASE_URL : process.env.DATABASE_URL;
+const NODE_ENV = (env.success ? env.data.NODE_ENV : process.env.NODE_ENV) || "development";
 
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
