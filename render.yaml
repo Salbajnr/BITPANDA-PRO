@@ -10,7 +10,7 @@ services:
       cd server && \
       npm install && \
       npm run build
-    startCommand: "node dist/server/index.js"
+    startCommand: "node dist/server/index.ts"
     envVars:
       - key: NODE_ENV
         value: production
