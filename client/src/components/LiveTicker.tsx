@@ -26,8 +26,8 @@ export default function LiveTicker() {
     isLoading: cryptoIsLoading,
     error: cryptoError
   } = useQuery<ApiResponse>({
-    queryKey: ['/api/crypto/market-data'],
-    queryFn: () => api.get('/api/crypto/market-data'),
+    queryKey: ['/api/crypto/top/12'],
+    queryFn: () => api.get('/api/crypto/top/12'),
     refetchInterval: 15000, // Refetch every 15 seconds for live updates
     retry: 3,
     retryDelay: 2000,
@@ -61,9 +61,18 @@ export default function LiveTicker() {
   useEffect(() => {
     let items: TickerItem[] = [];
 
-    // Process crypto data
-    if (cryptoResponse?.data && Array.isArray(cryptoResponse.data)) {
-      items = [...cryptoResponse.data.slice(0, 12)];
+    // Process crypto data - handle both array and object with data property
+    if (cryptoResponse) {
+      const dataArray = Array.isArray(cryptoResponse) ? cryptoResponse : cryptoResponse.data;
+      if (dataArray && Array.isArray(dataArray)) {
+        items = [...dataArray.slice(0, 12).map((item: any) => ({
+          symbol: item.symbol,
+          name: item.name,
+          current_price: item.current_price || item.price,
+          price_change_percentage_24h: item.price_change_percentage_24h || item.change_24h || 0,
+          id: item.id
+        }))];
+      }
     }
 
     // Process metals data
