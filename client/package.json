@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build",
-    "preview": "npm run preview"
+    "build:client": "npm run build",
+    "preview:client": "npm run preview"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
