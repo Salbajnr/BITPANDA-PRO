@@ -33,21 +33,152 @@ const pool = databaseUrl ? new Pool({
 }) : null;
 
 // ✅ Initialize Drizzle ORM
-export const db = pool ? drizzle(pool, { schema }) : null;
+type DatabaseType = ReturnType<typeof drizzle<typeof schema>>;
+const _db = pool ? drizzle(pool, { schema }) : null;
 
-// ✅ Optional singleton class for structured usage
+export const db = _db as DatabaseType;
+
+// Database storage implementation with proper error handling
 class DatabaseStorage {
+  private async withConnection<T>(fn: (db: DatabaseType) => Promise<T>): Promise<T> {
+    if (!db) {
+      throw new Error('Database not initialized. Please check your DATABASE_URL configuration.');
+    }
+    
+    const client = await pool?.connect();
+    try {
+      return await fn(db);
+    } catch (error) {
+      console.error('Database operation failed:', error);
+      throw new Error('Database operation failed');
+    } finally {
+      client?.release();
+    }
+  }
+
   // --- Investment Plan Methods ---
-  async getInvestmentById(id: string) { return { id, userId: '', status: '', totalSaved: '0' }; }
-  async updateInvestment(id: string, updateData: any) { return { id, ...updateData }; }
-  async deleteInvestment(id: string) { return true; }
-  async createInvestment(data: any) { return { id: 'newId', ...data }; }
-  async getUserInvestments(userId: string) { return []; }
+  async getInvestmentById(id: string) {
+    return this.withConnection(async (db) => {
+      const [investment] = await db
+        .select()
+        .from(schema.savingsPlans) // Using savingsPlans instead of investments
+        .where(eq(schema.savingsPlans.id, id))
+        .limit(1);
+      
+      if (!investment) {
+        throw new Error('Investment not found');
+      }
+      return investment;
+    });
+  }
+
+  async updateInvestment(id: string, updateData: any) {
+    return this.withConnection(async (db) => {
+      const [updated] = await db
+        .update(schema.savingsPlans) // Using savingsPlans instead of investments
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(schema.savingsPlans.id, id))
+        .returning();
+      
+      if (!updated) {
+        throw new Error('Failed to update investment');
+      }
+      return updated;
+    });
+  }
+
+  async deleteInvestment(id: string) {
+    return this.withConnection(async (db) => {
+      const [deleted] = await db
+        .delete(schema.savingsPlans) // Using savingsPlans instead of investments
+        .where(eq(schema.savingsPlans.id, id))
+        .returning({ id: schema.savingsPlans.id });
+      
+      return !!deleted;
+    });
+  }
+
+  async createInvestment(data: any) {
+    return this.withConnection(async (db) => {
+      const [newInvestment] = await db
+        .insert(schema.savingsPlans) // Using savingsPlans instead of investments
+        .values({
+          ...data,
+          status: data.status || 'active',
+          totalSaved: '0',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      if (!newInvestment) {
+        throw new Error('Failed to create investment');
+      }
+      return newInvestment;
+    });
+  }
+
+  async getUserInvestments(userId: string) {
+    return this.withConnection(async (db) => {
+      return await db
+        .select()
+        .from(schema.savingsPlans) // Using savingsPlans instead of investments
+        .where(eq(schema.savingsPlans.userId, userId));
+    });
+  }
 
   // --- KYC Methods ---
-  async getKycVerification(userId: string) { return { id: 'kycId', userId, status: 'pending' }; }
-  async updateKycVerification(id: string, data: any) { return { id, ...data }; }
-  async createKycVerification(data: any) { return { id: 'kycId', ...data }; }
+  async getKycVerification(userId: string) {
+    return this.withConnection(async (db) => {
+      const [kyc] = await db
+        .select()
+        .from(schema.kycVerifications)
+        .where(eq(schema.kycVerifications.userId, userId))
+        .limit(1);
+      
+      if (!kyc) {
+        throw new Error('KYC verification not found');
+      }
+      return kyc;
+    });
+  }
+
+  async updateKycVerification(id: string, data: any) {
+    return this.withConnection(async (db) => {
+      const [updated] = await db
+        .update(schema.kycVerifications)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(schema.kycVerifications.id, id))
+        .returning();
+      
+      if (!updated) {
+        throw new Error('Failed to update KYC verification');
+      }
+      return updated;
+    });
+  }
+
+  async createKycVerification(data: any) {
+    return this.withConnection(async (db) => {
+      const [newKyc] = await db
+        .insert(schema.kycVerifications)
+        .values({
+          ...data,
+          status: 'pending',
+          reviewedAt: null,
+          reviewedBy: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      if (!newKyc) {
+        throw new Error('Failed to create KYC verification');
+      }
+      return newKyc;
+    });
+  }
+
   async getAllKycVerifications(filter: any) { return []; }
   async getKycVerificationById(id: string) { return { id, userId: '', status: 'pending' }; }
   async getKycStatistics() { return {}; }
@@ -66,49 +197,178 @@ class DatabaseStorage {
   async updateNewsArticle(id: string, data: any) { return { id, ...data }; }
   async getNewsAnalytics() { return { total: 0, views: 0, shares: 0 }; }
   async getHoldings(portfolioId: string) { return [{ id: 'holdingId', portfolioId, symbol: '', amount: '0', name: '', averagePurchasePrice: '0' }]; }
-  async getActivePriceAlerts() { return []; }
-  async updatePriceAlert(id: string, data: any) { return { id, ...data }; }
+  async getActivePriceAlerts() {
+    return this.withConnection(async (db) => {
+      return await db
+        .select()
+        .from(schema.priceAlerts)
+        .where(eq(schema.priceAlerts.isActive, true));
+    });
+  }
+  async updatePriceAlert(id: string, data: any) {
+    return this.withConnection(async (db) => {
+      const [updatedAlert] = await db
+        .update(schema.priceAlerts)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(schema.priceAlerts.id, id))
+        .returning();
+      
+      if (!updatedAlert) {
+        throw new Error('Price alert not found');
+      }
+      return updatedAlert;
+    });
+  }
   async createNotification(data: any) { return { id: 'notificationId', ...data }; }
   async getUserAlerts(userId: string) { return []; }
   async createAlert(data: any) { return { id: 'alertId', ...data }; }
   async getTransactions(userId: string) { return []; }
   async getAllTransactions(opts?: { page?: number; limit?: number; type?: string }) { return { transactions: [], total: 0 }; }
   isDbConnected() { return true; }
-  async createPortfolio(data: any) { return { id: 'portfolioId', ...data, availableCash: '0' }; }
+  // Portfolio Methods
+  async createPortfolio(data: any) {
+    return this.withConnection(async (db) => {
+      const [portfolio] = await db
+        .insert(schema.portfolios)
+        .values({
+          ...data,
+          availableCash: '0',
+          totalValue: '0',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      if (!portfolio) {
+        throw new Error('Failed to create portfolio');
+      }
+      return portfolio;
+    });
+  }
   async getUserByEmail(email: string) { return { id: 'userId', email, username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
   async getUserByUsername(username: string) { return { id: 'userId', email: '', username, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
-  async createUser(data: any) { return { id: 'userId', ...data, password: '', role: 'user', isActive: true, firstName: '', lastName: '', createdAt: new Date(), lastLogin: new Date() }; }
+  async createUser(data: any) {
+    return this.withConnection(async (db) => {
+      const hashedPassword = await this.hashPassword(data.password);
+      const [newUser] = await db
+        .insert(schema.users)
+        .values({
+          ...data,
+          password: hashedPassword,
+          role: data.role || 'user',
+          isActive: data.isActive !== undefined ? data.isActive : true,
+          emailVerified: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastLogin: null
+        })
+        .returning();
+      
+      if (!newUser) {
+        throw new Error('Failed to create user');
+      }
+      return newUser;
+    });
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const bcrypt = await import('bcrypt');
+    const saltRounds = 10;
+    return bcrypt.hash(password, saltRounds);
+  }
   async getAllUsers() { return [{ id: 'userId', email: '', username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '', createdAt: new Date(), lastLogin: new Date() }]; }
   async createBalanceAdjustment(data: any) { return { id: 'adjustmentId', ...data }; }
   async logAdminAction(data: any) { return { id: 'logId', ...data }; }
   async createNewsArticle(data: any) { return { id: 'newsId', ...data }; }
   async deleteNewsArticle(id: string) { return { id }; }
   async getNewsArticles(limit?: number) { return []; }
-  async createSavingsPlan(data: any) { return { id: 'planId', ...data, userId: data.userId || '', status: 'active', totalSaved: '0' }; }
-  async getUserSavingsPlans(userId: string) { return [{ id: 'planId', userId, status: 'active', totalSaved: '0' }]; }
-  async deleteSavingsPlan(planId: string) { return { id: planId }; }
-  // --- MISSING METHODS (STUBS, TODO: IMPLEMENT) ---
+  async createSavingsPlan(data: any) {
+    return this.withConnection(async (db) => {
+      const [savingsPlan] = await db
+        .insert(schema.savingsPlans)
+        .values({
+          ...data,
+          status: 'active',
+          totalSaved: '0',
+          currentAmount: '0',
+          targetAmount: data.targetAmount || '0',
+          startDate: data.startDate || new Date(),
+          endDate: data.endDate || null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      if (!savingsPlan) {
+        throw new Error('Failed to create savings plan');
+      }
+      return savingsPlan;
+    });
+  }
+  async getUserSavingsPlans(userId: string) {
+    return this.withConnection(async (db) => {
+      return await db
+        .select()
+        .from(schema.savingsPlans)
+        .where(eq(schema.savingsPlans.userId, userId))
+        .orderBy(schema.savingsPlans.createdAt);
+    });
+  }
+  async deleteSavingsPlan(planId: string) {
+    return this.withConnection(async (db) => {
+      const [deletedPlan] = await db
+        .delete(schema.savingsPlans)
+        .where(eq(schema.savingsPlans.id, planId))
+        .returning({ id: schema.savingsPlans.id });
+      
+      if (!deletedPlan) {
+        throw new Error('Savings plan not found or already deleted');
+      }
+      return deletedPlan;
+    });
+  }
+  // --- User Management Methods ---
   async getUser(userId: string) {
-    if (!db) return { id: userId, password: '', role: 'user', email: '', username: '', isActive: true, firstName: '', lastName: '' };
-    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
-    return user || null;
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, userId))
+        .limit(1);
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user;
+    });
   }
   async getUserByEmailOrUsername(emailOrUsername: string) {
-    if (!db) return null;
-    const [user] = await db.select().from(schema.users)
-      .where(
-        (emailOrUsername.includes('@'))
-          ? eq(schema.users.email, emailOrUsername)
-          : eq(schema.users.username, emailOrUsername)
-      ).limit(1);
-    return user || null;
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(
+          emailOrUsername.includes('@')
+            ? eq(schema.users.email, emailOrUsername)
+            : eq(schema.users.username, emailOrUsername)
+        )
+        .limit(1);
+      
+      return user || null;
+    });
   }
   async verifyPassword(userId: string, password: string) {
-    if (!db) return false;
-    const user = await this.getUser(userId);
-    if (!user) return false;
-    // In production, use bcrypt.compare(password, user.password)
-    return user.password === password; // Temporary stub
+    return this.withConnection(async (db) => {
+      const user = await this.getUser(userId);
+      if (!user) return false;
+      
+      // In production, use bcrypt.compare
+      const bcrypt = await import('bcrypt');
+      return bcrypt.compare(password, user.password);
+    });
   }
   async getSavingsPlanById(planId: string) { return { id: planId, status: 'active' }; }
   async updateSavingsPlan(planId: string, data: any) { return { id: planId, ...data }; }
