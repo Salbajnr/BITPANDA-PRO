@@ -258,11 +258,11 @@ app.get('*', (req, res, next) => {
 });
 
 // === SERVER START ===
-// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3001)
+// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3000)
 const PORT = process.env.NODE_ENV === "production"
   ? Number(process.env.PORT) || 5000
-  : Number(process.env.BACKEND_PORT) || 3001;
-const HOST = process.env.HOST || "0.0.0.0";
+  : Number(process.env.BACKEND_PORT) || 3000;
+const HOST = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 
 (async () => {
   try {
