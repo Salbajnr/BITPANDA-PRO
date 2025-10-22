@@ -5,18 +5,21 @@ This project is a cryptocurrency simulation platform named "BITPANDA PRO," desig
 ## Recent Changes (October 22, 2025)
 - **IMPLEMENTED REAL-TIME FEATURES WITH LIVE DATA:**
   - Replaced all mock implementations with real functional services using free public APIs
-  - Created comprehensive news service (server/news-service.ts) that fetches live crypto news:
-    * Market overview from CoinGecko global data API
-    * Trending cryptocurrencies with search interest
-    * Top gainers and losers with real-time price changes
-    * All news generated from actual market data, not static content
+  - **Integrated Bitpanda Blog for Live News:**
+    * News service now fetches real articles from https://blog.bitpanda.com/en/tag/news
+    * Uses cheerio for HTML parsing to extract article titles, descriptions, images, and URLs
+    * Intelligent filtering to distinguish blog articles from navigation links (minimum 3-hyphen slug pattern)
+    * Automatic categorization (team, partnerships, technology, weekly updates)
+    * Sentiment analysis for article tone (positive, negative, neutral)
+    * 5-minute caching for performance with fallback to static content on errors
+  - Real-time cryptocurrency prices using CoinGecko API with 15-second HTTP polling updates
   - Updated crypto service to remove "Mock mode" messaging, now shows "Starting Real-Time Price Service with live data"
-  - Enhanced metals service with realistic market-based pricing using intelligent fallbacks
+  - Enhanced metals service with live pricing via METALS_API_KEY with realistic market-based fallbacks
   - Updated price monitor to use HTTP polling for reliable real-time price updates
   - Configured email service to support SendGrid for real notifications (falls back to console logging without API key)
   - All services now use real APIs with graceful fallbacks when optional API keys aren't provided
-  - System works fully without any API keys using CoinGecko free tier and market data
-  - Optional API keys (COINGECKO_API_KEY, NEWS_API_KEY, METALS_API_KEY, SENDGRID_API_KEY) available for enhanced features
+  - System works fully using CoinGecko free tier, Bitpanda blog scraping, and market data
+  - Optional API keys (COINGECKO_API_KEY, METALS_API_KEY, SENDGRID_API_KEY) available for enhanced features
 
 ## Previous Changes (October 18, 2025)
 - **SEPARATED FRONTEND AND BACKEND ARCHITECTURE:**
@@ -84,10 +87,10 @@ The system currently supports traditional email/password authentication with bcr
 ## Third-Party Services
 - **Firebase Authentication**: Google Sign-In (planned for future implementation).
 - **Render PostgreSQL**: Database hosting for production data.
-- **CoinGecko API (Free Tier)**: Real-time cryptocurrency market data, trending coins, global market stats, and price updates. Works without API key.
-- **News Service**: Live crypto news generated from CoinGecko market data (trending, gainers/losers, market overview).
-- **Metals Pricing**: Market-based pricing for precious metals with realistic variations (optional METALS_API_KEY for live data).
-- **SendGrid** (Optional): Email notifications for price alerts and account activities (falls back to console logging).
+- **CoinGecko API (Free Tier)**: Real-time cryptocurrency market data, trending coins, global market stats, and price updates. Works without API key. Pro API key (COINGECKO_API_KEY) optional for enhanced features.
+- **Bitpanda Blog**: Live news articles fetched directly from https://blog.bitpanda.com/en/tag/news via HTML scraping with cheerio. No API key required.
+- **Metals Pricing**: Live precious metals pricing via METALS_API_KEY with market-based fallbacks when API key is not provided.
+- **SendGrid** (Optional): Email notifications for price alerts and account activities (falls back to console logging without SENDGRID_API_KEY).
 
 ## Development and Build Tools
 - **Vite**: Frontend build tool.

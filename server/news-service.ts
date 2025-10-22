@@ -41,60 +41,74 @@ class NewsService {
       const html = await response.text();
       const $ = cheerio.load(html);
       const articles: NewsArticle[] = [];
+      const seenUrls = new Set<string>();
 
-      // Parse articles from the blog page
+      // Parse articles from the blog page - look for article links with proper structure
       $('a').each((index, element) => {
         const $link = $(element);
         const href = $link.attr('href');
         
-        // Only process links that are blog post URLs
-        if (!href || !href.includes('/en/') || href === '/en' || href.includes('/tag/')) {
+        // Only process blog post URLs (with specific slug pattern)
+        // Blog articles have URLs like /en/article-title-with-multiple-words
+        // Count hyphens to identify real articles (should have at least 3 hyphens in the slug)
+        const hyphenCount = (href || '').split('-').length - 1;
+        
+        // Skip navigation, tags, and other non-article links
+        if (!href || 
+            href === '/en' || 
+            href === '/' ||
+            href.startsWith('/en/tag/') ||
+            href.includes('/prices/') ||
+            href.includes('/tell-a-friend') ||
+            href.includes('/affiliate') ||
+            href.includes('www.bitpanda.com') ||
+            href.includes('bitpanda.com/en/prices') ||
+            !href.includes('/en/') ||
+            href.split('/').length < 3 ||
+            hyphenCount < 3 || // Real articles have multi-word slugs with multiple hyphens
+            seenUrls.has(href)) {
           return;
         }
 
-        // Extract article information
+        // Get the link text content
+        const fullText = $link.text().trim();
+        
+        // Check if this link contains article markers (read time)
+        const hasReadTime = /\d+\s*min\s*read/.test(fullText);
+        
+        // If no read time and the text is very short, it's likely a navigation link
+        if (!hasReadTime && fullText.length < 20) {
+          return;
+        }
+
+        // Extract image
         const $img = $link.find('img');
         const imageUrl = $img.attr('src') || 'https://cdn.bitpanda.com/media/dev/artboard-1.png';
         
-        // Get the text content
-        const fullText = $link.text().trim();
-        
-        // Extract read time
-        const readTimeMatch = fullText.match(/(\d+)\s*min\s*read/);
-        
-        // Extract title (bold text after read time)
-        const titleMatch = fullText.match(/\*\*(.+?)\*\*/);
-        let title = titleMatch ? titleMatch[1] : '';
-        
-        // If no title found in markdown format, try to extract from text
-        if (!title) {
-          const lines = fullText.split('\n').filter(line => line.trim());
-          // Skip the read time line and get the next substantial line
-          for (const line of lines) {
-            if (!line.includes('min read') && line.length > 10) {
-              title = line.trim();
-              break;
-            }
-          }
-        }
-
-        // Extract description (text after title)
-        let description = fullText
-          .replace(/\d+\s*min\s*read/, '')
-          .replace(/\*\*.+?\*\*/, '')
-          .replace(/Read more/i, '')
+        // Extract title from the text
+        // Remove read time and "Read more" text
+        let title = fullText
+          .replace(/•?\s*\d+\s*min\s*read/gi, '')
+          .replace(/Read more/gi, '')
           .trim();
         
-        // Clean up description
-        description = description.split('\n').filter(line => line.trim()).join(' ').trim();
-        if (description.length > 300) {
-          description = description.substring(0, 300) + '...';
-        }
+        // Extract first substantial line as title
+        const lines = title.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        title = lines[0] || '';
+        
+        // Description is remaining lines
+        const description = lines.slice(1).join(' ').trim() || title;
 
         // Only add if we have a valid title and URL
-        if (title && href && title.length > 5) {
+        if (title && title.length > 10 && href) {
           const fullUrl = href.startsWith('http') ? href : `https://blog.bitpanda.com${href}`;
           const articleId = href.split('/').pop() || `article-${index}`;
+          
+          // Skip if already seen
+          if (seenUrls.has(fullUrl)) {
+            return;
+          }
+          seenUrls.add(fullUrl);
           
           // Determine category based on title content
           let articleCategory = 'news';
@@ -117,9 +131,9 @@ class NewsService {
           }
           
           // Sentiment analysis
-          if (combined.match(/surge|gain|rise|growth|bullish|high|win|success|secures|appointed|partnership/i)) {
+          if (combined.match(/surge|gain|rise|growth|bullish|high|win|success|secures|appointed|partnership|approval/i)) {
             sentiment = 'positive';
-          } else if (combined.match(/fall|decline|loss|bearish|risk|volatility|crash/i)) {
+          } else if (combined.match(/fall|decline|loss|bearish|risk|volatility|crash|correction/i)) {
             sentiment = 'negative';
           }
           
@@ -136,9 +150,9 @@ class NewsService {
 
           const article: NewsArticle = {
             id: articleId,
-            title: title,
-            description: description || title,
-            summary: description.length > 150 ? description.substring(0, 150) + '...' : description,
+            title: title.length > 200 ? title.substring(0, 200) + '...' : title,
+            description: description.length > 300 ? description.substring(0, 300) + '...' : description || title,
+            summary: description.length > 150 ? description.substring(0, 150) + '...' : description || title,
             url: fullUrl,
             imageUrl: imageUrl,
             urlToImage: imageUrl,
@@ -154,21 +168,23 @@ class NewsService {
         }
       });
 
-      // Remove duplicates based on URL
-      const uniqueArticles = Array.from(
-        new Map(articles.map(article => [article.url, article])).values()
-      );
-
       // Filter by category if specified
-      let filteredArticles = uniqueArticles;
+      let filteredArticles = articles;
       if (category && category !== 'all') {
-        filteredArticles = uniqueArticles.filter(article =>
+        filteredArticles = articles.filter(article =>
           article.category === category ||
           article.coins.includes(category.toLowerCase())
         );
       }
 
       const result = filteredArticles.slice(0, limit);
+      
+      // If we didn't get enough articles, use fallback
+      if (result.length === 0) {
+        console.log('⚠️ No articles parsed from Bitpanda blog, using fallback');
+        return this.getFallbackNews(limit);
+      }
+      
       this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
       
       console.log(`✅ Fetched ${result.length} articles from Bitpanda blog`);
