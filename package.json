@@ -15,9 +15,12 @@
     "db:migrate": "cd server && drizzle-kit migrate",
     "db:studio": "cd server && drizzle-kit studio",
     "test": "echo \"Error: no test specified\" && exit 1"
-   },
+  },
   "workspaces": [
     "server",
     "client"
-  ]
+  ],
+  "dependencies": {
+    "cheerio": "^1.1.2"
+  }
 }
