@@ -10,7 +10,7 @@ class ApiClient {
   private baseURL: string;
   public csrfToken: string | null = null;
 
-  constructor(baseURL: string = '') {
+  constructor(baseURL: string = import.meta.env.VITE_API_URL || 'http://localhost:3000') {
     this.baseURL = baseURL;
     this.getCsrfToken();
   }
