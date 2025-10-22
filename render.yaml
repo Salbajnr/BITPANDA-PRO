@@ -1,17 +1,13 @@
-# Server Service
 services:
   # Server (Web Service)
-  # This service runs your Node.js backend.
   - type: web
     name: bitpanda-pro-server
     env: node
     plan: free
     autoDeploy: true
     healthCheckPath: /health
-    # Build server TypeScript -> dist/server
-    buildCommand: "cd server && npm install --include=dev && npm run build"
-    # Start compiled server from repo root
-    startCommand: "node dist/server/index.js"
+    buildCommand: "cd server && npm install --production"
+    startCommand: "node server/index.js"
     envVars:
       - key: NODE_ENV
         value: production
@@ -24,16 +20,21 @@ services:
       #   sync: false
 
   # Client (Static Site)
-  # This service builds and serves your React frontend.
   - type: static
     name: bitpanda-pro-client
     plan: free
     autoDeploy: true
-    # The build command installs dependencies and then runs 'vite build'.
-    buildCommand: "cd client && npm install --include=dev && npm run build"
-    # Render will serve the files from this directory.
-    staticPublishPath: client/dist
-    # This rewrite rule is essential for client-side routing to work.
+    buildCommand: |
+      cd client && \
+      npm install && \
+      npm run build
+    staticPublishPath: ./client/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: bitpanda-pro-server
+          type: web
+          property: url
     routes:
       - type: rewrite
         source: "/*"
