@@ -56,6 +56,7 @@ import metalsTradingRoutes from "./metals-trading-routes";
 import comprehensiveCrudRoutes from "./comprehensive-crud-routes";
 import uploadRoutes from "./upload-routes";
 import { registerProofUploadRoutes } from "./proof-upload-routes";
+import oauthRoutes from "./oauth-routes";
 
 const app = express();
 
@@ -195,6 +196,13 @@ if (process.env.NODE_ENV === 'production') {
 registerRoutes(app);
 
 app.use("/api/auth", authRoutes);
+
+// Only register OAuth routes if passport is configured
+if (process.env.GOOGLE_CLIENT_ID || process.env.FACEBOOK_APP_ID || process.env.APPLE_CLIENT_ID) {
+  app.use("/api/auth", oauthRoutes);
+  console.log("✅ OAuth routes registered");
+}
+
 app.use("/api/user", userRoutes);
 app.use("/api/crypto", cryptoRoutes);
 app.use("/api/trading", tradingRoutes);

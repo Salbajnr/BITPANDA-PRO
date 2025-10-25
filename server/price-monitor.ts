@@ -126,8 +126,13 @@ class PriceMonitorService {
         }
       }
       
-      if (!activeAlerts) {
+      if (!activeAlerts || !Array.isArray(activeAlerts)) {
         console.log('⚠️ Unable to fetch active alerts after retries');
+        return;
+      }
+
+      if (activeAlerts.length === 0) {
+        // No alerts to process, skip silently
         return;
       }
 
@@ -151,7 +156,9 @@ class PriceMonitorService {
         }
       }
 
-      console.log(`✅ Checked ${activeAlerts.length} price alerts`);
+      if (activeAlerts.length > 0) {
+        console.log(`✅ Checked ${activeAlerts.length} price alerts`);
+      }
     } catch (error: any) {
       // Don't log full stack trace for connection errors to reduce noise
       if (error?.message?.includes('Connection terminated') || error?.code === 'ECONNRESET') {

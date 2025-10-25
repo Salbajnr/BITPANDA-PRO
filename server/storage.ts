@@ -307,20 +307,25 @@ class DatabaseStorage {
   async getNewsAnalytics() { return { total: 0, views: 0, shares: 0 }; }
   async getHoldings(portfolioId: string) { return [{ id: 'holdingId', portfolioId, symbol: '', amount: '0', name: '', averagePurchasePrice: '0' }]; }
   async getActivePriceAlerts() {
-    return this.withConnection(async (db) => {
-      // Check if we have a real database connection
-      if (!db || typeof db.select !== 'function') {
-        console.log('⚠️ Database not available, returning empty alerts');
-        return [];
-      }
+    try {
+      return await this.withConnection(async (db) => {
+        // Check if we have a real database connection
+        if (!db || typeof db.select !== 'function') {
+          console.log('⚠️ Database not available, returning empty alerts');
+          return [];
+        }
 
-      const result = await db
-        .select()
-        .from(schema.priceAlerts)
-        .where(eq(schema.priceAlerts.isActive, true));
+        const result = await db
+          .select()
+          .from(schema.priceAlerts)
+          .where(eq(schema.priceAlerts.isActive, true));
 
-      return result || [];
-    });
+        return Array.isArray(result) ? result : [];
+      });
+    } catch (error) {
+      console.log('⚠️ Error fetching active alerts, returning empty array');
+      return [];
+    }
   }
   async updatePriceAlert(id: string, data: any) {
     return this.withConnection(async (db) => {
