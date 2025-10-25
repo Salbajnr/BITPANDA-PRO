@@ -361,9 +361,11 @@ export default function Landing() {
                 Start Trading Now
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-green-600">
-              <Play className="w-5 h-5 mr-2" />
-              Watch Demo
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-green-600" asChild>
+              <Link href="/tutorials">
+                <Play className="w-5 h-5 mr-2" />
+                View Tutorials
+              </Link>
             </Button>
           </div>
           <p className="text-sm mt-6 text-white/75">

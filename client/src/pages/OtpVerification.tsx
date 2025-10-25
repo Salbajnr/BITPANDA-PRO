@@ -334,11 +334,7 @@ export default function OtpVerification() {
                 </p>
               </div>
 
-              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-3">
-                <p className="text-xs text-blue-300 text-center">
-                  <strong>Demo Mode:</strong> Use test codes: 123456, 111111, or 000000
-                </p>
-              </div>
+              
             </div>
           </CardContent>
         </Card>
