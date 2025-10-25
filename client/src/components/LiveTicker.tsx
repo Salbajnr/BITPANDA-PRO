@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Wifi, WifiOff } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wifi, WifiOff, AlertCircle } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TickerItem {
   symbol: string;
@@ -14,11 +14,12 @@ interface TickerItem {
 export default function LiveTicker() {
   const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
   const [isConnected, setIsConnected] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   // Fetch crypto data for ticker with better error handling
-  const { 
-    data: cryptoData, 
-    isError: cryptoIsError, 
+  const {
+    data: cryptoData,
+    isError: cryptoIsError,
     isLoading: cryptoIsLoading,
   } = useQuery<TickerItem[]>({
     queryKey: ['/api/crypto/prices'],
@@ -26,15 +27,15 @@ export default function LiveTicker() {
       const response = await fetch('/api/crypto/prices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          symbols: ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOT', 'MATIC', 'AVAX', 'LINK'] 
+        body: JSON.stringify({
+          symbols: ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOT', 'MATIC', 'AVAX', 'LINK']
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch crypto prices');
       }
-      
+
       const data = await response.json();
       return Array.isArray(data) ? data.map((item: any) => ({
         symbol: item.symbol || 'N/A',
@@ -49,10 +50,10 @@ export default function LiveTicker() {
   });
 
   // Fetch metals data for ticker
-  const { 
+  const {
     data: metalsData,
     isError: metalsIsError,
-    isLoading: metalsIsLoading 
+    isLoading: metalsIsLoading
   } = useQuery<TickerItem[]>({
     queryKey: ['/api/metals/market-data'],
     queryFn: async () => {
@@ -76,30 +77,38 @@ export default function LiveTicker() {
     { symbol: 'XAG', name: 'Silver', current_price: 28.41, price_change_percentage_24h: -0.44 },
   ];
 
-  // Update ticker items from API data
+  // Update ticker items from API data and handle errors
   useEffect(() => {
     let items: TickerItem[] = [];
+    let dataAvailable = false;
 
-    // Add crypto data if available
     if (cryptoData && Array.isArray(cryptoData) && cryptoData.length > 0) {
       items = [...cryptoData];
       setIsConnected(true);
+      dataAvailable = true;
     }
 
-    // Add metals data if available
     if (metalsData && Array.isArray(metalsData) && metalsData.length > 0) {
       items = [...items, ...metalsData];
       setIsConnected(true);
+      dataAvailable = true;
     }
 
-    // Use fallback if no data available
-    if (items.length === 0) {
+    if (!dataAvailable) {
       items = defaultItems;
       setIsConnected(false);
     }
 
     setTickerItems(items);
-  }, [cryptoData, metalsData]);
+
+    // Set hasError if either crypto or metals data fetch failed
+    if (cryptoIsError || metalsIsError) {
+      setHasError(true);
+    } else {
+      setHasError(false);
+    }
+  }, [cryptoData, metalsData, cryptoIsError, metalsIsError]);
+
 
   // Show loading state only initially
   if (cryptoIsLoading && metalsIsLoading && tickerItems.length === 0) {
@@ -115,10 +124,31 @@ export default function LiveTicker() {
     );
   }
 
+  // Show error fallback UI
+  if (hasError || cryptoIsError || metalsIsError) {
+    return (
+      <div className="bg-slate-900 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <Alert className="bg-red-900/50 border-red-600/50 py-1">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <AlertDescription className="text-red-300 text-xs">
+              Live market data is currently unavailable. Please try again later.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
+  // If no data and not loading, but also no error, means it's empty or intentionally not showing
+  if (!cryptoData && !metalsData && tickerItems.length === 0) {
+    return null;
+  }
+
   return (
     <div className="bg-slate-900 border-b border-slate-800 overflow-hidden">
       <div className="relative h-8">
-        <div 
+        <div
           className="flex items-center h-full space-x-8 animate-scroll"
           style={{
             animationDuration: '30s',
@@ -131,11 +161,11 @@ export default function LiveTicker() {
           {tickerItems.map((item, index) => {
             const isPositive = (item.price_change_percentage_24h || 0) >= 0;
             const price = Number(item.current_price) || 0;
-            const formattedPrice = price < 1 
-              ? price.toFixed(4) 
-              : price.toLocaleString(undefined, { 
-                  minimumFractionDigits: 2, 
-                  maximumFractionDigits: 2 
+            const formattedPrice = price < 1
+              ? price.toFixed(4)
+              : price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
                 });
 
             return (
@@ -158,11 +188,11 @@ export default function LiveTicker() {
           {tickerItems.map((item, index) => {
             const isPositive = (item.price_change_percentage_24h || 0) >= 0;
             const price = Number(item.current_price) || 0;
-            const formattedPrice = price < 1 
-              ? price.toFixed(4) 
-              : price.toLocaleString(undefined, { 
-                  minimumFractionDigits: 2, 
-                  maximumFractionDigits: 2 
+            const formattedPrice = price < 1
+              ? price.toFixed(4)
+              : price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
                 });
 
             return (
