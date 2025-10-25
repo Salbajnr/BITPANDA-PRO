@@ -284,7 +284,11 @@ export default function ApiDocumentation() {
                     </div>
 
                     <div>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/api-management'}
+                      >
                         Try it out
                         <ExternalLink className="w-4 h-4 ml-2" />
                       </Button>
