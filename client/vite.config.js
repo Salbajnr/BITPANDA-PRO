@@ -30,12 +30,12 @@ const config = {
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.NODE_ENV === 'production' ? 'http://localhost:10000' : 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
       '/ws': {
-        target: 'ws://localhost:3000',
+        target: process.env.NODE_ENV === 'production' ? 'ws://localhost:10000' : 'ws://localhost:3000',
         ws: true,
       },
     },
