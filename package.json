@@ -24,6 +24,7 @@
     "client"
   ],
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.76.1",
     "@types/cheerio": "^0.22.35",
     "@types/passport": "^1.0.17",

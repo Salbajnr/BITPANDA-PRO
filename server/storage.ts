@@ -1,6 +1,42 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
 
+// Load environment variables
+import dotenv from "dotenv";
+import { z } from "zod";
+
+// Load .env file if not in production
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
+
+// Validate environment variables - make most fields optional for demo mode
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  DATABASE_URL: z.string().optional(),
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters").optional(),
+  SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters").optional(),
+  SESSION_SECRET_REFRESH: z.string().min(32, "SESSION_SECRET_REFRESH must be at least 32 characters").optional(),
+  COINGECKO_API_KEY: z.string().optional(),
+  SENDERGRID_API_KEY: z.string().optional(),
+  METALS_API_KEY: z.string().optional()
+});
+
+// Validate environment variables
+const env = envSchema.safeParse(process.env);
+
+if (!env.success) {
+  console.warn("⚠️ Environment validation warnings:", JSON.stringify(env.error.format(), null, 2));
+  console.log("🎭 Some features may be limited in demo mode");
+}
+
+// Now TypeScript knows the shape of process.env
+const DATABASE_URL = env.success ? env.data.DATABASE_URL : process.env.DATABASE_URL;
+const NODE_ENV = (env.success ? env.data.NODE_ENV : process.env.NODE_ENV) || "development";
+
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import { eq, and, or } from 'drizzle-orm';
 import { eq, and, sql, gte, lte, inArray, or, like, isNull, isNotNull, desc } from 'drizzle-orm';
 import * as schema from "../shared/schema";
 import { db, pool } from "./db"; // Use the shared database connection

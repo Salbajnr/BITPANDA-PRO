@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Production API URL
-const API_BASE_URL = 'https://bitpanda-pro.onrender.com';
+const API_BASE_URL = 'https://bitpandapro.onrender.com';
 
 // Base configuration
 const config = {
@@ -24,6 +24,17 @@ const config = {
     host: '0.0.0.0',
     port: 5000,
     strictPort: true,
+    hmr: {
+      clientPort: 5000,
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/ws': {
+        target: 'ws://localhost:3000',
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
@@ -39,7 +50,6 @@ const config = {
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
-    // Use default minification (esbuild in production)
     minify: 'esbuild',
     rollupOptions: {
       output: {

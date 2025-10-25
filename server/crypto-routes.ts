@@ -104,26 +104,24 @@ router.get('/details/:coinId', async (req, res) => {
   }
 });
 
-// Get market data overview
+// Get market data overview for LiveTicker and general use
 router.get('/market-data', async (req, res) => {
   try {
-    // Get top cryptos to calculate market stats
+    // Get top cryptos
     const topCryptos = await cryptoService.getMarketData(undefined, 100);
 
-    const totalMarketCap = topCryptos.reduce((sum, crypto) => sum + (crypto.market_cap || 0), 0);
-    const totalVolume = topCryptos.reduce((sum, crypto) => sum + (crypto.total_volume || 0), 0);
-
-    const marketData = {
-      total_market_cap: { usd: totalMarketCap },
-      total_volume: { usd: totalVolume },
-      market_cap_percentage: {
-        btc: topCryptos.find(c => c.symbol === 'btc')?.market_cap / totalMarketCap * 100 || 0,
-        eth: topCryptos.find(c => c.symbol === 'eth')?.market_cap / totalMarketCap * 100 || 0
-      },
-      market_cap_change_percentage_24h_usd: 2.34 // Mock value
-    };
-
-    res.json(marketData);
+    // Return both the array and stats format for compatibility
+    res.json({
+      data: topCryptos.slice(0, 12), // LiveTicker wants top 12
+      stats: {
+        total_market_cap: { usd: topCryptos.reduce((sum, crypto) => sum + (crypto.market_cap || 0), 0) },
+        total_volume: { usd: topCryptos.reduce((sum, crypto) => sum + (crypto.total_volume || 0), 0) },
+        market_cap_percentage: {
+          btc: topCryptos.find(c => c.symbol === 'BTC')?.market_cap / topCryptos.reduce((sum, crypto) => sum + (crypto.market_cap || 0), 0) * 100 || 0,
+          eth: topCryptos.find(c => c.symbol === 'ETH')?.market_cap / topCryptos.reduce((sum, crypto) => sum + (crypto.market_cap || 0), 0) * 100 || 0
+        }
+      }
+    });
   } catch (error) {
     console.error('Error fetching market data:', error);
     res.status(500).json({ message: 'Failed to fetch market data' });

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useRealTimePrices } from '../hooks/useRealTimePrices';
+import { SafeComponent } from './SafeComponent';
 
 interface CryptoPrice {
   symbol: string;
@@ -15,7 +16,7 @@ interface RealTimePriceWidgetProps {
   className?: string;
 }
 
-const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({ 
+const RealTimePriceWidgetContent: React.FC<RealTimePriceWidgetProps> = ({ 
   symbols = ['BTC', 'ETH', 'ADA', 'SOL'], 
   className = '' 
 }) => {
@@ -52,7 +53,7 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
   useEffect(() => {
     const initializePrices = async () => {
       setIsLoading(true);
-      
+
       try {
         // Try to fetch real prices first
         const response = await fetch('/api/crypto/prices', {
@@ -60,7 +61,7 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ symbols })
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           const realPrices: CryptoPrice[] = data.map((crypto: any) => ({
@@ -75,7 +76,7 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
         }
       } catch (error) {
         console.warn('Failed to fetch real prices, using fallback data:', error);
-        
+
         // Fallback to mock data only if real data fails
         const fallbackPrices: CryptoPrice[] = symbols.map(symbol => ({
           symbol,
@@ -85,7 +86,7 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
         }));
         setPrices(fallbackPrices);
       }
-      
+
       setIsLoading(false);
     };
 
@@ -172,6 +173,14 @@ const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = ({
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+export const RealTimePriceWidget: React.FC<RealTimePriceWidgetProps> = (props) => {
+  return (
+    <SafeComponent>
+      <RealTimePriceWidgetContent {...props} />
+    </SafeComponent>
   );
 };
 

@@ -3,6 +3,17 @@ import { metalsService } from './metals-service';
 
 const router = Router();
 
+// Market data endpoint for LiveTicker
+router.get('/market-data', async (req, res) => {
+  try {
+    const metals = await metalsService.getMetalsPrices();
+    res.json(metals);
+  } catch (error) {
+    console.error('Error fetching metals market data:', error);
+    res.status(500).json({ message: 'Failed to fetch metals market data' });
+  }
+});
+
 // Get single metal price
 router.get('/price/:symbol', async (req, res) => {
   try {

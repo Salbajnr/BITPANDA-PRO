@@ -159,11 +159,13 @@ if (process.env.NODE_ENV === 'production') {
       if (!req.path.startsWith('/api/')) {
         return res.sendFile(path.join(clientBuildPath, 'index.html'));
       }
+      // If it's an API path and not handled by other routes, return 404
       res.status(404).json({ message: 'API endpoint not found' });
     });
   } else {
     console.warn('⚠️  Client build not found. Running in API-only mode.');
 
+    // In production but no client build found, handle non-API routes with 404
     // In production but no client build found
     app.get('*', (req, res, next) => {
       if (!req.path.startsWith('/api/')) {
@@ -173,11 +175,11 @@ if (process.env.NODE_ENV === 'production') {
           details: 'The client application is not available. Please check the deployment.'
         });
       }
-      next();
+      next(); // Continue to API routes
     });
   }
 } else {
-  // In development, run in API-only mode
+  // In development, run in API-only mode, serve non-API routes with 404
   console.log('🚀 Running in development mode - API-only');
 
   app.get('*', (req, res, next) => {
@@ -188,7 +190,7 @@ if (process.env.NODE_ENV === 'production') {
         details: 'This is an API-only development server. The client should be running separately.'
       });
     }
-    next();
+    next(); // Continue to API routes
   });
 }
 
@@ -236,43 +238,50 @@ registerProofUploadRoutes(app);
 app.use("/api/support/chat", chatRoutes);
 
 // === 404 HANDLER FOR API ===
+// This should come after all other API routes
 app.use("/api/*", (req, res) => {
   res.status(404).json({ message: "API endpoint not found" });
 });
 
-// Catch-all handler: send back React app for any non-API routes
+// === CATCH-ALL FOR NON-API ROUTES ===
+// This should be the very last route handler
+// It's intended for serving the client-side application in production
+// and for development scenarios where the client is handled separately.
 app.get('*', (req, res, next) => {
-  // Skip API routes
+  // If the request path starts with '/api/', it should have been handled by API routes or the /api/* 404 handler
   if (req.path.startsWith('/api/')) {
-    return next();
+    return next(); // Let the API route handlers or the API 404 handler manage this
   }
 
-  // In development, let Vite handle it
+  // In development, we assume the client is served by a separate dev server (e.g., Vite)
+  // So, we pass control to the next middleware, which might be a 404 handler or nothing.
   if (process.env.NODE_ENV !== 'production') {
     return next();
   }
 
-  // In production, serve the React app
-  const prodIndex = path.resolve(__dirname, '..', 'dist', 'public', 'index.html');
-  if (fs.existsSync(prodIndex)) {
-    return res.sendFile(prodIndex);
+  // In production, if we reach here for a non-API route, serve the client's index.html
+  // Try common build output locations
+  const possibleIndexPaths = [
+    path.resolve(__dirname, '..', 'dist', 'public', 'index.html'), // Standard build output
+    path.resolve(__dirname, '..', 'client', 'dist', 'index.html')   // Alternative build output
+  ];
+
+  for (const index of possibleIndexPaths) {
+    if (fs.existsSync(index)) {
+      return res.sendFile(index);
+    }
   }
 
-  // Fallback to previous path for older setups
-  const legacyIndex = path.resolve(__dirname, '..', 'client', 'dist', 'index.html');
-  if (fs.existsSync(legacyIndex)) {
-    return res.sendFile(legacyIndex);
-  }
-
-  res.status(404).send('Client build not found. Make sure the client is built to ../dist/public');
+  // If no index.html is found in expected locations
+  res.status(404).send('Client build not found. Make sure the client is built to one of the expected output directories.');
 });
 
 // === SERVER START ===
-// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3001)
+// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3000)
 const PORT = process.env.NODE_ENV === "production"
   ? Number(process.env.PORT) || 5000
-  : Number(process.env.BACKEND_PORT) || 3001;
-const HOST = process.env.HOST || "0.0.0.0";
+  : Number(process.env.BACKEND_PORT) || 3000;
+const HOST = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 
 (async () => {
   try {

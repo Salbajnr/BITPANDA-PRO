@@ -49,6 +49,7 @@ import Imprint from "@/pages/Imprint";
 import Tutorials from "@/pages/Tutorials";
 import { lazy, Suspense, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary';
 import { queryClient } from "./lib/queryClient";
 
 // Additional pages imported in the changes
@@ -165,6 +166,13 @@ function Routes() {
       <Route path="/privacy" component={() => <ErrorBoundary><PublicLayout><Privacy /></PublicLayout></ErrorBoundary>} />
       <Route path="/terms" component={() => <ErrorBoundary><PublicLayout><Terms /></PublicLayout></ErrorBoundary>} />
 
+      {/* Investment Routes */}
+      <Route path="/stocks" component={() => <PublicLayout><Stocks /></PublicLayout>} />
+      <Route path="/etfs" component={() => <PublicLayout><Etfs /></PublicLayout>} />
+      <Route path="/crypto-indices" component={() => <PublicLayout><CryptoIndices /></PublicLayout>} />
+      <Route path="/precious-metals" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense></PublicLayout>} />
+      <Route path="/savings-plans" component={() => <PublicLayout><SavingsPlans /></PublicLayout>} />
+      <Route path="/about-us" component={() => <PublicLayout><About /></PublicLayout>} />
       {/* Investment Routes - All with error boundaries */}
       <Route path="/stocks" component={() => <ErrorBoundary><PublicLayout><Stocks /></PublicLayout></ErrorBoundary>} />
       <Route path="/etfs" component={() => <ErrorBoundary><PublicLayout><Etfs /></PublicLayout></ErrorBoundary>} />
@@ -184,6 +192,22 @@ function Routes() {
       <Route path="/commodities" component={() => <ErrorBoundary><PublicLayout><Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense></PublicLayout></ErrorBoundary>} />
       <Route path="/dual-markets" component={() => <ErrorBoundary><PublicLayout><DualMarkets /></PublicLayout></ErrorBoundary>} />
 
+      {/* Information Routes */}
+      <Route path="/api-docs" component={() => <PublicLayout><API /></PublicLayout>} />
+      <Route path="/press" component={() => <PublicLayout><Press /></PublicLayout>} />
+      <Route path="/imprint" component={() => <PublicLayout><Imprint /></PublicLayout>} />
+      <Route path="/careers" component={() => <PublicLayout><Careers /></PublicLayout>} />
+      <Route path="/academy" component={() => <PublicLayout><Academy /></PublicLayout>} />
+      <Route path="/help-center" component={() => <PublicLayout><HelpCenter /></PublicLayout>} />
+      <Route path="/user-agreement" component={() => <PublicLayout><UserAgreement /></PublicLayout>} />
+      <Route path="/tutorials" component={() => <PublicLayout><Tutorials /></PublicLayout>} />
+      <Route path="/security" component={() => <PublicLayout><Security /></PublicLayout>} />
+      <Route path="/investor-protection" component={() => <PublicLayout><InvestorProtection /></PublicLayout>} />
+      <Route path="/forgot-password" component={() => <PublicLayout><ForgotPassword /></PublicLayout>} />
+      <Route path="/verify-otp/:type/:email" component={OtpVerification} />
+      <Route path="/reset-password/:token" component={ResetPassword} />
+      <Route path="/api" component={() => <PublicLayout><API /></PublicLayout>} />
+      <Route path="/ecosystem" component={() => <PublicLayout><Ecosystem /></PublicLayout>} />
       {/* Information Routes - All with error boundaries */}
       <Route path="/api-docs" component={() => <ErrorBoundary><PublicLayout><API /></PublicLayout></ErrorBoundary>} />
       <Route path="/press" component={() => <ErrorBoundary><PublicLayout><Press /></PublicLayout></ErrorBoundary>} />
@@ -203,29 +227,39 @@ function Routes() {
 
       {/* Protected Dashboard Routes */}
       <Route path="/dashboard" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><Dashboard /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Dashboard">
+            <Dashboard />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/portfolio" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><PortfolioTracker /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Portfolio Tracker">
+            <PortfolioTracker />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/analytics" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><Analytics /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Analytics">
+            <Analytics />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/trading" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><Trading /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Trading">
+            <Trading />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/advanced-trading" component={() => (
-        <ErrorBoundary>
-          <ProtectedRoute><AdvancedTrading /></ProtectedRoute>
-        </ErrorBoundary>
+        <ProtectedRoute>
+          <FeatureErrorBoundary featureName="Advanced Trading">
+            <AdvancedTrading />
+          </FeatureErrorBoundary>
+        </ProtectedRoute>
       )} />
       <Route path="/transactions" component={() => <ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
       <Route path="/orders" component={() => <ProtectedRoute><Orders /></ProtectedRoute>} />

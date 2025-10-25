@@ -1,3 +1,6 @@
+import sgMail from '@sendgrid/mail';
+
+// Email service using SendGrid
 interface EmailParams {
   to: string;
   from: string;
@@ -6,41 +9,78 @@ interface EmailParams {
   html?: string;
 }
 
+// Get base URL for email links
+const getBaseUrl = () => {
+  return process.env.BASE_URL || process.env.CLIENT_URL || 'https://bitpandapro.onrender.com';
+};
+
+// Initialize SendGrid with API key
+const initializeSendGrid = () => {
+  const apiKey = process.env.SENDGRID_API_KEY;
+
+  if (!apiKey) {
+    console.warn('⚠️ SENDGRID_API_KEY not configured - emails will only be logged');
+    console.warn('⚠️ Set SENDGRID_API_KEY in Secrets to enable email delivery');
+    return false;
+  }
+
+  try {
+    sgMail.setApiKey(apiKey);
+    console.log('✅ SendGrid initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to initialize SendGrid:', error);
+    return false;
+  }
+};
+
+const isSendGridInitialized = initializeSendGrid();
+
+export { getBaseUrl };
+
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
-    // Check if SendGrid API key is available
-    if (!process.env.SENDGRID_API_KEY) {
-      console.log('📧 Email notification logged (configure SENDGRID_API_KEY to send real emails):', {
-        to: params.to,
-        subject: params.subject,
-        preview: params.html?.substring(0, 100) + '...' || params.text?.substring(0, 100) + '...'
-      });
+    // If SendGrid is not configured, log the email and return success for development
+    if (!isSendGridInitialized) {
+      console.log('\n📧 ========== EMAIL (Development Mode) ==========');
+      console.log('To:', params.to);
+      console.log('From:', params.from);
+      console.log('Subject:', params.subject);
+      console.log('Preview:', params.html?.substring(0, 200) + '...' || params.text?.substring(0, 200) + '...');
+      console.log('================================================\n');
+
+      // For development, still return true so auth flow continues
       return true;
     }
 
-    // If SendGrid is configured, use it
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-    await sgMail.send({
+    // Send email via SendGrid
+    const msg = {
       to: params.to,
-      from: params.from,
+      from: {
+        email: params.from,
+        name: 'BITPANDA PRO'
+      },
       subject: params.subject,
-      text: params.text,
-      html: params.html,
-    });
+      text: params.text || '',
+      html: params.html || params.text || '',
+    };
+
+    await sgMail.send(msg);
 
     console.log('✅ Email sent successfully to:', params.to);
     return true;
-  } catch (error) {
-    console.error('❌ SendGrid email error:', error);
-    
-    // Fall back to logging mode
-    console.log('📧 Email notification logged (SendGrid unavailable):', {
-      to: params.to,
-      subject: params.subject,
-      preview: params.html?.substring(0, 100) + '...' || params.text?.substring(0, 100) + '...'
-    });
+  } catch (error: any) {
+    console.error('❌ SendGrid email error:', error?.response?.body || error?.message || error);
+
+    // Log the email content for debugging
+    console.log('\n📧 ========== FAILED EMAIL DETAILS ==========');
+    console.log('To:', params.to);
+    console.log('Subject:', params.subject);
+    console.log('Error:', error?.response?.body?.errors || error?.message);
+    console.log('===========================================\n');
+
+    // Return true so auth flow continues even if email fails (development fallback)
+    // In production, you might want to return false and handle the error differently
     return true;
   }
 }

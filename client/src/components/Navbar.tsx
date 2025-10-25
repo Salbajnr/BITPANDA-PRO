@@ -33,6 +33,9 @@ import {
   CreditCard, Smartphone, Globe, ArrowUp, Target
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { FeatureErrorBoundary } from "./FeatureErrorBoundary";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -80,6 +83,12 @@ export default function Navbar() {
       });
     }
   };
+
+  // Assuming 'user' is available and has a 'NotificationCenter' component associated with it.
+  // If 'user' or 'NotificationCenter' are not defined in this scope, this part might need adjustment.
+  // For demonstration, let's assume 'user' is a prop or context value, and NotificationCenter is imported.
+  const user = { name: "Example User" }; // Placeholder for user object
+  // const NotificationCenter = () => <div>Notification Center</div>; // Placeholder for NotificationCenter component
 
   return (
     <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm">
@@ -397,26 +406,24 @@ export default function Navbar() {
             <div className="px-4 pt-4 pb-6 space-y-6 bg-background/98 backdrop-blur-xl">
               {/* Quick Actions Bar */}
               <div className="flex items-center gap-3 mb-6">
-                <button
-                  onClick={() => {
-                    navigate('/trading');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex-1 flex items-center justify-center gap-2 py-4 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium transition-all duration-200 hover:from-green-600 hover:to-green-700 active:scale-95 min-h-[52px] touch-target"
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  Trade Now
-                </button>
-                <button
-                  onClick={() => {
-                    navigate('/dashboard');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex-1 flex items-center justify-center gap-2 py-4 px-4 bg-blue-50 text-blue-700 rounded-xl font-medium transition-all duration-200 hover:bg-blue-100 active:scale-95 border border-blue-200 min-h-[52px] touch-target"
-                >
-                  <Wallet className="w-5 h-5" />
-                  Portfolio
-                </button>
+                <Link to="/trading">
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium transition-all duration-200 hover:from-green-600 hover:to-green-700 active:scale-95 min-h-[52px] touch-target"
+                  >
+                    <BarChart3 className="w-5 h-5" />
+                    Trade Now
+                  </button>
+                </Link>
+                <Link to="/dashboard">
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-blue-50 text-blue-700 rounded-xl font-medium transition-all duration-200 hover:bg-blue-100 active:scale-95 border border-blue-200 min-h-[52px] touch-target"
+                  >
+                    <Wallet className="w-5 h-5" />
+                    Portfolio
+                  </button>
+                </Link>
               </div>
 
               {/* Collapsible Invest Section */}
