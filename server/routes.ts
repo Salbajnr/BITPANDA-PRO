@@ -16,6 +16,8 @@ import alertRoutes from './alert-routes';
 import cryptoRoutes from './crypto-routes';
 import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
+import oauthRoutes from './oauth-routes';
+import passport from './passport-config';
 import { z } from "zod";
 import { Router } from "express";
 import bcrypt from 'bcrypt';
@@ -47,6 +49,11 @@ const loginSchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(createSessionMiddleware());
+  
+  // Initialize passport for OAuth
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
   app.use(loadUser);
 
   // Health check endpoint
@@ -82,6 +89,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Metals routes
   app.use('/api/metals', metalsRoutes);
+  
+  // OAuth routes
+  app.use('/api/auth', oauthRoutes);
 
   // Metals trading routes
   const metalsTrading = (await import('./metals-trading-routes')).default;

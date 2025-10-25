@@ -221,11 +221,16 @@ export default function Auth() {
     sendOtpMutation.mutate(registerForm.email);
   };
 
-  const handleGoogleAuth = async () => {
-    toast({
-      title: "Coming Soon",
-      description: "Google authentication will be available soon",
-    });
+  const handleGoogleAuth = () => {
+    window.location.href = '/api/auth/google';
+  };
+
+  const handleFacebookAuth = () => {
+    window.location.href = '/api/auth/facebook';
+  };
+
+  const handleAppleAuth = () => {
+    window.location.href = '/api/auth/apple';
   };
 
   return (
@@ -391,17 +396,58 @@ export default function Auth() {
                       </div>
                     </div>
 
-                    {/* Google Sign In */}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleGoogleAuth}
-                      className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
-                      data-testid="button-google-signin"
-                    >
-                      <Chrome className="w-5 h-5 mr-2" />
-                      Sign in with Google
-                    </Button>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white dark:bg-slate-800/40 px-2 text-slate-500 dark:text-slate-400">
+                            Or continue with
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Google Sign In */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleGoogleAuth}
+                        className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                        data-testid="button-google-signin"
+                      >
+                        <Chrome className="w-5 h-5 mr-2" />
+                        Sign in with Google
+                      </Button>
+
+                      {/* Facebook Sign In */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleFacebookAuth}
+                        className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                        data-testid="button-facebook-signin"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Sign in with Facebook
+                      </Button>
+
+                      {/* Apple Sign In */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAppleAuth}
+                        className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                        data-testid="button-apple-signin"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                        </svg>
+                        Sign in with Apple
+                      </Button>
+                    </div>
                   </form>
                 </TabsContent>
 
@@ -576,17 +622,58 @@ export default function Auth() {
                       </div>
                     </div>
 
-                    {/* Google Sign Up */}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleGoogleAuth}
-                      className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
-                      data-testid="button-google-signup"
-                    >
-                      <Chrome className="w-5 h-5 mr-2" />
-                      Sign up with Google
-                    </Button>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white dark:bg-slate-800/40 px-2 text-slate-500 dark:text-slate-400">
+                            Or sign up with
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Google Sign Up */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleGoogleAuth}
+                        className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                        data-testid="button-google-signup"
+                      >
+                        <Chrome className="w-5 h-5 mr-2" />
+                        Sign up with Google
+                      </Button>
+
+                      {/* Facebook Sign Up */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleFacebookAuth}
+                        className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                        data-testid="button-facebook-signup"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Sign up with Facebook
+                      </Button>
+
+                      {/* Apple Sign Up */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAppleAuth}
+                        className="w-full h-12 border-slate-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/20 hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-300"
+                        data-testid="button-apple-signup"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                        </svg>
+                        Sign up with Apple
+                      </Button>
+                    </div>
                   </form>
                 </TabsContent>
               </Tabs>

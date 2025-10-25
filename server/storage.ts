@@ -350,11 +350,65 @@ class DatabaseStorage {
       return portfolio;
     });
   }
-  async getUserByEmail(email: string) { return { id: 'userId', email, username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
-  async getUserByUsername(username: string) { return { id: 'userId', email: '', username, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
+  async getUserByEmail(email: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.email, email))
+        .limit(1);
+      return user || null;
+    });
+  }
+  
+  async getUserByUsername(username: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.username, username))
+        .limit(1);
+      return user || null;
+    });
+  }
+
+  // OAuth Provider Lookup Methods
+  async getUserByGoogleId(googleId: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.googleId, googleId))
+        .limit(1);
+      return user || null;
+    });
+  }
+
+  async getUserByFacebookId(facebookId: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.facebookId, facebookId))
+        .limit(1);
+      return user || null;
+    });
+  }
+
+  async getUserByAppleId(appleId: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.appleId, appleId))
+        .limit(1);
+      return user || null;
+    });
+  }
   async createUser(data: any) {
     return this.withConnection(async (db) => {
-      const hashedPassword = await this.hashPassword(data.password);
+      // Only hash password if provided (OAuth users don't have passwords)
+      const hashedPassword = data.password ? await this.hashPassword(data.password) : null;
       const [newUser] = await db
         .insert(schema.users)
         .values({
@@ -362,10 +416,8 @@ class DatabaseStorage {
           password: hashedPassword,
           role: data.role || 'user',
           isActive: data.isActive !== undefined ? data.isActive : true,
-          emailVerified: false,
           createdAt: new Date(),
-          updatedAt: new Date(),
-          lastLogin: null
+          updatedAt: new Date()
         })
         .returning();
       
@@ -474,7 +526,20 @@ class DatabaseStorage {
   }
   async getSavingsPlanById(planId: string) { return { id: planId, status: 'active' }; }
   async updateSavingsPlan(planId: string, data: any) { return { id: planId, ...data }; }
-  async updateUser(userId: string, data: any) { return { id: userId, ...data }; }
+  async updateUser(userId: string, data: any) {
+    return this.withConnection(async (db) => {
+      const [updatedUser] = await db
+        .update(schema.users)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(schema.users.id, userId))
+        .returning();
+      
+      if (!updatedUser) {
+        throw new Error('User not found');
+      }
+      return updatedUser;
+    });
+  }
   async getUserSettings(userId: string) { return { userId }; }
   async updateUserSettings(userId: string, data: any) { return { userId, ...data }; }
   async getUserNotifications(userId: string) { return []; }
