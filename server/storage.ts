@@ -87,14 +87,11 @@ class DatabaseStorage {
       throw new Error('Database not initialized. Please check your DATABASE_URL configuration.');
     }
     
-    const client = await pool?.connect();
     try {
       return await fn(db);
     } catch (error) {
       console.error('Database operation failed:', error);
-      throw new Error('Database operation failed');
-    } finally {
-      client?.release();
+      throw error;
     }
   }
 

@@ -90,29 +90,38 @@ class PriceMonitorService {
       if (typeof storage.getActivePriceAlerts !== 'function') {
         console.log('⚠️ Price alerts storage method not available, skipping alert checks');
         return;
-        return;
       }
 
       const activeAlerts = await storage.getActivePriceAlerts();
 
       for (const alert of activeAlerts) {
-        const currentPrice = await this.getCurrentPrice(alert.symbol);
+        try {
+          const currentPrice = await this.getCurrentPrice(alert.symbol);
 
-        if (this.shouldTriggerAlert(alert, currentPrice)) {
-          await this.triggerAlert(alert, currentPrice);
+          if (this.shouldTriggerAlert(alert, currentPrice)) {
+            await this.triggerAlert(alert, currentPrice);
 
-          if (typeof storage.updatePriceAlert === 'function') {
-            await storage.updatePriceAlert(alert.id, {
-              isActive: false,
-              triggeredAt: new Date()
-            });
+            if (typeof storage.updatePriceAlert === 'function') {
+              await storage.updatePriceAlert(alert.id, {
+                isActive: false,
+                triggeredAt: new Date()
+              });
+            }
           }
+        } catch (alertError) {
+          console.error(`Error processing alert ${alert.id}:`, alertError);
+          // Continue with next alert
         }
       }
 
       console.log(`✅ Checked ${activeAlerts.length} price alerts`);
-    } catch (error) {
-      console.error('Error checking price alerts:', error);
+    } catch (error: any) {
+      // Don't log full stack trace for connection errors to reduce noise
+      if (error?.message?.includes('Connection terminated') || error?.code === 'ECONNRESET') {
+        console.log('⚠️ Database connection issue, will retry on next check');
+      } else {
+        console.error('Error checking price alerts:', error?.message || error);
+      }
     }
   }
 
