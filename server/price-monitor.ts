@@ -86,18 +86,6 @@ class PriceMonitorService {
 
   private async checkPriceAlerts(): Promise<void> {
     try {
-      // Check if storage methods exist before calling
-      if (typeof storage.getActivePriceAlerts !== 'function') {
-        console.log('⚠️ Price alerts storage method not available, skipping alert checks');
-        return;
-      }
-
-      // Check if database connection exists
-      if (!storage.db) {
-        console.log('⚠️ Database not initialized, skipping alert checks');
-        return;
-      }
-
       // Retry logic with exponential backoff
       let retries = 3;
       let activeAlerts;

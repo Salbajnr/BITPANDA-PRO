@@ -14,25 +14,10 @@ type DatabaseType = typeof db;
 // Database storage implementation with proper error handling
 class DatabaseStorage {
   private async withConnection<T>(fn: (db: DatabaseType) => Promise<T>): Promise<T> {
-    if (!db) {
-      console.warn('⚠️ Database not initialized. Please check your DATABASE_URL configuration.');
-      throw new Error('Database not initialized. Please check your DATABASE_URL configuration.');
-    }
-
-    // Check if we're using mock DB
-    if (typeof db.select !== 'function' || !db.select().from) {
-      console.warn('⚠️ Mock database in use - limited functionality');
-      throw new Error('Database connection not available');
-    }
-
     try {
       return await fn(db);
     } catch (error: any) {
-      // Only log non-connection errors to reduce noise
-      if (!error?.message?.includes('Connection terminated') && error?.code !== 'ECONNRESET') {
-        console.error('Database operation failed:', error);
-      }
-      // Re-throw the error so retry logic can handle it
+      console.error('Database operation failed:', error);
       throw error;
     }
   }
@@ -307,25 +292,14 @@ class DatabaseStorage {
   async getNewsAnalytics() { return { total: 0, views: 0, shares: 0 }; }
   async getHoldings(portfolioId: string) { return [{ id: 'holdingId', portfolioId, symbol: '', amount: '0', name: '', averagePurchasePrice: '0' }]; }
   async getActivePriceAlerts() {
-    try {
-      return await this.withConnection(async (db) => {
-        // Check if we have a real database connection
-        if (!db || typeof db.select !== 'function') {
-          console.log('⚠️ Database not available, returning empty alerts');
-          return [];
-        }
+    return await this.withConnection(async (db) => {
+      const result = await db
+        .select()
+        .from(schema.priceAlerts)
+        .where(eq(schema.priceAlerts.isActive, true));
 
-        const result = await db
-          .select()
-          .from(schema.priceAlerts)
-          .where(eq(schema.priceAlerts.isActive, true));
-
-        return Array.isArray(result) ? result : [];
-      });
-    } catch (error) {
-      console.log('⚠️ Error fetching active alerts, returning empty array');
-      return [];
-    }
+      return Array.isArray(result) ? result : [];
+    });
   }
   async updatePriceAlert(id: string, data: any) {
     return this.withConnection(async (db) => {

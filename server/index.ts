@@ -279,11 +279,7 @@ const HOST = process.env.HOST || "0.0.0.0";
     const httpServer = app.listen(PORT, HOST, () => {
       console.log(`🚀 Backend API Server running on ${HOST}:${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-      if (pool) {
-        console.log("✅ Database connection pool initialized");
-      } else {
-        console.log("⚠️ Running in demo mode (no database)");
-      }
+      console.log("✅ Database connection pool initialized");
     });
 
     // === INIT WEBSOCKETS ===

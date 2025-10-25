@@ -40,44 +40,8 @@ export const pool = databaseUrl
     })
   : null;
 
-// ✅ Create mock database fallback when no real DB is available
-const mockDb = {
-  select: () => ({
-    from: () => ({
-      where: () => ({
-        execute: async () => [],
-        limit: () => ({ execute: async () => [] }),
-        orderBy: () => ({ execute: async () => [] }),
-      }),
-      execute: async () => [],
-      limit: () => ({ execute: async () => [] }),
-      orderBy: () => ({ execute: async () => [] }),
-    }),
-  }),
-  insert: () => ({
-    values: () => ({
-      returning: async () => [],
-      execute: async () => [],
-    }),
-  }),
-  update: () => ({
-    set: () => ({
-      where: () => ({
-        returning: async () => [],
-        execute: async () => [],
-      }),
-    }),
-  }),
-  delete: () => ({
-    where: () => ({
-      returning: async () => [],
-      execute: async () => [],
-    }),
-  }),
-};
-
 // ✅ Use Drizzle ORM when pool is active
-export const db = pool ? drizzle(pool, { schema }) : (mockDb as any);
+export const db = drizzle(pool, { schema });
 
 // ✅ Test connection automatically (non-blocking)
 if (pool) {
@@ -100,5 +64,5 @@ if (pool) {
     console.error("🔧 Check your DATABASE_URL environment variable and try again.");
   })();
 } else {
-  console.warn("⚠️ Running without database – only limited features are available.");
+  console.error("❌ No database connection established. Please set your DATABASE_URL.");
 }

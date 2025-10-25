@@ -1,21 +1,16 @@
 export function validateEnvironment() {
   const isProduction = process.env.NODE_ENV === 'production';
-  const required = isProduction 
-    ? ['DATABASE_URL', 'COOKIE_SECRET'] 
-    : ['DATABASE_URL'];
+  const required = ['DATABASE_URL', 'COOKIE_SECRET'];
   const optional = ['COINGECKO_API_KEY', 'NEWS_API_KEY', 'METALS_API_KEY'];
 
   const missing = required.filter(key => !process.env[key]);
   const optionalMissing = optional.filter(key => !process.env[key]);
 
   if (missing.length > 0) {
-    console.warn('⚠️ Missing required environment variables:', missing);
-    if (isProduction) {
-      console.error('❌ Application cannot start in production without these variables.');
-      process.exit(1); 
-    } else {
-      console.log('🎭 Running in demo mode - add these to Replit Secrets for full functionality');
-    }
+    console.error('❌ Missing required environment variables:', missing);
+    console.error('❌ Application cannot start without these variables.');
+    console.log('🔧 Add them to Replit Secrets to continue');
+    process.exit(1);
   }
 
   if (optionalMissing.length > 0) {
