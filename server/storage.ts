@@ -1,7 +1,7 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
 
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and, or, desc } from 'drizzle-orm';
 import * as schema from "../shared/schema";
 import { db, pool } from "./db"; // Use the shared database connection
 
