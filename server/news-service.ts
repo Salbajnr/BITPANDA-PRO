@@ -16,9 +16,23 @@ interface NewsArticle {
   coins: string[];
 }
 
+interface FetchStatus {
+  success: boolean;
+  source: 'bitpanda-blog' | 'fallback';
+  lastFetch: string;
+  articlesCount: number;
+  error?: string;
+}
+
 class NewsService {
   private cache = new Map<string, { data: any; timestamp: number }>();
   private readonly CACHE_TTL = 300000; // 5 minutes
+  private fetchStatus: FetchStatus = {
+    success: false,
+    source: 'fallback',
+    lastFetch: new Date().toISOString(),
+    articlesCount: 0
+  };
 
   async getNews(limit: number = 10, category?: string): Promise<NewsArticle[]> {
     const cacheKey = `news_${category || 'all'}_${limit}`;
@@ -35,6 +49,13 @@ class NewsService {
       const response = await fetch('https://blog.bitpanda.com/en/tag/news');
       
       if (!response.ok) {
+        this.fetchStatus = {
+          success: false,
+          source: 'fallback',
+          lastFetch: new Date().toISOString(),
+          articlesCount: 0,
+          error: `HTTP ${response.status}: ${response.statusText}`
+        };
         throw new Error(`Failed to fetch Bitpanda blog: ${response.status}`);
       }
 
@@ -182,15 +203,37 @@ class NewsService {
       // If we didn't get enough articles, use fallback
       if (result.length === 0) {
         console.log('⚠️ No articles parsed from Bitpanda blog, using fallback');
+        this.fetchStatus = {
+          success: false,
+          source: 'fallback',
+          lastFetch: new Date().toISOString(),
+          articlesCount: 0,
+          error: 'No articles parsed from HTML'
+        };
         return this.getFallbackNews(limit);
       }
       
       this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
       
+      // Update fetch status on success
+      this.fetchStatus = {
+        success: true,
+        source: 'bitpanda-blog',
+        lastFetch: new Date().toISOString(),
+        articlesCount: result.length
+      };
+      
       console.log(`✅ Fetched ${result.length} articles from Bitpanda blog`);
       return result;
     } catch (error) {
       console.error('❌ Error fetching news from Bitpanda blog:', error);
+      this.fetchStatus = {
+        success: false,
+        source: 'fallback',
+        lastFetch: new Date().toISOString(),
+        articlesCount: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
       return this.getFallbackNews(limit);
     }
   }
@@ -237,7 +280,11 @@ class NewsService {
   clearCache(): void {
     this.cache.clear();
   }
+
+  getStatus(): FetchStatus {
+    return { ...this.fetchStatus };
+  }
 }
 
 export const newsService = new NewsService();
-export type { NewsArticle };
+export type { NewsArticle, FetchStatus };

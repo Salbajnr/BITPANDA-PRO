@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { getCryptoLogo } from "@/components/CryptoLogos";
+import { useQuery } from "@tanstack/react-query";
 
 const cryptoIndices = [
   {
@@ -101,6 +101,27 @@ const cryptoIndices = [
 ];
 
 export default function CryptoIndices() {
+  // Fetch real crypto indices data
+  const { data: indices = [], isLoading, error } = useQuery({
+    queryKey: ['/api/crypto/indices'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/crypto/prices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            symbols: ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'DOT']
+          })
+        });
+        if (!response.ok) return [];
+        return response.json();
+      } catch {
+        return [];
+      }
+    },
+    refetchInterval: 30000
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -139,7 +160,7 @@ export default function CryptoIndices() {
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8">
-            {cryptoIndices.map((index) => (
+            {indices.map((index) => (
               <Card key={index.id} className="border border-gray-200 hover:border-green-300 transition-all duration-200 hover:shadow-lg">
                 <CardContent className="p-8">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

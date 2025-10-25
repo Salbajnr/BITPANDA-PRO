@@ -16,6 +16,8 @@ import alertRoutes from './alert-routes';
 import cryptoRoutes from './crypto-routes';
 import metalsRoutes from './metals-routes';
 import newsRoutes from './news-routes';
+import oauthRoutes from './oauth-routes';
+import passport from './passport-config';
 import { z } from "zod";
 import { Router } from "express";
 import bcrypt from 'bcrypt';
@@ -47,6 +49,11 @@ const loginSchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(createSessionMiddleware());
+  
+  // Initialize passport for OAuth
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
   app.use(loadUser);
 
   // Health check endpoint
@@ -82,6 +89,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Metals routes
   app.use('/api/metals', metalsRoutes);
+  
+  // OAuth routes
+  app.use('/api/auth', oauthRoutes);
 
   // Metals trading routes
   const metalsTrading = (await import('./metals-trading-routes')).default;
@@ -133,6 +143,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Comprehensive CRUD routes
   const comprehensiveCrudRoutes = (await import('./comprehensive-crud-routes')).default;
   app.use('/api/crud', comprehensiveCrudRoutes);
+
+  // General login endpoint - auto-detects user type
+  app.post('/api/auth/login', checkDbConnection, async (req: Request, res: Response) => {
+    try {
+      const { emailOrUsername, password } = req.body;
+
+      if (!emailOrUsername || !password) {
+        return res.status(400).json({ message: "Missing credentials" });
+      }
+
+      // Get user by email or username
+      let user = await storage.getUserByEmail(emailOrUsername);
+      if (!user) {
+        user = await storage.getUserByUsername(emailOrUsername);
+      }
+
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Verify password
+      const isValid = await verifyPassword(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      if (!user.isActive) {
+        return res.status(401).json({ message: "Account is disabled" });
+      }
+
+      // Set session
+      (req.session as any).userId = user.id;
+      (req.session as any).userRole = user.role;
+
+      // Get portfolio
+      let portfolio = await storage.getPortfolio(user.id);
+      if (!portfolio) {
+        const defaultCash = user.role === 'admin' ? '100000.00' : '15000.00';
+        portfolio = await storage.createPortfolio({
+          userId: user.id,
+          totalValue: defaultCash,
+          availableCash: defaultCash,
+        });
+      }
+
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role
+        },
+        portfolio
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      const { formatErrorForResponse } = await import('./lib/errorUtils');
+      const formatted = formatErrorForResponse(error);
+      if (Array.isArray(formatted)) {
+        return res.status(400).json({ message: "Invalid input data", errors: formatted });
+      }
+      res.status(500).json({ message: "Login failed", error: formatted });
+    }
+  });
+
+  // General register endpoint
+  app.post('/api/auth/register', checkDbConnection, async (req: Request, res: Response) => {
+    try {
+      const userData = registerSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
+      if (existingUser) {
+        return res.status(400).json({
+          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken'
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+
+      // Create user
+      const user = await storage.createUser({
+        username: userData.username,
+        email: userData.email,
+        password: hashedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: 'user',
+        isActive: true,
+      });
+
+      // Create portfolio
+      const portfolio = await storage.createPortfolio({
+        userId: user.id,
+        totalValue: '15000.00',
+        availableCash: '5000.00',
+      });
+
+      // Set session
+      (req.session as any).userId = user.id;
+      (req.session as any).userRole = 'user';
+
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role
+        },
+        portfolio
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      const { formatErrorForResponse } = await import('./lib/errorUtils');
+      const formatted = formatErrorForResponse(error);
+      if (Array.isArray(formatted)) {
+        return res.status(400).json({ message: "Invalid input data", errors: formatted });
+      }
+      res.status(500).json({ message: "Registration failed", error: formatted });
+    }
+  });
 
   // ADMIN AUTHROUTES - Separate endpoints for admin users
   app.post('/api/admin/auth/login', checkDbConnection, async (req: Request, res: Response) => {
@@ -278,6 +414,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // General logout endpoint (works for all users)
+  app.post('/api/auth/logout', (req, res) => {
+    req.session?.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
   // Separate logout endpoints
   app.post('/api/admin/auth/logout', (req, res) => {
     req.session?.destroy((err) => {
@@ -295,6 +441,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: "User logged out successfully" });
     });
+  });
+
+  // General session endpoint (works for both user types)
+  app.get('/api/auth/session', async (req, res) => {
+    try {
+      const sessionData = req.session as any;
+      
+      // If no session, return not authenticated
+      if (!sessionData?.userId) {
+        return res.json({ 
+          isAuthenticated: false,
+          user: null
+        });
+      }
+
+      const user = await storage.getUser(sessionData.userId);
+      
+      if (!user || !user.isActive) {
+        // Clear invalid session
+        req.session?.destroy((err) => {
+          if (err) console.error('Error destroying session:', err);
+        });
+        return res.json({ 
+          isAuthenticated: false,
+          user: null
+        });
+      }
+
+      let portfolio = await storage.getPortfolio(user.id);
+      if (!portfolio) {
+        const defaultCash = user.role === 'admin' ? '100000.00' : '15000.00';
+        portfolio = await storage.createPortfolio({
+          userId: user.id,
+          totalValue: defaultCash,
+          availableCash: defaultCash,
+        });
+      }
+
+      // Remove sensitive data from response
+      const { password, ...safeUserData } = user;
+
+      res.json({
+        isAuthenticated: true,
+        user: {
+          ...safeUserData,
+          portfolio,
+          lastLogin: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error("Session fetch error:", error);
+      res.json({ 
+        isAuthenticated: false,
+        user: null
+      });
+    }
   });
 
   // Separate authentication status endpoints

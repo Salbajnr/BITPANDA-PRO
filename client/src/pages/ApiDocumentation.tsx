@@ -67,17 +67,17 @@ const apiEndpoints = [
 
 const codeExamples = {
   javascript: `// Initialize BITPANDA PRO API client
-const BitpandaPro = require('@bitpanda/bitpanda-pro-api');
-
-const client = new BitpandaPro({
-  apiKey: 'your-api-key',
-  apiSecret: 'your-api-secret',
-  sandbox: true // Use sandbox for testing
-});
+// Authentication with BITPANDA PRO API
+const headers = {
+  'Authorization': 'Bearer YOUR_API_KEY',
+  'Content-Type': 'application/json'
+};
 
 // Get market data
-const markets = await client.getMarkets();
-console.log(markets);
+const response = await fetch('https://api.bitpandapro.com/v1/markets', {
+  headers
+});
+const markets = await response.json();
 
 // Place a buy order
 const order = await client.createOrder({
@@ -153,10 +153,10 @@ export default function ApiDocumentation() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4">
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4" onClick={() => window.location.href = '/api-management'}>
                 Get API Key
               </Button>
-              <Button variant="outline" size="lg" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-8 py-4">
+              <Button variant="outline" size="lg" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-8 py-4" onClick={() => window.open('https://docs.bitpanda.com/api', '_blank')}>
                 View Documentation
               </Button>
             </div>
@@ -284,7 +284,11 @@ export default function ApiDocumentation() {
                     </div>
 
                     <div>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/api-management'}
+                      >
                         Try it out
                         <ExternalLink className="w-4 h-4 ml-2" />
                       </Button>
@@ -342,10 +346,10 @@ export default function ApiDocumentation() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4">
+            <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4" onClick={() => window.location.href = '/api-management'}>
               Get API Keys
             </Button>
-            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600 px-12 py-4">
+            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600 px-12 py-4" onClick={() => window.open('https://docs.bitpanda.com/api', '_blank')}>
               Read Documentation
             </Button>
           </div>

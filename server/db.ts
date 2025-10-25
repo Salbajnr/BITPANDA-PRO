@@ -26,8 +26,11 @@ export const pool = databaseUrl
       connectionString: databaseUrl,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 60000,
+      connectionTimeoutMillis: 10000, // Increase to 10 seconds
       application_name: "bitpanda-app",
+      // Keep connections alive to prevent early termination
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
       ssl:
         process.env.NODE_ENV === "production" ||
         databaseUrl.includes("render.com") ||
@@ -37,16 +40,8 @@ export const pool = databaseUrl
     })
   : null;
 
-// ✅ Create mock database fallback when no real DB is available
-const mockDb = {
-  select: () => ({ from: () => ({ execute: async () => [] }) }),
-  insert: () => ({ values: () => ({ execute: async () => [] }) }),
-  update: () => ({ set: () => ({ where: () => ({ execute: async () => [] }) }) }),
-  delete: () => ({ where: () => ({ execute: async () => [] }) }),
-};
-
 // ✅ Use Drizzle ORM when pool is active
-export const db = pool ? drizzle(pool, { schema }) : (mockDb as any);
+export const db = drizzle(pool, { schema });
 
 // ✅ Test connection automatically (non-blocking)
 if (pool) {
@@ -69,5 +64,5 @@ if (pool) {
     console.error("🔧 Check your DATABASE_URL environment variable and try again.");
   })();
 } else {
-  console.warn("⚠️ Running without database – only limited features are available.");
+  console.error("❌ No database connection established. Please set your DATABASE_URL.");
 }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,7 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { 
   TrendingUp, DollarSign, Calendar, Target, PieChart, 
-  ArrowRight, CheckCircle, Star, Shield, Zap, Globe 
+  ArrowRight, CheckCircle, Star, Shield, Zap, Globe, AlertCircle, RefreshCw 
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
@@ -139,7 +138,7 @@ export default function InvestmentPlans() {
 
   const handleInvest = () => {
     if (!selectedPlan || !investmentAmount) return;
-    
+
     const amount = parseFloat(investmentAmount);
     if (amount < selectedPlan.minInvestment) {
       toast({
@@ -159,7 +158,7 @@ export default function InvestmentPlans() {
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Navbar />
-          
+
           <main className="flex-1 overflow-y-auto p-6">
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -240,7 +239,7 @@ export default function InvestmentPlans() {
                               <p className="text-lg font-bold">{plan.duration} months</p>
                             </div>
                           </div>
-                          
+
                           <div>
                             <p className="text-sm text-slate-600 dark:text-slate-400">Min. Investment</p>
                             <p className="text-lg font-bold">{formatCurrency(plan.minInvestment)}</p>
@@ -283,7 +282,7 @@ export default function InvestmentPlans() {
                               <DialogHeader>
                                 <DialogTitle>Invest in {selectedPlan?.name}</DialogTitle>
                               </DialogHeader>
-                              
+
                               {selectedPlan && (
                                 <div className="space-y-4">
                                   <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">

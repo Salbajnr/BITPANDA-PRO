@@ -1,422 +1,390 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
 import { 
   TrendingUp, 
-  BookOpen, 
-  Clock, 
-  Award, 
-  PlayCircle,
-  BarChart3,
-  DollarSign,
-  Briefcase,
-  GraduationCap,
-  Target,
-  Users,
-  CheckCircle,
+  TrendingDown,
+  RefreshCw,
+  Search,
   ArrowRight,
-  Globe,
-  PieChart,
-  Coins,
-  Building,
   Shield,
-  Zap
+  Zap,
+  Globe,
+  Award,
+  BarChart3,
+  Coins
 } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
-
-interface LessonLevel {
-  id: string;
-  title: string;
-  description: string;
-  count: number;
-  color: string;
-  icon: React.ReactNode;
-}
-
-interface Lesson {
-  id: number;
-  title: string;
-  description: string;
-  duration: string;
-  level: string;
-  position: number;
-  color: string;
-}
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from 'wouter';
+import Navbar from '@/components/Navbar';
 
 export default function Commodities() {
-  const { language, t } = useLanguage();
-  const [selectedLevel, setSelectedLevel] = useState('all');
-  const [userProgress, setUserProgress] = useState(0);
+  const [, setLocation] = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // Investment levels inspired by Bitpanda Academy
-  const investmentLevels: LessonLevel[] = [
-    {
-      id: 'all',
-      title: 'All Levels',
-      description: 'Complete investment education journey',
-      count: 68,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      icon: <Globe className="w-6 h-6" />
+  // Fetch real commodities data from API
+  const { data: commodities = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/metals/market-data'],
+    queryFn: async () => {
+      const response = await fetch('/api/metals/market-data');
+      if (!response.ok) throw new Error('Failed to fetch commodities');
+      return response.json();
     },
-    {
-      id: 'financial-planning',
-      title: 'Financial Planning',
-      description: 'Explore the fundamentals of personal finance and wealth management',
-      count: 15,
-      color: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      icon: <PieChart className="w-6 h-6" />
-    },
-    {
-      id: 'investing',
-      title: 'Investing',
-      description: 'Learn fundamentals of investing, trading, and financial instruments',
-      count: 68,
-      color: 'bg-gradient-to-r from-green-500 to-emerald-500',
-      icon: <TrendingUp className="w-6 h-6" />
-    },
-    {
-      id: 'cryptocurrency',
-      title: 'Cryptocurrency',
-      description: 'Explore the essentials of the exciting world of cryptocurrency',
-      count: 45,
-      color: 'bg-gradient-to-r from-orange-500 to-yellow-500',
-      icon: <Coins className="w-6 h-6" />
-    },
-    {
-      id: 'blockchain',
-      title: 'Blockchain & Emerging Tech',
-      description: 'Learn about blockchain, AI, Web3, NFTs, and digital innovation',
-      count: 32,
-      color: 'bg-gradient-to-r from-violet-500 to-purple-500',
-      icon: <Zap className="w-6 h-6" />
-    },
-    {
-      id: 'security',
-      title: 'Crypto Security',
-      description: 'Security practices for safeguarding digital assets',
-      count: 18,
-      color: 'bg-gradient-to-r from-red-500 to-pink-500',
-      icon: <Shield className="w-6 h-6" />
-    }
-  ];
+    refetchInterval: 30000,
+    retry: 2
+  });
 
-  // Sample lessons based on Bitpanda Academy content
-  const lessons: Lesson[] = [
-    {
-      id: 1,
-      title: "What is market capitalisation (market cap) and why does it matter?",
-      description: "The term 'market capitalisation' or 'market cap' is an important metric in the evaluation of the market value of a cryptocurrency.",
-      duration: "7 min",
-      level: "Investing",
-      position: 1,
-      color: "#BBFFB2"
-    },
-    {
-      id: 2,
-      title: "The difference between a cryptocurrency broker and an exchange",
-      description: "Compare crypto brokers and exchanges to find the right trading platform for your needs—considering pricing, flexibility and ease of use.",
-      duration: "9 min",
-      level: "Investing",
-      position: 2,
-      color: "#FFE8B2"
-    },
-    {
-      id: 3,
-      title: "How to start trading cryptocurrencies",
-      description: "When trading crypto, you buy and sell cryptocurrencies such as Bitcoin on the exchange. How can you learn crypto trading?",
-      duration: "10 min",
-      level: "Investing",
-      position: 3,
-      color: "#B2ECFF"
-    },
-    {
-      id: 4,
-      title: "What are market orders, limit orders, stop limit orders?",
-      description: "Learn how market, limit and stop-limit orders work to trade smarter in stocks and crypto. Understand the risks, benefits and timing involved.",
-      duration: "13 min",
-      level: "Investing",
-      position: 4,
-      color: "#B2C8FF"
-    },
-    {
-      id: 5,
-      title: "What are candlesticks in cryptocurrency trading?",
-      description: "An overview of the topic of candlesticks trading patterns: definition, explanation, examples & tips.",
-      duration: "9 min",
-      level: "Investing",
-      position: 5,
-      color: "#FFC3B2"
-    },
-    {
-      id: 6,
-      title: "What are commodities and how do people invest in them?",
-      description: "Commodities are physical assets that are used to manufacture products.",
-      duration: "4 min",
-      level: "Investing",
-      position: 30,
-      color: "#FFC3B2"
-    },
-    {
-      id: 7,
-      title: "What is a stock?",
-      description: "A stock represents a small portion of ownership in a company.",
-      duration: "3 min",
-      level: "Investing",
-      position: 9,
-      color: "#B2C8FF"
-    },
-    {
-      id: 8,
-      title: "What is an exchange-traded fund (ETF)?",
-      description: "An exchange-traded fund (ETF) is made up of different securities tracking an index.",
-      duration: "3 min",
-      level: "Investing",
-      position: 18,
-      color: "#B2ECFF"
-    }
-  ];
+  const filteredCommodities = commodities.filter((commodity: any) =>
+    (selectedCategory === "all" || commodity.category === selectedCategory) &&
+    (commodity.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     commodity.symbol?.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
-  const investmentCategories = [
-    {
-      title: "Cryptocurrency Trading",
-      icon: <Coins className="w-8 h-8" />,
-      topics: ["Market Cap Analysis", "Broker vs Exchange", "Order Types", "Technical Analysis"],
-      color: "from-orange-400 to-yellow-500"
-    },
-    {
-      title: "Traditional Investments",
-      icon: <Building className="w-8 h-8" />,
-      topics: ["Stocks & Shares", "ETFs & Funds", "Bonds & Fixed Income", "Commodities"],
-      color: "from-blue-400 to-purple-500"
-    },
-    {
-      title: "Portfolio Management",
-      icon: <BarChart3 className="w-8 h-8" />,
-      topics: ["Risk Management", "Diversification", "Asset Allocation", "Performance Tracking"],
-      color: "from-green-400 to-blue-500"
-    },
-    {
-      title: "Financial Planning",
-      icon: <Target className="w-8 h-8" />,
-      topics: ["Budgeting", "Emergency Funds", "Investment Goals", "Retirement Planning"],
-      color: "from-purple-400 to-pink-500"
-    }
-  ];
+  // Categorize metals
+  const preciousMetals = filteredCommodities.filter((c: any) => 
+    ['XAU', 'XAG', 'XPT', 'XPD'].includes(c.symbol)
+  );
 
-  useEffect(() => {
-    // Simulate user progress
-    setUserProgress(25);
-  }, []);
+  const industrialMetals = filteredCommodities.filter((c: any) => 
+    !['XAU', 'XAG', 'XPT', 'XPD'].includes(c.symbol)
+  );
 
-  const filteredLessons = selectedLevel === 'all' 
-    ? lessons 
-    : lessons.filter(lesson => lesson.level.toLowerCase() === selectedLevel);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="text-center py-20">
+          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-500" />
+          <p className="text-gray-600">Loading commodities data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="text-center py-20">
+          <p className="text-red-500">Error loading commodities data. Please try again later.</p>
+          <Button onClick={() => refetch()} className="mt-4">Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <Navbar />
+
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">
+      <div className="relative overflow-hidden bg-gradient-to-r from-amber-600 via-yellow-600 to-orange-600">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative container mx-auto px-4 py-16">
-          <div className="text-center text-white">
+          <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Investment Academy
+              Precious Metals Trading
             </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              Learn the fundamentals of investing, trading, and financial instruments. 
-              Master portfolio management, securities, commodities, and financial markets.
+            <p className="text-xl md:text-2xl mb-8">
+              Invest in gold, silver, platinum, and other precious metals with real-time pricing and secure custody.
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <Badge variant="secondary" className="px-4 py-2 text-lg">
-                <BookOpen className="w-5 h-5 mr-2" />
-                68 Lessons
+                <Shield className="w-5 h-5 mr-2" />
+                Secure Storage
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-lg">
-                <Clock className="w-5 h-5 mr-2" />
-                Self-Paced
+                <Zap className="w-5 h-5 mr-2" />
+                Real-time Prices
               </Badge>
               <Badge variant="secondary" className="px-4 py-2 text-lg">
-                <Award className="w-5 h-5 mr-2" />
-                Certified
+                <Globe className="w-5 h-5 mr-2" />
+                Global Markets
               </Badge>
             </div>
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="text-amber-600 hover:text-amber-700"
+              onClick={() => setLocation('/metals-trading')}
+            >
+              Start Trading Metals
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        {/* Progress Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="w-6 h-6" />
-              Your Learning Progress
-            </CardTitle>
-            <CardDescription>
-              Track your journey through the Investment Academy
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Overall Progress</span>
-                <span className="text-sm text-muted-foreground">{userProgress}% Complete</span>
-              </div>
-              <Progress value={userProgress} className="h-3" />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">17</div>
-                  <div className="text-sm text-muted-foreground">Completed</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">51</div>
-                  <div className="text-sm text-muted-foreground">Remaining</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">3</div>
-                  <div className="text-sm text-muted-foreground">Certificates</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">142</div>
-                  <div className="text-sm text-muted-foreground">Study Hours</div>
-                </div>
-              </div>
+        {/* Search and Filter */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Search metals..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Investment Categories */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-8 text-center">Investment Categories</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {investmentCategories.map((category, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
-                <CardHeader>
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${category.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
-                    {category.icon}
-                  </div>
-                  <CardTitle className="text-lg">{category.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {category.topics.map((topic, topicIndex) => (
-                      <li key={topicIndex} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        {topic}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
+            <Button 
+              onClick={() => refetch()} 
+              variant="outline"
+              disabled={isLoading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh Prices
+            </Button>
           </div>
         </div>
 
-        {/* Learning Levels */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-8 text-center">Learning Levels</h2>
-          <Tabs value={selectedLevel} onValueChange={setSelectedLevel} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 mb-8">
-              {investmentLevels.map((level) => (
-                <TabsTrigger key={level.id} value={level.id} className="flex items-center gap-2">
-                  {level.icon}
-                  <span className="hidden md:inline">{level.title}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+        {/* Key Features */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <Card className="border-2 border-green-200 bg-green-50">
+            <CardContent className="p-6 text-center">
+              <Shield className="w-10 h-10 text-green-600 mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Secure Custody</h3>
+              <p className="text-sm text-gray-600">Your metals are stored in secure, insured vaults</p>
+            </CardContent>
+          </Card>
 
-            {investmentLevels.map((level) => (
-              <TabsContent key={level.id} value={level.id}>
-                <Card className={`${level.color} text-white mb-8`}>
+          <Card className="border-2 border-blue-200 bg-blue-50">
+            <CardContent className="p-6 text-center">
+              <BarChart3 className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Live Pricing</h3>
+              <p className="text-sm text-gray-600">Real-time market prices updated every 30 seconds</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-purple-200 bg-purple-50">
+            <CardContent className="p-6 text-center">
+              <Coins className="w-10 h-10 text-purple-600 mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Fractional Trading</h3>
+              <p className="text-sm text-gray-600">Buy any amount starting from small quantities</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-orange-200 bg-orange-50">
+            <CardContent className="p-6 text-center">
+              <Award className="w-10 h-10 text-orange-600 mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Portfolio Tracking</h3>
+              <p className="text-sm text-gray-600">Monitor your metals investments in real-time</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Metals Trading Tabs */}
+        <Tabs defaultValue="all" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all" onClick={() => setSelectedCategory("all")}>
+              All Metals ({filteredCommodities.length})
+            </TabsTrigger>
+            <TabsTrigger value="precious" onClick={() => setSelectedCategory("precious")}>
+              Precious ({preciousMetals.length})
+            </TabsTrigger>
+            <TabsTrigger value="industrial" onClick={() => setSelectedCategory("industrial")}>
+              Industrial ({industrialMetals.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredCommodities.map((commodity: any) => (
+                <Card key={commodity.symbol} className="hover:shadow-lg transition-all duration-300 border-2 hover:border-green-400">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-2xl">
-                      {level.icon}
-                      {level.title}
-                    </CardTitle>
-                    <CardDescription className="text-white/90 text-lg">
-                      {level.description}
-                    </CardDescription>
+                    <div className="flex items-center justify-between mb-2">
+                      <CardTitle className="text-lg">{commodity.name}</CardTitle>
+                      <Badge variant="outline">{commodity.symbol}</Badge>
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center gap-4">
-                      <Badge variant="secondary" className="text-black">
-                        {level.count} Lessons
-                      </Badge>
-                      <Badge variant="secondary" className="text-black">
-                        Self-Paced Learning
-                      </Badge>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-3xl font-bold text-gray-900">
+                          ${commodity.price?.toFixed(2) || 'N/A'}
+                        </div>
+                        <div className="text-sm text-gray-500">per {commodity.unit || 'oz'}</div>
+                      </div>
+                      <div className={`flex items-center text-sm font-semibold ${
+                        commodity.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {commodity.change24h >= 0 ? (
+                          <TrendingUp className="w-4 h-4 mr-1" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 mr-1" />
+                        )}
+                        {commodity.change24h >= 0 ? '+' : ''}{commodity.change24h?.toFixed(2)}%
+                      </div>
+                      <Button 
+                        className="w-full mt-4" 
+                        onClick={() => setLocation(`/metals-trading?symbol=${commodity.symbol}`)}
+                      >
+                        Trade {commodity.symbol}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
+              ))}
+            </div>
+          </TabsContent>
 
-        {/* Lessons Grid */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-8 text-center">Featured Lessons</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLessons.map((lesson) => (
-              <Card key={lesson.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="outline" className="text-xs">
-                      {lesson.level}
-                    </Badge>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      {lesson.duration}
+          <TabsContent value="precious" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {preciousMetals.map((commodity: any) => (
+                <Card key={commodity.symbol} className="hover:shadow-lg transition-all duration-300 border-2 hover:border-amber-400">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <CardTitle className="text-lg">{commodity.name}</CardTitle>
+                      <Badge variant="outline" className="bg-amber-50">{commodity.symbol}</Badge>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Lesson {lesson.position}
-                    </span>
-                  </div>
-                  <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
-                    {lesson.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="mb-4">
-                    {lesson.description}
-                  </CardDescription>
-                  <div className="flex items-center justify-between">
-                    <Button variant="outline" size="sm" className="group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                      <PlayCircle className="w-4 h-4 mr-2" />
-                      Start Lesson
-                    </Button>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-3xl font-bold text-gray-900">
+                          ${commodity.price?.toFixed(2) || 'N/A'}
+                        </div>
+                        <div className="text-sm text-gray-500">per {commodity.unit || 'oz'}</div>
+                      </div>
+                      <div className={`flex items-center text-sm font-semibold ${
+                        commodity.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {commodity.change24h >= 0 ? (
+                          <TrendingUp className="w-4 h-4 mr-1" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 mr-1" />
+                        )}
+                        {commodity.change24h >= 0 ? '+' : ''}{commodity.change24h?.toFixed(2)}%
+                      </div>
+                      <Button 
+                        className="w-full mt-4 bg-amber-600 hover:bg-amber-700" 
+                        onClick={() => setLocation(`/metals-trading?symbol=${commodity.symbol}`)}
+                      >
+                        Trade {commodity.symbol}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="industrial" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {industrialMetals.map((commodity: any) => (
+                <Card key={commodity.symbol} className="hover:shadow-lg transition-all duration-300 border-2 hover:border-blue-400">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <CardTitle className="text-lg">{commodity.name}</CardTitle>
+                      <Badge variant="outline" className="bg-blue-50">{commodity.symbol}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-3xl font-bold text-gray-900">
+                          ${commodity.price?.toFixed(2) || 'N/A'}
+                        </div>
+                        <div className="text-sm text-gray-500">per {commodity.unit || 'lb'}</div>
+                      </div>
+                      <div className={`flex items-center text-sm font-semibold ${
+                        commodity.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {commodity.change24h >= 0 ? (
+                          <TrendingUp className="w-4 h-4 mr-1" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 mr-1" />
+                        )}
+                        {commodity.change24h >= 0 ? '+' : ''}{commodity.change24h?.toFixed(2)}%
+                      </div>
+                      <Button 
+                        className="w-full mt-4 bg-blue-600 hover:bg-blue-700" 
+                        onClick={() => setLocation(`/metals-trading?symbol=${commodity.symbol}`)}
+                      >
+                        Trade {commodity.symbol}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Why Trade Metals Section */}
+        <div className="mt-16 mb-12">
+          <h2 className="text-3xl font-bold text-center mb-12">Why Trade Precious Metals?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card>
+              <CardHeader>
+                <Shield className="w-12 h-12 text-blue-600 mb-4" />
+                <CardTitle>Portfolio Diversification</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Precious metals provide a hedge against inflation and market volatility, helping to balance your investment portfolio.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <TrendingUp className="w-12 h-12 text-green-600 mb-4" />
+                <CardTitle>Store of Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Gold and silver have maintained their value throughout history, serving as reliable stores of wealth across generations.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Globe className="w-12 h-12 text-purple-600 mb-4" />
+                <CardTitle>Global Demand</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Precious metals are universally recognized and traded globally, ensuring liquidity and worldwide acceptance.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* CTA Section */}
-        <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <Card className="bg-gradient-to-r from-amber-600 to-orange-600 text-white border-0">
           <CardContent className="text-center py-12">
             <h2 className="text-3xl font-bold mb-4">
-              Ready to Start Your Investment Journey?
+              Ready to Start Trading Precious Metals?
             </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Join thousands of learners who have mastered investing fundamentals, 
-              trading strategies, and portfolio management through our comprehensive academy.
+            <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+              Join thousands of investors who trust BITPANDA PRO for secure, efficient precious metals trading.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" className="text-blue-600">
-                <GraduationCap className="w-5 h-5 mr-2" />
-                Start Learning
+              <Button 
+                size="lg" 
+                variant="secondary" 
+                className="text-amber-600 hover:text-amber-700"
+                onClick={() => setLocation('/metals-trading')}
+              >
+                Start Trading Now
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-blue-600">
-                <Users className="w-5 h-5 mr-2" />
-                Join Community
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-white border-white hover:bg-white/10"
+                onClick={() => setLocation('/markets')}
+              >
+                View All Markets
               </Button>
             </div>
           </CardContent>

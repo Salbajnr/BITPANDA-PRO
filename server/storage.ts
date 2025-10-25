@@ -37,65 +37,24 @@ const NODE_ENV = (env.success ? env.data.NODE_ENV : process.env.NODE_ENV) || "de
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq, and, or } from 'drizzle-orm';
+import { eq, and, sql, gte, lte, inArray, or, like, isNull, isNotNull, desc } from 'drizzle-orm';
 import * as schema from "../shared/schema";
+import { db, pool } from "./db"; // Use the shared database connection
 
-// Configure SSL based on environment
-const sslConfig = NODE_ENV === "production" 
-  ? { 
-      rejectUnauthorized: true,
-      // Add any additional SSL options required by your database provider
-    } 
-  : { 
-      rejectUnauthorized: false // Only for development
-    };
+// Re-export db for convenience
+export { db };
 
-// Create database pool
-let pool: Pool | null = null;
-
-try {
-  pool = new Pool({
-    connectionString: DATABASE_URL,
-    ssl: NODE_ENV === "production" ? sslConfig : false,
-    max: 20, // Maximum number of clients the pool should contain
-    idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-    connectionTimeoutMillis: 2000, // How long to wait when connecting a new client
-  });
-
-  // Test the connection
-  pool.on('connect', (client) => {
-    console.log('✅ Database connection established');
-  });
-
-  pool.on('error', (err) => {
-    console.error('❌ Unexpected error on idle client', err);
-    process.exit(-1);
-  });
-} catch (error) {
-  console.error('❌ Failed to create database pool:', error);
-  process.exit(1);
-}
-
-// ✅ Initialize Drizzle ORM
-type DatabaseType = ReturnType<typeof drizzle<typeof schema>>;
-const _db = pool ? drizzle(pool, { schema }) : null;
-
-export const db = _db as DatabaseType;
+// Type for the database
+type DatabaseType = typeof db;
 
 // Database storage implementation with proper error handling
 class DatabaseStorage {
   private async withConnection<T>(fn: (db: DatabaseType) => Promise<T>): Promise<T> {
-    if (!db) {
-      throw new Error('Database not initialized. Please check your DATABASE_URL configuration.');
-    }
-    
-    const client = await pool?.connect();
     try {
       return await fn(db);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Database operation failed:', error);
-      throw new Error('Database operation failed');
-    } finally {
-      client?.release();
+      throw error;
     }
   }
 
@@ -107,7 +66,7 @@ class DatabaseStorage {
         .from(schema.savingsPlans) // Using savingsPlans instead of investments
         .where(eq(schema.savingsPlans.id, id))
         .limit(1);
-      
+
       if (!investment) {
         throw new Error('Investment not found');
       }
@@ -122,7 +81,7 @@ class DatabaseStorage {
         .set({ ...updateData, updatedAt: new Date() })
         .where(eq(schema.savingsPlans.id, id))
         .returning();
-      
+
       if (!updated) {
         throw new Error('Failed to update investment');
       }
@@ -136,8 +95,136 @@ class DatabaseStorage {
         .delete(schema.savingsPlans) // Using savingsPlans instead of investments
         .where(eq(schema.savingsPlans.id, id))
         .returning({ id: schema.savingsPlans.id });
-      
+
       return !!deleted;
+    });
+  }
+
+  // Plan template management methods
+  async getInvestmentPlanTemplates() {
+    // Return mock templates since we don't have a dedicated templates table
+    return [
+      {
+        id: 'conservative-growth',
+        name: 'Conservative Growth',
+        description: 'Low-risk investment plan with steady returns',
+        minInvestment: 100,
+        expectedReturn: 7.5,
+        duration: 12,
+        riskLevel: 'low',
+        category: 'Bonds & Fixed Income',
+        features: ['Government bonds', 'Capital preservation', 'Quarterly dividends', 'Low volatility'],
+        isActive: true,
+        totalInvested: 2500000,
+        totalInvestors: 1250
+      },
+      {
+        id: 'balanced-portfolio',
+        name: 'Balanced Portfolio',
+        description: 'Diversified mix of stocks and bonds',
+        minInvestment: 500,
+        expectedReturn: 12.0,
+        duration: 18,
+        riskLevel: 'medium',
+        category: 'Mixed Assets',
+        features: ['60/40 allocation', 'Professional management', 'Monthly rebalancing', 'Global diversification'],
+        isActive: true,
+        totalInvested: 5750000,
+        totalInvestors: 2100
+      }
+    ];
+  }
+
+  async createInvestmentPlanTemplate(data: any) {
+    // In production, this would create a record in a templates table
+    return { id: `plan-${Date.now()}`, ...data };
+  }
+
+  async updateInvestmentPlanTemplate(id: string, data: any) {
+    // In production, this would update the templates table
+    return { id, ...data };
+  }
+
+  async deleteInvestmentPlanTemplate(id: string) {
+    // In production, this would delete from templates table
+    return true;
+  }
+
+  async getSavingsPlanTemplates() {
+    return [
+      {
+        id: 'basic-saver',
+        name: 'Basic Saver',
+        description: 'Start your savings journey',
+        minAmount: 10,
+        maxAmount: 500,
+        frequency: 'monthly',
+        interestRate: 3.5,
+        compounding: 'monthly',
+        minDuration: 6,
+        maxDuration: 60,
+        category: 'Beginner',
+        features: ['No minimum balance fees', 'Easy access', 'Mobile integration', 'Educational resources'],
+        isActive: true
+      }
+    ];
+  }
+
+  async createSavingsPlanTemplate(data: any) {
+    return { id: `savings-${Date.now()}`, ...data };
+  }
+
+  async updateSavingsPlanTemplate(id: string, data: any) {
+    return { id, ...data };
+  }
+
+  async deleteSavingsPlanTemplate(id: string) {
+    return true;
+  }
+
+  async getAllUserInvestmentPlans() {
+    return this.withConnection(async (db) => {
+      const plans = await db
+        .select()
+        .from(schema.investmentPlans)
+        .orderBy(desc(schema.investmentPlans.createdAt));
+
+      return plans;
+    });
+  }
+
+  async getAllUserSavingsPlans() {
+    return this.withConnection(async (db) => {
+      const plans = await db
+        .select()
+        .from(schema.savingsPlans)
+        .orderBy(desc(schema.savingsPlans.createdAt));
+
+      return plans;
+    });
+  }
+
+  async updateInvestmentPlanReturns(planId: string, data: { actualReturn: string; currentValue: string }) {
+    return this.withConnection(async (db) => {
+      const [updated] = await db
+        .update(schema.investmentPlans)
+        .set(data)
+        .where(eq(schema.investmentPlans.id, planId))
+        .returning();
+
+      return updated;
+    });
+  }
+
+  async updateSavingsPlanInterest(planId: string, data: { interestEarned: string; totalSaved: string }) {
+    return this.withConnection(async (db) => {
+      const [updated] = await db
+        .update(schema.savingsPlans)
+        .set(data)
+        .where(eq(schema.savingsPlans.id, planId))
+        .returning();
+
+      return updated;
     });
   }
 
@@ -153,7 +240,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!newInvestment) {
         throw new Error('Failed to create investment');
       }
@@ -178,7 +265,7 @@ class DatabaseStorage {
         .from(schema.kycVerifications)
         .where(eq(schema.kycVerifications.userId, userId))
         .limit(1);
-      
+
       if (!kyc) {
         throw new Error('KYC verification not found');
       }
@@ -193,7 +280,7 @@ class DatabaseStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(schema.kycVerifications.id, id))
         .returning();
-      
+
       if (!updated) {
         throw new Error('Failed to update KYC verification');
       }
@@ -214,7 +301,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!newKyc) {
         throw new Error('Failed to create KYC verification');
       }
@@ -241,11 +328,13 @@ class DatabaseStorage {
   async getNewsAnalytics() { return { total: 0, views: 0, shares: 0 }; }
   async getHoldings(portfolioId: string) { return [{ id: 'holdingId', portfolioId, symbol: '', amount: '0', name: '', averagePurchasePrice: '0' }]; }
   async getActivePriceAlerts() {
-    return this.withConnection(async (db) => {
-      return await db
+    return await this.withConnection(async (db) => {
+      const result = await db
         .select()
         .from(schema.priceAlerts)
         .where(eq(schema.priceAlerts.isActive, true));
+
+      return Array.isArray(result) ? result : [];
     });
   }
   async updatePriceAlert(id: string, data: any) {
@@ -258,7 +347,7 @@ class DatabaseStorage {
         })
         .where(eq(schema.priceAlerts.id, id))
         .returning();
-      
+
       if (!updatedAlert) {
         throw new Error('Price alert not found');
       }
@@ -284,18 +373,72 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!portfolio) {
         throw new Error('Failed to create portfolio');
       }
       return portfolio;
     });
   }
-  async getUserByEmail(email: string) { return { id: 'userId', email, username: '', password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
-  async getUserByUsername(username: string) { return { id: 'userId', email: '', username, password: '', role: 'user', isActive: true, firstName: '', lastName: '' }; }
+  async getUserByEmail(email: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.email, email))
+        .limit(1);
+      return user || null;
+    });
+  }
+
+  async getUserByUsername(username: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.username, username))
+        .limit(1);
+      return user || null;
+    });
+  }
+
+  // OAuth Provider Lookup Methods
+  async getUserByGoogleId(googleId: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.googleId, googleId))
+        .limit(1);
+      return user || null;
+    });
+  }
+
+  async getUserByFacebookId(facebookId: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.facebookId, facebookId))
+        .limit(1);
+      return user || null;
+    });
+  }
+
+  async getUserByAppleId(appleId: string) {
+    return this.withConnection(async (db) => {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.appleId, appleId))
+        .limit(1);
+      return user || null;
+    });
+  }
   async createUser(data: any) {
     return this.withConnection(async (db) => {
-      const hashedPassword = await this.hashPassword(data.password);
+      // Only hash password if provided (OAuth users don't have passwords)
+      const hashedPassword = data.password ? await this.hashPassword(data.password) : null;
       const [newUser] = await db
         .insert(schema.users)
         .values({
@@ -303,13 +446,11 @@ class DatabaseStorage {
           password: hashedPassword,
           role: data.role || 'user',
           isActive: data.isActive !== undefined ? data.isActive : true,
-          emailVerified: false,
           createdAt: new Date(),
-          updatedAt: new Date(),
-          lastLogin: null
+          updatedAt: new Date()
         })
         .returning();
-      
+
       if (!newUser) {
         throw new Error('Failed to create user');
       }
@@ -344,7 +485,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!savingsPlan) {
         throw new Error('Failed to create savings plan');
       }
@@ -366,7 +507,7 @@ class DatabaseStorage {
         .delete(schema.savingsPlans)
         .where(eq(schema.savingsPlans.id, planId))
         .returning({ id: schema.savingsPlans.id });
-      
+
       if (!deletedPlan) {
         throw new Error('Savings plan not found or already deleted');
       }
@@ -381,7 +522,7 @@ class DatabaseStorage {
         .from(schema.users)
         .where(eq(schema.users.id, userId))
         .limit(1);
-      
+
       if (!user) {
         throw new Error('User not found');
       }
@@ -399,7 +540,7 @@ class DatabaseStorage {
             : eq(schema.users.username, emailOrUsername)
         )
         .limit(1);
-      
+
       return user || null;
     });
   }
@@ -407,7 +548,7 @@ class DatabaseStorage {
     return this.withConnection(async (db) => {
       const user = await this.getUser(userId);
       if (!user) return false;
-      
+
       // In production, use bcrypt.compare
       const bcrypt = await import('bcrypt');
       return bcrypt.compare(password, user.password);
@@ -415,7 +556,20 @@ class DatabaseStorage {
   }
   async getSavingsPlanById(planId: string) { return { id: planId, status: 'active' }; }
   async updateSavingsPlan(planId: string, data: any) { return { id: planId, ...data }; }
-  async updateUser(userId: string, data: any) { return { id: userId, ...data }; }
+  async updateUser(userId: string, data: any) {
+    return this.withConnection(async (db) => {
+      const [updatedUser] = await db
+        .update(schema.users)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(schema.users.id, userId))
+        .returning();
+
+      if (!updatedUser) {
+        throw new Error('User not found');
+      }
+      return updatedUser;
+    });
+  }
   async getUserSettings(userId: string) { return { userId }; }
   async updateUserSettings(userId: string, data: any) { return { userId, ...data }; }
   async getUserNotifications(userId: string) { return []; }

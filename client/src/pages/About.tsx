@@ -53,10 +53,10 @@ export default function About() {
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Building the Future of
-            <span className="bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent"> Digital Finance</span>
+            <span className="bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent"> Investing</span>
           </h1>
           <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-            We're on a mission to make cryptocurrency and digital asset trading accessible, secure, and profitable for everyone.
+            BITPANDA PRO is Europe's leading investment platform, making it easy for everyone to invest in crypto, stocks, ETFs, and more.
           </p>
         </div>
 

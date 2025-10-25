@@ -328,6 +328,7 @@ export default function OtpVerification() {
                   </span>
                 </Link>
               </p>
+              
             </div>
           </div>
         </CardContent>

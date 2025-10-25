@@ -86,33 +86,74 @@ class PriceMonitorService {
 
   private async checkPriceAlerts(): Promise<void> {
     try {
-      // Check if storage methods exist before calling
-      if (typeof storage.getActivePriceAlerts !== 'function') {
-        console.log('⚠️ Price alerts storage method not available, skipping alert checks');
-        return;
+      // Retry logic with exponential backoff
+      let retries = 3;
+      let activeAlerts;
+      
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          activeAlerts = await storage.getActivePriceAlerts();
+          break; // Success, exit retry loop
+        } catch (err: any) {
+          if (attempt === retries) {
+            // On final retry failure, just log and return (don't throw)
+            console.log('⚠️ Database connection issue, will retry on next check');
+            return;
+          }
+          
+          // Only retry on connection errors
+          if (err?.message?.includes('Connection terminated') || err?.code === 'ECONNRESET') {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          
+          // For non-connection errors, don't retry
+          console.error(`Error fetching alerts:`, err?.message || err);
+          return;
+        }
+      }
+      
+      if (!activeAlerts || !Array.isArray(activeAlerts)) {
+        console.log('⚠️ Unable to fetch active alerts after retries');
         return;
       }
 
-      const activeAlerts = await storage.getActivePriceAlerts();
+      if (activeAlerts.length === 0) {
+        // No alerts to process, skip silently
+        return;
+      }
 
       for (const alert of activeAlerts) {
-        const currentPrice = await this.getCurrentPrice(alert.symbol);
+        try {
+          const currentPrice = await this.getCurrentPrice(alert.symbol);
 
-        if (this.shouldTriggerAlert(alert, currentPrice)) {
-          await this.triggerAlert(alert, currentPrice);
+          if (this.shouldTriggerAlert(alert, currentPrice)) {
+            await this.triggerAlert(alert, currentPrice);
 
-          if (typeof storage.updatePriceAlert === 'function') {
-            await storage.updatePriceAlert(alert.id, {
-              isActive: false,
-              triggeredAt: new Date()
-            });
+            if (typeof storage.updatePriceAlert === 'function') {
+              await storage.updatePriceAlert(alert.id, {
+                isActive: false,
+                triggeredAt: new Date()
+              });
+            }
           }
+        } catch (alertError) {
+          console.error(`Error processing alert ${alert.id}:`, alertError);
+          // Continue with next alert
         }
       }
 
-      console.log(`✅ Checked ${activeAlerts.length} price alerts`);
-    } catch (error) {
-      console.error('Error checking price alerts:', error);
+      if (activeAlerts.length > 0) {
+        console.log(`✅ Checked ${activeAlerts.length} price alerts`);
+      }
+    } catch (error: any) {
+      // Don't log full stack trace for connection errors to reduce noise
+      if (error?.message?.includes('Connection terminated') || error?.code === 'ECONNRESET') {
+        console.log('⚠️ Database connection issue, will retry on next check');
+      } else {
+        console.error('Error checking price alerts:', error?.message || error);
+      }
     }
   }
 
