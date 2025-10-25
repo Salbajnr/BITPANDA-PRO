@@ -27,6 +27,10 @@ export function isSupabaseConfigured(): boolean {
 // Log configuration status
 if (isSupabaseConfigured()) {
   console.log('✅ Supabase client initialized');
+  console.log('📍 Supabase URL:', supabaseUrl);
 } else {
   console.warn('⚠️  Supabase not configured - will use direct PostgreSQL connection');
+  console.warn('📋 Missing environment variables:');
+  if (!supabaseUrl) console.warn('   - SUPABASE_URL');
+  if (!supabaseAnonKey) console.warn('   - SUPABASE_ANON_KEY');
 }

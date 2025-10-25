@@ -42,10 +42,38 @@ export const pool = databaseUrl
 
 // ✅ Create mock database fallback when no real DB is available
 const mockDb = {
-  select: () => ({ from: () => ({ execute: async () => [] }) }),
-  insert: () => ({ values: () => ({ execute: async () => [] }) }),
-  update: () => ({ set: () => ({ where: () => ({ execute: async () => [] }) }) }),
-  delete: () => ({ where: () => ({ execute: async () => [] }) }),
+  select: () => ({
+    from: () => ({
+      where: () => ({
+        execute: async () => [],
+        limit: () => ({ execute: async () => [] }),
+        orderBy: () => ({ execute: async () => [] }),
+      }),
+      execute: async () => [],
+      limit: () => ({ execute: async () => [] }),
+      orderBy: () => ({ execute: async () => [] }),
+    }),
+  }),
+  insert: () => ({
+    values: () => ({
+      returning: async () => [],
+      execute: async () => [],
+    }),
+  }),
+  update: () => ({
+    set: () => ({
+      where: () => ({
+        returning: async () => [],
+        execute: async () => [],
+      }),
+    }),
+  }),
+  delete: () => ({
+    where: () => ({
+      returning: async () => [],
+      execute: async () => [],
+    }),
+  }),
 };
 
 // ✅ Use Drizzle ORM when pool is active

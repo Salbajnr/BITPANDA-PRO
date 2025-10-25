@@ -15,7 +15,14 @@ type DatabaseType = typeof db;
 class DatabaseStorage {
   private async withConnection<T>(fn: (db: DatabaseType) => Promise<T>): Promise<T> {
     if (!db) {
+      console.warn('⚠️ Database not initialized. Please check your DATABASE_URL configuration.');
       throw new Error('Database not initialized. Please check your DATABASE_URL configuration.');
+    }
+    
+    // Check if we're using mock DB
+    if (typeof db.select !== 'function' || !db.select().from) {
+      console.warn('⚠️ Mock database in use - limited functionality');
+      throw new Error('Database connection not available');
     }
     
     try {
@@ -301,10 +308,18 @@ class DatabaseStorage {
   async getHoldings(portfolioId: string) { return [{ id: 'holdingId', portfolioId, symbol: '', amount: '0', name: '', averagePurchasePrice: '0' }]; }
   async getActivePriceAlerts() {
     return this.withConnection(async (db) => {
-      return await db
+      // Check if we have a real database connection
+      if (!db || typeof db.select !== 'function') {
+        console.log('⚠️ Database not available, returning empty alerts');
+        return [];
+      }
+      
+      const result = await db
         .select()
         .from(schema.priceAlerts)
         .where(eq(schema.priceAlerts.isActive, true));
+      
+      return result || [];
     });
   }
   async updatePriceAlert(id: string, data: any) {
