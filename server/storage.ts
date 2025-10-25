@@ -1,7 +1,7 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
 
-import { eq, and, or, desc } from 'drizzle-orm';
+import { eq, and, sql, gte, lte, inArray, or, like, isNull, isNotNull, desc } from 'drizzle-orm';
 import * as schema from "../shared/schema";
 import { db, pool } from "./db"; // Use the shared database connection
 
@@ -18,13 +18,13 @@ class DatabaseStorage {
       console.warn('⚠️ Database not initialized. Please check your DATABASE_URL configuration.');
       throw new Error('Database not initialized. Please check your DATABASE_URL configuration.');
     }
-    
+
     // Check if we're using mock DB
     if (typeof db.select !== 'function' || !db.select().from) {
       console.warn('⚠️ Mock database in use - limited functionality');
       throw new Error('Database connection not available');
     }
-    
+
     try {
       return await fn(db);
     } catch (error: any) {
@@ -45,7 +45,7 @@ class DatabaseStorage {
         .from(schema.savingsPlans) // Using savingsPlans instead of investments
         .where(eq(schema.savingsPlans.id, id))
         .limit(1);
-      
+
       if (!investment) {
         throw new Error('Investment not found');
       }
@@ -60,7 +60,7 @@ class DatabaseStorage {
         .set({ ...updateData, updatedAt: new Date() })
         .where(eq(schema.savingsPlans.id, id))
         .returning();
-      
+
       if (!updated) {
         throw new Error('Failed to update investment');
       }
@@ -74,7 +74,7 @@ class DatabaseStorage {
         .delete(schema.savingsPlans) // Using savingsPlans instead of investments
         .where(eq(schema.savingsPlans.id, id))
         .returning({ id: schema.savingsPlans.id });
-      
+
       return !!deleted;
     });
   }
@@ -167,7 +167,7 @@ class DatabaseStorage {
         .select()
         .from(schema.investmentPlans)
         .orderBy(desc(schema.investmentPlans.createdAt));
-      
+
       return plans;
     });
   }
@@ -178,7 +178,7 @@ class DatabaseStorage {
         .select()
         .from(schema.savingsPlans)
         .orderBy(desc(schema.savingsPlans.createdAt));
-      
+
       return plans;
     });
   }
@@ -190,7 +190,7 @@ class DatabaseStorage {
         .set(data)
         .where(eq(schema.investmentPlans.id, planId))
         .returning();
-      
+
       return updated;
     });
   }
@@ -202,7 +202,7 @@ class DatabaseStorage {
         .set(data)
         .where(eq(schema.savingsPlans.id, planId))
         .returning();
-      
+
       return updated;
     });
   }
@@ -219,7 +219,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!newInvestment) {
         throw new Error('Failed to create investment');
       }
@@ -244,7 +244,7 @@ class DatabaseStorage {
         .from(schema.kycVerifications)
         .where(eq(schema.kycVerifications.userId, userId))
         .limit(1);
-      
+
       if (!kyc) {
         throw new Error('KYC verification not found');
       }
@@ -259,7 +259,7 @@ class DatabaseStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(schema.kycVerifications.id, id))
         .returning();
-      
+
       if (!updated) {
         throw new Error('Failed to update KYC verification');
       }
@@ -280,7 +280,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!newKyc) {
         throw new Error('Failed to create KYC verification');
       }
@@ -313,12 +313,12 @@ class DatabaseStorage {
         console.log('⚠️ Database not available, returning empty alerts');
         return [];
       }
-      
+
       const result = await db
         .select()
         .from(schema.priceAlerts)
         .where(eq(schema.priceAlerts.isActive, true));
-      
+
       return result || [];
     });
   }
@@ -332,7 +332,7 @@ class DatabaseStorage {
         })
         .where(eq(schema.priceAlerts.id, id))
         .returning();
-      
+
       if (!updatedAlert) {
         throw new Error('Price alert not found');
       }
@@ -358,7 +358,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!portfolio) {
         throw new Error('Failed to create portfolio');
       }
@@ -375,7 +375,7 @@ class DatabaseStorage {
       return user || null;
     });
   }
-  
+
   async getUserByUsername(username: string) {
     return this.withConnection(async (db) => {
       const [user] = await db
@@ -435,7 +435,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!newUser) {
         throw new Error('Failed to create user');
       }
@@ -470,7 +470,7 @@ class DatabaseStorage {
           updatedAt: new Date()
         })
         .returning();
-      
+
       if (!savingsPlan) {
         throw new Error('Failed to create savings plan');
       }
@@ -492,7 +492,7 @@ class DatabaseStorage {
         .delete(schema.savingsPlans)
         .where(eq(schema.savingsPlans.id, planId))
         .returning({ id: schema.savingsPlans.id });
-      
+
       if (!deletedPlan) {
         throw new Error('Savings plan not found or already deleted');
       }
@@ -507,7 +507,7 @@ class DatabaseStorage {
         .from(schema.users)
         .where(eq(schema.users.id, userId))
         .limit(1);
-      
+
       if (!user) {
         throw new Error('User not found');
       }
@@ -525,7 +525,7 @@ class DatabaseStorage {
             : eq(schema.users.username, emailOrUsername)
         )
         .limit(1);
-      
+
       return user || null;
     });
   }
@@ -533,7 +533,7 @@ class DatabaseStorage {
     return this.withConnection(async (db) => {
       const user = await this.getUser(userId);
       if (!user) return false;
-      
+
       // In production, use bcrypt.compare
       const bcrypt = await import('bcrypt');
       return bcrypt.compare(password, user.password);
@@ -548,7 +548,7 @@ class DatabaseStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(schema.users.id, userId))
         .returning();
-      
+
       if (!updatedUser) {
         throw new Error('User not found');
       }
