@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Clock } from "lucide-react";
+import { ExternalLink, Clock, CheckCircle2, XCircle } from "lucide-react";
 
 interface NewsArticle {
   id: string;
@@ -13,10 +13,28 @@ interface NewsArticle {
   sourceUrl?: string;
 }
 
+interface FetchStatus {
+  success: boolean;
+  source: 'bitpanda-blog' | 'fallback';
+  lastFetch: string;
+  articlesCount: number;
+  error?: string;
+}
+
 export default function NewsSection() {
   const { data: newsArticles = [], isLoading } = useQuery<NewsArticle[]>({
     queryKey: ['/api/news'],
     retry: false,
+  });
+
+  const { data: fetchStatus } = useQuery<FetchStatus>({
+    queryKey: ['news-fetch-status'],
+    queryFn: async () => {
+      const response = await fetch('/api/news/status');
+      if (!response.ok) throw new Error('Failed to fetch status');
+      return response.json();
+    },
+    refetchInterval: 30 * 1000,
   });
 
   // Use news from backend API only
@@ -61,7 +79,27 @@ export default function NewsSection() {
   return (
     <Card className="mb-8">
       <CardHeader>
-        <CardTitle>Latest Crypto News</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Latest Crypto News</CardTitle>
+          {fetchStatus && (
+            <Badge 
+              variant={fetchStatus.success ? "default" : "secondary"} 
+              className={`text-xs ${fetchStatus.success ? 'bg-green-600' : 'bg-orange-500'}`}
+            >
+              {fetchStatus.success ? (
+                <>
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Live from Bitpanda Blog ({fetchStatus.articlesCount} articles)
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-3 w-3 mr-1" />
+                  {fetchStatus.error || 'Using fallback news'}
+                </>
+              )}
+            </Badge>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
