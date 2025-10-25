@@ -7,9 +7,6 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Production API URL
-const API_BASE_URL = 'https://bitpandapro.onrender.com';
-
 // Base configuration
 const config = {
   plugins: [react()],
@@ -55,14 +52,5 @@ const config = {
     },
   },
 };
-
-// Only add environment variables in production
-if (process.env.NODE_ENV === 'production') {
-  config.define = {
-    'process.env.NODE_ENV': '"production"',
-    'import.meta.env.VITE_API_BASE_URL': `"${API_BASE_URL}"`,
-    'import.meta.env.VITE_API_URL': `"${API_BASE_URL}"`
-  };
-}
 
 export default defineConfig(config);

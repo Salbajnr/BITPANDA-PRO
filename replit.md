@@ -61,10 +61,34 @@ For development in Replit only, you can use Replit's built-in PostgreSQL databas
 - Supports demo mode (no database required)
 
 ## Workflow Configuration
-- **Frontend workflow**: Runs on port 5000 with `npm run dev:client`
-- Backend starts automatically via frontend proxy
+- **Frontend workflow**: Runs on port 5000 with `npm run dev`
+- Backend starts automatically (runs on port 10000 in Replit, port 3000 in standard dev)
+
+## Environment Variables for Deployment
+
+### For Development (Replit, Local)
+No environment variables needed! The app auto-detects localhost/Replit and uses relative URLs with the Vite proxy.
+
+### For Production Deployments (Render, Vercel, etc.)
+Set these environment variables:
+
+**Frontend (if deployed separately):**
+```
+VITE_API_URL=https://your-backend-api.com
+```
+
+**Backend:**
+```
+DATABASE_URL=postgresql://... (use pooler connection string from Supabase)
+NODE_ENV=production
+PORT=10000 (or your preferred port)
+COOKIE_SECRET=your-super-secret-key
+```
+
+**Note:** The frontend intelligently uses relative URLs in development and respects `VITE_API_URL` in production builds, making it portable across all platforms.
 
 ## User Preferences
 - Keep existing project structure and conventions
 - Use npm workspaces for monorepo setup
 - TypeScript for all code
+- Configuration works on both Replit and external environments
