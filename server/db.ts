@@ -26,8 +26,11 @@ export const pool = databaseUrl
       connectionString: databaseUrl,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 60000,
+      connectionTimeoutMillis: 10000, // Increase to 10 seconds
       application_name: "bitpanda-app",
+      // Keep connections alive to prevent early termination
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
       ssl:
         process.env.NODE_ENV === "production" ||
         databaseUrl.includes("render.com") ||

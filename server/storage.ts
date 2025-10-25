@@ -1,84 +1,12 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
 
-// Load environment variables
-import dotenv from "dotenv";
-import { z } from "zod";
-
-// Validate environment variables
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  DATABASE_URL: z.string().url().min(1, "DATABASE_URL is required"),
-  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
-  SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters"),
-  SESSION_SECRET_REFRESH: z.string().min(32, "SESSION_SECRET_REFRESH must be at least 32 characters"),
-  COINGECKO_API_KEY: z.string().optional(),
-  SENDERGRID_API_KEY: z.string().optional(),
-  METALS_API_KEY: z.string().optional()
-});
-
-// Load .env file if not in production
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
-
-// Validate environment variables
-const env = envSchema.safeParse(process.env);
-
-if (!env.success) {
-  console.error("❌ Invalid environment variables:", JSON.stringify(env.error.format(), null, 2));
-  process.exit(1);
-}
-
-// Now TypeScript knows the shape of process.env
-const { DATABASE_URL, NODE_ENV } = env.data;
-
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
 import { eq, and, or } from 'drizzle-orm';
 import * as schema from "../shared/schema";
+import { db, pool } from "./db"; // Use the shared database connection
 
-// Configure SSL based on environment
-const sslConfig = NODE_ENV === "production" 
-  ? { 
-      rejectUnauthorized: true,
-      // Add any additional SSL options required by your database provider
-    } 
-  : { 
-      rejectUnauthorized: false // Only for development
-    };
-
-// Create database pool
-let pool: Pool | null = null;
-
-try {
-  pool = new Pool({
-    connectionString: DATABASE_URL,
-    ssl: NODE_ENV === "production" ? sslConfig : false,
-    max: 20, // Maximum number of clients the pool should contain
-    idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-    connectionTimeoutMillis: 2000, // How long to wait when connecting a new client
-  });
-
-  // Test the connection
-  pool.on('connect', (client) => {
-    console.log('✅ Database connection established');
-  });
-
-  pool.on('error', (err) => {
-    console.error('❌ Unexpected error on idle client', err);
-    process.exit(-1);
-  });
-} catch (error) {
-  console.error('❌ Failed to create database pool:', error);
-  process.exit(1);
-}
-
-// ✅ Initialize Drizzle ORM
-type DatabaseType = ReturnType<typeof drizzle<typeof schema>>;
-const _db = pool ? drizzle(pool, { schema }) : null;
-
-export const db = _db as DatabaseType;
+// Re-export db for convenience
+export { db };
 
 // Database storage implementation with proper error handling
 class DatabaseStorage {

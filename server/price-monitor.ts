@@ -92,7 +92,34 @@ class PriceMonitorService {
         return;
       }
 
-      const activeAlerts = await storage.getActivePriceAlerts();
+      // Retry logic with exponential backoff
+      let retries = 3;
+      let activeAlerts;
+      
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          activeAlerts = await storage.getActivePriceAlerts();
+          break; // Success, exit retry loop
+        } catch (err: any) {
+          if (attempt === retries) {
+            throw err; // Final attempt failed
+          }
+          
+          // Only retry on connection errors
+          if (err?.message?.includes('Connection terminated') || err?.code === 'ECONNRESET') {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          
+          throw err; // Don't retry on other errors
+        }
+      }
+      
+      if (!activeAlerts) {
+        console.log('⚠️ Unable to fetch active alerts after retries');
+        return;
+      }
 
       for (const alert of activeAlerts) {
         try {
