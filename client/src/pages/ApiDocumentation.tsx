@@ -153,10 +153,10 @@ export default function ApiDocumentation() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4">
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4" onClick={() => window.location.href = '/api-management'}>
                 Get API Key
               </Button>
-              <Button variant="outline" size="lg" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-8 py-4">
+              <Button variant="outline" size="lg" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white px-8 py-4" onClick={() => window.open('https://docs.bitpanda.com/api', '_blank')}>
                 View Documentation
               </Button>
             </div>
@@ -342,10 +342,10 @@ export default function ApiDocumentation() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4">
+            <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 font-semibold px-12 py-4" onClick={() => window.location.href = '/api-management'}>
               Get API Keys
             </Button>
-            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600 px-12 py-4">
+            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600 px-12 py-4" onClick={() => window.open('https://docs.bitpanda.com/api', '_blank')}>
               Read Documentation
             </Button>
           </div>
