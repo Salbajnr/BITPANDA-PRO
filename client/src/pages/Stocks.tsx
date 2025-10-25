@@ -168,29 +168,30 @@ export default function Stocks() {
           </div>
 
           {/* Stock List */}
-          {error ? (
-            <Card className="border-red-200">
-              <CardContent className="p-8 text-center">
-                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Unable to Load Stock Data</h3>
-                <p className="text-gray-600 mb-4">Stock trading is currently unavailable. Please try again later.</p>
-                <Button onClick={() => refetch()}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Retry
-                </Button>
-              </CardContent>
-            </Card>
-          ) : isLoading ? (
+          {isLoading ? (
             <div className="text-center py-12">
               <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
-              <p className="text-gray-600">Loading stock data...</p>
+              <p className="text-gray-600">Loading real-time stock data...</p>
             </div>
-          ) : filteredStocks.length === 0 ? (
-            <div className="text-center py-12">
-              <Search className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold mb-2">No Stocks Available</h3>
-              <p className="text-gray-600">Stock trading feature is coming soon.</p>
-            </div>
+          ) : error || filteredStocks.length === 0 ? (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-8 text-center">
+                <Building2 className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">Stock Trading Coming Soon</h3>
+                <p className="text-gray-600 mb-4">
+                  We're expanding our stock offerings. Soon you'll have access to thousands of global stocks with zero commission.
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button onClick={() => refetch()} variant="outline">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Check for Updates
+                  </Button>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    Get Notified
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <div className="space-y-4">
               {filteredStocks.map((stock: Stock) => (

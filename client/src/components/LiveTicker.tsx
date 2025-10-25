@@ -214,9 +214,9 @@ export default function LiveTicker() {
 
         {/* Connection status indicator */}
         <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
-          <div className={`flex items-center space-x-1 text-xs ${isConnected ? 'text-green-400' : 'text-yellow-400'}`}>
+          <div className={`flex items-center space-x-1 text-xs ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
             {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-            <span>{isConnected ? 'LIVE' : 'DEMO'}</span>
+            <span>{isConnected ? 'LIVE' : 'RECONNECTING...'}</span>
           </div>
         </div>
       </div>

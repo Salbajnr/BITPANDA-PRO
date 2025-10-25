@@ -67,17 +67,17 @@ const apiEndpoints = [
 
 const codeExamples = {
   javascript: `// Initialize BITPANDA PRO API client
-const BitpandaPro = require('@bitpanda/bitpanda-pro-api');
-
-const client = new BitpandaPro({
-  apiKey: 'your-api-key',
-  apiSecret: 'your-api-secret',
-  sandbox: true // Use sandbox for testing
-});
+// Authentication with BITPANDA PRO API
+const headers = {
+  'Authorization': 'Bearer YOUR_API_KEY',
+  'Content-Type': 'application/json'
+};
 
 // Get market data
-const markets = await client.getMarkets();
-console.log(markets);
+const response = await fetch('https://api.bitpandapro.com/v1/markets', {
+  headers
+});
+const markets = await response.json();
 
 // Place a buy order
 const order = await client.createOrder({

@@ -36,81 +36,6 @@ interface ETFData {
   description: string;
 }
 
-const etfDataFallback = [
-  {
-    symbol: "SPY",
-    name: "SPDR S&P 500 ETF Trust",
-    category: "US Equity",
-    price: 412.56,
-    change: 1.23,
-    changePercent: 0.30,
-    volume: "45.2M",
-    expense: "0.09%",
-    aum: "$385.2B",
-    description: "Tracks the S&P 500 Index"
-  },
-  {
-    symbol: "QQQ",
-    name: "Invesco QQQ Trust",
-    category: "Technology",
-    price: 368.45,
-    change: -2.15,
-    changePercent: -0.58,
-    volume: "32.1M",
-    expense: "0.20%",
-    aum: "$175.8B",
-    description: "Tracks the NASDAQ-100 Index"
-  },
-  {
-    symbol: "VTI",
-    name: "Vanguard Total Stock Market ETF",
-    category: "US Equity",
-    price: 245.78,
-    change: 0.89,
-    changePercent: 0.36,
-    volume: "12.5M",
-    expense: "0.03%",
-    aum: "$1.2T",
-    description: "Tracks the entire US stock market"
-  },
-  {
-    symbol: "IWDA",
-    name: "iShares Core MSCI World UCITS ETF",
-    category: "Global Equity",
-    price: 78.92,
-    change: 0.45,
-    changePercent: 0.57,
-    volume: "5.8M",
-    expense: "0.20%",
-    aum: "$52.1B",
-    description: "Tracks developed world markets"
-  },
-  {
-    symbol: "EIMI",
-    name: "iShares Core MSCI Emerging Markets",
-    category: "Emerging Markets",
-    price: 58.34,
-    change: -0.78,
-    changePercent: -1.32,
-    volume: "2.1M",
-    expense: "0.18%",
-    aum: "$12.5B",
-    description: "Tracks emerging market equities"
-  },
-  {
-    symbol: "BND",
-    name: "Vanguard Total Bond Market ETF",
-    category: "Bonds",
-    price: 78.45,
-    change: 0.12,
-    changePercent: 0.15,
-    volume: "8.9M",
-    expense: "0.03%",
-    aum: "$298.7B",
-    description: "Tracks the US bond market"
-  }
-];
-
 const categories = ["All", "US Equity", "Global Equity", "Technology", "Emerging Markets", "Bonds", "Real Estate"];
 
 export default function Etfs() {
@@ -119,15 +44,10 @@ export default function Etfs() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Fetch ETFs from API
-  const { data: etfData = etfDataFallback, isLoading, error, refetch } = useQuery({
+  const { data: etfData = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/etfs/market-data'],
     queryFn: async () => {
-      try {
-        return await api.get('/etfs/market-data');
-      } catch (err) {
-        console.error('Failed to fetch ETFs:', err);
-        return etfDataFallback;
-      }
+      return await api.get('/etfs/market-data');
     },
     refetchInterval: 60000,
     retry: 3
@@ -136,7 +56,7 @@ export default function Etfs() {
   const [filteredEtfs, setFilteredEtfs] = useState<ETFData[]>([]);
 
   useEffect(() => {
-    let filtered = etfData;
+    let filtered = etfData || [];
 
     if (selectedCategory !== "All") {
       filtered = filtered.filter(etf => etf.category === selectedCategory);
@@ -150,7 +70,7 @@ export default function Etfs() {
     }
 
     setFilteredEtfs(filtered);
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, etfData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -224,23 +144,23 @@ export default function Etfs() {
       {/* ETF List */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {error ? (
-            <Card className="border-red-200">
-              <CardContent className="p-8 text-center">
-                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Unable to Load ETF Data</h3>
-                <p className="text-gray-600 mb-4">ETF trading is currently unavailable. Showing cached data.</p>
-                <Button onClick={() => refetch()}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Retry
-                </Button>
-              </CardContent>
-            </Card>
-          ) : isLoading ? (
+          {isLoading ? (
             <div className="text-center py-12">
               <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-green-500" />
               <p className="text-gray-600">Loading ETF data...</p>
             </div>
+          ) : error || filteredEtfs.length === 0 ? (
+            <Card className="border-gray-200">
+              <CardContent className="p-8 text-center">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">ETF Trading Coming Soon</h3>
+                <p className="text-gray-600 mb-4">We're working on bringing you access to premium ETFs. Stay tuned!</p>
+                <Button onClick={() => refetch()} variant="outline">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Check Again
+                </Button>
+              </CardContent>
+            </Card>
           ) : null}
           
           <div className="grid gap-6">
