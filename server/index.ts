@@ -28,6 +28,7 @@ import cryptoRoutes from "./crypto-routes";
 import tradingRoutes from "./trading-routes";
 import adminRoutes from "./admin-routes";
 import adminAuthRoutes from "./admin-auth-routes";
+import adminPlansRoutes from "./admin-plans-routes";
 import authRoutes from "./auth-routes";
 import userRoutes from "./user-routes";
 import alertRoutes from "./alert-routes";
@@ -78,14 +79,14 @@ app.use((req, res, next) => {
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    
+
     // Production
     "https://bitpanda-pro.onrender.com",
     "https://bitpanda-pro-frontnd.onrender.com",
-    
+
     // Wildcard domains for subdomains
     "https://*.onrender.com",
-    
+
     // Environment variables
     ...(process.env.CLIENT_URL?.split(',') || []),
     ...(process.env.ALLOWED_ORIGINS?.split(',') || [])
@@ -95,16 +96,16 @@ app.use((req, res, next) => {
   const isAllowed = allowedOrigins.some(allowedOrigin => {
     // Exact match
     if (allowedOrigin === origin) return true;
-    
+
     // Wildcard subdomain match
     if (allowedOrigin.startsWith('*.')) {
       const domain = allowedOrigin.substring(2); // Remove '*.'
       return origin?.endsWith(domain);
     }
-    
+
     return false;
   });
-  
+
   // Set CORS headers
   if (isAllowed && origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -112,12 +113,12 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
-  
+
   // Continue to the next middleware
   next();
 });
@@ -144,14 +145,14 @@ if (process.env.NODE_ENV === 'production') {
   if (!fs.existsSync(clientBuildPath)) {
     clientBuildPath = path.join(process.cwd(), '../client/dist');
   }
-  
+
   // Check if client build exists
   if (fs.existsSync(clientBuildPath)) {
     console.log('🚀 Serving static files from:', clientBuildPath);
-    
+
     // Serve static files
     app.use(express.static(clientBuildPath));
-    
+
     // Handle client-side routing - return index.html for non-API routes
     app.get('*', (req, res) => {
       if (!req.path.startsWith('/api/')) {
@@ -161,7 +162,7 @@ if (process.env.NODE_ENV === 'production') {
     });
   } else {
     console.warn('⚠️  Client build not found. Running in API-only mode.');
-    
+
     // In production but no client build found
     app.get('*', (req, res, next) => {
       if (!req.path.startsWith('/api/')) {
@@ -177,7 +178,7 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   // In development, run in API-only mode
   console.log('🚀 Running in development mode - API-only');
-  
+
   app.get('*', (req, res, next) => {
     if (!req.path.startsWith('/api/')) {
       return res.status(404).json({
@@ -213,6 +214,7 @@ app.use("/api/lending", lendingRoutes);
 app.use("/api/market-research", marketResearchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
+app.use('/api/admin/plans', adminPlansRoutes);
 app.use("/api/api-management", apiManagementRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/comprehensive-analytics", comprehensiveAnalyticsRoutes);

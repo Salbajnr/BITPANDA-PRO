@@ -72,6 +72,134 @@ class DatabaseStorage {
     });
   }
 
+  // Plan template management methods
+  async getInvestmentPlanTemplates() {
+    // Return mock templates since we don't have a dedicated templates table
+    return [
+      {
+        id: 'conservative-growth',
+        name: 'Conservative Growth',
+        description: 'Low-risk investment plan with steady returns',
+        minInvestment: 100,
+        expectedReturn: 7.5,
+        duration: 12,
+        riskLevel: 'low',
+        category: 'Bonds & Fixed Income',
+        features: ['Government bonds', 'Capital preservation', 'Quarterly dividends', 'Low volatility'],
+        isActive: true,
+        totalInvested: 2500000,
+        totalInvestors: 1250
+      },
+      {
+        id: 'balanced-portfolio',
+        name: 'Balanced Portfolio',
+        description: 'Diversified mix of stocks and bonds',
+        minInvestment: 500,
+        expectedReturn: 12.0,
+        duration: 18,
+        riskLevel: 'medium',
+        category: 'Mixed Assets',
+        features: ['60/40 allocation', 'Professional management', 'Monthly rebalancing', 'Global diversification'],
+        isActive: true,
+        totalInvested: 5750000,
+        totalInvestors: 2100
+      }
+    ];
+  }
+
+  async createInvestmentPlanTemplate(data: any) {
+    // In production, this would create a record in a templates table
+    return { id: `plan-${Date.now()}`, ...data };
+  }
+
+  async updateInvestmentPlanTemplate(id: string, data: any) {
+    // In production, this would update the templates table
+    return { id, ...data };
+  }
+
+  async deleteInvestmentPlanTemplate(id: string) {
+    // In production, this would delete from templates table
+    return true;
+  }
+
+  async getSavingsPlanTemplates() {
+    return [
+      {
+        id: 'basic-saver',
+        name: 'Basic Saver',
+        description: 'Start your savings journey',
+        minAmount: 10,
+        maxAmount: 500,
+        frequency: 'monthly',
+        interestRate: 3.5,
+        compounding: 'monthly',
+        minDuration: 6,
+        maxDuration: 60,
+        category: 'Beginner',
+        features: ['No minimum balance fees', 'Easy access', 'Mobile integration', 'Educational resources'],
+        isActive: true
+      }
+    ];
+  }
+
+  async createSavingsPlanTemplate(data: any) {
+    return { id: `savings-${Date.now()}`, ...data };
+  }
+
+  async updateSavingsPlanTemplate(id: string, data: any) {
+    return { id, ...data };
+  }
+
+  async deleteSavingsPlanTemplate(id: string) {
+    return true;
+  }
+
+  async getAllUserInvestmentPlans() {
+    return this.withConnection(async (db) => {
+      const plans = await db
+        .select()
+        .from(schema.investmentPlans)
+        .orderBy(desc(schema.investmentPlans.createdAt));
+      
+      return plans;
+    });
+  }
+
+  async getAllUserSavingsPlans() {
+    return this.withConnection(async (db) => {
+      const plans = await db
+        .select()
+        .from(schema.savingsPlans)
+        .orderBy(desc(schema.savingsPlans.createdAt));
+      
+      return plans;
+    });
+  }
+
+  async updateInvestmentPlanReturns(planId: string, data: { actualReturn: string; currentValue: string }) {
+    return this.withConnection(async (db) => {
+      const [updated] = await db
+        .update(schema.investmentPlans)
+        .set(data)
+        .where(eq(schema.investmentPlans.id, planId))
+        .returning();
+      
+      return updated;
+    });
+  }
+
+  async updateSavingsPlanInterest(planId: string, data: { interestEarned: string; totalSaved: string }) {
+    return this.withConnection(async (db) => {
+      const [updated] = await db
+        .update(schema.savingsPlans)
+        .set(data)
+        .where(eq(schema.savingsPlans.id, planId))
+        .returning();
+      
+      return updated;
+    });
+  }
+
   async createInvestment(data: any) {
     return this.withConnection(async (db) => {
       const [newInvestment] = await db
