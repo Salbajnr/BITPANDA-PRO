@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,11 +18,11 @@ import {
   Coins
 } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 
 export default function Commodities() {
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -49,7 +48,7 @@ export default function Commodities() {
   const preciousMetals = filteredCommodities.filter((c: any) => 
     ['XAU', 'XAG', 'XPT', 'XPD'].includes(c.symbol)
   );
-  
+
   const industrialMetals = filteredCommodities.filter((c: any) => 
     !['XAU', 'XAG', 'XPT', 'XPD'].includes(c.symbol)
   );
@@ -81,7 +80,7 @@ export default function Commodities() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <Navbar />
-      
+
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-amber-600 via-yellow-600 to-orange-600">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -111,7 +110,7 @@ export default function Commodities() {
               size="lg" 
               variant="secondary"
               className="text-amber-600 hover:text-amber-700"
-              onClick={() => navigate('/metals-trading')}
+              onClick={() => setLocation('/metals-trading')}
             >
               Start Trading Metals
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -154,7 +153,7 @@ export default function Commodities() {
               <p className="text-sm text-gray-600">Your metals are stored in secure, insured vaults</p>
             </CardContent>
           </Card>
-          
+
           <Card className="border-2 border-blue-200 bg-blue-50">
             <CardContent className="p-6 text-center">
               <BarChart3 className="w-10 h-10 text-blue-600 mx-auto mb-3" />
@@ -162,7 +161,7 @@ export default function Commodities() {
               <p className="text-sm text-gray-600">Real-time market prices updated every 30 seconds</p>
             </CardContent>
           </Card>
-          
+
           <Card className="border-2 border-purple-200 bg-purple-50">
             <CardContent className="p-6 text-center">
               <Coins className="w-10 h-10 text-purple-600 mx-auto mb-3" />
@@ -170,7 +169,7 @@ export default function Commodities() {
               <p className="text-sm text-gray-600">Buy any amount starting from small quantities</p>
             </CardContent>
           </Card>
-          
+
           <Card className="border-2 border-orange-200 bg-orange-50">
             <CardContent className="p-6 text-center">
               <Award className="w-10 h-10 text-orange-600 mx-auto mb-3" />
@@ -224,7 +223,7 @@ export default function Commodities() {
                       </div>
                       <Button 
                         className="w-full mt-4" 
-                        onClick={() => navigate(`/metals-trading?symbol=${commodity.symbol}`)}
+                        onClick={() => setLocation(`/metals-trading?symbol=${commodity.symbol}`)}
                       >
                         Trade {commodity.symbol}
                       </Button>
@@ -265,7 +264,7 @@ export default function Commodities() {
                       </div>
                       <Button 
                         className="w-full mt-4 bg-amber-600 hover:bg-amber-700" 
-                        onClick={() => navigate(`/metals-trading?symbol=${commodity.symbol}`)}
+                        onClick={() => setLocation(`/metals-trading?symbol=${commodity.symbol}`)}
                       >
                         Trade {commodity.symbol}
                       </Button>
@@ -306,7 +305,7 @@ export default function Commodities() {
                       </div>
                       <Button 
                         className="w-full mt-4 bg-blue-600 hover:bg-blue-700" 
-                        onClick={() => navigate(`/metals-trading?symbol=${commodity.symbol}`)}
+                        onClick={() => setLocation(`/metals-trading?symbol=${commodity.symbol}`)}
                       >
                         Trade {commodity.symbol}
                       </Button>
@@ -374,7 +373,7 @@ export default function Commodities() {
                 size="lg" 
                 variant="secondary" 
                 className="text-amber-600 hover:text-amber-700"
-                onClick={() => navigate('/metals-trading')}
+                onClick={() => setLocation('/metals-trading')}
               >
                 Start Trading Now
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -383,7 +382,7 @@ export default function Commodities() {
                 size="lg" 
                 variant="outline" 
                 className="text-white border-white hover:bg-white/10"
-                onClick={() => navigate('/markets')}
+                onClick={() => setLocation('/markets')}
               >
                 View All Markets
               </Button>
