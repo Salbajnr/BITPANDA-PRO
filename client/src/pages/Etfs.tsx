@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +15,28 @@ import {
   DollarSign,
   Star,
   Shield,
-  Info
+  Info,
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 
-const etfData = [
+interface ETFData {
+  symbol: string;
+  name: string;
+  category: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: string;
+  expense: string;
+  aum: string;
+  description: string;
+}
+
+const etfDataFallback = [
   {
     symbol: "SPY",
     name: "SPDR S&P 500 ETF Trust",
@@ -100,7 +117,23 @@ export default function Etfs() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [filteredEtfs, setFilteredEtfs] = useState(etfData);
+
+  // Fetch ETFs from API
+  const { data: etfData = etfDataFallback, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/etfs/market-data'],
+    queryFn: async () => {
+      try {
+        return await api.get('/etfs/market-data');
+      } catch (err) {
+        console.error('Failed to fetch ETFs:', err);
+        return etfDataFallback;
+      }
+    },
+    refetchInterval: 60000,
+    retry: 3
+  });
+
+  const [filteredEtfs, setFilteredEtfs] = useState<ETFData[]>([]);
 
   useEffect(() => {
     let filtered = etfData;
@@ -167,7 +200,11 @@ export default function Etfs() {
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Button onClick={() => refetch()} variant="outline" size="sm" disabled={isLoading}>
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
               {categories.map((category) => (
                 <Button
                   key={category}
@@ -187,6 +224,25 @@ export default function Etfs() {
       {/* ETF List */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {error ? (
+            <Card className="border-red-200">
+              <CardContent className="p-8 text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Unable to Load ETF Data</h3>
+                <p className="text-gray-600 mb-4">ETF trading is currently unavailable. Showing cached data.</p>
+                <Button onClick={() => refetch()}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retry
+                </Button>
+              </CardContent>
+            </Card>
+          ) : isLoading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-green-500" />
+              <p className="text-gray-600">Loading ETF data...</p>
+            </div>
+          ) : null}
+          
           <div className="grid gap-6">
             {filteredEtfs.map((etf) => (
               <Card key={etf.symbol} className="border border-gray-200 hover:border-green-300 transition-all duration-200 hover:shadow-lg">
