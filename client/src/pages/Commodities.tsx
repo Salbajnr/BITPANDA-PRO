@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,9 +23,11 @@ import {
   Coins,
   Building,
   Shield,
-  Zap
+  Zap,
+  RefreshCw // Import RefreshCw for loading state
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useQuery } from "@tanstack/react-query"; // Import useQuery for data fetching
 
 interface LessonLevel {
   id: string;
@@ -47,12 +48,31 @@ interface Lesson {
   color: string;
 }
 
+// Dummy Navbar for the loading state, assuming it exists elsewhere
+const Navbar = () => (
+  <nav className="bg-white shadow-md p-4">
+    <div className="container mx-auto">Navbar Placeholder</div>
+  </nav>
+);
+
+
 export default function Commodities() {
   const { language, t } = useLanguage();
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [userProgress, setUserProgress] = useState(0);
 
-  // Investment levels inspired by Bitpanda Academy
+  // Fetch real commodities data from API
+  const { data: commodities = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/metals/market-data'],
+    queryFn: async () => {
+      const response = await fetch('/api/metals/market-data');
+      if (!response.ok) throw new Error('Failed to fetch commodities');
+      return response.json();
+    },
+    refetchInterval: 30000,
+    retry: 2
+  });
+
   const investmentLevels: LessonLevel[] = [
     {
       id: 'all',
@@ -215,6 +235,37 @@ export default function Commodities() {
   const filteredLessons = selectedLevel === 'all' 
     ? lessons 
     : lessons.filter(lesson => lesson.level.toLowerCase() === selectedLevel);
+
+  const filteredCommodities = commodities.filter((commodity: any) =>
+    (selectedCategory === "all" || commodity.category === selectedCategory) &&
+    (commodity.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     commodity.symbol?.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="text-center py-20">
+          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-500" />
+          <p className="text-gray-600">Loading commodities data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="text-center py-20">
+          <p className="text-red-500">Error loading commodities data. Please try again later.</p>
+          <Button onClick={() => refetch()} className="mt-4">Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
