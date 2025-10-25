@@ -8,6 +8,9 @@ import { db, pool } from "./db"; // Use the shared database connection
 // Re-export db for convenience
 export { db };
 
+// Type for the database
+type DatabaseType = typeof db;
+
 // Database storage implementation with proper error handling
 class DatabaseStorage {
   private async withConnection<T>(fn: (db: DatabaseType) => Promise<T>): Promise<T> {
@@ -17,8 +20,12 @@ class DatabaseStorage {
     
     try {
       return await fn(db);
-    } catch (error) {
-      console.error('Database operation failed:', error);
+    } catch (error: any) {
+      // Only log non-connection errors to reduce noise
+      if (!error?.message?.includes('Connection terminated') && error?.code !== 'ECONNRESET') {
+        console.error('Database operation failed:', error);
+      }
+      // Re-throw the error so retry logic can handle it
       throw error;
     }
   }

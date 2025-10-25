@@ -92,6 +92,12 @@ class PriceMonitorService {
         return;
       }
 
+      // Check if database connection exists
+      if (!storage.db) {
+        console.log('⚠️ Database not initialized, skipping alert checks');
+        return;
+      }
+
       // Retry logic with exponential backoff
       let retries = 3;
       let activeAlerts;
@@ -102,7 +108,9 @@ class PriceMonitorService {
           break; // Success, exit retry loop
         } catch (err: any) {
           if (attempt === retries) {
-            throw err; // Final attempt failed
+            // On final retry failure, just log and return (don't throw)
+            console.log('⚠️ Database connection issue, will retry on next check');
+            return;
           }
           
           // Only retry on connection errors
@@ -112,7 +120,9 @@ class PriceMonitorService {
             continue;
           }
           
-          throw err; // Don't retry on other errors
+          // For non-connection errors, don't retry
+          console.error(`Error fetching alerts:`, err?.message || err);
+          return;
         }
       }
       
