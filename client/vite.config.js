@@ -17,7 +17,7 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: process.env.NODE_ENV === 'production' ? 'http://0.0.0.0:10000' : 'http://0.0.0.0:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
         secure: false,
       }

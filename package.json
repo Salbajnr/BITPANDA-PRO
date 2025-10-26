@@ -57,6 +57,7 @@
     "passport-apple": "^2.0.2",
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.16.3",
     "postcss": "^8.5.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
