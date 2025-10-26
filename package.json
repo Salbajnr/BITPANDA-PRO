@@ -24,6 +24,7 @@
     "client"
   ],
   "dependencies": {
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.76.1",
     "@types/cheerio": "^0.22.35",
