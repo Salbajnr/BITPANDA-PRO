@@ -1,94 +1,84 @@
-# BitpandaPro - Replit Setup
+# BitpandaPro - Cryptocurrency Trading Platform
 
-## Project Overview
-A full-stack cryptocurrency trading platform with React frontend and Express backend.
+## Overview
+A full-stack cryptocurrency trading platform with real-time price updates, portfolio management, and comprehensive admin dashboard. Successfully imported from GitHub and configured for the Replit environment.
 
-## Recent Changes (Oct 25, 2025)
-- Installed all project dependencies
-- Updated Vite config to allow all hosts for Replit proxy compatibility
-- Fixed special character encoding in database connection URLs
-
-## Important Database Configuration
-
-### Current Issue
-The DATABASE_URL is using a direct Supabase connection (`db.qqjvozsmlumssmmknjwf.supabase.co`) which only supports IPv6. This causes DNS resolution failures on many platforms including Replit, Render, and Vercel.
-
-### Solution for Multi-Environment Support
-To make this work on **both Replit and external environments** (Render, Vercel, etc.), you need to update your DATABASE_URL to use Supabase's **pooler connection string**:
-
-**Current (doesn't work):**
-```
-postgresql://postgres:password@db.xxx.supabase.co:5432/postgres
-```
-
-**Correct (works everywhere):**
-```
-postgresql://postgres.PROJECT_REF:password@aws-0-REGION.pooler.supabase.com:6543/postgres
-```
-
-**Where to find it:**
-1. Go to your Supabase Dashboard
-2. Click **"Connect"** button
-3. Select **"Transaction"** mode (port 6543)
-4. Copy the connection string
-5. Update your Replit Secrets or environment variables
-
-**Why this matters:**
-- Direct connections only support IPv6
-- Pooler connections support both IPv4 and IPv6
-- Works on all deployment platforms (Replit, Render, Vercel, Railway, etc.)
-
-### Alternative: Use Replit Database
-For development in Replit only, you can use Replit's built-in PostgreSQL database. However, for production deployments on external platforms, you'll still need a cloud database like Supabase or Neon.
+## Recent Changes
+- **2025-10-26**: Project imported and configured for Replit
+  - Installed all dependencies via Replit packager (vite, react, radix-ui, etc.)
+  - Configured Vite with @ path aliases and allowed hosts for proxy support
+  - Frontend running on port 5000 via workflow
+  - Backend configured with PostgreSQL database connection
+  - Fixed workspace dependency conflicts
 
 ## Project Architecture
 
-### Frontend (Port 5000)
-- React 19 with TypeScript
-- Vite dev server with HMR
-- Tailwind CSS + Radix UI components
-- Proxies API requests to backend on port 3000
+### Technology Stack
+- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS, Radix UI, Wouter
+- **Backend**: Node.js, Express, TypeScript, PostgreSQL (Supabase), Drizzle ORM
+- **Real-time**: WebSockets, Server-Sent Events (SSE)
+- **APIs**: CoinGecko (crypto prices), NewsAPI, Metals API
 
-### Backend (Port 3000)
-- Express.js with TypeScript
-- WebSocket support for real-time updates
-- Drizzle ORM for database
-- REST API endpoints
-
-### Database Schema
-- Located in `shared/schema.ts`
-- Uses Drizzle ORM migrations
-- Supports demo mode (no database required)
-
-## Workflow Configuration
-- **Frontend workflow**: Runs on port 5000 with `npm run dev`
-- Backend starts automatically (runs on port 10000 in Replit, port 3000 in standard dev)
-
-## Environment Variables for Deployment
-
-### For Development (Replit, Local)
-No environment variables needed! The app auto-detects localhost/Replit and uses relative URLs with the Vite proxy.
-
-### For Production Deployments (Render, Vercel, etc.)
-Set these environment variables:
-
-**Frontend (if deployed separately):**
+### Directory Structure
 ```
-VITE_API_URL=https://your-backend-api.com
+├── client/          # React frontend (port 5000)
+├── server/          # Express backend API
+├── shared/          # Shared schemas and types
+└── node_modules/    # Root-level dependencies
 ```
 
-**Backend:**
-```
-DATABASE_URL=postgresql://... (use pooler connection string from Supabase)
-NODE_ENV=production
-PORT=10000 (or your preferred port)
-COOKIE_SECRET=your-super-secret-key
+## Development
+
+### Environment Variables
+The app uses these key environment variables:
+- `DATABASE_URL` - PostgreSQL connection string (Supabase)
+- `PORT` - Backend port (10000 in production, 3000 in dev)
+- `NODE_ENV` - Environment mode (production/development)
+- `METALS_API_KEY` - For precious metals pricing
+- `NEWS_API_KEY` - For news integration (optional)
+- `COINGECKO_API_KEY` - For crypto data (optional)
+
+### Running Locally
+Frontend (configured as workflow):
+```bash
+cd client && npx vite
 ```
 
-**Note:** The frontend intelligently uses relative URLs in development and respects `VITE_API_URL` in production builds, making it portable across all platforms.
+Backend:
+```bash
+cd server && npx tsx watch index.ts
+```
+
+### Database
+- **Schema**: Defined in `shared/schema.ts`
+- **Sync Schema**: `npm run db:push --force`
+- **Studio**: `npm run db:studio`
+
+The app can run in demo mode without a database connection.
+
+## Key Features
+- Real-time cryptocurrency price tracking (100+ coins)
+- Trading interface with buy/sell capabilities
+- Portfolio management and analytics
+- KYC verification system
+- Deposit/withdrawal management
+- Admin dashboard with comprehensive controls
+- Multi-language support (EN, DE, ES, FR, ZH)
+- News integration and price alerts
 
 ## User Preferences
-- Keep existing project structure and conventions
-- Use npm workspaces for monorepo setup
-- TypeScript for all code
-- Configuration works on both Replit and external environments
+- Vite configured with `allowedHosts: true` for Replit proxy
+- Path alias `@/` points to `client/src/`
+- Radix UI for accessible component primitives
+- Tailwind CSS with PostCSS for styling
+
+## Known Issues
+1. **LiveTicker.tsx**: Has duplicate code causing transform errors - needs cleanup
+2. **Database Connection**: Shows warnings when CONNECTION terminated (connection pooling issue)
+3. **Missing Dependencies**: Some optional features need API keys to work fully
+
+## Next Steps
+1. Fix LiveTicker.tsx syntax errors (lines 1-40 have duplicates)
+2. Test backend API endpoints with database
+3. Configure deployment for production
+4. Add missing API keys for full functionality
