@@ -277,6 +277,76 @@ class NewsService {
     return fallback.slice(0, limit);
   }
 
+  async getNewsByCategory(category: string, limit: number = 10): Promise<any[]> {
+    const cacheKey = `news_category_${category}_${limit}`;
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
+    }
+
+    try {
+      // Try CryptoPanic API
+      const response = await fetch(
+        `https://cryptopanic.com/api/v1/posts/?auth_token=${this.cryptoPanicKey || 'demo'}&filter=${category}&public=true`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const articles = data.results.map((article: any) => ({
+          id: article.id.toString(),
+          title: article.title,
+          description: article.title,
+          summary: article.title,
+          url: article.url,
+          imageUrl: article.source?.icon || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+          urlToImage: article.source?.icon || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+          publishedAt: article.created_at,
+          createdAt: article.created_at,
+          source: { id: article.source?.domain, name: article.source?.title },
+          category: category,
+          sentiment: article.votes?.positive > article.votes?.negative ? 'positive' : 'negative',
+          coins: article.currencies?.map((c: any) => c.code.toLowerCase()) || []
+        }));
+
+        this.cache.set(cacheKey, { data: articles.slice(0, limit), timestamp: Date.now() });
+        return articles.slice(0, limit);
+      }
+    } catch (error) {
+      console.warn('News by category fetch failed:', error);
+    }
+
+    return this.getFallbackNews(limit);
+  }
+
+  async searchNews(query: string, limit: number = 10): Promise<any[]> {
+    const cacheKey = `news_search_${query}_${limit}`;
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
+    }
+
+    try {
+      const allNews = await this.getNews(100);
+      const results = allNews.filter(article =>
+        article.title.toLowerCase().includes(query.toLowerCase()) ||
+        article.description.toLowerCase().includes(query.toLowerCase())
+      );
+
+      this.cache.set(cacheKey, { data: results.slice(0, limit), timestamp: Date.now() });
+      return results.slice(0, limit);
+    } catch (error) {
+      console.warn('News search failed:', error);
+      return [];
+    }
+  }
+
+  clearCache(): void {
+    this.cache.clear();
+  }
+  }
+
   clearCache(): void {
     this.cache.clear();
   }

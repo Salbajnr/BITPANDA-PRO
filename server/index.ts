@@ -58,6 +58,7 @@ import comprehensiveCrudRoutes from "./comprehensive-crud-routes";
 import uploadRoutes from "./upload-routes";
 import { registerProofUploadRoutes } from "./proof-upload-routes";
 import oauthRoutes from "./oauth-routes";
+import csrfRoutes from "./csrf-routes";
 
 const app = express();
 
@@ -201,6 +202,7 @@ if (process.env.NODE_ENV === 'production') {
 // === ROUTES ===
 registerRoutes(app);
 
+app.use("/api", csrfRoutes);
 app.use("/api/auth", authRoutes);
 
 // Only register OAuth routes if passport is configured
@@ -213,6 +215,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/crypto", cryptoRoutes);
 app.use("/api/trading", tradingRoutes);
 app.use("/api/portfolio", portfolioRoutes);
+app.use("/api/portfolio", portfolioAnalyticsRoutes);
 app.use("/api/deposits", depositRoutes);
 app.use("/api/withdrawals", withdrawalRoutes);
 app.use("/api/alerts", alertRoutes);

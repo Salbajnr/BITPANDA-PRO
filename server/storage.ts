@@ -569,8 +569,50 @@ class DatabaseStorage {
       return updatedUser;
     });
   }
-  async getUserSettings(userId: string) { return { userId }; }
-  async updateUserSettings(userId: string, data: any) { return { userId, ...data }; }
+  async getUserSettings(userId: string) {
+    return this.withConnection(async (db) => {
+      const [settings] = await db
+        .select()
+        .from(schema.userSettings)
+        .where(eq(schema.userSettings.userId, userId))
+        .limit(1);
+
+      return settings;
+    });
+  }
+
+  async createUserSettings(data: any) {
+    return this.withConnection(async (db) => {
+      const [settings] = await db
+        .insert(schema.userSettings)
+        .values({
+          ...data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+
+      return settings;
+    });
+  }
+
+  async updateUserSettings(userId: string, data: any) {
+    return this.withConnection(async (db) => {
+      // Try to update first
+      const [updated] = await db
+        .update(schema.userSettings)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(schema.userSettings.userId, userId))
+        .returning();
+
+      // If no row was updated, create new settings
+      if (!updated) {
+        return this.createUserSettings({ userId, ...data });
+      }
+
+      return updated;
+    });
+  }
   async getUserNotifications(userId: string) { return []; }
   async markNotificationAsRead(id: string) { return { id, read: true }; }
   async deleteUser(userId: string) { return { id: userId }; }
