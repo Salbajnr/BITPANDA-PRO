@@ -58,14 +58,24 @@ export default function OtpVerification() {
         method: 'POST',
         body: data
       }),
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       setTimeLeft(300); // Reset timer
       setOtp(""); // Clear OTP input
       setError(null); // Clear any previous errors on resend
-      toast({
-        title: "OTP resent",
-        description: "A new verification code has been sent to your email.",
-      });
+      
+      // Show OTP if email delivery failed (development only)
+      if (data.otp) {
+        toast({
+          title: "Email Delivery Failed",
+          description: `Your verification code is: ${data.otp}`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "OTP resent",
+          description: "A new verification code has been sent to your email.",
+        });
+      }
     },
     onError: (error: any) => {
       setError(error.message || "Could not resend OTP. Please try again."); // Set error message

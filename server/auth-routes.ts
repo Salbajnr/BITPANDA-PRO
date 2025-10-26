@@ -196,13 +196,28 @@ router.post('/send-otp', async (req, res) => {
       ? 'Password Reset Verification - BITPANDA PRO'
       : 'Two-Factor Authentication - BITPANDA PRO';
 
-    await sendOTPEmail({
+    const emailSent = await sendOTPEmail({
       to: email,
       otp: otp,
       type: type,
     });
 
-    res.json({ success: true, message: 'OTP sent successfully' });
+    // In development mode, include OTP in response if email failed
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const response: any = { 
+      success: true, 
+      message: emailSent 
+        ? 'OTP sent successfully to your email' 
+        : 'OTP generated. Check server console for code.' 
+    };
+
+    // Only include OTP in response during development and if email failed
+    if (isDevelopment && !emailSent) {
+      response.otp = otp;
+      response.warning = 'Email delivery failed. OTP shown for development only.';
+    }
+
+    res.json(response);
   } catch (error) {
     console.error('❌ Send OTP error:', error);
     res.status(400).json({ error: 'Invalid request' });
@@ -317,13 +332,28 @@ router.post('/resend-otp', async (req, res) => {
     }
 
     // Use the new sendOTPEmail function
-    await sendOTPEmail({
+    const emailSent = await sendOTPEmail({
       to: email,
       otp: otp,
       type: type,
     });
 
-    res.json({ success: true, message: 'New OTP sent successfully' });
+    // In development mode, include OTP in response if email failed
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const response: any = { 
+      success: true, 
+      message: emailSent 
+        ? 'New OTP sent successfully to your email' 
+        : 'New OTP generated. Check server console for code.' 
+    };
+
+    // Only include OTP in response during development and if email failed
+    if (isDevelopment && !emailSent) {
+      response.otp = otp;
+      response.warning = 'Email delivery failed. OTP shown for development only.';
+    }
+
+    res.json(response);
   } catch (error) {
     console.error('Resend OTP error:', error);
     res.status(400).json({ error: 'Invalid request' });
