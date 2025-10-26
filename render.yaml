@@ -16,6 +16,7 @@ services:
       # Install server dependencies and build
       cd ../server && \
       npm install --include=dev && \
+      npm install zod && \
       npm run build
     startCommand: "NODE_ENV=production npx tsx server/index.ts"
     envVars:
