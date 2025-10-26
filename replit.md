@@ -47,9 +47,26 @@ project/
 
 ### Required Environment Variables
 - `COOKIE_SECRET` - **REQUIRED** - Session signing key (min 32 chars)
+- `DATABASE_URL` - PostgreSQL connection string (Supabase or Replit DB)
+
+### Supabase Authentication (NEW - Fully Integrated)
+The platform now supports comprehensive Supabase Auth with all features:
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_ANON_KEY` - Supabase anonymous key  
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
+
+**Auth Features Available:**
+- ✅ Email/Password signup & signin
+- ✅ Phone number auth with OTP
+- ✅ Social logins: Google, Facebook, Apple, GitHub, Twitter
+- ✅ Email verification & resend
+- ✅ Password reset & update
+- ✅ Session management & refresh
+- ✅ Multi-factor authentication ready
+
+**See `SUPABASE_AUTH_API.md` for complete API documentation**
 
 ### Optional Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string (runs in demo mode without it)
 - `COINGECKO_API_KEY` - For cryptocurrency price data
 - `NEWS_API_KEY` - For news aggregation
 - `METALS_API_KEY` - For precious metals pricing

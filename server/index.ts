@@ -66,6 +66,7 @@ import { registerProofUploadRoutes } from "./proof-upload-routes";
 import oauthRoutes from "./oauth-routes";
 import csrfRoutes from "./csrf-routes";
 import comprehensiveApiRoutes from "./comprehensive-api-routes";
+import supabaseAuthRoutes from "./supabase-auth-routes";
 
 const app = express();
 
@@ -211,6 +212,10 @@ registerRoutes(app);
 
 app.use("/api", csrfRoutes);
 app.use("/api/auth", authRoutes);
+
+// Register Supabase Auth routes
+app.use("/api/supabase-auth", supabaseAuthRoutes);
+console.log("✅ Supabase Auth routes registered");
 
 // Only register OAuth routes if passport is configured
 if (process.env.GOOGLE_CLIENT_ID || process.env.FACEBOOK_APP_ID || process.env.APPLE_CLIENT_ID) {
