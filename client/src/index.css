@@ -142,18 +142,19 @@
 
 /* Live Ticker Animation */
 @keyframes scroll {
-  0% {
-    transform: translateX(0%);
+  from {
+    transform: translateX(0);
   }
-  100% {
+  to {
     transform: translateX(-50%);
   }
 }
 
 .animate-scroll {
-  animation: scroll 30s linear infinite;
+  animation: scroll 40s linear infinite;
   will-change: transform;
-  display: flex;
+  display: inline-flex;
+  white-space: nowrap;
 }
 
 .animate-scroll:hover {
