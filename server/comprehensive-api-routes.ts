@@ -379,7 +379,7 @@ router.get('/analytics/trading-stats', requireAuth, async (req: Request, res: Re
       totalFees,
       winRate: sellTransactions.length > 0 ? (profitableTrades.length / sellTransactions.length) * 100 : 0,
       avgTradeSize: transactions.length > 0 ? (totalBuyVolume + totalSellVolume) / transactions.length : 0,
-      mostTradedAssets: this.getMostTraded(transactions),
+      mostTradedAssets: getMostTradedAssets(transactions),
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -388,8 +388,8 @@ router.get('/analytics/trading-stats', requireAuth, async (req: Request, res: Re
   }
 });
 
-// Helper method for most traded assets
-private getMostTraded(transactions: any[]): any[] {
+// Helper function for most traded assets
+function getMostTradedAssets(transactions: any[]): any[] {
   const symbolCounts = transactions.reduce((acc, t) => {
     acc[t.symbol] = (acc[t.symbol] || 0) + 1;
     return acc;
