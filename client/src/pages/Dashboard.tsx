@@ -67,7 +67,136 @@ interface TopMover {
   icon: string;
 }
 
-// Bottom Navigation Component
+// Sidebar Navigation Component
+function SidebarNavigation() {
+  const [location] = useLocation();
+  const navigate = useNavigation();
+
+  const mainNavItems = [
+    { id: "/dashboard", label: "Dashboard", icon: Home },
+    { id: "/analytics", label: "Analytics", icon: BarChart3 },
+    { id: "/trading", label: "Trading", icon: Activity },
+    { id: "/advanced-trading", label: "Advanced Trading", icon: TrendingUp },
+    { id: "/watchlist", label: "Watchlist", icon: Search },
+  ];
+
+  const walletItems = [
+    { id: "/deposits", label: "Deposit", icon: Plus },
+    { id: "/withdrawals", label: "Withdraw", icon: Minus },
+    { id: "/transactions", label: "History", icon: RefreshCw },
+  ];
+
+  const accountItems = [
+    { id: "/settings", label: "Settings", icon: User },
+    { id: "/help", label: "Help & Support", icon: AlertCircle },
+  ];
+
+  return (
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+      {/* Logo Section */}
+      <div className="flex items-center h-16 px-6 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-green-600 flex items-center justify-center">
+            <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded-full" />
+          </div>
+          <span className="text-lg font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3">
+        {/* Main Navigation */}
+        <div className="mb-6">
+          <div className="px-3 mb-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Main
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {mainNavItems.map((item) => {
+              const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.id}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Wallet Section */}
+        <div className="mb-6">
+          <div className="px-3 mb-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Wallet
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {walletItems.map((item) => {
+              const isActive = location === item.id;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.id}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Account Section */}
+        <div>
+          <div className="px-3 mb-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Account
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {accountItems.map((item) => {
+              const isActive = location === item.id;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.id}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+    </aside>
+  );
+}
+
+// Bottom Navigation Component (Mobile)
 function BottomNavigation() {
   const [location] = useLocation();
 
@@ -80,7 +209,7 @@ function BottomNavigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50">
       <div className="flex justify-around items-center py-2 px-4 max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive =
@@ -214,9 +343,14 @@ export default function Dashboard() {
   const losers = topMovers.filter((m) => m.change < 0);
 
   return (
-    <DashboardLayout showTicker={true}>
-      {/* Bitpanda-Style Clean Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Sidebar Navigation */}
+      <SidebarNavigation />
+
+      {/* Main Content Area */}
+      <div className="lg:pl-64">
+        {/* Bitpanda-Style Clean Header */}
+        <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -722,7 +856,8 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation />
-    </DashboardLayout>
+        <BottomNavigation />
+      </div>
+    </div>
   );
 }
