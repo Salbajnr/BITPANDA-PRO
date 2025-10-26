@@ -194,8 +194,8 @@ export default function LiveTicker() {
     <FeatureErrorBoundary>
       <style>{animationStyles}</style>
       <div className="bg-slate-900 border-b border-slate-800 overflow-hidden">
-        <div className="relative h-8">
-          <div className="flex items-center h-full space-x-8 animate-scroll whitespace-nowrap">
+        <div className="relative h-8 flex items-center">
+          <div className="flex space-x-8 animate-scroll">
             {/* First set of items */}
             {tickerItems.map((item, index) => {
               const isPositive = (item.price_change_percentage_24h || 0) >= 0;

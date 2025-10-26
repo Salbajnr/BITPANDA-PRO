@@ -151,6 +151,11 @@
 }
 
 .animate-scroll {
-  animation: scroll 40s linear infinite;
+  animation: scroll 30s linear infinite;
   will-change: transform;
+  display: flex;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
 }
