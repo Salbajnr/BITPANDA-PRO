@@ -72,14 +72,11 @@ router.post('/forgot-password', async (req, res) => {
 
     console.log(`Password reset token generated for user ${user.id}`);
 
-    // Send email with correct base URL
-    const baseUrl = getBaseUrl(); // Use the new helper function
-    const resetLink = `${baseUrl}/reset-password/${token}`;
-
-    // Use the dedicated password reset email template
-    const emailSent = await sendPasswordResetSuccessEmail({
+    // Send password reset OTP email
+    const emailSent = await sendOTPEmail({
       to: email,
-      resetLink: resetLink,
+      otp: token.substring(0, 6), // Use first 6 chars of token as OTP display
+      type: 'password_reset',
     });
 
     if (emailSent) {
