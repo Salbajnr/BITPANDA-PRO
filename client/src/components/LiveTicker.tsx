@@ -18,6 +18,24 @@ export default function LiveTicker() {
   const [isConnected, setIsConnected] = useState(true);
   const [hasError, setHasError] = useState(false);
 
+  // Add animation styles
+  const animationStyles = `
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+    .animate-scroll {
+      animation: scroll 60s linear infinite;
+    }
+    .animate-scroll:hover {
+      animation-play-state: paused;
+    }
+  `;
+
   // Fetch crypto data directly from CoinGecko
   const {
     data: cryptoResponse,
@@ -174,6 +192,7 @@ export default function LiveTicker() {
 
   return (
     <FeatureErrorBoundary>
+      <style>{animationStyles}</style>
       <div className="bg-slate-900 border-b border-slate-800 overflow-hidden">
         <div className="relative h-8">
           <div className="flex items-center h-full space-x-8 animate-scroll whitespace-nowrap">
