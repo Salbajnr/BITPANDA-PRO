@@ -6,8 +6,8 @@ const router = Router();
 // Market data endpoint for LiveTicker
 router.get('/market-data', async (req, res) => {
   try {
-    const metals = await metalsService.getMetalsPrices();
-    res.json(metals);
+    const marketData = await metalsService.getMarketData();
+    res.json(marketData);
   } catch (error) {
     console.error('Error fetching metals market data:', error);
     res.status(500).json({ message: 'Failed to fetch metals market data' });
@@ -73,19 +73,6 @@ router.get('/top/:limit?', async (req, res) => {
     console.error('Error fetching top metals:', error);
     res.status(500).json({ 
       message: 'Failed to fetch top metals' 
-    });
-  }
-});
-
-// Get comprehensive market data
-router.get('/market-data', async (req, res) => {
-  try {
-    const marketData = await metalsService.getMarketData();
-    res.json(marketData);
-  } catch (error) {
-    console.error('Error fetching metals market data:', error);
-    res.status(500).json({ 
-      message: 'Failed to fetch market data' 
     });
   }
 });

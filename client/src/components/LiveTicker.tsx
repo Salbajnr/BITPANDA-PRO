@@ -13,6 +13,12 @@ interface TickerItem {
   id?: string;
 }
 
+// Define ApiResponse interface if it's used elsewhere and not defined
+interface ApiResponse {
+  data?: TickerItem[]; // Assuming cryptoResponse might contain data in a 'data' property
+  // Add other potential properties of cryptoResponse if known
+}
+
 export default function LiveTicker() {
   const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
   const [isConnected, setIsConnected] = useState(true);
@@ -31,42 +37,8 @@ export default function LiveTicker() {
     retry: 3,
   });
 
-  // Fetch crypto data for ticker with better error handling
-  const {
-    data: cryptoData,
-    isError: cryptoIsError_v2, // Renamed to avoid conflict if both were intended
-    isLoading: cryptoIsLoading_v2, // Renamed to avoid conflict
-  } = useQuery<TickerItem[]>({
-    queryKey: ['/api/crypto/prices'],
-    queryFn: async () => {
-      const response = await fetch('/api/crypto/prices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          symbols: ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOT', 'MATIC', 'AVAX', 'LINK']
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch crypto prices');
-      }
-
-      const data = await response.json();
-      return Array.isArray(data) ? data.map((item: any) => ({
-        symbol: item.symbol || 'N/A',
-        name: item.name || item.symbol || 'Unknown',
-        current_price: item.price || item.current_price || 0,
-        price_change_percentage_24h: item.change_24h || item.price_change_percentage_24h || 0
-      })) : [];
-    },
-    refetchInterval: 15000,
-    retry: 2,
-    retryDelay: 2000,
-  });
-
   // Fetch metals data for ticker
   const {
-    data: metalsResponse,
     data: metalsData,
     isError: metalsIsError,
     isLoading: metalsIsLoading
@@ -98,28 +70,32 @@ export default function LiveTicker() {
     let items: TickerItem[] = [];
     let dataAvailable = false;
 
-    // Process crypto data - handle both array and object with data property
-    if (cryptoResponse) {
-      const dataArray = Array.isArray(cryptoResponse) ? cryptoResponse : cryptoResponse.data;
-      if (dataArray && Array.isArray(dataArray)) {
-        items = [...dataArray.slice(0, 12).map((item: any) => ({
-          symbol: item.symbol,
-          name: item.name,
-          current_price: item.current_price || item.price,
-          price_change_percentage_24h: item.price_change_percentage_24h || item.change_24h || 0,
-          id: item.id
-        }))];
-      }
-    }
-    // The second crypto query is used for the actual ticker display data
-    if (cryptoData && Array.isArray(cryptoData) && cryptoData.length > 0) {
-      items = [...cryptoData];
+    // Process crypto data
+    if (cryptoResponse && cryptoResponse.data && Array.isArray(cryptoResponse.data)) {
+      items = [...cryptoResponse.data.slice(0, 12).map((item: any) => ({
+        symbol: item.symbol,
+        name: item.name,
+        current_price: item.current_price || item.price,
+        price_change_percentage_24h: item.price_change_percentage_24h || item.change_24h || 0,
+        id: item.id
+      }))];
       setIsConnected(true);
       dataAvailable = true;
     }
 
     if (metalsData && Array.isArray(metalsData) && metalsData.length > 0) {
-      items = [...items, ...metalsData];
+      // Ensure we don't duplicate if crypto data also contained metals (unlikely but safe)
+      const existingSymbols = new Set(items.map(item => item.symbol));
+      metalsData.forEach((item: any) => {
+        if (!existingSymbols.has(item.symbol)) {
+          items.push({
+            symbol: item.symbol,
+            name: item.name,
+            current_price: item.price || 0, // Assuming metals might have 'price'
+            price_change_percentage_24h: item.change_24h || 0, // Assuming metals might have 'change_24h'
+          });
+        }
+      });
       setIsConnected(true);
       dataAvailable = true;
     }
@@ -131,16 +107,16 @@ export default function LiveTicker() {
 
     setTickerItems(items);
 
-    // Set hasError if either crypto or metals data fetch failed
-    if (cryptoIsError || metalsIsError || cryptoIsError_v2 || cryptoError) { // Included both crypto errors
+    // Set hasError if any of the data fetch failed
+    if (cryptoIsError || metalsIsError || cryptoError) {
       setHasError(true);
     } else {
       setHasError(false);
     }
-  }, [cryptoData, metalsData, cryptoIsError, metalsIsError, cryptoIsError_v2, cryptoError, cryptoResponse]); // Added dependencies
+  }, [cryptoResponse, metalsData, cryptoIsError, metalsIsError, cryptoError]); // Added dependencies
 
   // Show loading state only initially
-  if (cryptoIsLoading && metalsIsLoading && tickerItems.length === 0) { // Also check cryptoIsLoading_v2 if it's a separate initial load
+  if (cryptoIsLoading && metalsIsLoading && tickerItems.length === 0) {
     return (
       <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-2">
@@ -154,7 +130,7 @@ export default function LiveTicker() {
   }
 
   // Show error fallback UI
-  if (hasError || cryptoIsError || metalsIsError || cryptoIsError_v2 || cryptoError) { // Included both crypto errors
+  if (hasError || cryptoIsError || metalsIsError || cryptoError) {
     return (
       <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-2">
@@ -170,7 +146,7 @@ export default function LiveTicker() {
   }
 
   // If no data and not loading, but also no error, means it's empty or intentionally not showing
-  if ((!cryptoData || cryptoData.length === 0) && (!metalsData || metalsData.length === 0) && tickerItems.length === 0) {
+  if ((!cryptoResponse || !cryptoResponse.data || cryptoResponse.data.length === 0) && (!metalsData || metalsData.length === 0) && tickerItems.length === 0) {
     return null;
   }
 

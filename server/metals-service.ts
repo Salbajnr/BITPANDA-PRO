@@ -31,6 +31,11 @@ class MetalsService {
     }
   }
 
+  // Alias for getMarketData to support both method names
+  async getMetalsPrices(): Promise<any[]> {
+    return this.getMarketData();
+  }
+
   // Precious metals with their display names
   private readonly METAL_INFO: Record<MetalSymbol, { name: string; unit: string; mockPrice?: number }> = {
     'XAU': { name: 'Gold', unit: 'oz', mockPrice: 2000 },

@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 const router = Router();
 
-// Get top cryptocurrencies
+// Get top cryptocurrencies - this route needs to come first to avoid conflicts
 router.get('/top/:limit?', async (req, res) => {
   try {
     const limit = parseInt(req.params.limit || '50');
