@@ -10,10 +10,20 @@ import {
   TrendingUp, 
   TrendingDown, 
   Newspaper,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { newsApi } from '@/services/newsApi';
+
+interface FetchStatus {
+  success: boolean;
+  source: 'bitpanda-blog' | 'fallback';
+  lastFetch: string;
+  articlesCount: number;
+  error?: string;
+}
 
 interface NewsWidgetProps {
   limit?: number;
@@ -30,6 +40,16 @@ export default function NewsWidget({
     queryKey: ['widget-crypto-news', category, limit],
     queryFn: () => newsApi.getCryptoNews(category, limit),
     refetchInterval: 10 * 60 * 1000, // Refetch every 10 minutes
+  });
+
+  const { data: fetchStatus } = useQuery<FetchStatus>({
+    queryKey: ['news-fetch-status'],
+    queryFn: async () => {
+      const response = await fetch('/api/news/status');
+      if (!response.ok) throw new Error('Failed to fetch status');
+      return response.json();
+    },
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds
   });
 
   const formatTimeAgo = (dateString: string) => {
@@ -96,8 +116,20 @@ export default function NewsWidget({
               </Button>
             </Link>
           </div>
-          <CardDescription>
-            Stay updated with crypto market developments
+          <CardDescription className="flex items-center gap-2">
+            <span>Stay updated with crypto market developments</span>
+            {fetchStatus && (
+              <Badge 
+                variant={fetchStatus.success ? "default" : "secondary"} 
+                className={`text-xs ${fetchStatus.success ? 'bg-green-600' : 'bg-orange-500'}`}
+              >
+                {fetchStatus.success ? (
+                  <><CheckCircle2 className="h-3 w-3 mr-1" /> Bitpanda Blog</>
+                ) : (
+                  <><XCircle className="h-3 w-3 mr-1" /> {fetchStatus.error ? 'Error' : 'Fallback'}</>
+                )}
+              </Badge>
+            )}
           </CardDescription>
         </CardHeader>
       )}

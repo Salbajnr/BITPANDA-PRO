@@ -317,6 +317,7 @@ export default function Features() {
               variant="outline" 
               size="lg" 
               className="border-white text-white hover:bg-white hover:text-green-600 text-lg px-8 py-3"
+              onClick={() => window.location.href = '/about'}
             >
               Learn More
             </Button>

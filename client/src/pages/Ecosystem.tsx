@@ -287,10 +287,27 @@ export default function Ecosystem() {
             </div>
 
             <div className="relative">
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl p-8 text-white text-center">
-                <Smartphone className="w-24 h-24 mx-auto mb-6 opacity-50" />
-                <h3 className="text-2xl font-bold mb-2">Mobile App Preview</h3>
-                <p className="opacity-80">Coming soon with enhanced features</p>
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl p-8 text-white">
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+                    <TrendingUp className="w-8 h-8 mb-2" />
+                    <p className="text-sm font-semibold">Real-time Trading</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+                    <Shield className="w-8 h-8 mb-2" />
+                    <p className="text-sm font-semibold">Secure Access</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+                    <CreditCard className="w-8 h-8 mb-2" />
+                    <p className="text-sm font-semibold">Card Management</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+                    <Wallet className="w-8 h-8 mb-2" />
+                    <p className="text-sm font-semibold">Portfolio Sync</p>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Mobile Experience</h3>
+                <p className="opacity-90">Full-featured mobile apps available now</p>
               </div>
             </div>
           </div>

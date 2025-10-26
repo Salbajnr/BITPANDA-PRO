@@ -28,6 +28,7 @@ import cryptoRoutes from "./crypto-routes";
 import tradingRoutes from "./trading-routes";
 import adminRoutes from "./admin-routes";
 import adminAuthRoutes from "./admin-auth-routes";
+import adminPlansRoutes from "./admin-plans-routes";
 import authRoutes from "./auth-routes";
 import userRoutes from "./user-routes";
 import alertRoutes from "./alert-routes";
@@ -55,6 +56,7 @@ import metalsTradingRoutes from "./metals-trading-routes";
 import comprehensiveCrudRoutes from "./comprehensive-crud-routes";
 import uploadRoutes from "./upload-routes";
 import { registerProofUploadRoutes } from "./proof-upload-routes";
+import oauthRoutes from "./oauth-routes";
 
 const app = express();
 
@@ -164,6 +166,7 @@ if (process.env.NODE_ENV === 'production') {
     console.warn('⚠️  Client build not found. Running in API-only mode.');
 
     // In production but no client build found, handle non-API routes with 404
+    // In production but no client build found
     app.get('*', (req, res, next) => {
       if (!req.path.startsWith('/api/')) {
         return res.status(404).json({
@@ -195,6 +198,13 @@ if (process.env.NODE_ENV === 'production') {
 registerRoutes(app);
 
 app.use("/api/auth", authRoutes);
+
+// Only register OAuth routes if passport is configured
+if (process.env.GOOGLE_CLIENT_ID || process.env.FACEBOOK_APP_ID || process.env.APPLE_CLIENT_ID) {
+  app.use("/api/auth", oauthRoutes);
+  console.log("✅ OAuth routes registered");
+}
+
 app.use("/api/user", userRoutes);
 app.use("/api/crypto", cryptoRoutes);
 app.use("/api/trading", tradingRoutes);
@@ -214,6 +224,7 @@ app.use("/api/lending", lendingRoutes);
 app.use("/api/market-research", marketResearchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
+app.use('/api/admin/plans', adminPlansRoutes);
 app.use("/api/api-management", apiManagementRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/comprehensive-analytics", comprehensiveAnalyticsRoutes);
@@ -277,11 +288,7 @@ const HOST = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
     const httpServer = app.listen(PORT, HOST, () => {
       console.log(`🚀 Backend API Server running on ${HOST}:${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-      if (pool) {
-        console.log("✅ Database connection pool initialized");
-      } else {
-        console.log("⚠️ Running in demo mode (no database)");
-      }
+      console.log("✅ Database connection pool initialized");
     });
 
     // === INIT WEBSOCKETS ===

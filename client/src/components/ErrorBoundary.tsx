@@ -32,16 +32,23 @@ export class ErrorBoundary extends React.Component<
 
     this.setState({ errorInfo });
 
-    // Try to recover after a short delay
-    setTimeout(() => {
-      if (this.state.hasError) {
-        console.log('ErrorBoundary: Attempting recovery...');
-      }
-    }, 1000);
+    // Log to analytics or error tracking service in production
+    if (!import.meta.env.DEV) {
+      // Send error to monitoring service
+      console.error('Production error:', error);
+    }
   }
 
   handleRetry = () => {
+    // Clear error state and force re-render
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    
+    // Optional: Clear any cached data that might be causing issues
+    try {
+      sessionStorage.removeItem('error_cache');
+    } catch (e) {
+      console.warn('Could not clear session storage:', e);
+    }
   };
 
   render() {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   PiggyBank, Calendar, TrendingUp, DollarSign, Target, 
   Plus, Pause, Play, Settings, ArrowRight, CheckCircle,
-  Clock, Repeat, Zap
+  Clock, Repeat, Zap, AlertCircle, RefreshCw
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
@@ -151,10 +150,10 @@ export default function SavingsPlans() {
     const monthlyAmount = frequency === 'monthly' ? amount : 
                          frequency === 'weekly' ? amount * 4.33 : 
                          amount * 30.44;
-    
+
     const monthlyRate = rate / 100 / 12;
     const months = duration;
-    
+
     // Compound interest formula for regular deposits
     const futureValue = monthlyAmount * (((1 + monthlyRate) ** months - 1) / monthlyRate);
     return futureValue;
@@ -162,7 +161,7 @@ export default function SavingsPlans() {
 
   const handleCreatePlan = () => {
     if (!selectedPlan || !planConfig.amount) return;
-    
+
     const amount = parseFloat(planConfig.amount);
     if (amount < selectedPlan.minAmount || amount > selectedPlan.maxAmount) {
       toast({
@@ -197,7 +196,7 @@ export default function SavingsPlans() {
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Navbar />
-          
+
           <main className="flex-1 overflow-y-auto p-6">
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -281,7 +280,7 @@ export default function SavingsPlans() {
                               <p className="text-lg font-bold">{formatCurrency(plan.maxAmount)}</p>
                             </div>
                           </div>
-                          
+
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <p className="text-sm text-slate-600 dark:text-slate-400">Frequency</p>
@@ -326,7 +325,7 @@ export default function SavingsPlans() {
                               <DialogHeader>
                                 <DialogTitle>Set Up {selectedPlan?.name}</DialogTitle>
                               </DialogHeader>
-                              
+
                               {selectedPlan && (
                                 <div className="space-y-4">
                                   <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">

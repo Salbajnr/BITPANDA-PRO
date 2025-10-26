@@ -47,13 +47,20 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: varchar("username").unique().notNull(),
   email: varchar("email").unique().notNull(),
-  password: varchar("password").notNull(),
+  password: varchar("password"),
   firstName: varchar("first_name").default('').notNull(),
   lastName: varchar("last_name").default('').notNull(),
   profileImageUrl: varchar("profile_image_url"),
   supabaseUid: varchar("supabase_uid").unique(),
   displayName: varchar("display_name"),
   photoURL: varchar("photo_url"),
+  
+  // OAuth Provider Fields
+  googleId: varchar("google_id").unique(),
+  facebookId: varchar("facebook_id").unique(),
+  appleId: varchar("apple_id").unique(),
+  provider: varchar("provider"), // 'local', 'google', 'facebook', 'apple'
+  
   role: userRoleEnum("role").default('user').notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   walletBalance: decimal("wallet_balance", { precision: 20, scale: 8 }).notNull().default('0'),

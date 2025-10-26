@@ -239,13 +239,6 @@ export default function ResetPassword() {
                 </Link>
               </p>
             </div>
-
-            {/* Demo Notice */}
-            <div className="mt-4 p-3 bg-blue-900/20 border border-blue-800/50 rounded-lg">
-              <p className="text-xs text-blue-300 text-center">
-                <strong>Demo Mode:</strong> Any password reset token will work in development
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>

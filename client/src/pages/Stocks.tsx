@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +21,11 @@ import {
   Clock,
   Target,
   Zap,
-  Shield
+  Shield,
+  AlertCircle
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { api } from "@/lib/api";
 
 interface Stock {
   symbol: string;
@@ -38,115 +40,37 @@ interface Stock {
 }
 
 export default function Stocks() {
-  const [stocks, setStocks] = useState<Stock[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSector, setSelectedSector] = useState("all");
-  const [loading, setLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // Popular stocks data
-  const popularStocks: Stock[] = [
-    {
-      symbol: "AAPL",
-      name: "Apple Inc.",
-      price: 175.43,
-      change: 2.87,
-      changePercent: 1.67,
-      volume: 52840000,
-      marketCap: "2.7T",
-      sector: "Technology",
-      exchange: "NASDAQ"
+  // Fetch stocks from API
+  const { data: stocks = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/stocks/market-data'],
+    queryFn: async () => {
+      try {
+        return await api.get('/stocks/market-data');
+      } catch (err) {
+        console.error('Failed to fetch stocks:', err);
+        return [];
+      }
     },
-    {
-      symbol: "MSFT",
-      name: "Microsoft Corporation",
-      price: 338.11,
-      change: -1.23,
-      changePercent: -0.36,
-      volume: 28920000,
-      marketCap: "2.5T",
-      sector: "Technology",
-      exchange: "NASDAQ"
-    },
-    {
-      symbol: "GOOGL",
-      name: "Alphabet Inc.",
-      price: 139.69,
-      change: 3.45,
-      changePercent: 2.53,
-      volume: 35670000,
-      marketCap: "1.8T",
-      sector: "Technology",
-      exchange: "NASDAQ"
-    },
-    {
-      symbol: "TSLA",
-      name: "Tesla, Inc.",
-      price: 248.50,
-      change: -5.25,
-      changePercent: -2.07,
-      volume: 89540000,
-      marketCap: "789B",
-      sector: "Automotive",
-      exchange: "NASDAQ"
-    },
-    {
-      symbol: "NVDA",
-      name: "NVIDIA Corporation",
-      price: 875.28,
-      change: 15.67,
-      changePercent: 1.82,
-      volume: 45230000,
-      marketCap: "2.2T",
-      sector: "Technology",
-      exchange: "NASDAQ"
-    },
-    {
-      symbol: "JPM",
-      name: "JPMorgan Chase & Co.",
-      price: 151.20,
-      change: 0.85,
-      changePercent: 0.57,
-      volume: 12450000,
-      marketCap: "441B",
-      sector: "Financial",
-      exchange: "NYSE"
-    }
-  ];
+    refetchInterval: 60000, // Refetch every minute
+    retry: 3
+  });
 
   const sectors = ["all", "Technology", "Financial", "Healthcare", "Energy", "Automotive", "Consumer"];
 
-  useEffect(() => {
-    setStocks(popularStocks);
-    setLastUpdate(new Date());
-  }, []);
-
-  const filteredStocks = stocks.filter(stock => {
+  const filteredStocks = stocks.filter((stock: Stock) => {
     const matchesSearch = stock.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          stock.symbol.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSector = selectedSector === "all" || stock.sector === selectedSector;
     return matchesSearch && matchesSector;
   });
 
-  const refreshData = () => {
-    setLoading(true);
-    // Simulate price updates
-    setTimeout(() => {
-      setStocks(prev => prev.map(stock => ({
-        ...stock,
-        price: stock.price * (0.98 + Math.random() * 0.04), // ±2% variance
-        change: (Math.random() - 0.5) * 10,
-        changePercent: (Math.random() - 0.5) * 4
-      })));
-      setLastUpdate(new Date());
-      setLoading(false);
-    }, 1000);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -159,17 +83,17 @@ export default function Stocks() {
             </div>
             <div className="text-right">
               <Button 
-                onClick={refreshData} 
+                onClick={() => refetch()} 
                 variant="outline" 
                 size="sm"
-                disabled={loading}
+                disabled={isLoading}
                 className="mb-2"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <p className="text-xs text-gray-500">
-                Last updated: {lastUpdate.toLocaleTimeString()}
+                Live market data
               </p>
             </div>
           </div>
@@ -244,62 +168,88 @@ export default function Stocks() {
           </div>
 
           {/* Stock List */}
-          <div className="space-y-4">
-            {filteredStocks.map((stock) => (
-              <Card key={stock.symbol} className="border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-lg">{stock.symbol}</h3>
-                        <p className="text-sm text-gray-600">{stock.name}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline" className="text-xs">{stock.sector}</Badge>
-                          <Badge variant="outline" className="text-xs">{stock.exchange}</Badge>
+          {isLoading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+              <p className="text-gray-600">Loading real-time stock data...</p>
+            </div>
+          ) : error || filteredStocks.length === 0 ? (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-8 text-center">
+                <Building2 className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">Stock Trading Coming Soon</h3>
+                <p className="text-gray-600 mb-4">
+                  We're expanding our stock offerings. Soon you'll have access to thousands of global stocks with zero commission.
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button onClick={() => refetch()} variant="outline">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Check for Updates
+                  </Button>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    Get Notified
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {filteredStocks.map((stock: Stock) => (
+                <Card key={stock.symbol} className="border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Building2 className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-lg">{stock.symbol}</h3>
+                          <p className="text-sm text-gray-600">{stock.name}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline" className="text-xs">{stock.sector}</Badge>
+                            <Badge variant="outline" className="text-xs">{stock.exchange}</Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="text-center">
-                      <div className="font-bold text-gray-900 text-xl">
-                        ${stock.price.toFixed(2)}
+                      <div className="text-center">
+                        <div className="font-bold text-gray-900 text-xl">
+                          ${stock.price.toFixed(2)}
+                        </div>
+                        <div className={`text-sm flex items-center justify-center font-medium ${
+                          stock.changePercent >= 0 ? 'text-green-600' : 'text-red-500'
+                        }`}>
+                          {stock.changePercent >= 0 ? 
+                            <ArrowUpRight className="w-4 h-4 mr-1" /> : 
+                            <ArrowDownRight className="w-4 h-4 mr-1" />
+                          }
+                          {stock.changePercent >= 0 ? '+' : ''}
+                          {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                        </div>
                       </div>
-                      <div className={`text-sm flex items-center justify-center font-medium ${
-                        stock.changePercent >= 0 ? 'text-green-600' : 'text-red-500'
-                      }`}>
-                        {stock.changePercent >= 0 ? 
-                          <ArrowUpRight className="w-4 h-4 mr-1" /> : 
-                          <ArrowDownRight className="w-4 h-4 mr-1" />
-                        }
-                        {stock.changePercent >= 0 ? '+' : ''}
-                        {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+
+                      <div className="text-right text-sm text-gray-600">
+                        <div>Vol: {(stock.volume / 1000000).toFixed(1)}M</div>
+                        <div>Cap: {stock.marketCap}</div>
+                      </div>
+
+                      <div className="flex space-x-2">
+                        <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+                          Buy
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Star className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <BarChart3 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="text-right text-sm text-gray-600">
-                      <div>Vol: {(stock.volume / 1000000).toFixed(1)}M</div>
-                      <div>Cap: {stock.marketCap}</div>
-                    </div>
-
-                    <div className="flex space-x-2">
-                      <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
-                        Buy
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Star className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <BarChart3 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Market Information */}

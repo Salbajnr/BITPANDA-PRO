@@ -105,8 +105,12 @@ function LoadingSpinner() {
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <LiveTicker />
+      <ErrorBoundary>
+        <Navbar />
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <LiveTicker />
+      </ErrorBoundary>
       <main className="flex-1">
         {children}
       </main>
@@ -148,19 +152,19 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function Routes() {
   return (
     <Switch>
-      {/* Public Routes */}
-      <Route path="/" exact component={() => <PublicLayout><Landing /></PublicLayout>} />
-      <Route path="/home" component={() => <PublicLayout><Landing /></PublicLayout>} />
-      <Route path="/auth" component={() => <PublicLayout><Auth /></PublicLayout>} />
-      <Route path="/markets" component={() => <PublicLayout><Markets /></PublicLayout>} />
-      <Route path="/news" component={() => <PublicLayout><News /></PublicLayout>} />
-      <Route path="/research" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><MarketResearchDashboard /></Suspense></PublicLayout>} />
-      <Route path="/about" component={() => <PublicLayout><About /></PublicLayout>} />
-      <Route path="/features" component={() => <PublicLayout><Features /></PublicLayout>} />
-      <Route path="/help" component={() => <PublicLayout><Help /></PublicLayout>} />
-      <Route path="/contact" component={() => <PublicLayout><Contact /></PublicLayout>} />
-      <Route path="/privacy" component={() => <PublicLayout><Privacy /></PublicLayout>} />
-      <Route path="/terms" component={() => <PublicLayout><Terms /></PublicLayout>} />
+      {/* Public Routes - All wrapped with error boundaries */}
+      <Route path="/" exact component={() => <ErrorBoundary><PublicLayout><Landing /></PublicLayout></ErrorBoundary>} />
+      <Route path="/home" component={() => <ErrorBoundary><PublicLayout><Landing /></PublicLayout></ErrorBoundary>} />
+      <Route path="/auth" component={() => <ErrorBoundary><PublicLayout><Auth /></PublicLayout></ErrorBoundary>} />
+      <Route path="/markets" component={() => <ErrorBoundary><PublicLayout><Markets /></PublicLayout></ErrorBoundary>} />
+      <Route path="/news" component={() => <ErrorBoundary><PublicLayout><News /></PublicLayout></ErrorBoundary>} />
+      <Route path="/research" component={() => <ErrorBoundary><PublicLayout><Suspense fallback={<LoadingSpinner />}><MarketResearchDashboard /></Suspense></PublicLayout></ErrorBoundary>} />
+      <Route path="/about" component={() => <ErrorBoundary><PublicLayout><About /></PublicLayout></ErrorBoundary>} />
+      <Route path="/features" component={() => <ErrorBoundary><PublicLayout><Features /></PublicLayout></ErrorBoundary>} />
+      <Route path="/help" component={() => <ErrorBoundary><PublicLayout><Help /></PublicLayout></ErrorBoundary>} />
+      <Route path="/contact" component={() => <ErrorBoundary><PublicLayout><Contact /></PublicLayout></ErrorBoundary>} />
+      <Route path="/privacy" component={() => <ErrorBoundary><PublicLayout><Privacy /></PublicLayout></ErrorBoundary>} />
+      <Route path="/terms" component={() => <ErrorBoundary><PublicLayout><Terms /></PublicLayout></ErrorBoundary>} />
 
       {/* Investment Routes */}
       <Route path="/stocks" component={() => <PublicLayout><Stocks /></PublicLayout>} />
@@ -169,16 +173,24 @@ function Routes() {
       <Route path="/precious-metals" component={() => <PublicLayout><Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense></PublicLayout>} />
       <Route path="/savings-plans" component={() => <PublicLayout><SavingsPlans /></PublicLayout>} />
       <Route path="/about-us" component={() => <PublicLayout><About /></PublicLayout>} />
+      {/* Investment Routes - All with error boundaries */}
+      <Route path="/stocks" component={() => <ErrorBoundary><PublicLayout><Stocks /></PublicLayout></ErrorBoundary>} />
+      <Route path="/etfs" component={() => <ErrorBoundary><PublicLayout><Etfs /></PublicLayout></ErrorBoundary>} />
+      <Route path="/crypto-indices" component={() => <ErrorBoundary><PublicLayout><CryptoIndices /></PublicLayout></ErrorBoundary>} />
+      <Route path="/precious-metals" component={() => <ErrorBoundary><PublicLayout><Suspense fallback={<LoadingSpinner />}><PreciousMetals /></Suspense></PublicLayout></ErrorBoundary>} />
+      <Route path="/savings-plans" component={() => <ErrorBoundary><PublicLayout><SavingsPlans /></PublicLayout></ErrorBoundary>} />
       <Route path="/investment-plans" component={() => (
-        <ProtectedRoute>
-          <Suspense fallback={<LoadingSpinner />}>
-            <InvestmentPlans />
-          </Suspense>
-        </ProtectedRoute>
+        <ErrorBoundary>
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingSpinner />}>
+              <InvestmentPlans />
+            </Suspense>
+          </ProtectedRoute>
+        </ErrorBoundary>
       )} />
-      <Route path="/metals-trading" component={() => <Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense>} />
-      <Route path="/commodities" component={() => <Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense>} />
-      <Route path="/dual-markets" component={DualMarkets} />
+      <Route path="/metals-trading" component={() => <ErrorBoundary><PublicLayout><Suspense fallback={<LoadingSpinner />}><MetalsTrading /></Suspense></PublicLayout></ErrorBoundary>} />
+      <Route path="/commodities" component={() => <ErrorBoundary><PublicLayout><Suspense fallback={<LoadingSpinner />}><Commodities /></Suspense></PublicLayout></ErrorBoundary>} />
+      <Route path="/dual-markets" component={() => <ErrorBoundary><PublicLayout><DualMarkets /></PublicLayout></ErrorBoundary>} />
 
       {/* Information Routes */}
       <Route path="/api-docs" component={() => <PublicLayout><API /></PublicLayout>} />
@@ -196,6 +208,22 @@ function Routes() {
       <Route path="/reset-password/:token" component={ResetPassword} />
       <Route path="/api" component={() => <PublicLayout><API /></PublicLayout>} />
       <Route path="/ecosystem" component={() => <PublicLayout><Ecosystem /></PublicLayout>} />
+      {/* Information Routes - All with error boundaries */}
+      <Route path="/api-docs" component={() => <ErrorBoundary><PublicLayout><API /></PublicLayout></ErrorBoundary>} />
+      <Route path="/press" component={() => <ErrorBoundary><PublicLayout><Press /></PublicLayout></ErrorBoundary>} />
+      <Route path="/imprint" component={() => <ErrorBoundary><PublicLayout><Imprint /></PublicLayout></ErrorBoundary>} />
+      <Route path="/careers" component={() => <ErrorBoundary><PublicLayout><Careers /></PublicLayout></ErrorBoundary>} />
+      <Route path="/academy" component={() => <ErrorBoundary><PublicLayout><Academy /></PublicLayout></ErrorBoundary>} />
+      <Route path="/help-center" component={() => <ErrorBoundary><PublicLayout><HelpCenter /></PublicLayout></ErrorBoundary>} />
+      <Route path="/user-agreement" component={() => <ErrorBoundary><PublicLayout><UserAgreement /></PublicLayout></ErrorBoundary>} />
+      <Route path="/tutorials" component={() => <ErrorBoundary><PublicLayout><Tutorials /></PublicLayout></ErrorBoundary>} />
+      <Route path="/security" component={() => <ErrorBoundary><PublicLayout><Security /></PublicLayout></ErrorBoundary>} />
+      <Route path="/investor-protection" component={() => <ErrorBoundary><PublicLayout><InvestorProtection /></PublicLayout></ErrorBoundary>} />
+      <Route path="/forgot-password" component={() => <ErrorBoundary><PublicLayout><ForgotPassword /></PublicLayout></ErrorBoundary>} />
+      <Route path="/verify-otp/:type/:email" component={({ params }) => <ErrorBoundary><PublicLayout><OtpVerification params={params} /></PublicLayout></ErrorBoundary>} />
+      <Route path="/reset-password/:token" component={({ params }) => <ErrorBoundary><PublicLayout><ResetPassword params={params} /></PublicLayout></ErrorBoundary>} />
+      <Route path="/api" component={() => <ErrorBoundary><PublicLayout><API /></PublicLayout></ErrorBoundary>} />
+      <Route path="/ecosystem" component={() => <ErrorBoundary><PublicLayout><Ecosystem /></PublicLayout></ErrorBoundary>} />
 
       {/* Protected Dashboard Routes */}
       <Route path="/dashboard" component={() => (
@@ -246,14 +274,26 @@ function Routes() {
       <Route path="/settings" component={() => <ProtectedRoute><UserSettings /></ProtectedRoute>} />
 
       {/* KYC Verification Route */}
-      <Route path="/kyc-verification" component={() => <ProtectedRoute><KycVerification /></ProtectedRoute>} />
+      <Route path="/kyc-verification" component={() => (
+        <ErrorBoundary>
+          <ProtectedRoute>
+            <KycVerification />
+          </ProtectedRoute>
+        </ErrorBoundary>
+      )} />
 
       {/* Asset Details Route - Available to all users */}
-      <Route path="/asset/:symbol" component={({ params }) => <AssetDetails symbol={params.symbol} />} />
-      <Route path="/landing" component={Landing} />
+      <Route path="/asset/:symbol" component={({ params }) => (
+        <ErrorBoundary>
+          <PublicLayout>
+            <AssetDetails symbol={params.symbol} />
+          </PublicLayout>
+        </ErrorBoundary>
+      )} />
+      <Route path="/landing" component={() => <ErrorBoundary><PublicLayout><Landing /></PublicLayout></ErrorBoundary>} />
 
       {/* Admin Login - separate page accessible at /admin-login */}
-      <Route path="/admin-login" component={() => <PublicLayout><AdminLogin /></PublicLayout>} />
+      <Route path="/admin-login" component={() => <ErrorBoundary><PublicLayout><AdminLogin /></PublicLayout></ErrorBoundary>} />
 
       {/* Admin routes - redirect to separate admin app */}
       <Route path="/admin/:rest*" component={() => {

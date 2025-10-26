@@ -6,10 +6,26 @@ import "./index.css";
 // Global error handler
 window.addEventListener('error', (event) => {
   console.error('Global error:', event.error);
+  
+  // Prevent the error from crashing the app completely
+  event.preventDefault();
+  
+  // Show a user-friendly notification
+  if (!import.meta.env.DEV) {
+    console.warn('An error occurred but the app is still running');
+  }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
+  
+  // Prevent the rejection from crashing the app
+  event.preventDefault();
+  
+  // Log for debugging
+  if (!import.meta.env.DEV) {
+    console.warn('A promise rejection occurred but was handled');
+  }
 });
 
 function renderApp() {
