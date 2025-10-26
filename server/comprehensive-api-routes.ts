@@ -1,4 +1,3 @@
-
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireAdmin } from './simple-auth';
 import { storage } from './storage';
@@ -47,7 +46,7 @@ router.get('/market/overview', async (req: Request, res: Response) => {
 router.get('/market/trending', async (req: Request, res: Response) => {
   try {
     const cryptoData = await cryptoService.getMarketData(undefined, 50);
-    
+
     // Sort by 24h change and volume
     const trending = cryptoData
       .filter(c => c.price_change_percentage_24h !== undefined)
@@ -72,7 +71,7 @@ router.get('/market/trending', async (req: Request, res: Response) => {
 router.get('/market/sentiment', async (req: Request, res: Response) => {
   try {
     const cryptoData = await cryptoService.getMarketData(undefined, 100);
-    
+
     const gainers = cryptoData.filter(c => (c.price_change_percentage_24h || 0) > 0).length;
     const losers = cryptoData.filter(c => (c.price_change_percentage_24h || 0) < 0).length;
     const neutral = cryptoData.length - gainers - losers;
@@ -117,7 +116,7 @@ router.get('/trading/orderbook/:symbol', requireAuth, async (req: Request, res: 
     }
 
     const currentPrice = price.price;
-    
+
     // Generate realistic order book
     const bids = Array.from({ length: 20 }, (_, i) => {
       const priceLevel = currentPrice * (1 - (i + 1) * 0.001);
