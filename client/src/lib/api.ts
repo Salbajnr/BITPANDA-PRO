@@ -10,8 +10,14 @@ class ApiClient {
   private baseURL: string;
   public csrfToken: string | null = null;
 
-  constructor(baseURL: string = import.meta.env.VITE_API_URL || 'http://localhost:3000') {
-    this.baseURL = baseURL;
+  constructor() {
+    // In development (localhost), always use relative URLs to leverage Vite proxy
+    // In production, use the configured API URL or fallback to relative paths
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname.includes('replit');
+    
+    this.baseURL = isLocalhost ? '' : (import.meta.env.VITE_API_URL || '');
     this.getCsrfToken();
   }
 
