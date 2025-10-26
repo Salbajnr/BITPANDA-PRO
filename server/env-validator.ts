@@ -1,7 +1,7 @@
 export function validateEnvironment() {
   const isProduction = process.env.NODE_ENV === 'production';
-  const required = ['DATABASE_URL', 'COOKIE_SECRET'];
-  const optional = ['COINGECKO_API_KEY', 'NEWS_API_KEY', 'METALS_API_KEY'];
+  const required = ['COOKIE_SECRET'];
+  const optional = ['DATABASE_URL', 'COINGECKO_API_KEY', 'NEWS_API_KEY', 'METALS_API_KEY'];
 
   const missing = required.filter(key => !process.env[key]);
   const optionalMissing = optional.filter(key => !process.env[key]);
