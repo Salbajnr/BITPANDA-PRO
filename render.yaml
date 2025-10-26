@@ -12,7 +12,7 @@ services:
       npm install --include=dev && \
       npm run build && \
       cd ../server && \
-      npm install --include=dev && \
+      npm install && \
       npm run build
     startCommand: "NODE_ENV=production npx tsx server/index.ts"
     envVars:
