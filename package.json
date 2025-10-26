@@ -4,10 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run install:all && npm run build:client && npm run build:server",
-    "build:client": "cd client && npm install --include=dev && npm run build",
-    "build:server": "cd server && npm install --include=dev && npm run build",
-    "start": "NODE_ENV=production node --max-old-space-size=4096 npx tsx server/index.ts",
+    "build": "npm run build:client",
+    "build:client": "cd client && npm run build",
+    "start": "NODE_ENV=production node --max-old-space-size=4096 --import tsx server/index.ts",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && NODE_OPTIONS='--max-old-space-size=4096' npx tsx watch index.ts",
     "dev:client": "cd client && npm run dev",
@@ -16,7 +15,7 @@
     "db:push": "cd server && drizzle-kit push",
     "db:migrate": "cd server && drizzle-kit migrate",
     "db:studio": "cd server && drizzle-kit studio",
-    "secrets:generate": "node --input-type=module --experimental-json-modules scripts/generate-secrets.js",
+    "clean": "rm -rf client/dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
