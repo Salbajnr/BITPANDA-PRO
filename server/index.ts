@@ -18,6 +18,7 @@ import { liveAnalyticsService } from "./live-analytics-service";
 import { validateEnvironment } from "./env-validator";
 import { pool } from "./db";
 import { healthRouter } from "./health";
+import { createSessionMiddleware } from "./session";
 
 // ESM __dirname shim
 const __filename = fileURLToPath(import.meta.url);
@@ -68,6 +69,9 @@ app.set("trust proxy", 1);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser(process.env.COOKIE_SECRET || "super-secret-fallback"));
+
+// Session middleware
+app.use(createSessionMiddleware());
 
 // Health check endpoint
 app.use(healthRouter);

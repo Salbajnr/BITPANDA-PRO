@@ -10,6 +10,27 @@ import { eq, and, gt } from 'drizzle-orm';
 
 const router = Router();
 
+// Get current session
+router.get('/session', async (req, res) => {
+  try {
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    // Return user data without password
+    const { password, ...userData } = user;
+    res.json(userData);
+  } catch (error) {
+    console.error('Session fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch session' });
+  }
+});
+
 // Helper function to generate OTP
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
