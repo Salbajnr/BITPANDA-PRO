@@ -149,7 +149,7 @@ export async function sendOTPEmail(params: OTPEmailParams): Promise<boolean> {
 
   return sendEmail({
     to: params.to,
-    from: 'noreply@bitpanda-pro.com',
+    from: 'bitpandapro@outlook.com',
     subject,
     html
   });
@@ -223,7 +223,7 @@ export async function sendTransactionEmail(params: TransactionEmailParams): Prom
 
   return sendEmail({
     to: params.to,
-    from: 'noreply@bitpanda-pro.com',
+    from: 'bitpandapro@outlook.com',
     subject,
     html
   });
@@ -278,7 +278,7 @@ export async function sendWelcomeEmail(params: WelcomeEmailParams): Promise<bool
 
   return sendEmail({
     to: params.to,
-    from: 'noreply@bitpanda-pro.com',
+    from: 'bitpandapro@outlook.com',
     subject,
     html
   });
@@ -314,7 +314,7 @@ export async function sendPasswordResetSuccessEmail(email: string): Promise<bool
 
   return sendEmail({
     to: email,
-    from: 'noreply@bitpanda-pro.com',
+    from: 'bitpandapro@outlook.com',
     subject,
     html
   });
