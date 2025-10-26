@@ -237,7 +237,7 @@ export async function sendWelcomeEmail(params: WelcomeEmailParams): Promise<bool
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
       <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px;">
         <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px; text-align: center;">Welcome to BITPANDA PRO</h1>
-        
+
         <div style="background-color: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 8px; margin: 20px 0;">
           <p style="color: #e2e8f0; margin: 0 0 15px 0; font-size: 16px;">
             Hi ${params.username},
