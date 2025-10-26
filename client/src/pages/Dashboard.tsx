@@ -67,7 +67,136 @@ interface TopMover {
   icon: string;
 }
 
-// Bottom Navigation Component
+// Sidebar Navigation Component
+function SidebarNavigation() {
+  const [location] = useLocation();
+  const navigate = useNavigation();
+
+  const mainNavItems = [
+    { id: "/dashboard", label: "Dashboard", icon: Home },
+    { id: "/analytics", label: "Analytics", icon: BarChart3 },
+    { id: "/trading", label: "Trading", icon: Activity },
+    { id: "/advanced-trading", label: "Advanced Trading", icon: TrendingUp },
+    { id: "/watchlist", label: "Watchlist", icon: Search },
+  ];
+
+  const walletItems = [
+    { id: "/deposits", label: "Deposit", icon: Plus },
+    { id: "/withdrawals", label: "Withdraw", icon: Minus },
+    { id: "/transactions", label: "History", icon: RefreshCw },
+  ];
+
+  const accountItems = [
+    { id: "/settings", label: "Settings", icon: User },
+    { id: "/help", label: "Help & Support", icon: AlertCircle },
+  ];
+
+  return (
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+      {/* Logo Section */}
+      <div className="flex items-center h-16 px-6 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-green-600 flex items-center justify-center">
+            <img src="/client/src/assets/logo.jpeg" alt="BITPANDA PRO" className="w-5 h-5 rounded-full" />
+          </div>
+          <span className="text-lg font-bold text-slate-900 dark:text-white">BITPANDA PRO</span>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3">
+        {/* Main Navigation */}
+        <div className="mb-6">
+          <div className="px-3 mb-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Main
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {mainNavItems.map((item) => {
+              const isActive = location === item.id || (item.id === "/dashboard" && location === "/");
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.id}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Wallet Section */}
+        <div className="mb-6">
+          <div className="px-3 mb-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Wallet
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {walletItems.map((item) => {
+              const isActive = location === item.id;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.id}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Account Section */}
+        <div>
+          <div className="px-3 mb-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Account
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {accountItems.map((item) => {
+              const isActive = location === item.id;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.id}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+    </aside>
+  );
+}
+
+// Bottom Navigation Component (Mobile)
 function BottomNavigation() {
   const [location] = useLocation();
 
@@ -80,7 +209,7 @@ function BottomNavigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50">
       <div className="flex justify-around items-center py-2 px-4 max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive =
@@ -214,101 +343,101 @@ export default function Dashboard() {
   const losers = topMovers.filter((m) => m.change < 0);
 
   return (
-    <DashboardLayout showTicker={true}>
-      {/* Professional Trading Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700">
-        <div className="px-6 py-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Sidebar Navigation */}
+      <SidebarNavigation />
+
+      {/* Main Content Area */}
+      <div className="lg:pl-64">
+        {/* Bitpanda-Style Clean Header */}
+        <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+        <div className="px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Trading Dashboard</h1>
-              <p className="text-sm text-slate-400">Real-time market overview</p>
+              <h1 className="text-2xl font-semibold text-slate-900 dark:text-white" style={{ fontFamily: 'Inter, sans-serif' }}>Dashboard</h1>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Overview of your portfolio and market activity</p>
             </div>
-            <div className="flex items-center gap-4">
-              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                <Activity className="h-3 w-3 mr-1" />
-                Live Markets
+            <div className="flex items-center gap-3">
+              <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 px-3 py-1.5 font-medium">
+                <Activity className="h-3.5 w-3.5 mr-1.5" />
+                Live
               </Badge>
-              <div className="text-right">
-                <div className="text-xs text-slate-400">Server Time</div>
-                <div className="text-sm font-mono text-white">
-                  {new Date().toLocaleTimeString()}
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="pb-20 bg-slate-950">
-        {/* Professional Portfolio Overview */}
+      <div className="pb-20 bg-slate-50 dark:bg-slate-900">
+        {/* Bitpanda-Style Portfolio Overview */}
         <div className="px-6 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-            {/* Total Portfolio Value */}
-            <Card className="bg-gradient-to-br from-blue-600 to-blue-700 border-0">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-blue-100 text-sm">Portfolio Value</span>
-                  <Wallet className="h-4 w-4 text-blue-200" />
+            {/* Total Portfolio Value - Bitpanda Style */}
+            <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Portfolio Value</span>
+                  <Wallet className="h-4 w-4 text-slate-400" />
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-white">
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-2xl font-semibold text-slate-900 dark:text-white">
                     {showBalance ? `€${portfolioValue}` : "••••••"}
                   </span>
-                  <button onClick={() => setShowBalance(!showBalance)} className="text-blue-200 hover:text-white">
+                  <button onClick={() => setShowBalance(!showBalance)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                     {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="flex items-center gap-1 mt-2">
+                <div className="flex items-center gap-1">
                   {portfolioChange >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-green-300" />
+                    <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-red-300" />
+                    <TrendingDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                   )}
-                  <span className={`text-sm ${portfolioChange >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                    {portfolioChange >= 0 ? '+' : ''}{portfolioChange.toFixed(2)}% (24h)
+                  <span className={`text-sm font-medium ${portfolioChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {portfolioChange >= 0 ? '+' : ''}{portfolioChange.toFixed(2)}%
                   </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">24h</span>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Available Balance */}
-            <Card className="bg-slate-800 border-slate-700">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-slate-400 text-sm">Available Cash</span>
-                  <DollarSign className="h-4 w-4 text-green-400" />
+            {/* Available Balance - Bitpanda Style */}
+            <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Available Cash</span>
+                  <DollarSign className="h-4 w-4 text-slate-400" />
                 </div>
-                <div className="text-2xl font-bold text-white">€{availableBalance}</div>
-                <div className="text-xs text-slate-400 mt-2">Ready to trade</div>
+                <div className="text-2xl font-semibold text-slate-900 dark:text-white mb-1">€{availableBalance}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Ready to invest</div>
               </CardContent>
             </Card>
 
-            {/* Total P&L */}
-            <Card className="bg-slate-800 border-slate-700">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-slate-400 text-sm">Total P&L</span>
-                  <BarChart3 className="h-4 w-4 text-purple-400" />
+            {/* Total P&L - Bitpanda Style */}
+            <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Total P&L</span>
+                  <BarChart3 className="h-4 w-4 text-slate-400" />
                 </div>
-                <div className={`text-2xl font-bold ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`text-2xl font-semibold mb-1 ${dayChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {dayChange >= 0 ? '+' : ''}€{Math.abs(dayChange).toFixed(2)}
                 </div>
-                <div className="text-xs text-slate-400 mt-2">Since yesterday</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Since yesterday</div>
               </CardContent>
             </Card>
 
-            {/* Active Positions */}
-            <Card className="bg-slate-800 border-slate-700">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-slate-400 text-sm">Active Positions</span>
-                  <Activity className="h-4 w-4 text-blue-400" />
+            {/* Active Positions - Bitpanda Style */}
+            <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Active Positions</span>
+                  <Activity className="h-4 w-4 text-slate-400" />
                 </div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-semibold text-slate-900 dark:text-white mb-1">
                   {portfolioData?.holdings?.length || 0}
                 </div>
-                <div className="text-xs text-slate-400 mt-2">Assets held</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Assets held</div>
               </CardContent>
             </Card>
           </div>
@@ -390,31 +519,31 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Professional Quick Actions */}
+        {/* Bitpanda-Style Quick Actions */}
         <div className="px-6 mb-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Link to="/deposits">
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-6 flex flex-col items-center gap-2">
+              <Button className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white py-5 flex flex-col items-center gap-2 rounded-xl shadow-sm hover:shadow-md transition-all border-0">
                 <Plus className="h-5 w-5" />
-                <span className="text-sm font-medium">Buy Crypto</span>
+                <span className="text-sm font-semibold">Buy</span>
               </Button>
             </Link>
             <Link to="/withdrawals">
-              <Button className="w-full bg-red-600 hover:bg-red-700 text-white py-6 flex flex-col items-center gap-2">
+              <Button variant="outline" className="w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-5 flex flex-col items-center gap-2 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-slate-700">
                 <Minus className="h-5 w-5" />
-                <span className="text-sm font-medium">Sell Crypto</span>
+                <span className="text-sm font-semibold">Sell</span>
               </Button>
             </Link>
             <Link to="/trading">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 flex flex-col items-center gap-2">
+              <Button variant="outline" className="w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-5 flex flex-col items-center gap-2 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-slate-700">
                 <RefreshCw className="h-5 w-5" />
-                <span className="text-sm font-medium">Trade</span>
+                <span className="text-sm font-semibold">Trade</span>
               </Button>
             </Link>
             <Link to="/transactions">
-              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-6 flex flex-col items-center gap-2">
+              <Button variant="outline" className="w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-5 flex flex-col items-center gap-2 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-slate-700">
                 <BarChart3 className="h-5 w-5" />
-                <span className="text-sm font-medium">History</span>
+                <span className="text-sm font-semibold">History</span>
               </Button>
             </Link>
           </div>
@@ -727,7 +856,8 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation />
-    </DashboardLayout>
+        <BottomNavigation />
+      </div>
+    </div>
   );
 }

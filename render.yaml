@@ -7,12 +7,15 @@ services:
     autoDeploy: true
     healthCheckPath: /health
     buildCommand: |
+      # Install root dependencies first (includes @sendgrid/mail, passport, concurrently, etc.)
+      npm install && \
       # Install and build the client
       cd client && \
-      npm install --include=dev && \
+      npm install && \
       npm run build && \
+      # Install server dependencies and build
       cd ../server && \
-      npm install --include=dev && \
+      npm install && \
       npm run build
     startCommand: "NODE_ENV=production npx tsx server/index.ts"
     envVars:
