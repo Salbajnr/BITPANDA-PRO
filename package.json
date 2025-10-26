@@ -19,10 +19,6 @@
     "secrets:generate": "node --input-type=module --experimental-json-modules scripts/generate-secrets.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "workspaces": [
-    "server",
-    "client"
-  ],
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.76.1",

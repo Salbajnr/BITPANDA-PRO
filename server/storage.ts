@@ -36,7 +36,6 @@ const NODE_ENV = (env.success ? env.data.NODE_ENV : process.env.NODE_ENV) || "de
 
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, and, or } from 'drizzle-orm';
 import { eq, and, sql, gte, lte, inArray, or, like, isNull, isNotNull, desc } from 'drizzle-orm';
 import * as schema from "../shared/schema";
 import { db, pool } from "./db"; // Use the shared database connection
