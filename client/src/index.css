@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bitpanda Design System Variables */
+:root {
+  --color-brand-primary: #2cec9a;
+  --color-brand-text-primary: #16764d;
+  --color-neutrals-text-primary: #282828;
+  --color-neutrals-text-secondary: #7e7e7e;
+  --color-neutrals-fill-quinary: #f4f4f4;
+  --color-neutrals-divider: #f4f4f4;
+  --spacing-small: 16px;
+  --spacing-medium: 24px;
+  --spacing-large: 32px;
+}
+
+.dark {
+  --color-neutrals-text-primary: #ffffff;
+  --color-neutrals-text-secondary: #b0b0b0;
+  --color-neutrals-fill-quinary: #1c1c1c;
+  --color-neutrals-divider: #1c1c1c;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

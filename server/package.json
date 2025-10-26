@@ -13,6 +13,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "zod": "^3.22.4",
     "@aws-sdk/client-s3": "^3.714.0",
     "@supabase/supabase-js": "^2.49.1",
     "bcrypt": "^5.1.1",
