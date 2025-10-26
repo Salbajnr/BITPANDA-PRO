@@ -3,6 +3,7 @@ import { requireAuth, requireAdmin } from './simple-auth';
 import { storage } from './storage';
 import { z } from 'zod';
 import crypto from 'crypto';
+import { sendTransactionEmail } from './email-service';
 
 const router = Router();
 
@@ -138,8 +139,24 @@ router.post('/request', requireAuth, async (req, res) => {
     // Reserve funds by reducing available balance
     await storage.updatePortfolioBalance(req.user!.id, -amount);
 
-    // TODO: Send confirmation email with token
-    console.log(`Withdrawal confirmation token for user ${req.user!.id}: ${confirmationToken}`);
+    // Send confirmation email with token
+    try {
+      await sendTransactionEmail({
+        to: req.user!.email,
+        transactionType: 'withdrawal_confirmation',
+        amount: amount.toString(),
+        currency: validatedData.currency,
+        transactionId: withdrawal.id,
+        confirmationUrl: `${process.env.FRONTEND_URL}/withdraw/confirm?token=${confirmationToken}`
+      });
+      console.log(`✅ Withdrawal confirmation email sent to ${req.user!.email} for withdrawal ${withdrawal.id}`);
+    } catch (emailError) {
+      console.error('Failed to send withdrawal confirmation email:', emailError);
+      // Optionally, you might want to handle this error more gracefully,
+      // perhaps by marking the withdrawal as 'confirmation_email_failed'
+      // or providing a way for the user to resend the email.
+    }
+
 
     res.json({
       message: 'Withdrawal request created. Please check your email to confirm within 30 minutes.',
@@ -173,6 +190,21 @@ router.post('/confirm', requireAuth, async (req, res) => {
     // Update withdrawal status to under_review
     await storage.updateWithdrawalStatus(withdrawal.id, 'under_review', 'Confirmed by user, awaiting admin review');
 
+    // Send email notification for confirmed withdrawal
+    try {
+      await sendTransactionEmail({
+        to: req.user!.email,
+        transactionType: 'withdrawal',
+        amount: withdrawal.amount,
+        currency: withdrawal.currency,
+        status: 'Under Review',
+        transactionId: withdrawal.id
+      });
+      console.log(`✅ Withdrawal confirmed email sent to ${req.user!.email} for withdrawal ${withdrawal.id}`);
+    } catch (emailError) {
+      console.error('Failed to send withdrawal confirmed email:', emailError);
+    }
+
     res.json({
       message: 'Withdrawal confirmed successfully. Your request is now under review by our team.',
       withdrawal: {
@@ -192,27 +224,49 @@ router.post('/:id/approve', requireAuth, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { adminNotes } = adminActionSchema.parse(req.body);
 
-    const withdrawal = await storage.updateWithdrawalStatus(
+    const withdrawal = await storage.getWithdrawalById(id);
+    if (!withdrawal) {
+      return res.status(404).json({ message: 'Withdrawal not found' });
+    }
+
+    const user = await storage.getUserById(withdrawal.userId);
+    if (!user) {
+      console.error(`User not found for withdrawal ${id}`);
+      return res.status(404).json({ message: 'User not found for this withdrawal' });
+    }
+
+    const updatedWithdrawal = await storage.updateWithdrawalStatus(
       id,
       'approved',
       adminNotes || 'Withdrawal approved by admin'
     );
 
-    if (!withdrawal) {
-      return res.status(404).json({ message: 'Withdrawal not found' });
-    }
-
     // TODO: Process actual withdrawal (send funds to user's destination)
     // For now, we'll mark it as processing
-    await storage.updateWithdrawalStatus(id, 'processing', 'Processing withdrawal to destination');
+    const processingWithdrawal = await storage.updateWithdrawalStatus(id, 'processing', 'Processing withdrawal to destination');
 
     // Log admin action
     console.log(`Admin ${req.user!.id} approved withdrawal ${id}`);
 
+    // Send email notification for approved withdrawal
+    try {
+      await sendTransactionEmail({
+        to: user.email,
+        transactionType: 'withdrawal',
+        amount: processingWithdrawal.amount,
+        currency: processingWithdrawal.currency,
+        status: 'Approved',
+        transactionId: id
+      });
+      console.log(`✅ Withdrawal approved email sent to ${user.email} for withdrawal ${id}`);
+    } catch (emailError) {
+      console.error('Failed to send withdrawal approved email:', emailError);
+    }
+
     res.json({
       message: 'Withdrawal approved and processing initiated',
       withdrawal: {
-        ...withdrawal,
+        ...processingWithdrawal,
         status: 'processing'
       }
     });
@@ -233,8 +287,14 @@ router.post('/:id/reject', requireAuth, requireAdmin, async (req, res) => {
       return res.status(404).json({ message: 'Withdrawal not found' });
     }
 
+    const user = await storage.getUserById(withdrawal.userId);
+    if (!user) {
+      console.error(`User not found for withdrawal ${id}`);
+      return res.status(404).json({ message: 'User not found for this withdrawal' });
+    }
+
     // Refund the reserved amount back to user's balance
-    const userPortfolio = await storage.getPortfolio(req.user!.id);
+    const userPortfolio = await storage.getPortfolio(withdrawal.userId);
     if (userPortfolio) {
       const newBalance = parseFloat(userPortfolio.availableCash) + parseFloat(withdrawal.amount);
       await storage.updatePortfolio(userPortfolio.id, { availableCash: newBalance.toString() });
@@ -249,6 +309,22 @@ router.post('/:id/reject', requireAuth, requireAdmin, async (req, res) => {
 
     // Log admin action
     console.log(`Admin ${req.user!.id} rejected withdrawal ${id}: ${rejectionReason}`);
+
+    // Send email notification for rejected withdrawal
+    try {
+      await sendTransactionEmail({
+        to: user.email,
+        transactionType: 'withdrawal',
+        amount: updatedWithdrawal.amount,
+        currency: updatedWithdrawal.currency,
+        status: 'Rejected',
+        rejectionReason: rejectionReason,
+        transactionId: id
+      });
+      console.log(`✅ Withdrawal rejected email sent to ${user.email} for withdrawal ${id}`);
+    } catch (emailError) {
+      console.error('Failed to send withdrawal rejected email:', emailError);
+    }
 
     res.json({
       message: 'Withdrawal rejected and funds returned to user account',
@@ -267,22 +343,44 @@ router.post('/:id/complete', requireAuth, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { adminNotes } = adminActionSchema.parse(req.body);
 
-    const withdrawal = await storage.updateWithdrawalStatus(
+    const withdrawal = await storage.getWithdrawalById(id);
+    if (!withdrawal) {
+      return res.status(404).json({ message: 'Withdrawal not found' });
+    }
+
+    const user = await storage.getUserById(withdrawal.userId);
+    if (!user) {
+      console.error(`User not found for withdrawal ${id}`);
+      return res.status(404).json({ message: 'User not found for this withdrawal' });
+    }
+
+    const updatedWithdrawal = await storage.updateWithdrawalStatus(
       id,
       'completed',
       adminNotes || 'Withdrawal successfully completed'
     );
 
-    if (!withdrawal) {
-      return res.status(404).json({ message: 'Withdrawal not found' });
-    }
-
     // Log admin action
     console.log(`Admin ${req.user!.id} completed withdrawal ${id}`);
 
+    // Send email notification for completed withdrawal
+    try {
+      await sendTransactionEmail({
+        to: user.email,
+        transactionType: 'withdrawal',
+        amount: updatedWithdrawal.amount,
+        currency: updatedWithdrawal.currency,
+        status: 'Completed',
+        transactionId: id
+      });
+      console.log(`✅ Withdrawal completed email sent to ${user.email} for withdrawal ${id}`);
+    } catch (emailError) {
+      console.error('Failed to send withdrawal completed email:', emailError);
+    }
+
     res.json({
       message: 'Withdrawal marked as completed',
-      withdrawal
+      withdrawal: updatedWithdrawal
     });
   } catch (error) {
     console.error('Error completing withdrawal:', error);
@@ -316,10 +414,26 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 
     // Update withdrawal status
-    await storage.updateWithdrawalStatus(id, 'rejected', 'Cancelled by user');
+    const updatedWithdrawal = await storage.updateWithdrawalStatus(id, 'rejected', 'Cancelled by user');
+
+    // Send email notification for cancelled withdrawal
+    try {
+      await sendTransactionEmail({
+        to: req.user!.email,
+        transactionType: 'withdrawal',
+        amount: updatedWithdrawal.amount,
+        currency: updatedWithdrawal.currency,
+        status: 'Cancelled',
+        transactionId: id
+      });
+      console.log(`✅ Withdrawal cancelled email sent to ${req.user!.email} for withdrawal ${id}`);
+    } catch (emailError) {
+      console.error('Failed to send withdrawal cancelled email:', emailError);
+    }
 
     res.json({
       message: 'Withdrawal cancelled successfully and funds returned to your account',
+      withdrawal: updatedWithdrawal,
       refundedAmount: withdrawal.amount
     });
   } catch (error) {

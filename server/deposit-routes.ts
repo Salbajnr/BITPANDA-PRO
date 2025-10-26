@@ -8,6 +8,9 @@ import { insertDepositSchema, insertSharedWalletAddressSchema } from '@shared/sc
 import path from 'path';
 import fs from 'fs';
 
+// Import email service for transaction notifications
+import { sendTransactionEmail } from './email-service';
+
 type AuthenticatedRequest = Request & {
   // Relaxed typing to avoid needing global Express.User augmentation
   user: any
@@ -324,6 +327,26 @@ router.post('/:id/approve', requireAuth, async (req: AuthenticatedRequest, res: 
 
     console.log(`✅ Deposit ${id} approved and $${depositAmount} added to user ${deposit.userId} balance`);
 
+    // Fetch user details to send email
+    const user = await storage.getUser(deposit.userId);
+
+    // Send email notification for approved deposit
+    if (user) {
+      try {
+        await sendTransactionEmail({
+          to: user.email,
+          transactionType: 'deposit',
+          amount: deposit.amount,
+          currency: deposit.currency,
+          status: 'Approved',
+          transactionId: deposit.id,
+        });
+        console.log(`✅ Deposit approval email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error('Failed to send deposit approval email:', emailError);
+      }
+    }
+
     res.json({
       success: true,
       deposit: updatedDeposit,
@@ -362,6 +385,27 @@ router.post('/:id/reject', requireAuth, async (req: AuthenticatedRequest, res: R
       approvedById: req.user.id,
       approvedAt: new Date(),
     });
+
+    // Fetch user details to send email
+    const user = await storage.getUser(deposit.userId);
+
+    // Send email notification for rejected deposit
+    if (user) {
+      try {
+        await sendTransactionEmail({
+          to: user.email,
+          transactionType: 'deposit',
+          amount: deposit.amount,
+          currency: deposit.currency,
+          status: 'Rejected',
+          rejectionReason: rejectionReason || 'No reason provided',
+          transactionId: deposit.id,
+        });
+        console.log(`✅ Deposit rejection email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error('Failed to send deposit rejection email:', emailError);
+      }
+    }
 
     res.json({
       success: true,
@@ -418,6 +462,28 @@ router.post('/admin/adjust-balance', requireAuth, async (req: AuthenticatedReque
         totalValue: newBalance.toString(),
       });
     }
+
+    // Fetch user details to send email
+    const user = await storage.getUser(adjustmentData.userId);
+
+    // Send email notification for balance adjustment
+    if (user) {
+      try {
+        await sendTransactionEmail({
+          to: user.email,
+          transactionType: 'balance_adjustment',
+          amount: adjustmentData.amount.toString(),
+          currency: adjustmentData.currency,
+          status: adjustmentData.adjustmentType.charAt(0).toUpperCase() + adjustmentData.adjustmentType.slice(1), // e.g., 'Add', 'Remove', 'Set'
+          reason: adjustmentData.reason,
+          transactionId: adjustment.id, // Using adjustment ID as transaction ID
+        });
+        console.log(`✅ Balance adjustment email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error('Failed to send balance adjustment email:', emailError);
+      }
+    }
+
 
     res.json({
       adjustment,
@@ -534,6 +600,24 @@ router.post('/admin/manipulate-balance', requireAuth, async (req: AuthenticatedR
     });
 
     console.log(`✅ Admin ${req.user.username} ${adjustmentData.adjustmentType}ed ${adjustmentData.currency} ${amount} to user ${targetUser.username}`);
+
+    // Send email notification for balance manipulation
+    if (targetUser) {
+      try {
+        await sendTransactionEmail({
+          to: targetUser.email,
+          transactionType: 'balance_manipulation',
+          amount: amount.toString(),
+          currency: adjustmentData.currency,
+          status: adjustmentData.adjustmentType.charAt(0).toUpperCase() + adjustmentData.adjustmentType.slice(1), // e.g., 'Add', 'Remove', 'Set'
+          reason: adjustmentData.reason || `Admin ${adjustmentData.adjustmentType} balance adjustment`,
+          transactionId: adjustment.id, // Using adjustment ID as transaction ID
+        });
+        console.log(`✅ Balance manipulation email sent to ${targetUser.email}`);
+      } catch (emailError) {
+        console.error('Failed to send balance manipulation email:', emailError);
+      }
+    }
 
     res.json({
       success: true,

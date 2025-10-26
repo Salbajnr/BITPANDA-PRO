@@ -2,7 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
-import { sendEmail } from './email-service';
+import { sendEmail, sendOTPEmail, sendTransactionEmail, sendWelcomeEmail, sendPasswordResetSuccessEmail, getBaseUrl } from './email-service';
 import { storage } from './storage';
 import { db } from './db';
 import { otpTokens, passwordResetTokens, users } from '@shared/schema';
@@ -73,42 +73,13 @@ router.post('/forgot-password', async (req, res) => {
     console.log(`Password reset token generated for user ${user.id}`);
 
     // Send email with correct base URL
-    const baseUrl = process.env.BASE_URL || process.env.CLIENT_URL || 'https://bitpandapro.onrender.com';
+    const baseUrl = getBaseUrl(); // Use the new helper function
     const resetLink = `${baseUrl}/reset-password/${token}`;
 
-    const emailSent = await sendEmail({
+    // Use the dedicated password reset email template
+    const emailSent = await sendPasswordResetSuccessEmail({
       to: email,
-      from: 'noreply@bitpanda-pro.com',
-      subject: 'Password Reset Request - BITPANDA PRO',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-          <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
-            <h2 style="color: #10b981; margin: 0 0 30px 0; font-size: 24px;">Password Reset Request</h2>
-
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                You requested a password reset for your BITPANDA PRO account.
-              </p>
-              <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                Click the button below to reset your password:
-              </p>
-
-              <a href="${resetLink}" style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 0;">
-                Reset Password
-              </a>
-
-              <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-                This link will expire in 1 hour for security reasons.
-              </p>
-            </div>
-
-            <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-              If you didn't request this reset, please ignore this email and your password will remain unchanged.
-            </p>
-          </div>
-        </div>
-      `
+      resetLink: resetLink,
     });
 
     if (emailSent) {
@@ -217,59 +188,19 @@ router.post('/send-otp', async (req, res) => {
     } else {
       console.log(`⚠️ OTP for ${email} (${type}): ${otp} (DB not available)`);
     }
-    
-    // Always log OTP for development/debugging
-    console.log(`\n📧 ========== OTP VERIFICATION CODE ==========`);
-    console.log(`Email: ${email}`);
-    console.log(`Type: ${type}`);
-    console.log(`Code: ${otp}`);
-    console.log(`Expires: 5 minutes`);
-    console.log(`============================================\n`);
 
-    // Send OTP email
+    // Use the new sendOTPEmail function
     const subject = type === 'registration' 
       ? 'Welcome to BITPANDA PRO - Verify Your Email'
       : type === 'password_reset'
       ? 'Password Reset Verification - BITPANDA PRO'
       : 'Two-Factor Authentication - BITPANDA PRO';
 
-    const emailSent = await sendEmail({
+    await sendOTPEmail({
       to: email,
-      from: 'noreply@bitpanda-pro.com',
-      subject: subject,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-          <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
-            <h2 style="color: #3b82f6; margin: 0 0 30px 0; font-size: 24px;">Verification Required</h2>
-
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
-              <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                Your verification code is:
-              </p>
-
-              <div style="background-color: #1e40af; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <span style="color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
-                  ${otp}
-                </span>
-              </div>
-
-              <p style="color: #fbbf24; margin: 20px 0 0 0; font-size: 14px; font-weight: bold;">
-                This code will expire in 5 minutes
-              </p>
-            </div>
-
-            <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-              If you didn't request this code, please ignore this email.
-            </p>
-          </div>
-        </div>
-      `
+      otp: otp,
+      type: type,
     });
-
-    if (emailSent) {
-      console.log(`📧 OTP email sent successfully to ${email}`);
-    }
 
     res.json({ success: true, message: 'OTP sent successfully' });
   } catch (error) {
@@ -384,59 +315,13 @@ router.post('/resend-otp', async (req, res) => {
     } else {
       console.log(`New OTP for ${email} (${type}): ${otp} (DB not available)`);
     }
-    
-    // Always log OTP for development/debugging
-    console.log(`\n📧 ========== RESENT OTP VERIFICATION CODE ==========`);
-    console.log(`Email: ${email}`);
-    console.log(`Type: ${type}`);
-    console.log(`Code: ${otp}`);
-    console.log(`Expires: 5 minutes`);
-    console.log(`===================================================\n`);
 
-    // Send OTP email
-    try {
-      const subject = type === 'registration' 
-        ? 'New Verification Code - BITPANDA PRO'
-        : type === 'password_reset'
-        ? 'New Password Reset Code - BITPANDA PRO'
-        : 'New 2FA Code - BITPANDA PRO';
-
-      await sendEmail({
-        to: email,
-        from: 'noreply@bitpanda-pro.com',
-        subject: subject,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-            <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
-              <h2 style="color: #10b981; margin: 0 0 30px 0; font-size: 24px;">New Verification Code</h2>
-
-              <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
-                <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-                  Your new verification code is:
-                </p>
-
-                <div style="background-color: #059669; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <span style="color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
-                    ${otp}
-                  </span>
-                </div>
-
-                <p style="color: #fbbf24; margin: 20px 0 0 0; font-size: 14px; font-weight: bold;">
-                  This code will expire in 5 minutes
-                </p>
-              </div>
-
-              <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-                If you didn't request this code, please ignore this email.
-              </p>
-            </div>
-          </div>
-        `
-      });
-    } catch (emailError) {
-      console.error('Failed to send OTP email:', emailError);
-    }
+    // Use the new sendOTPEmail function
+    await sendOTPEmail({
+      to: email,
+      otp: otp,
+      type: type,
+    });
 
     res.json({ success: true, message: 'New OTP sent successfully' });
   } catch (error) {
