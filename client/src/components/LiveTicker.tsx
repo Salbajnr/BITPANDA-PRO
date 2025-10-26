@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Wifi, WifiOff } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wifi, WifiOff, AlertCircle } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { FeatureErrorBoundary } from './FeatureErrorBoundary';
-import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Wifi, WifiOff, AlertCircle } from 'lucide-react';
-import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TickerItem {
@@ -32,11 +29,13 @@ export default function LiveTicker() {
     queryFn: () => api.get('/api/crypto/top/12'),
     refetchInterval: 15000, // Refetch every 15 seconds for live updates
     retry: 3,
+  });
+
   // Fetch crypto data for ticker with better error handling
   const {
     data: cryptoData,
-    isError: cryptoIsError,
-    isLoading: cryptoIsLoading,
+    isError: cryptoIsError_v2, // Renamed to avoid conflict if both were intended
+    isLoading: cryptoIsLoading_v2, // Renamed to avoid conflict
   } = useQuery<TickerItem[]>({
     queryKey: ['/api/crypto/prices'],
     queryFn: async () => {
@@ -111,6 +110,8 @@ export default function LiveTicker() {
           id: item.id
         }))];
       }
+    }
+    // The second crypto query is used for the actual ticker display data
     if (cryptoData && Array.isArray(cryptoData) && cryptoData.length > 0) {
       items = [...cryptoData];
       setIsConnected(true);
@@ -131,16 +132,15 @@ export default function LiveTicker() {
     setTickerItems(items);
 
     // Set hasError if either crypto or metals data fetch failed
-    if (cryptoIsError || metalsIsError) {
+    if (cryptoIsError || metalsIsError || cryptoIsError_v2 || cryptoError) { // Included both crypto errors
       setHasError(true);
     } else {
       setHasError(false);
     }
-  }, [cryptoData, metalsData, cryptoIsError, metalsIsError]);
-
+  }, [cryptoData, metalsData, cryptoIsError, metalsIsError, cryptoIsError_v2, cryptoError, cryptoResponse]); // Added dependencies
 
   // Show loading state only initially
-  if (cryptoIsLoading && metalsIsLoading && tickerItems.length === 0) {
+  if (cryptoIsLoading && metalsIsLoading && tickerItems.length === 0) { // Also check cryptoIsLoading_v2 if it's a separate initial load
     return (
       <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-2">
@@ -154,7 +154,7 @@ export default function LiveTicker() {
   }
 
   // Show error fallback UI
-  if (hasError || cryptoIsError || metalsIsError) {
+  if (hasError || cryptoIsError || metalsIsError || cryptoIsError_v2 || cryptoError) { // Included both crypto errors
     return (
       <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-2">
@@ -170,13 +170,13 @@ export default function LiveTicker() {
   }
 
   // If no data and not loading, but also no error, means it's empty or intentionally not showing
-  if (!cryptoData && !metalsData && tickerItems.length === 0) {
+  if ((!cryptoData || cryptoData.length === 0) && (!metalsData || metalsData.length === 0) && tickerItems.length === 0) {
     return null;
   }
 
   return (
     <FeatureErrorBoundary>
-      <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="bg-slate-900 border-b border-slate-800 overflow-hidden">
         <div className="relative h-8">
           <div
             className="flex items-center h-full space-x-8 animate-scroll"
@@ -247,77 +247,6 @@ export default function LiveTicker() {
               {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
               <span>{isConnected ? 'LIVE' : 'OFFLINE'}</span>
             </div>
-    <div className="bg-slate-900 border-b border-slate-800 overflow-hidden">
-      <div className="relative h-8">
-        <div
-          className="flex items-center h-full space-x-8 animate-scroll"
-          style={{
-            animationDuration: '30s',
-            animationTimingFunction: 'linear',
-            animationIterationCount: 'infinite',
-            transform: 'translateX(100%)'
-          }}
-        >
-          {/* First set of items */}
-          {tickerItems.map((item, index) => {
-            const isPositive = (item.price_change_percentage_24h || 0) >= 0;
-            const price = Number(item.current_price) || 0;
-            const formattedPrice = price < 1
-              ? price.toFixed(4)
-              : price.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                });
-
-            return (
-              <div key={`${item.symbol}-${index}`} className="flex items-center space-x-2 px-8 py-2 flex-shrink-0">
-                <span className="font-semibold text-gray-100 text-sm">{item.symbol}</span>
-                <span className="text-white font-medium text-sm">
-                  ${formattedPrice}
-                </span>
-                <span className={`text-xs font-medium flex items-center ${
-                  isPositive ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {isPositive ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-                  {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
-                </span>
-              </div>
-            );
-          })}
-
-          {/* Duplicate set for seamless loop */}
-          {tickerItems.map((item, index) => {
-            const isPositive = (item.price_change_percentage_24h || 0) >= 0;
-            const price = Number(item.current_price) || 0;
-            const formattedPrice = price < 1
-              ? price.toFixed(4)
-              : price.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                });
-
-            return (
-              <div key={`${item.symbol}-duplicate-${index}`} className="flex items-center space-x-2 px-8 py-2 flex-shrink-0">
-                <span className="font-semibold text-gray-100 text-sm">{item.symbol}</span>
-                <span className="text-white font-medium text-sm">
-                  ${formattedPrice}
-                </span>
-                <span className={`text-xs font-medium flex items-center ${
-                  isPositive ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {isPositive ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-                  {Math.abs(item.price_change_percentage_24h || 0).toFixed(2)}%
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Connection status indicator */}
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
-          <div className={`flex items-center space-x-1 text-xs ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
-            {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-            <span>{isConnected ? 'LIVE' : 'RECONNECTING...'}</span>
           </div>
         </div>
       </div>
