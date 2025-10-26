@@ -34,20 +34,25 @@ class NewsService {
     articlesCount: 0
   };
 
+  // Placeholder for CryptoPanic API key and default image
+  private CRYPTOPANIC_API_KEY = 'YOUR_CRYPTOPANIC_API_KEY'; // Replace with your actual key
+  private DEFAULT_IMAGE = 'https://cdn.bitpanda.com/media/dev/artboard-1.png';
+  private cryptoPanicKey: string = ''; // To be initialized
+
   async getNews(limit: number = 10, category?: string): Promise<NewsArticle[]> {
     const cacheKey = `news_${category || 'all'}_${limit}`;
     const cached = this.cache.get(cacheKey);
-    
+
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.data;
     }
 
     try {
       console.log('📰 Fetching news from Bitpanda blog...');
-      
+
       // Fetch the Bitpanda blog news page
       const response = await fetch('https://blog.bitpanda.com/en/tag/news');
-      
+
       if (!response.ok) {
         this.fetchStatus = {
           success: false,
@@ -68,15 +73,15 @@ class NewsService {
       $('a').each((index, element) => {
         const $link = $(element);
         const href = $link.attr('href');
-        
+
         // Only process blog post URLs (with specific slug pattern)
         // Blog articles have URLs like /en/article-title-with-multiple-words
         // Count hyphens to identify real articles (should have at least 3 hyphens in the slug)
         const hyphenCount = (href || '').split('-').length - 1;
-        
+
         // Skip navigation, tags, and other non-article links
-        if (!href || 
-            href === '/en' || 
+        if (!href ||
+            href === '/en' ||
             href === '/' ||
             href.startsWith('/en/tag/') ||
             href.includes('/prices/') ||
@@ -93,10 +98,10 @@ class NewsService {
 
         // Get the link text content
         const fullText = $link.text().trim();
-        
+
         // Check if this link contains article markers (read time)
         const hasReadTime = /\d+\s*min\s*read/.test(fullText);
-        
+
         // If no read time and the text is very short, it's likely a navigation link
         if (!hasReadTime && fullText.length < 20) {
           return;
@@ -105,18 +110,18 @@ class NewsService {
         // Extract image
         const $img = $link.find('img');
         const imageUrl = $img.attr('src') || 'https://cdn.bitpanda.com/media/dev/artboard-1.png';
-        
+
         // Extract title from the text
         // Remove read time and "Read more" text
         let title = fullText
           .replace(/•?\s*\d+\s*min\s*read/gi, '')
           .replace(/Read more/gi, '')
           .trim();
-        
+
         // Extract first substantial line as title
         const lines = title.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         title = lines[0] || '';
-        
+
         // Description is remaining lines
         const description = lines.slice(1).join(' ').trim() || title;
 
@@ -124,22 +129,22 @@ class NewsService {
         if (title && title.length > 10 && href) {
           const fullUrl = href.startsWith('http') ? href : `https://blog.bitpanda.com${href}`;
           const articleId = href.split('/').pop() || `article-${index}`;
-          
+
           // Skip if already seen
           if (seenUrls.has(fullUrl)) {
             return;
           }
           seenUrls.add(fullUrl);
-          
+
           // Determine category based on title content
           let articleCategory = 'news';
           let sentiment = 'neutral';
           let coins: string[] = [];
-          
+
           const lowerTitle = title.toLowerCase();
           const lowerDesc = description.toLowerCase();
           const combined = lowerTitle + ' ' + lowerDesc;
-          
+
           // Categorize based on content
           if (combined.includes('bitcoin') || combined.includes('btc')) {
             coins.push('bitcoin', 'btc');
@@ -150,14 +155,14 @@ class NewsService {
           if (combined.includes('xrp') || combined.includes('ripple')) {
             coins.push('xrp', 'ripple');
           }
-          
+
           // Sentiment analysis
           if (combined.match(/surge|gain|rise|growth|bullish|high|win|success|secures|appointed|partnership|approval/i)) {
             sentiment = 'positive';
           } else if (combined.match(/fall|decline|loss|bearish|risk|volatility|crash|correction/i)) {
             sentiment = 'negative';
           }
-          
+
           // Additional categories
           if (combined.includes('weekly wrap')) {
             articleCategory = 'weekly';
@@ -199,7 +204,7 @@ class NewsService {
       }
 
       const result = filteredArticles.slice(0, limit);
-      
+
       // If we didn't get enough articles, use fallback
       if (result.length === 0) {
         console.log('⚠️ No articles parsed from Bitpanda blog, using fallback');
@@ -212,9 +217,9 @@ class NewsService {
         };
         return this.getFallbackNews(limit);
       }
-      
+
       this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
-      
+
       // Update fetch status on success
       this.fetchStatus = {
         success: true,
@@ -222,7 +227,7 @@ class NewsService {
         lastFetch: new Date().toISOString(),
         articlesCount: result.length
       };
-      
+
       console.log(`✅ Fetched ${result.length} articles from Bitpanda blog`);
       return result;
     } catch (error) {
@@ -240,7 +245,7 @@ class NewsService {
 
   private getFallbackNews(limit: number): NewsArticle[] {
     console.log('⚠️ Using fallback news data');
-    
+
     const fallback: NewsArticle[] = [
       {
         id: 'fallback-1',
@@ -273,56 +278,177 @@ class NewsService {
         coins: ['bitcoin', 'ethereum']
       }
     ];
-    
+
     return fallback.slice(0, limit);
   }
 
-  async getNewsByCategory(category: string, limit: number = 10): Promise<any[]> {
-    const cacheKey = `news_category_${category}_${limit}`;
+  async getNewsByCategory(category: string, limit: number = 10, filter?: string): Promise<any[]> {
+    const cacheKey = `news_category_${category}_${filter || ''}_${limit}`;
     const cached = this.cache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.data;
     }
 
+    // Try NewsAPI first
     try {
-      // Try CryptoPanic API
       const response = await fetch(
-        `https://cryptopanic.com/api/v1/posts/?auth_token=${this.cryptoPanicKey || 'demo'}&filter=${category}&public=true`
+        `https://newsapi.org/v2/everything?q=${encodeURIComponent(category)}&apiKey=YOUR_NEWSAPI_KEY&pageSize=${limit}`
       );
 
       if (response.ok) {
         const data = await response.json();
-        const articles = data.results.map((article: any) => ({
-          id: article.id.toString(),
-          title: article.title,
-          description: article.title,
-          summary: article.title,
-          url: article.url,
-          imageUrl: article.source?.icon || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
-          urlToImage: article.source?.icon || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
-          publishedAt: article.created_at,
-          createdAt: article.created_at,
-          source: { id: article.source?.domain, name: article.source?.title },
-          category: category,
-          sentiment: article.votes?.positive > article.votes?.negative ? 'positive' : 'negative',
-          coins: article.currencies?.map((c: any) => c.code.toLowerCase()) || []
-        }));
 
-        this.cache.set(cacheKey, { data: articles.slice(0, limit), timestamp: Date.now() });
-        return articles.slice(0, limit);
+        if (data.articles && Array.isArray(data.articles)) {
+          return data.articles.map((article: any) => ({
+            id: article.url || `news-${Date.now()}-${Math.random()}`,
+            title: article.title,
+            description: article.description || article.summary || '',
+            url: article.url,
+            urlToImage: article.urlToImage || article.image,
+            publishedAt: article.publishedAt,
+            source: article.source || { id: 'newsapi', name: 'NewsAPI' },
+            category: category || 'general',
+            sentiment: 'neutral',
+            coins: this.extractCoinsFromText(article.title + ' ' + article.description)
+          }));
+        }
       }
     } catch (error) {
-      console.warn('News by category fetch failed:', error);
+      console.error('NewsAPI fetch error:', error);
     }
 
-    return this.getFallbackNews(limit);
+    // Fallback to CryptoPanic
+    try {
+      const response = await fetch(
+        `https://cryptopanic.com/api/v1/posts/?auth_token=${this.CRYPTOPANIC_API_KEY}&kind=news&filter=${filter}&limit=${limit}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.results && Array.isArray(data.results)) {
+          return data.results.map((post: any) => ({
+            id: post.id || `cryptopanic-${Date.now()}-${Math.random()}`,
+            title: post.title,
+            description: post.title,
+            url: post.url,
+            urlToImage: post.source?.icon || this.DEFAULT_IMAGE,
+            publishedAt: post.published_at,
+            source: { id: post.source?.domain, name: post.source?.title },
+            category: this.mapCryptoPanicFilter(filter),
+            sentiment: post.votes?.positive > post.votes?.negative ? 'positive' :
+                      post.votes?.negative > post.votes?.positive ? 'negative' : 'neutral',
+            coins: post.currencies?.map((c: any) => c.code.toLowerCase()) || []
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('CryptoPanic fetch error:', error);
+    }
+
+    console.log('Using fallback news data');
+    return this.getFallbackNews(limit, category);
+  }
+
+  private extractCoinsFromText(text: string): string[] {
+    const coins: string[] = [];
+    const lowerText = text.toLowerCase();
+
+    const coinKeywords: Record<string, string> = {
+      'bitcoin': 'bitcoin',
+      'btc': 'bitcoin',
+      'ethereum': 'ethereum',
+      'eth': 'ethereum',
+      'cardano': 'cardano',
+      'ada': 'cardano',
+      'solana': 'solana',
+      'sol': 'solana',
+      'ripple': 'ripple',
+      'xrp': 'ripple',
+      'polkadot': 'polkadot',
+      'dot': 'polkadot',
+      'polygon': 'polygon',
+      'matic': 'polygon',
+      'chainlink': 'chainlink',
+      'link': 'chainlink'
+    };
+
+    for (const [keyword, coin] of Object.entries(coinKeywords)) {
+      if (lowerText.includes(keyword)) {
+        if (!coins.includes(coin)) {
+          coins.push(coin);
+        }
+      }
+    }
+
+    return coins;
+  }
+
+  private mapCryptoPanicFilter(filter: string): string {
+    const mapping: Record<string, string> = {
+      'trending': 'trending',
+      'bullish': 'market-analysis',
+      'bearish': 'market-analysis',
+      'important': 'regulation',
+      'saved': 'general',
+      'lol': 'general'
+    };
+
+    return mapping[filter] || 'general';
+  }
+
+  private getFallbackNews(limit: number, category?: string): NewsArticle[] {
+    console.log('⚠️ Using fallback news data');
+
+    const fallback: NewsArticle[] = [
+      {
+        id: 'fallback-1',
+        title: 'Bitpanda: European Leader in Crypto and Digital Assets',
+        description: 'Bitpanda continues to expand its offerings across Europe, providing secure and regulated access to cryptocurrency, stocks, and precious metals trading.',
+        summary: 'Bitpanda expands European crypto trading services.',
+        url: 'https://blog.bitpanda.com/en',
+        imageUrl: 'https://cdn.bitpanda.com/media/dev/artboard-1.png',
+        urlToImage: 'https://cdn.bitpanda.com/media/dev/artboard-1.png',
+        publishedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        source: { id: 'bitpanda', name: 'Bitpanda' },
+        category: 'general',
+        sentiment: 'neutral',
+        coins: ['bitcoin', 'ethereum']
+      },
+      {
+        id: 'fallback-2',
+        title: 'Crypto Market Update: Trading Activity Continues',
+        description: 'Digital asset markets show ongoing trading activity with Bitcoin and Ethereum leading the way in market capitalization.',
+        summary: 'Markets remain active with ongoing trading.',
+        url: 'https://www.bitpanda.com/en',
+        imageUrl: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        urlToImage: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        publishedAt: new Date(Date.now() - 3600000).toISOString(),
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+        source: { id: 'market', name: 'Market Update' },
+        category: 'general',
+        sentiment: 'neutral',
+        coins: ['bitcoin', 'ethereum']
+      }
+    ];
+
+    // If a category is specified, filter the fallback data
+    if (category && category !== 'all') {
+      return fallback.filter(article =>
+        article.category === category ||
+        article.coins.includes(category.toLowerCase())
+      ).slice(0, limit);
+    }
+
+    return fallback.slice(0, limit);
   }
 
   async searchNews(query: string, limit: number = 10): Promise<any[]> {
     const cacheKey = `news_search_${query}_${limit}`;
     const cached = this.cache.get(cacheKey);
-    
+
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return cached.data;
     }
@@ -340,11 +466,6 @@ class NewsService {
       console.warn('News search failed:', error);
       return [];
     }
-  }
-
-  clearCache(): void {
-    this.cache.clear();
-  }
   }
 
   clearCache(): void {

@@ -59,6 +59,7 @@ import uploadRoutes from "./upload-routes";
 import { registerProofUploadRoutes } from "./proof-upload-routes";
 import oauthRoutes from "./oauth-routes";
 import csrfRoutes from "./csrf-routes";
+import comprehensiveApiRoutes from "./comprehensive-api-routes";
 
 const app = express();
 
@@ -243,6 +244,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/sse", sseRoutes);
 registerProofUploadRoutes(app);
 app.use("/api/support/chat", chatRoutes);
+app.use("/api/v1", comprehensiveApiRoutes);
 
 // === 404 HANDLER FOR API ===
 // This should come after all other API routes
