@@ -4,14 +4,14 @@
 A full-stack cryptocurrency trading platform with real-time price updates, portfolio management, and comprehensive admin dashboard. Fully configured for Replit development and production deployment.
 
 ## Recent Changes
-- **2025-10-26**: Project optimized for Replit deployment
+- **2025-10-26**: GitHub project imported and configured for Replit
   - ✅ Installed all dependencies (root, client, server)
-  - ✅ Configured unified build process for combined deployment
-  - ✅ Removed unnecessary deployment files (Docker, nginx, render.yaml)
-  - ✅ Fixed dependency conflicts (drizzle-orm, drizzle-zod, nanoid hoisted to root)
-  - ✅ Configured development workflow (frontend port 5000, backend port 3000)
-  - ✅ Set up deployment configuration (VM with build step)
-  - ✅ Updated build scripts for production-ready deployment
+  - ✅ Configured Vite dev server to allow all hosts (required for Replit proxy)
+  - ✅ Fixed port configuration (frontend: 5000, backend: 3000 in dev mode)
+  - ✅ Added dotenv loading at server startup for environment variables
+  - ✅ Configured development workflow with concurrently running both services
+  - ✅ Set up autoscale deployment configuration
+  - ✅ App running in demo mode (external Supabase database unreachable)
 
 ## Project Architecture
 
@@ -98,13 +98,14 @@ npm run db:studio    # Open Drizzle Studio
 ```
 
 ### Demo Mode vs Database Mode
-- **Without DATABASE_URL**: The app runs in demo mode. Some features will log errors (price alerts, portfolio persistence) but the core UI and real-time price tracking work.
-- **With DATABASE_URL**: Set `DATABASE_URL` in Secrets, then run `npm run db:push` to create all required tables for full functionality.
+- **Current State**: Running in demo mode. The external Supabase database configured in the imported project is not reachable.
+- **Without DATABASE_URL**: The app runs in demo mode. Some features will log errors (price alerts, portfolio persistence) but the core UI and real-time price tracking work perfectly.
+- **To enable full functionality**: Set a valid `DATABASE_URL` in Replit Secrets, then run `npm run db:push` to create all required tables.
 
 ## Deployment (Replit)
 
 ### Deployment Configuration
-- **Type**: VM (always-running server with WebSocket support)
+- **Type**: Autoscale (stateless web server - suitable for this application)
 - **Build**: `npm run build` (builds client static files)
 - **Run**: `npm start` (serves combined app on port 5000)
 

@@ -8,7 +8,7 @@
     "build:client": "cd client && npm run build",
     "start": "NODE_ENV=production node --max-old-space-size=4096 --import tsx server/index.ts",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "cd server && NODE_OPTIONS='--max-old-space-size=4096' npx tsx watch index.ts",
+    "dev:server": "cd server && NODE_ENV=development BACKEND_PORT=3000 NODE_OPTIONS='--max-old-space-size=4096' npx tsx watch index.ts",
     "dev:client": "cd client && npm run dev",
     "install:all": "npm install --include=dev && cd client && npm install --include=dev && cd ../server && npm install --include=dev",
     "db:generate": "cd server && drizzle-kit generate",

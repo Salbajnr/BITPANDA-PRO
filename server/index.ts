@@ -1,11 +1,21 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 
+// Load environment variables from .env file first
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// ESM __dirname shim
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env file
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 import express from "express";
 import cookieParser from "cookie-parser";
-import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
 import { portfolioRoutes } from "./portfolio-routes";
@@ -19,10 +29,6 @@ import { validateEnvironment } from "./env-validator";
 import { pool } from "./db";
 import { healthRouter } from "./health";
 import { createSessionMiddleware } from "./session";
-
-// ESM __dirname shim
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // === ROUTES ===
 import cryptoRoutes from "./crypto-routes";
