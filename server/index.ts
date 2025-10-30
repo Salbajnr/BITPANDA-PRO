@@ -172,8 +172,8 @@ if (process.env.NODE_ENV === 'production') {
     // Serve static files
     app.use(express.static(clientBuildPath));
 
-    // Handle admin routes - serve admin.html for /admin/* routes
-    app.get('/admin*', (req, res) => {
+    // Handle admin routes - serve admin.html for /admin and /admin/* routes
+    app.use('/admin', (req, res) => {
       const adminHtmlPath = path.join(clientBuildPath, 'admin.html');
       if (fs.existsSync(adminHtmlPath)) {
         return res.sendFile(adminHtmlPath);
@@ -183,19 +183,18 @@ if (process.env.NODE_ENV === 'production') {
     });
 
     // Handle client-side routing - return index.html for non-API routes
-    app.get('*', (req, res) => {
+    app.use((req, res, next) => {
       if (!req.path.startsWith('/api/')) {
         return res.sendFile(path.join(clientBuildPath, 'index.html'));
       }
-      // If it's an API path and not handled by other routes, return 404
-      res.status(404).json({ message: 'API endpoint not found' });
+      // Continue to next handler for API routes
+      next();
     });
   } else {
     console.warn('⚠️  Client build not found. Running in API-only mode.');
 
     // In production but no client build found, handle non-API routes with 404
-    // In production but no client build found
-    app.get('*', (req, res, next) => {
+    app.use((req, res, next) => {
       if (!req.path.startsWith('/api/')) {
         return res.status(404).json({
           status: 'error',
@@ -211,7 +210,7 @@ if (process.env.NODE_ENV === 'production') {
   console.log('🚀 Running in development mode - API-only');
 
   // Admin routes should be handled by the client dev server
-  app.get('/admin*', (req, res) => {
+  app.use('/admin', (req, res) => {
     res.status(404).json({
       status: 'error',
       message: 'Admin Panel - Development Mode',
@@ -219,7 +218,7 @@ if (process.env.NODE_ENV === 'production') {
     });
   });
 
-  app.get('*', (req, res, next) => {
+  app.use((req, res, next) => {
     if (!req.path.startsWith('/api/')) {
       return res.status(404).json({
         status: 'error',
@@ -298,7 +297,8 @@ app.use("/api/v1", comprehensiveApiRoutes);
 
 // === 404 HANDLER FOR API ===
 // This should come after all other API routes
-app.use("/api/*", (req, res) => {
+app.use("/api", (req, res, next) => {
+  // If we get here, the API route wasn't found
   res.status(404).json({ message: "API endpoint not found" });
 });
 
@@ -306,8 +306,8 @@ app.use("/api/*", (req, res) => {
 // This should be the very last route handler
 // It's intended for serving the client-side application in production
 // and for development scenarios where the client is handled separately.
-app.get('*', (req, res, next) => {
-  // If the request path starts with '/api/', it should have been handled by API routes or the /api/* 404 handler
+app.use((req, res, next) => {
+  // If the request path starts with '/api/', it should have been handled by API routes or the /api 404 handler
   if (req.path.startsWith('/api/')) {
     return next(); // Let the API route handlers or the API 404 handler manage this
   }

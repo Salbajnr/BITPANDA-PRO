@@ -933,7 +933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/adjustments/:userId?', requireAdmin, async (req, res) => {
+  app.get('/api/admin/adjustments/:userId', requireAdmin, async (req, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
@@ -941,6 +941,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const adjustments = await storage.getBalanceAdjustments(req.params.userId);
+      res.json(adjustments);
+    } catch (error) {
+      console.error("Error fetching adjustments:", error);
+      res.status(500).json({ message: "Failed to fetch adjustments" });
+    }
+  });
+
+  app.get('/api/admin/adjustments', requireAdmin, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user!.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const adjustments = await storage.getBalanceAdjustments(undefined);
       res.json(adjustments);
     } catch (error) {
       console.error("Error fetching adjustments:", error);

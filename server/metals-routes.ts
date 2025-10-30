@@ -56,8 +56,8 @@ router.post('/prices', async (req, res) => {
   }
 });
 
-// Get top metals by market importance
-router.get('/top/:limit?', async (req, res) => {
+// Get top metals by market importance with limit
+router.get('/top/:limit', async (req, res) => {
   try {
     const limit = parseInt(req.params.limit) || 10;
     
@@ -67,6 +67,20 @@ router.get('/top/:limit?', async (req, res) => {
       });
     }
     
+    const topMetals = await metalsService.getTopMetals(limit);
+    res.json(topMetals);
+  } catch (error) {
+    console.error('Error fetching top metals:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch top metals' 
+    });
+  }
+});
+
+// Get top metals by market importance with default limit
+router.get('/top', async (req, res) => {
+  try {
+    const limit = 10;
     const topMetals = await metalsService.getTopMetals(limit);
     res.json(topMetals);
   } catch (error) {
