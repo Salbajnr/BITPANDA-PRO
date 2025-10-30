@@ -116,6 +116,7 @@ class AuditService {
 
   // Middleware for automatic audit logging
   createAuditMiddleware() {
+    const self = this; // Capture the correct context
     return (req: any, res: any, next: any) => {
       const originalSend = res.send;
       const startTime = Date.now();
@@ -136,7 +137,7 @@ class AuditService {
             endpoint: req.path,
             success,
             severity: success ? 'low' : 'medium',
-            category: this.categorizeEndpoint(req.path),
+            category: self.categorizeEndpoint(req.path),
             metadata: {
               method: req.method,
               statusCode: res.statusCode,
@@ -144,7 +145,7 @@ class AuditService {
               query: req.query,
               params: req.params
             },
-            ...(req.body && req.method !== 'GET' && { newValue: this.sanitizeBody(req.body) })
+            ...(req.body && req.method !== 'GET' && { newValue: self.sanitizeBody(req.body) })
           });
         }
 
