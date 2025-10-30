@@ -295,7 +295,7 @@ app.use("/api/sse", sseRoutes);
 registerProofUploadRoutes(app);
 app.use("/api/support/chat", chatRoutes);
 app.use("/api/v1", comprehensiveApiRoutes);
-app.use(testEmailRoute);
+app.use(testEmailRoute); // Test email route must come before 404 handler
 
 // === 404 HANDLER FOR API ===
 // This should come after all other API routes
