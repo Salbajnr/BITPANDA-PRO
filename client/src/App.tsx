@@ -297,7 +297,13 @@ function Routes() {
 
       {/* Admin routes - redirect to separate admin app */}
       <Route path="/admin/:rest*" component={() => {
-        window.location.href = '/admin.html';
+        // In development, redirect to admin.html
+        if (import.meta.env.DEV) {
+          window.location.href = '/admin.html' + window.location.pathname.replace('/admin', '/admin') + window.location.search;
+        } else {
+          // In production, this should be handled by the server
+          window.location.href = '/admin.html';
+        }
         return null;
       }} />
 

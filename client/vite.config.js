@@ -20,11 +20,6 @@ export default defineConfig({
         target: 'http://0.0.0.0:3000',
         changeOrigin: true,
         secure: false,
-      },
-      '/admin': {
-        target: 'http://0.0.0.0:3000',
-        changeOrigin: true,
-        secure: false,
       }
     }
   },
