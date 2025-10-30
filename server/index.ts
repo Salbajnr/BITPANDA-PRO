@@ -72,6 +72,7 @@ import csrfRoutes from "./csrf-routes";
 import comprehensiveApiRoutes from "./comprehensive-api-routes";
 import supabaseAuthRoutes from "./supabase-auth-routes";
 import supabaseHealthRoutes from './supabase-health-routes';
+import testEmailRoute from './test-email-route';
 
 const app = express();
 
@@ -294,6 +295,7 @@ app.use("/api/sse", sseRoutes);
 registerProofUploadRoutes(app);
 app.use("/api/support/chat", chatRoutes);
 app.use("/api/v1", comprehensiveApiRoutes);
+app.use(testEmailRoute);
 
 // === 404 HANDLER FOR API ===
 // This should come after all other API routes
