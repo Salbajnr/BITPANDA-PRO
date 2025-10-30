@@ -108,7 +108,67 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 }
 
-// Send OTP verification email
+// Enhanced email templates with better styling and functionality
+const getEmailTemplate = (content: string, title: string): string => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="padding: 40px 30px 20px;">
+                            <img src="${getBaseUrl()}/assets/logo.jpeg" alt="BITPANDA PRO" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 20px;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: 1px;">BITPANDA PRO</h1>
+                        </td>
+                    </tr>
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 0 30px 40px;">
+                            ${content}
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: rgba(0,0,0,0.3); padding: 30px; text-align: center;">
+                            <p style="color: #94a3b8; margin: 0 0 15px 0; font-size: 14px;">
+                                BITPANDA PRO - Your Trusted Trading Platform
+                            </p>
+                            <div style="margin: 20px 0;">
+                                <a href="${getBaseUrl()}/help-center" style="color: #3b82f6; text-decoration: none; margin: 0 15px; font-size: 14px;">Help Center</a>
+                                <a href="${getBaseUrl()}/contact" style="color: #3b82f6; text-decoration: none; margin: 0 15px; font-size: 14px;">Contact Us</a>
+                                <a href="${getBaseUrl()}/privacy" style="color: #3b82f6; text-decoration: none; margin: 0 15px; font-size: 14px;">Privacy Policy</a>
+                            </div>
+                            <p style="color: #64748b; margin: 15px 0 0 0; font-size: 12px;">
+                                © ${new Date().getFullYear()} BITPANDA PRO. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+`;
+
+// Send OTP verification email with enhanced template
 export async function sendOTPEmail(params: OTPEmailParams): Promise<boolean> {
   const typeText = {
     registration: 'Complete Registration',
@@ -116,36 +176,54 @@ export async function sendOTPEmail(params: OTPEmailParams): Promise<boolean> {
     '2fa': 'Two-Factor Authentication'
   };
 
+  const typeDescriptions = {
+    registration: 'Welcome! Please verify your email to complete registration.',
+    password_reset: 'Use this code to reset your password securely.',
+    '2fa': 'Your two-factor authentication code for secure login.'
+  };
+
   const subject = `${typeText[params.type]} - BITPANDA PRO`;
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-      <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0 0 20px 0; font-size: 28px;">BITPANDA PRO</h1>
-        <h2 style="color: #3b82f6; margin: 0 0 30px 0; font-size: 24px;">${typeText[params.type]}</h2>
-
-        <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 8px; margin: 20px 0;">
-          <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px;">
-            Your verification code is:
-          </p>
-
-          <div style="background-color: #1e40af; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <span style="color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
-              ${params.otp}
-            </span>
-          </div>
-
-          <p style="color: #fbbf24; margin: 20px 0 0 0; font-size: 14px; font-weight: bold;">
-            This code will expire in 5 minutes
-          </p>
+  const content = `
+    <div style="text-align: center;">
+        <h2 style="color: #3b82f6; margin: 0 0 20px 0; font-size: 24px;">${typeText[params.type]}</h2>
+        
+        <div style="background-color: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 12px; margin: 20px 0;">
+            <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 16px; line-height: 1.5;">
+                ${typeDescriptions[params.type]}
+            </p>
+            
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 25px; border-radius: 12px; margin: 25px 0; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">
+                <p style="color: #ffffff; margin: 0 0 10px 0; font-size: 14px; opacity: 0.9;">Your verification code:</p>
+                <div style="color: #ffffff; font-size: 36px; font-weight: bold; letter-spacing: 6px; font-family: 'Courier New', monospace; margin: 10px 0;">
+                    ${params.otp}
+                </div>
+            </div>
+            
+            <div style="background-color: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                <p style="color: #fbbf24; margin: 0; font-size: 14px; font-weight: 600;">
+                    ⏰ This code expires in 5 minutes
+                </p>
+            </div>
+            
+            <div style="margin: 30px 0;">
+                <a href="${getBaseUrl()}/auth/verify" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    Verify Now
+                </a>
+            </div>
         </div>
-
-        <p style="color: #94a3b8; margin: 20px 0 0 0; font-size: 14px;">
-          If you didn't request this code, please ignore this email.
-        </p>
-      </div>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 30px;">
+            <p style="color: #94a3b8; margin: 0; font-size: 14px; line-height: 1.5;">
+                If you didn't request this code, please ignore this email and consider changing your password.
+                <br>
+                Need help? Contact our <a href="${getBaseUrl()}/support" style="color: #3b82f6;">support team</a>.
+            </p>
+        </div>
     </div>
   `;
+
+  const html = getEmailTemplate(content, subject);
 
   return sendEmail({
     to: params.to,

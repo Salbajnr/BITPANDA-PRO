@@ -118,11 +118,30 @@ class WebSocketManager {
         }
       });
 
-  (ws as any).on('error', (error: any) => {
-        console.error(`WebSocket error for IP ${clientIp}:`, error);
+  (ws as any).on('error', async (error: any) => {
+        console.error(`🔌 WebSocket error for IP ${clientIp}:`, error);
+
+        // Log the error for monitoring
+        try {
+          const { auditService } = await import('./audit-service');
+          await auditService.logSecurityEvent({
+            type: 'suspicious_activity',
+            ip: clientIp,
+            userAgent: request.headers['user-agent'],
+            details: {
+              error: error.message,
+              errorCode: error.code,
+              wsClientId: clientId,
+              action: 'websocket_error'
+            },
+            severity: 'medium'
+          });
+        } catch (logError) {
+          console.error('Failed to log WebSocket error:', logError);
+        }
 
         // Only handle cleanup if not already closed
-        if (ws.readyState !== ws.CLOSED) {
+        if (ws.readyState !== ws.CLOSED && ws.readyState !== ws.CLOSING) {
           this.handleUnsubscribe(clientId);
 
           // Decrement connection count on error with safety check
@@ -135,8 +154,22 @@ class WebSocketManager {
             console.log(`✓ Error cleanup for IP: ${clientIp} (${count - 1} remaining)`);
           }
 
-          // Force close the connection
-          try { ws.close(); } catch (e) { /* ignore */ }
+          // Attempt graceful close with timeout
+          try {
+            ws.close(1011, 'Server error occurred');
+            
+            // Force close if graceful close doesn't work within 5 seconds
+            setTimeout(() => {
+              if (ws.readyState !== ws.CLOSED) {
+                console.log(`🔌 Force terminating WebSocket connection for IP: ${clientIp}`);
+                if (typeof (ws as any).terminate === 'function') {
+                  (ws as any).terminate();
+                }
+              }
+            }, 5000);
+          } catch (closeError) {
+            console.error('Failed to close WebSocket on error:', closeError);
+          }
         }
       });
     });

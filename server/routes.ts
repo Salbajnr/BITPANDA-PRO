@@ -27,6 +27,10 @@ import todoRoutes from "./todo-routes";
 import socialRoutes from "./social-routes";
 import notificationRoutes from "./notification-routes";
 
+// Import rate limiting and audit services
+import { rateLimits } from './rate-limiting-service';
+import { auditService } from './audit-service';
+
 
 // Database connection check
 const checkDbAvailable = () => {
@@ -60,6 +64,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.session());
 
   app.use(loadUser);
+
+  // Add audit logging middleware (before routes)
+  app.use(auditService.createAuditMiddleware());
 
   // Health check endpoint
   app.get('/health', (req, res) => {
@@ -150,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/crud', comprehensiveCrudRoutes);
 
   // General login endpoint - auto-detects user type
-  app.post('/api/auth/login', checkDbConnection, async (req: Request, res: Response) => {
+  app.post('/api/auth/login', rateLimits.auth, checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = req.body;
 
@@ -181,6 +188,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       (req.session as any).userId = user.id;
       (req.session as any).userRole = user.role;
+
+      // Log successful login
+      await auditService.logSecurityEvent({
+        type: 'login_success',
+        userId: user.id,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        details: { loginMethod: 'password', userRole: user.role },
+        severity: 'low'
+      });
 
       // Get portfolio
       let portfolio = await storage.getPortfolio(user.id);
