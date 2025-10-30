@@ -61,7 +61,7 @@ const getBaseUrl = () => {
 
 // Initialize SendGrid with API key
 const initializeSendGrid = () => {
-  const apiKey = process.env.SENDGRID_API_KEY;
+  const apiKey = process.env.SENDGRID_API_KEY || process.env.SENDGRID_SMTP_KEY;
 
   if (!apiKey) {
     console.warn('⚠️ SENDGRID_API_KEY not configured - emails will only be logged');
@@ -73,6 +73,7 @@ const initializeSendGrid = () => {
   try {
     sgMail.setApiKey(apiKey);
     console.log('✅ SendGrid initialized successfully');
+    console.log('✅ Using API key:', apiKey.substring(0, 10) + '...');
     return true;
   } catch (error) {
     console.error('❌ Failed to initialize SendGrid:', error);
