@@ -1,6 +1,7 @@
 import sgMail from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 
-// Email service using SendGrid
+// Email service using SendGrid API and SMTP fallback
 interface EmailParams {
   to: string;
   from: string;
@@ -8,6 +9,29 @@ interface EmailParams {
   text?: string;
   html?: string;
 }
+
+// Create SMTP transporter for fallback
+const createSMTPTransporter = () => {
+  try {
+    return nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_SMTP_KEY || process.env.SENDGRID_API_KEY || ''
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+  } catch (error) {
+    console.error('Failed to create SMTP transporter:', error);
+    return null;
+  }
+};
+
+const smtpTransporter = createSMTPTransporter();
 
 // Email template types
 export interface OTPEmailParams {
@@ -60,7 +84,7 @@ const isSendGridInitialized = initializeSendGrid();
 
 export { getBaseUrl };
 
-// Base email sending function
+// Base email sending function with SMTP fallback
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
     // If SendGrid is not configured, log the email and return success for development
@@ -76,24 +100,51 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       return true;
     }
 
-    // Send email via SendGrid
-    const msg = {
-      to: params.to,
-      from: {
-        email: params.from,
-        name: 'BITPANDA PRO'
-      },
-      subject: params.subject,
-      text: params.text || '',
-      html: params.html || params.text || '',
-    };
+    // Try SendGrid API first
+    try {
+      const msg = {
+        to: params.to,
+        from: {
+          email: params.from,
+          name: 'BITPANDA PRO'
+        },
+        subject: params.subject,
+        text: params.text || '',
+        html: params.html || params.text || '',
+      };
 
-    await sgMail.send(msg);
+      await sgMail.send(msg);
+      console.log('✅ Email sent successfully via SendGrid API to:', params.to);
+      return true;
+    } catch (apiError: any) {
+      console.warn('⚠️ SendGrid API failed, trying SMTP fallback...');
+      console.warn('API Error:', apiError?.response?.body?.errors || apiError?.message);
 
-    console.log('✅ Email sent successfully to:', params.to);
-    return true;
+      // Try SMTP fallback
+      if (smtpTransporter) {
+        try {
+          const mailOptions = {
+            from: `BITPANDA PRO <${params.from}>`,
+            to: params.to,
+            subject: params.subject,
+            text: params.text || '',
+            html: params.html || params.text || ''
+          };
+
+          const info = await smtpTransporter.sendMail(mailOptions);
+          console.log('✅ Email sent successfully via SMTP to:', params.to);
+          console.log('Message ID:', info.messageId);
+          return true;
+        } catch (smtpError: any) {
+          console.error('❌ SMTP fallback also failed:', smtpError.message);
+          throw smtpError;
+        }
+      } else {
+        throw apiError;
+      }
+    }
   } catch (error: any) {
-    console.error('❌ SendGrid email error:', error?.response?.body || error?.message || error);
+    console.error('❌ All email delivery methods failed:', error?.message || error);
 
     // Log the email content for debugging
     console.log('\n📧 ========== FAILED EMAIL DETAILS ==========');
@@ -103,7 +154,6 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     console.log('===========================================\n');
 
     // Return true so auth flow continues even if email fails (development fallback)
-    // In production, you might want to return false and handle the error differently
     return true;
   }
 }
