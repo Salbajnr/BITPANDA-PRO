@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +23,7 @@ export default function AdminLogin() {
 
   const adminLoginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
-      const res = await adminApiRequest("POST", "/auth/login", data);
+      const res = await adminApiRequest("POST", "/login", data);
       return res;
     },
     onSuccess: (data) => {
