@@ -172,6 +172,16 @@ if (process.env.NODE_ENV === 'production') {
     // Serve static files
     app.use(express.static(clientBuildPath));
 
+    // Handle admin routes - serve admin.html for /admin/* routes
+    app.get('/admin*', (req, res) => {
+      const adminHtmlPath = path.join(clientBuildPath, 'admin.html');
+      if (fs.existsSync(adminHtmlPath)) {
+        return res.sendFile(adminHtmlPath);
+      }
+      // Fallback to main index.html if admin.html doesn't exist
+      return res.sendFile(path.join(clientBuildPath, 'index.html'));
+    });
+
     // Handle client-side routing - return index.html for non-API routes
     app.get('*', (req, res) => {
       if (!req.path.startsWith('/api/')) {
@@ -199,6 +209,15 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   // In development, run in API-only mode, serve non-API routes with 404
   console.log('🚀 Running in development mode - API-only');
+
+  // Admin routes should be handled by the client dev server
+  app.get('/admin*', (req, res) => {
+    res.status(404).json({
+      status: 'error',
+      message: 'Admin Panel - Development Mode',
+      details: 'Admin panel should be accessed through the client development server on port 5000'
+    });
+  });
 
   app.get('*', (req, res, next) => {
     if (!req.path.startsWith('/api/')) {
