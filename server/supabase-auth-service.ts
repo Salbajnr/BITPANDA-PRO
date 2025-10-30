@@ -42,39 +42,61 @@ export class SupabaseAuthService {
         return { success: false, error: 'Email and password are required' };
       }
 
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { success: false, error: 'Invalid email format' };
+      }
+
+      // Validate password strength
+      if (password.length < 8) {
+        return { success: false, error: 'Password must be at least 8 characters long' };
+      }
+
+      console.log(`🔄 Attempting to sign up user: ${email}`);
+
       // Create user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            first_name: firstName,
-            last_name: lastName,
+            first_name: firstName || '',
+            last_name: lastName || '',
             username: username || email.split('@')[0],
+            full_name: `${firstName || ''} ${lastName || ''}`.trim(),
           },
-          emailRedirectTo: `${process.env.BASE_URL || ''}/auth/verify-email`,
+          emailRedirectTo: `${process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5000'}/auth/verify-email`,
         },
       });
 
       if (authError) {
+        console.error(`❌ Supabase signup error for ${email}:`, authError);
         return { success: false, error: authError.message };
       }
 
       if (!authData.user) {
+        console.error(`❌ No user data returned for ${email}`);
         return { success: false, error: 'Failed to create user' };
       }
 
+      console.log(`✅ Supabase user created: ${authData.user.id}`);
+
       // Sync user to our database
       await this.syncSupabaseUserToDatabase(authData.user, { firstName, lastName, username });
+
+      const message = authData.user.email_confirmed_at 
+        ? 'Account created successfully' 
+        : 'Please check your email to verify your account';
 
       return {
         success: true,
         user: authData.user,
         session: authData.session,
-        message: 'Please check your email to verify your account',
+        message,
       };
     } catch (error: any) {
-      console.error('Sign up error:', error);
+      console.error('❌ Sign up error:', error);
       return { success: false, error: error.message || 'Sign up failed' };
     }
   }
@@ -506,50 +528,68 @@ export class SupabaseAuthService {
    */
   private async syncSupabaseUserToDatabase(supabaseUser: SupabaseUser, additionalData?: Partial<SignUpData>): Promise<void> {
     try {
-      const { id, email, phone, user_metadata } = supabaseUser;
+      const { id, email, phone, user_metadata, email_confirmed_at, phone_confirmed_at } = supabaseUser;
 
-      // Check if user already exists in our database
-      let existingUser = await storage.getUserByEmail(email || '');
+      if (!id) {
+        console.error('Cannot sync user: missing user ID');
+        return;
+      }
+
+      // Check if user already exists in our database by Supabase ID first
+      const users = await storage.getAllUsers();
+      let existingUser = users.find(u => u.id === id);
+      
+      // Fallback to email/phone lookup
+      if (!existingUser && email) {
+        existingUser = await storage.getUserByEmail(email);
+      }
       
       if (!existingUser && phone) {
-        // Try to find by phone if email not found
-        const users = await storage.getAllUsers();
         existingUser = users.find(u => u.phone === phone);
       }
 
       const userData = {
         email: email || '',
         phone: phone || '',
-        firstName: additionalData?.firstName || user_metadata?.first_name || '',
-        lastName: additionalData?.lastName || user_metadata?.last_name || '',
-        username: additionalData?.username || user_metadata?.username || email?.split('@')[0] || phone || '',
-        displayName: user_metadata?.full_name || `${user_metadata?.first_name || ''} ${user_metadata?.last_name || ''}`.trim(),
-        photoURL: user_metadata?.avatar_url || user_metadata?.picture || '',
-        provider: user_metadata?.provider || 'email',
+        firstName: additionalData?.firstName || user_metadata?.first_name || user_metadata?.firstName || '',
+        lastName: additionalData?.lastName || user_metadata?.last_name || user_metadata?.lastName || '',
+        username: additionalData?.username || user_metadata?.username || user_metadata?.preferred_username || email?.split('@')[0] || phone?.replace(/\D/g, '') || `user_${id.slice(-8)}`,
+        displayName: user_metadata?.full_name || user_metadata?.name || `${user_metadata?.first_name || ''} ${user_metadata?.last_name || ''}`.trim() || '',
+        photoURL: user_metadata?.avatar_url || user_metadata?.picture || user_metadata?.photo || '',
+        provider: user_metadata?.provider || (phone ? 'phone' : 'email'),
         role: 'user' as const,
         isActive: true,
         walletBalance: '0',
         password: '', // Supabase manages passwords
-        emailVerified: !!supabaseUser.email_confirmed_at,
-        phoneVerified: !!supabaseUser.phone_confirmed_at,
+        emailVerified: !!email_confirmed_at,
+        phoneVerified: !!phone_confirmed_at,
       };
 
       if (existingUser) {
-        // Update existing user
+        // Update existing user, preserving existing verification status if already verified
         await storage.updateUser(existingUser.id, {
           ...userData,
-          emailVerified: !!supabaseUser.email_confirmed_at || existingUser.emailVerified,
-          phoneVerified: !!supabaseUser.phone_confirmed_at || existingUser.phoneVerified,
+          emailVerified: !!email_confirmed_at || existingUser.emailVerified,
+          phoneVerified: !!phone_confirmed_at || existingUser.phoneVerified,
+          // Preserve existing balance and other user data
+          walletBalance: existingUser.walletBalance || '0',
         });
+        console.log(`✅ Updated existing user: ${existingUser.id}`);
       } else {
-        // Create new user
-        await storage.createUser({
+        // Create new user with Supabase UUID
+        const newUser = await storage.createUser({
           ...userData,
-          id: id, // Use Supabase user ID
+          id: id, // Use Supabase UUID
         } as any);
+        console.log(`✅ Created new user: ${id}`);
       }
-    } catch (error) {
-      console.error('Error syncing Supabase user to database:', error);
+    } catch (error: any) {
+      console.error('❌ Error syncing Supabase user to database:', {
+        userId: supabaseUser.id,
+        email: supabaseUser.email,
+        error: error.message,
+        stack: error.stack
+      });
       // Don't throw error - auth should still work even if sync fails
     }
   }

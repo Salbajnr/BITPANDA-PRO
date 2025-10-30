@@ -29,6 +29,9 @@ import { validateEnvironment } from "./env-validator";
 import { pool } from "./db";
 import { healthRouter } from "./health";
 import { createSessionMiddleware } from "./session";
+import { supabaseAuthService } from './supabase-auth-service';
+import { isSupabaseConfigured } from './supabase';
+import { supabaseHealthMonitor } from './supabase-health-check';
 
 // === ROUTES ===
 import cryptoRoutes from "./crypto-routes";
@@ -67,6 +70,7 @@ import oauthRoutes from "./oauth-routes";
 import csrfRoutes from "./csrf-routes";
 import comprehensiveApiRoutes from "./comprehensive-api-routes";
 import supabaseAuthRoutes from "./supabase-auth-routes";
+import supabaseHealthRoutes from './supabase-health-routes';
 
 const app = express();
 
@@ -213,14 +217,28 @@ registerRoutes(app);
 app.use("/api", csrfRoutes);
 app.use("/api/auth", authRoutes);
 
-// Register Supabase Auth routes
-app.use("/api/supabase-auth", supabaseAuthRoutes);
-console.log("✅ Supabase Auth routes registered");
+// Register Supabase auth routes and health monitoring if configured
+if (isSupabaseConfigured()) {
+  app.use('/api/supabase-auth', supabaseAuthRoutes);
+  app.use('/api/supabase-health', supabaseHealthRoutes);
+  console.log('✅ Supabase Auth routes registered');
+  console.log('✅ Supabase Health routes registered');
 
-// Only register OAuth routes if passport is configured
-if (process.env.GOOGLE_CLIENT_ID || process.env.FACEBOOK_APP_ID || process.env.APPLE_CLIENT_ID) {
-  app.use("/api/auth", oauthRoutes);
-  console.log("✅ OAuth routes registered");
+  // Start health monitoring
+  supabaseHealthMonitor.startMonitoring(30000); // Check every 30 seconds
+
+  // Initial health check
+  supabaseHealthMonitor.performHealthCheck().then(status => {
+    if (status.issues.length > 0) {
+      console.warn('⚠️ Supabase startup health issues:', status.issues);
+    } else {
+      console.log('✅ Supabase health check passed');
+    }
+  });
+} else {
+  // Still register health routes even if not configured for diagnostic purposes
+  app.use('/api/supabase-health', supabaseHealthRoutes);
+  console.log('✅ Supabase Health routes registered (diagnostic mode)');
 }
 
 app.use("/api/user", userRoutes);
