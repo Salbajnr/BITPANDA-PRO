@@ -236,6 +236,7 @@ registerRoutes(app);
 
 app.use("/api", csrfRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes); // User routes including /api/user/auth/login
 app.use("/auth", oauthCallbackRoutes);
 
 // Register Supabase auth routes and health monitoring if configured
@@ -262,7 +263,6 @@ if (isSupabaseConfigured()) {
   console.log('✅ Supabase Health routes registered (diagnostic mode)');
 }
 
-app.use("/api/user", userRoutes);
 app.use("/api/crypto", cryptoRoutes);
 app.use("/api/trading", tradingRoutes);
 app.use("/api/portfolio", portfolioRoutes);
