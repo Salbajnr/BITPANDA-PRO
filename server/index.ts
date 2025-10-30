@@ -67,6 +67,7 @@ import comprehensiveCrudRoutes from "./comprehensive-crud-routes";
 import uploadRoutes from "./upload-routes";
 import { registerProofUploadRoutes } from "./proof-upload-routes";
 import oauthRoutes from "./oauth-routes";
+import oauthCallbackRoutes from "./oauth-callback-routes";
 import csrfRoutes from "./csrf-routes";
 import comprehensiveApiRoutes from "./comprehensive-api-routes";
 import supabaseAuthRoutes from "./supabase-auth-routes";
@@ -216,6 +217,7 @@ registerRoutes(app);
 
 app.use("/api", csrfRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/auth", oauthCallbackRoutes);
 
 // Register Supabase auth routes and health monitoring if configured
 if (isSupabaseConfigured()) {

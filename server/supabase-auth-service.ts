@@ -66,7 +66,9 @@ export class SupabaseAuthService {
             username: username || email.split('@')[0],
             full_name: `${firstName || ''} ${lastName || ''}`.trim(),
           },
-          emailRedirectTo: `${process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5000'}/auth/verify-email`,
+          emailRedirectTo: `${process.env.REPL_SLUG 
+            ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER || 'unknown'}.repl.co`
+            : process.env.BASE_URL || 'http://localhost:5000'}/auth/verify-email`,
         },
       });
 
@@ -233,7 +235,12 @@ export class SupabaseAuthService {
     }
 
     try {
-      const redirectUrl = `${process.env.BASE_URL || ''}/auth/callback`;
+      // Use the production URL from Replit or fallback to localhost for development
+      const baseUrl = process.env.REPL_SLUG 
+        ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER || 'unknown'}.repl.co`
+        : process.env.BASE_URL || 'http://localhost:5000';
+      
+      const redirectUrl = `${baseUrl}/auth/callback`;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -267,8 +274,12 @@ export class SupabaseAuthService {
     }
 
     try {
+      const baseUrl = process.env.REPL_SLUG 
+        ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER || 'unknown'}.repl.co`
+        : process.env.BASE_URL || 'http://localhost:5000';
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.BASE_URL || ''}/auth/reset-password`,
+        redirectTo: `${baseUrl}/auth/reset-password`,
       });
 
       if (error) {
