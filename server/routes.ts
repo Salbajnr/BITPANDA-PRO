@@ -22,6 +22,11 @@ import { z } from "zod";
 import { Router } from "express";
 import bcrypt from 'bcrypt';
 
+// Import new routes
+import todoRoutes from "./todo-routes";
+import socialRoutes from "./social-routes";
+import notificationRoutes from "./notification-routes";
+
 
 // Database connection check
 const checkDbAvailable = () => {
@@ -49,11 +54,11 @@ const loginSchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(createSessionMiddleware());
-  
+
   // Initialize passport for OAuth
   app.use(passport.initialize());
   app.use(passport.session());
-  
+
   app.use(loadUser);
 
   // Health check endpoint
@@ -89,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Metals routes
   app.use('/api/metals', metalsRoutes);
-  
+
   // OAuth routes
   app.use('/api/auth', oauthRoutes);
 
@@ -332,7 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // REGULAR USER AUTH ROUTES - Separate endpoints for regular users
+  // REGULAR USER AUTHROUTES - Separate endpoints for regular users
   app.post('/api/user/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = req.body;
@@ -447,23 +452,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/session', async (req, res) => {
     try {
       const sessionData = req.session as any;
-      
+
       // If no session, return not authenticated
       if (!sessionData?.userId) {
-        return res.json({ 
+        return res.json({
           isAuthenticated: false,
           user: null
         });
       }
 
       const user = await storage.getUser(sessionData.userId);
-      
+
       if (!user || !user.isActive) {
         // Clear invalid session
         req.session?.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        return res.json({ 
+        return res.json({
           isAuthenticated: false,
           user: null
         });
@@ -492,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Session fetch error:", error);
-      res.json({ 
+      res.json({
         isAuthenticated: false,
         user: null
       });
@@ -1041,6 +1046,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Note: Individual route modules are mounted above, this section is for reference only
   // All routes are already properly mounted in their respective sections
+
+  // Register new routes for TODOs, Social, and Notifications
+  app.use('/api/todos', todoRoutes);
+  app.use('/api/social', socialRoutes);
+  app.use('/api/notifications', notificationRoutes);
 
   const httpServer = createServer(app);
 
