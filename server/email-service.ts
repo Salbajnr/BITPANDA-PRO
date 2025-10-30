@@ -61,6 +61,12 @@ const getBaseUrl = () => {
 
 // Initialize SendGrid with API key
 const initializeSendGrid = () => {
+  // Force development mode - bypass SendGrid due to credit limits
+  console.warn('⚠️ Running in EMAIL DEVELOPMENT MODE - emails will only be logged to console');
+  console.warn('💡 This bypasses SendGrid to avoid credit limit issues');
+  return false;
+
+  /* Uncomment this when you have SendGrid credits available:
   const apiKey = process.env.SENDGRID_API_KEY || process.env.SENDGRID_SMTP_KEY;
 
   if (!apiKey) {
@@ -79,6 +85,7 @@ const initializeSendGrid = () => {
     console.error('❌ Failed to initialize SendGrid:', error);
     return false;
   }
+  */
 };
 
 const isSendGridInitialized = initializeSendGrid();
