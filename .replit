@@ -17,8 +17,24 @@ author = "agent"
 task = "workflow.run"
 args = "BitPandaPro"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
 [[workflows.workflow]]
 name = "BitPandaPro"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "Start application"
 author = "agent"
 
 [[workflows.workflow.tasks]]
@@ -36,10 +52,6 @@ externalPort = 3002
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 10000
-externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
