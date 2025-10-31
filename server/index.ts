@@ -1,11 +1,21 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 
+// Load environment variables from .env file first
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// ESM __dirname shim
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env file
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 import express from "express";
 import cookieParser from "cookie-parser";
-import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { priceMonitor } from "./price-monitor";
 import { portfolioRoutes } from "./portfolio-routes";
@@ -18,10 +28,10 @@ import { liveAnalyticsService } from "./live-analytics-service";
 import { validateEnvironment } from "./env-validator";
 import { pool } from "./db";
 import { healthRouter } from "./health";
-
-// ESM __dirname shim
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { createSessionMiddleware } from "./session";
+import { supabaseAuthService } from './supabase-auth-service';
+import { isSupabaseConfigured } from './supabase';
+import { supabaseHealthMonitor } from './supabase-health-check';
 
 // === ROUTES ===
 import cryptoRoutes from "./crypto-routes";
@@ -57,6 +67,12 @@ import comprehensiveCrudRoutes from "./comprehensive-crud-routes";
 import uploadRoutes from "./upload-routes";
 import { registerProofUploadRoutes } from "./proof-upload-routes";
 import oauthRoutes from "./oauth-routes";
+import oauthCallbackRoutes from "./oauth-callback-routes";
+import csrfRoutes from "./csrf-routes";
+import comprehensiveApiRoutes from "./comprehensive-api-routes";
+import supabaseAuthRoutes from "./supabase-auth-routes";
+import supabaseHealthRoutes from './supabase-health-routes';
+import testEmailRoute from './test-email-route';
 
 const app = express();
 
@@ -68,6 +84,9 @@ app.set("trust proxy", 1);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser(process.env.COOKIE_SECRET || "super-secret-fallback"));
+
+// Session middleware
+app.use(createSessionMiddleware());
 
 // Health check endpoint
 app.use(healthRouter);
@@ -154,20 +173,29 @@ if (process.env.NODE_ENV === 'production') {
     // Serve static files
     app.use(express.static(clientBuildPath));
 
+    // Handle admin routes - serve admin.html for /admin and /admin/* routes
+    app.use('/admin', (req, res) => {
+      const adminHtmlPath = path.join(clientBuildPath, 'admin.html');
+      if (fs.existsSync(adminHtmlPath)) {
+        return res.sendFile(adminHtmlPath);
+      }
+      // Fallback to main index.html if admin.html doesn't exist
+      return res.sendFile(path.join(clientBuildPath, 'index.html'));
+    });
+
     // Handle client-side routing - return index.html for non-API routes
-    app.get('*', (req, res) => {
+    app.use((req, res, next) => {
       if (!req.path.startsWith('/api/')) {
         return res.sendFile(path.join(clientBuildPath, 'index.html'));
       }
-      // If it's an API path and not handled by other routes, return 404
-      res.status(404).json({ message: 'API endpoint not found' });
+      // Continue to next handler for API routes
+      next();
     });
   } else {
     console.warn('⚠️  Client build not found. Running in API-only mode.');
 
     // In production but no client build found, handle non-API routes with 404
-    // In production but no client build found
-    app.get('*', (req, res, next) => {
+    app.use((req, res, next) => {
       if (!req.path.startsWith('/api/')) {
         return res.status(404).json({
           status: 'error',
@@ -182,7 +210,16 @@ if (process.env.NODE_ENV === 'production') {
   // In development, run in API-only mode, serve non-API routes with 404
   console.log('🚀 Running in development mode - API-only');
 
-  app.get('*', (req, res, next) => {
+  // Admin routes should be handled by the client dev server
+  app.use('/admin', (req, res) => {
+    res.status(404).json({
+      status: 'error',
+      message: 'Admin Panel - Development Mode',
+      details: 'Admin panel should be accessed through the client development server on port 5000'
+    });
+  });
+
+  app.use((req, res, next) => {
     if (!req.path.startsWith('/api/')) {
       return res.status(404).json({
         status: 'error',
@@ -197,18 +234,39 @@ if (process.env.NODE_ENV === 'production') {
 // === ROUTES ===
 registerRoutes(app);
 
+app.use("/api", csrfRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes); // User routes including /api/user/auth/login
+app.use("/auth", oauthCallbackRoutes);
 
-// Only register OAuth routes if passport is configured
-if (process.env.GOOGLE_CLIENT_ID || process.env.FACEBOOK_APP_ID || process.env.APPLE_CLIENT_ID) {
-  app.use("/api/auth", oauthRoutes);
-  console.log("✅ OAuth routes registered");
+// Register Supabase auth routes and health monitoring if configured
+if (isSupabaseConfigured()) {
+  app.use('/api/supabase-auth', supabaseAuthRoutes);
+  app.use('/api/supabase-health', supabaseHealthRoutes);
+  console.log('✅ Supabase Auth routes registered');
+  console.log('✅ Supabase Health routes registered');
+
+  // Start health monitoring
+  supabaseHealthMonitor.startMonitoring(30000); // Check every 30 seconds
+
+  // Initial health check
+  supabaseHealthMonitor.performHealthCheck().then(status => {
+    if (status.issues.length > 0) {
+      console.warn('⚠️ Supabase startup health issues:', status.issues);
+    } else {
+      console.log('✅ Supabase health check passed');
+    }
+  });
+} else {
+  // Still register health routes even if not configured for diagnostic purposes
+  app.use('/api/supabase-health', supabaseHealthRoutes);
+  console.log('✅ Supabase Health routes registered (diagnostic mode)');
 }
 
-app.use("/api/user", userRoutes);
 app.use("/api/crypto", cryptoRoutes);
 app.use("/api/trading", tradingRoutes);
 app.use("/api/portfolio", portfolioRoutes);
+app.use("/api/portfolio", portfolioAnalyticsRoutes);
 app.use("/api/deposits", depositRoutes);
 app.use("/api/withdrawals", withdrawalRoutes);
 app.use("/api/alerts", alertRoutes);
@@ -222,8 +280,8 @@ app.use("/api/savings-plans", savingsPlansRoutes);
 app.use("/api/staking", stakingRoutes);
 app.use("/api/lending", lendingRoutes);
 app.use("/api/market-research", marketResearchRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
+app.use("/api/admin", adminRoutes);
 app.use('/api/admin/plans', adminPlansRoutes);
 app.use("/api/api-management", apiManagementRoutes);
 app.use("/api/analytics", analyticsRoutes);
@@ -236,10 +294,13 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/sse", sseRoutes);
 registerProofUploadRoutes(app);
 app.use("/api/support/chat", chatRoutes);
+app.use("/api/v1", comprehensiveApiRoutes);
+app.use(testEmailRoute); // Test email route must come before 404 handler
 
 // === 404 HANDLER FOR API ===
 // This should come after all other API routes
-app.use("/api/*", (req, res) => {
+app.use("/api", (req, res, next) => {
+  // If we get here, the API route wasn't found
   res.status(404).json({ message: "API endpoint not found" });
 });
 
@@ -247,8 +308,8 @@ app.use("/api/*", (req, res) => {
 // This should be the very last route handler
 // It's intended for serving the client-side application in production
 // and for development scenarios where the client is handled separately.
-app.get('*', (req, res, next) => {
-  // If the request path starts with '/api/', it should have been handled by API routes or the /api/* 404 handler
+app.use((req, res, next) => {
+  // If the request path starts with '/api/', it should have been handled by API routes or the /api 404 handler
   if (req.path.startsWith('/api/')) {
     return next(); // Let the API route handlers or the API 404 handler manage this
   }
@@ -281,7 +342,7 @@ app.get('*', (req, res, next) => {
 const PORT = process.env.NODE_ENV === "production"
   ? Number(process.env.PORT) || 5000
   : Number(process.env.BACKEND_PORT) || 3000;
-const HOST = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
+const HOST = "0.0.0.0"; // Always use 0.0.0.0 for Replit compatibility
 
 (async () => {
   try {

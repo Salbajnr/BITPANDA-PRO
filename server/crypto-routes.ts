@@ -5,10 +5,22 @@ import { z } from 'zod';
 
 const router = Router();
 
-// Get top cryptocurrencies
-router.get('/top/:limit?', async (req, res) => {
+// Get top cryptocurrencies with optional limit
+router.get('/top/:limit', async (req, res) => {
   try {
     const limit = parseInt(req.params.limit || '50');
+    const data = await cryptoService.getMarketData(undefined, limit);
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching top cryptos:', error);
+    res.status(500).json({ message: 'Failed to fetch top cryptocurrencies' });
+  }
+});
+
+// Get top cryptocurrencies with default limit
+router.get('/top', async (req, res) => {
+  try {
+    const limit = 50;
     const data = await cryptoService.getMarketData(undefined, limit);
     res.json(data);
   } catch (error) {

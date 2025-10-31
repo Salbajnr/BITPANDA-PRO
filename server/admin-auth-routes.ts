@@ -11,7 +11,7 @@ const adminLoginSchema = z.object({
 });
 
 // Admin login
-router.post('/auth/login', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { emailOrUsername, password } = adminLoginSchema.parse(req.body);
 
@@ -61,7 +61,7 @@ router.post('/auth/login', async (req: Request, res: Response) => {
 });
 
 // Get current admin user
-router.get('/auth/user', requireAuth, async (req: Request, res: Response) => {
+router.get('/user', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = await storage.getUser(req.user!.id);
 
@@ -84,7 +84,7 @@ router.get('/auth/user', requireAuth, async (req: Request, res: Response) => {
 });
 
 // Admin logout
-router.post('/auth/logout', requireAuth, async (req: Request, res: Response) => {
+router.post('/logout', requireAuth, async (req: Request, res: Response) => {
   try {
     req.session.destroy((err) => {
       if (err) {

@@ -226,10 +226,31 @@ router.get('/v1/metals/price/:symbol', async (req, res) => {
   }
 });
 
-router.get('/v1/metals/top/:limit?', async (req, res) => {
+router.get('/v1/metals/top/:limit', async (req, res) => {
   try {
     const { metalsService } = await import('./metals-service');
     const limit = parseInt(req.params.limit || '10');
+    const metals = await metalsService.getTopMetals(limit);
+
+    res.json({
+      success: true,
+      data: metals,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Top metals API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch top metals',
+      message: 'Internal server error'
+    });
+  }
+});
+
+router.get('/v1/metals/top', async (req, res) => {
+  try {
+    const { metalsService } = await import('./metals-service');
+    const limit = 10;
     const metals = await metalsService.getTopMetals(limit);
 
     res.json({

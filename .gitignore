@@ -39,9 +39,5 @@ Thumbs.db
 uploads/
 attached_assets/
 
-# --- REPLIT FILES ---
-.replit
-replit.nix
-
 # --- RENDER BLUEPRINT CACHE ---
 .render/

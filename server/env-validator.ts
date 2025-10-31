@@ -1,16 +1,25 @@
+import crypto from 'crypto';
+
 export function validateEnvironment() {
   const isProduction = process.env.NODE_ENV === 'production';
-  const required = ['DATABASE_URL', 'COOKIE_SECRET'];
-  const optional = ['COINGECKO_API_KEY', 'NEWS_API_KEY', 'METALS_API_KEY'];
+  const required = ['COOKIE_SECRET'];
+  const optional = ['DATABASE_URL', 'COINGECKO_API_KEY', 'NEWS_API_KEY', 'METALS_API_KEY'];
 
   const missing = required.filter(key => !process.env[key]);
   const optionalMissing = optional.filter(key => !process.env[key]);
 
-  if (missing.length > 0) {
-    console.error('❌ Missing required environment variables:', missing);
-    console.error('❌ Application cannot start without these variables.');
-    console.log('🔧 Add them to Replit Secrets to continue');
-    process.exit(1);
+  if (missing.includes('COOKIE_SECRET')) {
+    if (isProduction) {
+      console.error('❌ Missing required environment variables:', missing);
+      console.error('❌ Application cannot start without these variables.');
+      console.log('🔧 Add them to Replit Secrets to continue');
+      process.exit(1);
+    } else {
+      const devSecret = crypto.randomBytes(32).toString('hex');
+      process.env.COOKIE_SECRET = devSecret;
+      console.log('🔧 Development mode: Generated temporary COOKIE_SECRET');
+      console.log('💡 For production, add COOKIE_SECRET to Replit Secrets');
+    }
   }
 
   if (optionalMissing.length > 0) {

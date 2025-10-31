@@ -22,6 +22,15 @@ import { z } from "zod";
 import { Router } from "express";
 import bcrypt from 'bcrypt';
 
+// Import new routes
+import todoRoutes from "./todo-routes";
+import socialRoutes from "./social-routes";
+import notificationRoutes from "./notification-routes";
+
+// Import rate limiting and audit services
+import { rateLimits } from './rate-limiting-service';
+import { auditService } from './audit-service';
+
 
 // Database connection check
 const checkDbAvailable = () => {
@@ -49,12 +58,15 @@ const loginSchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(createSessionMiddleware());
-  
+
   // Initialize passport for OAuth
   app.use(passport.initialize());
   app.use(passport.session());
-  
+
   app.use(loadUser);
+
+  // Add audit logging middleware (before routes)
+  app.use(auditService.createAuditMiddleware());
 
   // Health check endpoint
   app.get('/health', (req, res) => {
@@ -89,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Metals routes
   app.use('/api/metals', metalsRoutes);
-  
+
   // OAuth routes
   app.use('/api/auth', oauthRoutes);
 
@@ -145,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/crud', comprehensiveCrudRoutes);
 
   // General login endpoint - auto-detects user type
-  app.post('/api/auth/login', checkDbConnection, async (req: Request, res: Response) => {
+  app.post('/api/auth/login', rateLimits.auth, checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = req.body;
 
@@ -176,6 +188,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       (req.session as any).userId = user.id;
       (req.session as any).userRole = user.role;
+
+      // Log successful login
+      await auditService.logSecurityEvent({
+        type: 'login_success',
+        userId: user.id,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        details: { loginMethod: 'password', userRole: user.role },
+        severity: 'low'
+      });
 
       // Get portfolio
       let portfolio = await storage.getPortfolio(user.id);
@@ -332,7 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // REGULAR USER AUTH ROUTES - Separate endpoints for regular users
+  // REGULAR USER AUTHROUTES - Separate endpoints for regular users
   app.post('/api/user/auth/login', checkDbConnection, async (req: Request, res: Response) => {
     try {
       const { emailOrUsername, password } = req.body;
@@ -447,23 +469,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/session', async (req, res) => {
     try {
       const sessionData = req.session as any;
-      
+
       // If no session, return not authenticated
       if (!sessionData?.userId) {
-        return res.json({ 
+        return res.json({
           isAuthenticated: false,
           user: null
         });
       }
 
       const user = await storage.getUser(sessionData.userId);
-      
+
       if (!user || !user.isActive) {
         // Clear invalid session
         req.session?.destroy((err) => {
           if (err) console.error('Error destroying session:', err);
         });
-        return res.json({ 
+        return res.json({
           isAuthenticated: false,
           user: null
         });
@@ -492,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Session fetch error:", error);
-      res.json({ 
+      res.json({
         isAuthenticated: false,
         user: null
       });
@@ -911,7 +933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/adjustments/:userId?', requireAdmin, async (req, res) => {
+  app.get('/api/admin/adjustments/:userId', requireAdmin, async (req, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user || user.role !== 'admin') {
@@ -919,6 +941,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const adjustments = await storage.getBalanceAdjustments(req.params.userId);
+      res.json(adjustments);
+    } catch (error) {
+      console.error("Error fetching adjustments:", error);
+      res.status(500).json({ message: "Failed to fetch adjustments" });
+    }
+  });
+
+  app.get('/api/admin/adjustments', requireAdmin, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user!.id);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const adjustments = await storage.getBalanceAdjustments(undefined);
       res.json(adjustments);
     } catch (error) {
       console.error("Error fetching adjustments:", error);
@@ -1041,6 +1078,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Note: Individual route modules are mounted above, this section is for reference only
   // All routes are already properly mounted in their respective sections
+
+  // Register new routes for TODOs, Social, and Notifications
+  app.use('/api/todos', todoRoutes);
+  app.use('/api/social', socialRoutes);
+  app.use('/api/notifications', notificationRoutes);
 
   const httpServer = createServer(app);
 

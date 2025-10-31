@@ -42,14 +42,7 @@ export function formatDatabaseUrl(url: string): string {
  * Checks if the DATABASE_URL is syntactically valid and points to Postgres.
  */
 export function isDatabaseUrlValid(url: string): boolean {
-  if (!url) return false;
-  try {
-    const parsed = new URL(url);
-    return (
-      parsed.protocol === "postgresql:" ||
-      parsed.protocol === "postgres:"
-    );
-  } catch {
-    return false;
-  }
+  // Basic PostgreSQL URL validation - supports various formats including Supabase pooler
+  const pattern = /^postgres(ql)?:\/\/[^:]+:[^@]+@[^:]+:\d+(\/[^?]*)(\?.*)?$/;
+  return pattern.test(url);
 }

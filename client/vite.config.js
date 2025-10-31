@@ -17,7 +17,7 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
         secure: false,
       }
@@ -25,6 +25,10 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        admin: path.resolve(__dirname, 'admin.html')
+      },
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {

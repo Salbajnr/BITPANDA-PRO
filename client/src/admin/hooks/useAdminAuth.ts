@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { adminApiRequest } from "@/admin/lib/adminApiClient";
 
@@ -7,7 +6,7 @@ export function useAdminAuth() {
     queryKey: ["admin-auth"],
     queryFn: async () => {
       try {
-        const adminData = await adminApiRequest("GET", "/auth/user");
+        const adminData = await adminApiRequest("GET", "/user");
         if (!adminData || adminData.role !== 'admin') {
           return null;
         }

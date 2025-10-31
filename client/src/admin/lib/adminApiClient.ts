@@ -1,3 +1,5 @@
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/admin';
+
 export async function adminApiRequest(
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,

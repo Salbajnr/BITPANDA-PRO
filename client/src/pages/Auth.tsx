@@ -103,11 +103,20 @@ export default function Auth() {
       return res;
     },
     onSuccess: (data, email) => {
-      showMessage(
-        "Verification Code Sent",
-        "Please check your email for the verification code.",
-        "success"
-      );
+      // Show OTP if email delivery failed (development only)
+      if (data.otp) {
+        toast({
+          title: "Email Delivery Failed",
+          description: `Your verification code is: ${data.otp}`,
+          variant: "default",
+        });
+      } else {
+        showMessage(
+          "Verification Code Sent",
+          "Please check your email for the verification code.",
+          "success"
+        );
+      }
       // Navigate to OTP verification page
       navigate(`/verify-otp/registration/${encodeURIComponent(email)}`);
     },

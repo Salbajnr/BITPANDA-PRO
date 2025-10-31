@@ -1,17 +1,12 @@
 
 import type { Config } from "tailwindcss";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const config: Config = {
   darkMode: ["class"],
   content: [
-    path.join(__dirname, "index.html"),
-    path.join(__dirname, "admin.html"),
-    path.join(__dirname, "src/**/*.{js,ts,jsx,tsx}"),
+    "./index.html",
+    "./admin.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {

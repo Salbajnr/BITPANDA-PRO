@@ -569,10 +569,54 @@ class DatabaseStorage {
       return updatedUser;
     });
   }
-  async getUserSettings(userId: string) { return { userId }; }
-  async updateUserSettings(userId: string, data: any) { return { userId, ...data }; }
-  async getUserNotifications(userId: string) { return []; }
-  async markNotificationAsRead(id: string) { return { id, read: true }; }
+  async getUserSettings(userId: string) {
+    return this.withConnection(async (db) => {
+      const [settings] = await db
+        .select()
+        .from(schema.userSettings)
+        .where(eq(schema.userSettings.userId, userId))
+        .limit(1);
+
+      return settings;
+    });
+  }
+
+  async createUserSettings(data: any) {
+    return this.withConnection(async (db) => {
+      const [settings] = await db
+        .insert(schema.userSettings)
+        .values({
+          ...data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+
+      return settings;
+    });
+  }
+
+  async updateUserSettings(userId: string, data: any) {
+    return this.withConnection(async (db) => {
+      // Try to update first
+      const [updated] = await db
+        .update(schema.userSettings)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(schema.userSettings.userId, userId))
+        .returning();
+
+      // If no row was updated, create new settings
+      if (!updated) {
+        return this.createUserSettings({ userId, ...data });
+      }
+
+      return updated;
+    });
+  }
+  async getUserNotifications(userId: string): Promise<any[]> {
+    return [];
+  }
+  async markNotificationAsRead(id: string): Promise<any> { return { id, read: true }; }
   async deleteUser(userId: string) { return { id: userId }; }
   async getUserWatchlist(userId: string) { return { userId, symbols: [] }; }
   async addToWatchlist(userId: string, symbol: string, name: string) { return { userId, symbol, name }; }
@@ -611,10 +655,127 @@ class DatabaseStorage {
   async getActiveUsers() { return []; }
   async createSecurityLog(data: any) { return { id: 'securityLogId', ...data }; }
   async getTransactionCount() { return 0; }
-  async getActiveSessions() { return []; }
-  async invalidateUserSessions(userId: string) { return true; }
-  async invalidateAllSessions() { return true; }
-  async getSystemConfig() { return {}; }
+  async getActiveSessions(): Promise<any[]> {
+    return [];
+  }
+
+  async invalidateUserSessions(userId: string): Promise<void> {
+    // Implementation needed
+  }
+
+  // Todo methods
+  async getUserTodos(userId: string): Promise<any[]> {
+    return [];
+  }
+
+  async createTodo(todo: any): Promise<any> {
+    return { id: Date.now().toString(), ...todo };
+  }
+
+  async getTodoById(id: string): Promise<any> {
+    return null;
+  }
+
+  async updateTodo(id: string, updates: any): Promise<any> {
+    return { id, ...updates };
+  }
+
+  async deleteTodo(id: string): Promise<void> {
+    // Implementation needed
+  }
+
+  // Social methods
+  async getFriendRequest(fromId: string, toId: string): Promise<any> {
+    return null;
+  }
+
+  async createFriendRequest(request: any): Promise<any> {
+    return { id: Date.now().toString(), ...request };
+  }
+
+  async getIncomingFriendRequests(userId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getFriendRequestById(id: string): Promise<any> {
+    return null;
+  }
+
+  async updateFriendRequest(id: string, updates: any): Promise<any> {
+    return { id, ...updates };
+  }
+
+  async createFriendship(user1Id: string, user2Id: string): Promise<void> {
+    // Implementation needed
+  }
+
+  async getUserFriends(userId: string): Promise<any[]> {
+    return [];
+  }
+
+  async removeFriendship(user1Id: string, user2Id: string): Promise<void> {
+    // Implementation needed
+  }
+
+  async isFollowing(followerId: string, followeeId: string): Promise<boolean> {
+    return false;
+  }
+
+  async followUser(followerId: string, followeeId: string): Promise<void> {
+    // Implementation needed
+  }
+
+  async unfollowUser(followerId: string, followeeId: string): Promise<void> {
+    // Implementation needed
+  }
+
+  async getUserFollowing(userId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getUserFollowers(userId: string): Promise<any[]> {
+    return [];
+  }
+
+  // Notification methods
+  async getUserNotifications(userId: string): Promise<any[]> {
+    return [];
+  }
+
+  async createNotification(notification: any): Promise<any> {
+    return { id: Date.now().toString(), ...notification };
+  }
+
+  async getNotificationById(id: string): Promise<any> {
+    return null;
+  }
+
+  async updateNotification(id: string, updates: any): Promise<any> {
+    return { id, ...updates };
+  }
+
+  async deleteNotification(id: string): Promise<void> {
+    // Implementation needed
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<void> {
+    // Implementation needed
+  }
+
+  async getNotificationPreferences(userId: string): Promise<any> {
+    return {
+      email: true,
+      push: true,
+      trades: true,
+      deposits: true,
+      withdrawals: true,
+      alerts: true
+    };
+  }
+
+  async updateNotificationPreferences(userId: string, preferences: any): Promise<any> {
+    return preferences;
+  }
   async updateSystemConfig(config: any) { return config; }
   async updateTransaction(txId: string, data: any) { return { id: txId, ...data }; }
   async getAuditLogs(filter?: any) { return []; }

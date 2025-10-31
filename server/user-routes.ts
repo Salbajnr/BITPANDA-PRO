@@ -110,16 +110,29 @@ router.post('/change-password', requireAuth, async (req: Request, res: Response)
 router.get('/settings', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const settings = await storage.getUserSettings(userId);
-    res.json(settings || {
-      userId,
-      theme: 'light',
-      language: 'en',
-      currency: 'USD',
-      notifications: {
-        email: true,
-        push: true,
+    let settings = await storage.getUserSettings(userId);
+    
+    // Create default settings if none exist
+    if (!settings) {
+      settings = await storage.createUserSettings({
+        userId,
+        preferredCurrency: 'USD',
+        emailNotifications: true,
         priceAlerts: true,
+        darkMode: false,
+        language: 'en'
+      });
+    }
+    
+    res.json({
+      userId: settings.userId,
+      theme: settings.darkMode ? 'dark' : 'light',
+      language: settings.language,
+      currency: settings.preferredCurrency,
+      notifications: {
+        email: settings.emailNotifications,
+        push: true,
+        priceAlerts: settings.priceAlerts,
         newsUpdates: false,
       },
       twoFactorEnabled: false,
@@ -134,8 +147,32 @@ router.get('/settings', requireAuth, async (req: Request, res: Response) => {
 router.patch('/settings', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const settings = await storage.updateUserSettings(userId, req.body);
-    res.json(settings);
+    const { theme, language, currency, notifications } = req.body;
+    
+    const updateData: any = {};
+    if (theme) updateData.darkMode = theme === 'dark';
+    if (language) updateData.language = language;
+    if (currency) updateData.preferredCurrency = currency;
+    if (notifications) {
+      if (notifications.email !== undefined) updateData.emailNotifications = notifications.email;
+      if (notifications.priceAlerts !== undefined) updateData.priceAlerts = notifications.priceAlerts;
+    }
+    
+    const settings = await storage.updateUserSettings(userId, updateData);
+    
+    res.json({
+      userId: settings.userId,
+      theme: settings.darkMode ? 'dark' : 'light',
+      language: settings.language,
+      currency: settings.preferredCurrency,
+      notifications: {
+        email: settings.emailNotifications,
+        push: true,
+        priceAlerts: settings.priceAlerts,
+        newsUpdates: false,
+      },
+      twoFactorEnabled: false,
+    });
   } catch (error) {
     console.error('Update settings error:', error);
     res.status(500).json({ message: 'Failed to update settings' });

@@ -1,5 +1,4 @@
-
-import { defineConfig } from "drizzle-kit";
+import type { Config } from "drizzle-kit";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is not set");
@@ -26,7 +25,7 @@ function encodeDbUrl(url: string): string {
 
 const formattedUrl = encodeDbUrl(process.env.DATABASE_URL);
 
-export default defineConfig({
+export default {
   schema: "../shared/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
@@ -40,4 +39,4 @@ export default defineConfig({
   // Don't try to drop system views
   verbose: true,
   strict: false // Set to false to be more permissive with schema changes
-});
+} satisfies Config;
