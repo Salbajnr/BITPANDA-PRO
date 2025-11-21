@@ -153,32 +153,51 @@ EMAIL_FROM_NAME=Bitpanda Pro
 - Email features disabled
 - Console logging of email content (development)
 
-### OAuth Providers
-
-#### Google OAuth
+### Firebase Authentication (OAuth & Email Verification)
 
 ```bash
-# Google OAuth Configuration
+# Firebase Configuration (Choose Option A or B)
+
+# Option A: Service Account File (Recommended)
+FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/serviceAccountKey.json
+
+# Option B: Individual Credentials
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour-Key-Here\n-----END PRIVATE KEY-----\n"
+```
+
+**Features enabled:**
+- Google OAuth authentication
+- Facebook OAuth authentication
+- Apple OAuth authentication
+- Email verification with OTP
+- Password reset with OTP
+- Custom token generation
+
+**Without Firebase:**
+- OAuth features disabled
+- Email verification via OTP only (no Firebase integration)
+- Password reset via OTP only
+
+**Setup Guide:** See [FIREBASE_AUTH_SETUP.md](./FIREBASE_AUTH_SETUP.md) for complete setup instructions
+
+### OAuth Providers (Legacy - Use Firebase Instead)
+
+```bash
+# Google OAuth Configuration (Legacy)
 # Get from: https://console.cloud.google.com/
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
-```
 
-#### Facebook OAuth
-
-```bash
-# Facebook OAuth Configuration
+# Facebook OAuth Configuration (Legacy)
 # Get from: https://developers.facebook.com/
 FACEBOOK_APP_ID=your-facebook-app-id
 FACEBOOK_APP_SECRET=your-facebook-app-secret
 FACEBOOK_CALLBACK_URL=http://localhost:5000/api/auth/facebook/callback
-```
 
-#### Apple OAuth
-
-```bash
-# Apple OAuth Configuration
+# Apple OAuth Configuration (Legacy)
 # Get from: https://developer.apple.com/
 APPLE_CLIENT_ID=your-apple-client-id
 APPLE_TEAM_ID=your-apple-team-id
@@ -186,6 +205,8 @@ APPLE_KEY_ID=your-apple-key-id
 APPLE_PRIVATE_KEY_PATH=/path/to/apple-private-key.p8
 APPLE_CALLBACK_URL=http://localhost:5000/api/auth/apple/callback
 ```
+
+**Note:** Legacy OAuth routes are still available but Firebase OAuth is recommended for better integration.
 
 ---
 
@@ -247,7 +268,18 @@ EMAIL_FROM=noreply@yourdomain.com
 EMAIL_FROM_NAME=Bitpanda Pro
 
 # ===================================
-# OPTIONAL - OAuth
+# OPTIONAL - Firebase Authentication
+# ===================================
+# Option A: Service Account File (Recommended)
+FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/serviceAccountKey.json
+
+# Option B: Individual Credentials
+# FIREBASE_PROJECT_ID=
+# FIREBASE_CLIENT_EMAIL=
+# FIREBASE_PRIVATE_KEY=
+
+# ===================================
+# OPTIONAL - OAuth (Legacy)
 # ===================================
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
@@ -326,8 +358,11 @@ npm run dev
 | Portfolio | DATABASE_URL, Secrets | COINGECKO_API_KEY | ✅ Yes |
 | Deposits/Withdrawals | DATABASE_URL, Secrets | SENDGRID_API_KEY | ⚠️ Partial (no emails) |
 | Metals Trading | DATABASE_URL, Secrets | METALS_API_KEY | ❌ No |
-| OAuth Login | DATABASE_URL, Secrets | GOOGLE_*, FACEBOOK_*, APPLE_* | ⚠️ Partial (email/password only) |
-| Email Notifications | DATABASE_URL, Secrets | SENDGRID_API_KEY | ❌ No |
+| OAuth Login (Firebase) | DATABASE_URL, Secrets | FIREBASE_* | ⚠️ Partial (email/password only) |
+| OAuth Login (Legacy) | DATABASE_URL, Secrets | GOOGLE_*, FACEBOOK_*, APPLE_* | ⚠️ Partial (email/password only) |
+| Email Verification (OTP) | DATABASE_URL, Secrets | None | ✅ Yes (OTP to console in dev) |
+| Password Reset (OTP) | DATABASE_URL, Secrets | None | ✅ Yes (OTP to console in dev) |
+| Email Notifications | DATABASE_URL, Secrets | SENDGRID_API_KEY | ⚠️ Partial (console logging) |
 | Real-time Prices | DATABASE_URL | COINGECKO_API_KEY | ✅ Yes (WebSocket + fallback) |
 
 ---

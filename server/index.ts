@@ -73,6 +73,9 @@ import comprehensiveApiRoutes from "./comprehensive-api-routes";
 import supabaseAuthRoutes from "./supabase-auth-routes";
 import supabaseHealthRoutes from './supabase-health-routes';
 import testEmailRoute from './test-email-route';
+import firebaseAuthRoutes from './firebase-auth-routes';
+import otpRoutes from './otp-routes';
+import { initializeFirebase, isFirebaseConfigured } from './firebase-config';
 
 const app = express();
 
@@ -238,6 +241,20 @@ app.use("/api", csrfRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes); // User routes including /api/user/auth/login
 app.use("/auth", oauthCallbackRoutes);
+
+// Register Firebase auth routes
+if (isFirebaseConfigured()) {
+  app.use('/api/firebase-auth', firebaseAuthRoutes);
+  console.log('✅ Firebase Auth routes registered');
+  initializeFirebase();
+} else {
+  app.use('/api/firebase-auth', firebaseAuthRoutes);
+  console.log('⚠️  Firebase Auth routes registered (not configured - waiting for credentials)');
+}
+
+// Register OTP routes (always available)
+app.use('/api/otp', otpRoutes);
+console.log('✅ OTP routes registered');
 
 // Register Supabase auth routes and health monitoring if configured
 if (isSupabaseConfigured()) {
