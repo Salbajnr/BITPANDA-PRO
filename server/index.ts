@@ -337,55 +337,158 @@ app.use((req, res, next) => {
   res.status(404).send('Client build not found. Make sure the client is built to one of the expected output directories.');
 });
 
-// === SERVER START ===
-// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3000)
+// Server configuration
 const PORT = process.env.NODE_ENV === "production"
   ? Number(process.env.PORT) || 5000
   : Number(process.env.BACKEND_PORT) || 3000;
 const HOST = "0.0.0.0"; // Always use 0.0.0.0 for Replit compatibility
 
-(async () => {
+// === SERVER START ===
+// In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3000)
+async function startServer() {
   try {
+    // Create HTTP server
     const httpServer = app.listen(PORT, HOST, () => {
       console.log(`🚀 Backend API Server running on ${HOST}:${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
       console.log("✅ Database connection pool initialized");
     });
 
-    // === INIT WEBSOCKETS ===
-    webSocketManager.init(httpServer);
-    chatWebSocketManager.init(httpServer);
-    adminWebSocketManager.init(httpServer);
+    // Configure server timeouts
+    httpServer.keepAliveTimeout = 60000; // 60 seconds
+    httpServer.headersTimeout = 65000; // 65 seconds
 
-    // === START REAL-TIME SERVICES ===
-    realTimePriceService.start();
-    portfolioRealtimeService.start();
-    liveAnalyticsService.start();
-    priceMonitor.start();
+    // Initialize WebSockets with error handling
+    try {
+      webSocketManager.init(httpServer);
+      chatWebSocketManager.init(httpServer);
+      adminWebSocketManager.init(httpServer);
+      console.log("✅ WebSocket servers initialized");
+    } catch (error) {
+      console.error("❌ WebSocket initialization failed:", error);
+      // Don't crash the server if WebSockets fail
+    }
 
-    console.log("✅ All real-time services initialized");
-  } catch (err) {
-    console.error("❌ Server initialization failed:", err);
+    // Start real-time services with error handling
+    const startService = async (service: any, name: string) => {
+      try {
+        if (service && typeof service.start === 'function') {
+          await service.start();
+          console.log(`✅ ${name} started`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to start ${name}:`, error);
+      }
+    };
+
+    await Promise.all([
+      startService(realTimePriceService, 'Real-time Price Service'),
+      startService(portfolioRealtimeService, 'Portfolio Realtime Service'),
+      startService(liveAnalyticsService, 'Live Analytics Service'),
+      startService(priceMonitor, 'Price Monitor')
+    ]);
+
+    console.log("✅ All services initialized");
+
+    // Handle server errors
+    httpServer.on('error', (error: NodeJS.ErrnoException) => {
+      console.error('🚨 Server error:', error);
+      // Attempt graceful shutdown on critical errors
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+        process.exit(1);
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Server initialization failed:", error);
+    process.exit(1);
   }
-})();
+}
 
 // === GRACEFUL SHUTDOWN ===
-process.on("SIGINT", async () => {
-  console.log("🛑 SIGINT received — shutting down...");
+const shutdown = async (signal: string) => {
+  console.log(`🛑 ${signal} received — shutting down...`);
 
-  webSocketManager.shutdown();
-  chatWebSocketManager.shutdown();
-  adminWebSocketManager.shutdown();
-  realTimePriceService.stop();
-  portfolioRealtimeService.stop();
-  liveAnalyticsService.stop();
-  priceMonitor.stop();
-
-  if (pool) {
-    await pool.end();
-    console.log("✅ Database pool closed.");
+  // Track if we're already shutting down to prevent multiple simultaneous shutdowns
+  if (global.isShuttingDown) {
+    console.log('⚠️  Shutdown already in progress...');
+    return;
   }
+  global.isShuttingDown = true;
 
-  console.log("👋 Server gracefully shut down.");
-  process.exit(0);
+  const shutdownPromises = [];
+  
+  try {
+    // Shutdown WebSocket connections
+    if (webSocketManager) {
+      shutdownPromises.push(Promise.resolve(webSocketManager.shutdown()));
+      console.log('🔌 WebSocket connections closing...');
+    }
+    
+    if (chatWebSocketManager) {
+      shutdownPromises.push(Promise.resolve(chatWebSocketManager.shutdown()));
+      console.log('💬 Chat WebSocket connections closing...');
+    }
+    
+    if (adminWebSocketManager) {
+      shutdownPromises.push(Promise.resolve(adminWebSocketManager.shutdown()));
+      console.log('👨‍💼 Admin WebSocket connections closing...');
+    }
+
+    // Stop real-time services
+    if (realTimePriceService && typeof realTimePriceService.stop === 'function') {
+      shutdownPromises.push(Promise.resolve(realTimePriceService.stop()));
+      console.log('📉 Real-time price service stopping...');
+    }
+    
+    if (portfolioRealtimeService && typeof portfolioRealtimeService.stop === 'function') {
+      shutdownPromises.push(Promise.resolve(portfolioRealtimeService.stop()));
+      console.log('📊 Portfolio realtime service stopping...');
+    }
+    
+    if (liveAnalyticsService && typeof liveAnalyticsService.stop === 'function') {
+      shutdownPromises.push(Promise.resolve(liveAnalyticsService.stop()));
+      console.log('📈 Live analytics service stopping...');
+    }
+    
+    if (priceMonitor && typeof priceMonitor.stop === 'function') {
+      shutdownPromises.push(Promise.resolve(priceMonitor.stop()));
+      console.log('🔍 Price monitor stopping...');
+    }
+
+    // Close database connections
+    if (pool) {
+      shutdownPromises.push(
+        pool.end()
+          .then(() => console.log('✅ Database pool closed'))
+          .catch(err => console.error('❌ Error closing database pool:', err))
+      );
+    }
+
+    // Wait for all shutdown operations to complete
+    await Promise.allSettled(shutdownPromises);
+    
+    console.log("👋 Server gracefully shut down.");
+    process.exit(0);
+    
+  } catch (error) {
+    console.error('❌ Error during shutdown:', error);
+    process.exit(1);
+  }
+};
+
+// Handle different shutdown signals
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+// Handle uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (error) => {
+  console.error('⚠️  Uncaught Exception:', error);
+  // Don't exit immediately, allow the process to continue running
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️  Unhandled Rejection at:', promise, 'reason:', reason);
+  // Application specific logging, throwing an error, or other logic here
 });
