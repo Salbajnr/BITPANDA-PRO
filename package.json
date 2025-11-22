@@ -7,7 +7,7 @@
     "build": "npm run build:client && npm run build:server",
     "build:client": "cd client && npm run build",
     "build:server": "echo 'Server uses tsx runtime, no build needed'",
-    "start": "NODE_ENV=production node --max-old-space-size=4096 --import tsx server/index.ts",
+    "start": "cross-env NODE_ENV=production node --max-old-space-size=4096 --import tsx server/index.ts",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && NODE_ENV=development BACKEND_PORT=3000 NODE_OPTIONS=--max-old-space-size=4096 npx tsx watch index.ts",
     "dev:client": "cd client && npm run dev",
@@ -20,6 +20,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "rimraf": "^5.0.5"
   },
   "dependencies": {
