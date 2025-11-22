@@ -2,6 +2,18 @@
 
 A full-stack cryptocurrency trading platform built with React, Node.js, and PostgreSQL. Features real-time price updates, portfolio management, trading capabilities, and an admin dashboard.
 
+## 📚 Documentation
+
+All documentation has been moved to the [`docs/`](./docs/) directory for better organization:
+
+- **[Quick Start Guide](./docs/QUICK_START.md)** - Get running in 5 minutes
+- **[Deployment Guide](./docs/DEPLOYMENT_STATUS.md)** - Deploy to Render
+- **[Authentication Guide](./docs/COMPLETE_AUTH_GUIDE.md)** - OAuth & OTP setup
+- **[Environment Setup](./docs/ENVIRONMENT_SETUP.md)** - All environment variables
+- **[API Integration Status](./docs/API_INTEGRATION_STATUS.md)** - API documentation
+
+See the [`docs/`](./docs/) directory for complete documentation.
+
 ## 🚀 Features
 
 ### User Features
