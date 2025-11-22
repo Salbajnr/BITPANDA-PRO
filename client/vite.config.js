@@ -136,5 +136,6 @@ export default defineConfig(({ command, mode }) => {
   define: {
     'process.env': {},
     'import.meta.env': JSON.stringify(process.env),
-  },
-}));
+  }
+  };
+});
