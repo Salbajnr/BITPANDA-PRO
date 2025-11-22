@@ -14,6 +14,8 @@ export default defineConfig(({ command, mode }) => {
   return {
     define: {
       __APP_ENV__: JSON.stringify(env.APP_ENV),
+      'process.env': {},
+      'import.meta.env': JSON.stringify(process.env),
     },
     plugins: [
       react({
@@ -131,11 +133,6 @@ export default defineConfig(({ command, mode }) => {
         global: 'globalThis',
       },
     },
-  },
-  // Add environment variables
-  define: {
-    'process.env': {},
-    'import.meta.env': JSON.stringify(process.env),
   }
-  };
+};
 });
