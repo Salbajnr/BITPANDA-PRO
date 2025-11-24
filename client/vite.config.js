@@ -93,7 +93,10 @@ export default defineConfig(({ command, mode }) => {
         // Better chunking for better caching
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash][ext]'
+        assetFileNames: (assetInfo) => {
+          const ext = assetInfo.name?.split('.').pop()?.toLowerCase() ?? 'misc';
+          return `assets/${ext}/[name]-[hash][extname]`;
+        }
       },
       // Improve build performance
       onwarn(warning, warn) {
