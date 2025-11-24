@@ -202,7 +202,7 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
     const fileUrl = `/api/uploads/${req.file.filename}`;
     
     // Store file metadata in database
-    const fileRecord = await storage.createFileRecord({
+    const fileRecord = await (storage as any).createFileRecord({
       userId,
       filename: req.file.filename,
       originalName: req.file.originalname,

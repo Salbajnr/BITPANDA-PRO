@@ -14,8 +14,8 @@ export default defineConfig(({ command, mode }) => {
   return {
     define: {
       __APP_ENV__: JSON.stringify(env.APP_ENV),
-      'process.env': {},
-      'import.meta.env': JSON.stringify(process.env),
+      global: 'globalThis',
+      'process.env.NODE_ENV': JSON.stringify(mode),
     },
     plugins: [
       react({
@@ -23,11 +23,8 @@ export default defineConfig(({ command, mode }) => {
         jsxRuntime: 'automatic',
         // Enable Fast Refresh
         fastRefresh: true,
-        // Use babel for JSX transform
-        babel: {
-          babelrc: true,
-          configFile: true,
-        }
+        // Don't use babel - use SWC/esbuild instead
+        babel: undefined,
       })
     ],
   resolve: {
@@ -40,8 +37,8 @@ export default defineConfig(({ command, mode }) => {
   },
   server: {
     host: '0.0.0.0',
-    port: 5000,
-    strictPort: true,
+    port: 5173,
+    strictPort: false,
     allowedHosts: true,
     // Enable HMR with better error handling
     hmr: {
@@ -49,7 +46,7 @@ export default defineConfig(({ command, mode }) => {
     },
     proxy: {
       '/api': {
-        target: 'http://0.0.0.0:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         // Add WebSocket support for HMR
@@ -120,18 +117,14 @@ export default defineConfig(({ command, mode }) => {
       'react-router-dom',
       '@tanstack/react-query',
       'axios',
-      'lodash'
+      'lodash',
+      'wouter'
     ],
-    // Enable esbuild optimizations
     esbuildOptions: {
       // Target modern browsers
       target: 'es2020',
       // Enable tree shaking
       treeShaking: true,
-      // Other esbuild options
-      define: {
-        global: 'globalThis',
-      },
     },
   }
 };

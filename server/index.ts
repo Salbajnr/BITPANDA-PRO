@@ -130,10 +130,15 @@ app.use((req, res, next) => {
   });
 
   // Set CORS headers
-  if (isAllowed && origin) {
+  // Allow same-origin requests (no origin header) in production
+  // In development, allow requests from Vite dev server
+  if (!origin && process.env.NODE_ENV === 'production') {
+    // Same-origin request (production - client and server on same domain)
+    // No CORS headers needed, but we can still set them for consistency
+  } else if (isAllowed && origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
@@ -358,7 +363,7 @@ app.use((req, res, next) => {
 const PORT = process.env.NODE_ENV === "production"
   ? Number(process.env.PORT) || 5000
   : Number(process.env.BACKEND_PORT) || 3000;
-const HOST = "0.0.0.0"; // Always use 0.0.0.0 for Replit compatibility
+const HOST = "0.0.0.0"; // Use 0.0.0.0 for Render and cloud deployments
 
 // === SERVER START ===
 // In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3000)

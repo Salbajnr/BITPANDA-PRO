@@ -235,10 +235,8 @@ export class SupabaseAuthService {
     }
 
     try {
-      // Use the production URL from Replit or fallback to localhost for development
-      const baseUrl = process.env.REPL_SLUG 
-        ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER || 'unknown'}.repl.co`
-        : process.env.BASE_URL || 'http://localhost:5000';
+      // Use BASE_URL from environment (set in Render) or fallback to localhost for development
+      const baseUrl = process.env.BASE_URL || process.env.CLIENT_URL || 'http://localhost:5000';
       
       const redirectUrl = `${baseUrl}/auth/callback`;
 

@@ -14,7 +14,7 @@ const notificationSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']).default('medium'),
   actionUrl: z.string().optional(),
   actionLabel: z.string().optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.string(), z.any()).optional()
 });
 
 // Get user notifications

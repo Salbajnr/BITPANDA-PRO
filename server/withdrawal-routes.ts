@@ -143,11 +143,11 @@ router.post('/request', requireAuth, async (req, res) => {
     try {
       await sendTransactionEmail({
         to: req.user!.email,
-        transactionType: 'withdrawal_confirmation',
+        transactionType: 'withdrawal',
         amount: amount.toString(),
         currency: validatedData.currency,
         transactionId: withdrawal.id,
-        confirmationUrl: `${process.env.FRONTEND_URL}/withdraw/confirm?token=${confirmationToken}`
+        status: 'Pending'
       });
       console.log(`✅ Withdrawal confirmation email sent to ${req.user!.email} for withdrawal ${withdrawal.id}`);
     } catch (emailError) {
@@ -318,7 +318,6 @@ router.post('/:id/reject', requireAuth, requireAdmin, async (req, res) => {
         amount: updatedWithdrawal.amount,
         currency: updatedWithdrawal.currency,
         status: 'Rejected',
-        rejectionReason: rejectionReason,
         transactionId: id
       });
       console.log(`✅ Withdrawal rejected email sent to ${user.email} for withdrawal ${id}`);

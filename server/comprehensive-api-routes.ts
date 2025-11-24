@@ -14,7 +14,7 @@ router.get('/market/overview', async (req: Request, res: Response) => {
   try {
     const [cryptoData, metalsData] = await Promise.all([
       cryptoService.getMarketData(undefined, 10),
-      metalsService.getMarketData(4)
+      metalsService.getMarketData()
     ]);
 
     const totalMarketCap = cryptoData.reduce((sum, crypto) => sum + (crypto.market_cap || 0), 0);
@@ -396,7 +396,7 @@ function getMostTradedAssets(transactions: any[]): any[] {
   }, {} as Record<string, number>);
 
   return Object.entries(symbolCounts)
-    .sort(([, a], [, b]) => b - a)
+    .sort(([, a], [, b]) => (b as number) - (a as number))
     .slice(0, 5)
     .map(([symbol, count]) => ({ symbol, trades: count }));
 }

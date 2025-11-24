@@ -24,7 +24,7 @@ import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 // Helper function to generate a unique ID
 const generateUniqueId = () => nanoid();
 
-// Session storage table (mandatory for Replit Auth)
+// Session storage table for authentication
 export const sessions = pgTable(
   "sessions",
   {

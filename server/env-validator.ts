@@ -12,19 +12,19 @@ export function validateEnvironment() {
     if (isProduction) {
       console.error('❌ Missing required environment variables:', missing);
       console.error('❌ Application cannot start without these variables.');
-      console.log('🔧 Add them to Replit Secrets to continue');
+      console.log('🔧 Add them to your environment variables (Render dashboard) to continue');
       process.exit(1);
     } else {
       const devSecret = crypto.randomBytes(32).toString('hex');
       process.env.COOKIE_SECRET = devSecret;
       console.log('🔧 Development mode: Generated temporary COOKIE_SECRET');
-      console.log('💡 For production, add COOKIE_SECRET to Replit Secrets');
+      console.log('💡 For production, add COOKIE_SECRET to your environment variables');
     }
   }
 
   if (optionalMissing.length > 0) {
     console.log('💡 Optional environment variables not set:', optionalMissing);
-    console.log('🔧 Add these in Replit Secrets to enable additional features');
+    console.log('🔧 Add these to your environment variables to enable additional features');
   }
 
   console.log('✅ Environment validation completed');

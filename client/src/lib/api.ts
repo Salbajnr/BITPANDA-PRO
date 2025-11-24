@@ -12,11 +12,12 @@ class ApiClient {
 
   constructor() {
     // In development (localhost), always use relative URLs to leverage Vite proxy
-    // In production, use the configured API URL or fallback to relative paths
+    // In production, use relative URLs (same origin) since server serves both API and client
     const isLocalhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname.includes('replit');
+                       window.location.hostname === '127.0.0.1';
     
+    // Use relative URLs for same-origin requests (works for Render deployment)
+    // Only use VITE_API_URL if explicitly set for cross-origin scenarios
     this.baseURL = isLocalhost ? '' : (import.meta.env.VITE_API_URL || '');
     this.getCsrfToken();
   }

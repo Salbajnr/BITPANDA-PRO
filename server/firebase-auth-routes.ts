@@ -68,7 +68,7 @@ router.post('/signup', requireFirebase, async (req: Request, res: Response) => {
 
     // Set session
     req.session.userId = result.user.id;
-    req.session.userRole = result.user.role;
+    (req.session as any).userRole = result.user.role;
 
     res.status(201).json(result);
   } catch (error: any) {
@@ -77,7 +77,7 @@ router.post('/signup', requireFirebase, async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -104,7 +104,7 @@ router.post('/signin/google', requireFirebase, async (req: Request, res: Respons
 
     // Set session
     req.session.userId = result.user.id;
-    req.session.userRole = result.user.role;
+    (req.session as any).userRole = result.user.role;
 
     res.json(result);
   } catch (error: any) {
@@ -113,7 +113,7 @@ router.post('/signin/google', requireFirebase, async (req: Request, res: Respons
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -140,7 +140,7 @@ router.post('/signin/facebook', requireFirebase, async (req: Request, res: Respo
 
     // Set session
     req.session.userId = result.user.id;
-    req.session.userRole = result.user.role;
+    (req.session as any).userRole = result.user.role;
 
     res.json(result);
   } catch (error: any) {
@@ -149,7 +149,7 @@ router.post('/signin/facebook', requireFirebase, async (req: Request, res: Respo
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -176,7 +176,7 @@ router.post('/signin/apple', requireFirebase, async (req: Request, res: Response
 
     // Set session
     req.session.userId = result.user.id;
-    req.session.userRole = result.user.role;
+    (req.session as any).userRole = result.user.role;
 
     res.json(result);
   } catch (error: any) {
@@ -185,7 +185,7 @@ router.post('/signin/apple', requireFirebase, async (req: Request, res: Response
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -217,7 +217,7 @@ router.post('/email/send-verification', requireFirebase, async (req: Request, re
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -249,7 +249,7 @@ router.post('/email/verify', requireFirebase, async (req: Request, res: Response
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -281,7 +281,7 @@ router.post('/password/reset-request', requireFirebase, async (req: Request, res
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -313,7 +313,7 @@ router.post('/password/reset', requireFirebase, async (req: Request, res: Respon
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -346,7 +346,7 @@ router.post('/link-provider', requireAuth, requireFirebase, async (req: Request,
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -381,7 +381,7 @@ router.post('/unlink-provider', requireAuth, requireFirebase, async (req: Reques
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({

@@ -243,44 +243,7 @@ class NewsService {
     }
   }
 
-  private getFallbackNews(limit: number): NewsArticle[] {
-    console.log('⚠️ Using fallback news data');
-
-    const fallback: NewsArticle[] = [
-      {
-        id: 'fallback-1',
-        title: 'Bitpanda: European Leader in Crypto and Digital Assets',
-        description: 'Bitpanda continues to expand its offerings across Europe, providing secure and regulated access to cryptocurrency, stocks, and precious metals trading.',
-        summary: 'Bitpanda expands European crypto trading services.',
-        url: 'https://blog.bitpanda.com/en',
-        imageUrl: 'https://cdn.bitpanda.com/media/dev/artboard-1.png',
-        urlToImage: 'https://cdn.bitpanda.com/media/dev/artboard-1.png',
-        publishedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        source: { id: 'bitpanda', name: 'Bitpanda' },
-        category: 'general',
-        sentiment: 'neutral',
-        coins: ['bitcoin', 'ethereum']
-      },
-      {
-        id: 'fallback-2',
-        title: 'Crypto Market Update: Trading Activity Continues',
-        description: 'Digital asset markets show ongoing trading activity with Bitcoin and Ethereum leading the way in market capitalization.',
-        summary: 'Markets remain active with ongoing trading.',
-        url: 'https://www.bitpanda.com/en',
-        imageUrl: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
-        urlToImage: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
-        publishedAt: new Date(Date.now() - 3600000).toISOString(),
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        source: { id: 'market', name: 'Market Update' },
-        category: 'general',
-        sentiment: 'neutral',
-        coins: ['bitcoin', 'ethereum']
-      }
-    ];
-
-    return fallback.slice(0, limit);
-  }
+  // Removed duplicate - using the version with category parameter below
 
   async getNewsByCategory(category: string, limit: number = 10, filter?: string): Promise<any[]> {
     const cacheKey = `news_category_${category}_${filter || ''}_${limit}`;
@@ -299,8 +262,8 @@ class NewsService {
       if (response.ok) {
         const data = await response.json();
 
-        if (data.articles && Array.isArray(data.articles)) {
-          return data.articles.map((article: any) => ({
+        if ((data as any).articles && Array.isArray((data as any).articles)) {
+          return (data as any).articles.map((article: any) => ({
             id: article.url || `news-${Date.now()}-${Math.random()}`,
             title: article.title,
             description: article.description || article.summary || '',
@@ -327,8 +290,8 @@ class NewsService {
       if (response.ok) {
         const data = await response.json();
 
-        if (data.results && Array.isArray(data.results)) {
-          return data.results.map((post: any) => ({
+        if ((data as any).results && Array.isArray((data as any).results)) {
+          return (data as any).results.map((post: any) => ({
             id: post.id || `cryptopanic-${Date.now()}-${Math.random()}`,
             title: post.title,
             description: post.title,
@@ -449,7 +412,7 @@ class NewsService {
     const cacheKey = `news_search_${query}_${limit}`;
     const cached = this.cache.get(cacheKey);
 
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.data;
     }
 

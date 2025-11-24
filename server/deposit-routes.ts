@@ -398,7 +398,6 @@ router.post('/:id/reject', requireAuth, async (req: AuthenticatedRequest, res: R
           amount: deposit.amount,
           currency: deposit.currency,
           status: 'Rejected',
-          rejectionReason: rejectionReason || 'No reason provided',
           transactionId: deposit.id,
         });
         console.log(`✅ Deposit rejection email sent to ${user.email}`);
@@ -471,11 +470,10 @@ router.post('/admin/adjust-balance', requireAuth, async (req: AuthenticatedReque
       try {
         await sendTransactionEmail({
           to: user.email,
-          transactionType: 'balance_adjustment',
+          transactionType: 'deposit',
           amount: adjustmentData.amount.toString(),
           currency: adjustmentData.currency,
           status: adjustmentData.adjustmentType.charAt(0).toUpperCase() + adjustmentData.adjustmentType.slice(1), // e.g., 'Add', 'Remove', 'Set'
-          reason: adjustmentData.reason,
           transactionId: adjustment.id, // Using adjustment ID as transaction ID
         });
         console.log(`✅ Balance adjustment email sent to ${user.email}`);
@@ -606,11 +604,10 @@ router.post('/admin/manipulate-balance', requireAuth, async (req: AuthenticatedR
       try {
         await sendTransactionEmail({
           to: targetUser.email,
-          transactionType: 'balance_manipulation',
+          transactionType: 'deposit',
           amount: amount.toString(),
           currency: adjustmentData.currency,
           status: adjustmentData.adjustmentType.charAt(0).toUpperCase() + adjustmentData.adjustmentType.slice(1), // e.g., 'Add', 'Remove', 'Set'
-          reason: adjustmentData.reason || `Admin ${adjustmentData.adjustmentType} balance adjustment`,
           transactionId: adjustment.id, // Using adjustment ID as transaction ID
         });
         console.log(`✅ Balance manipulation email sent to ${targetUser.email}`);

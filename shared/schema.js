@@ -5,7 +5,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { nanoid } from 'nanoid';
 // Helper function to generate a unique ID
 const generateUniqueId = () => nanoid();
-// Session storage table (mandatory for Replit Auth)
+// Session storage table for authentication
 export const sessions = pgTable("sessions", {
     sid: varchar("sid").primaryKey(),
     sess: jsonb("sess").notNull(),
