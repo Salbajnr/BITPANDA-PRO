@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node --max-old-space-size=4096 ../dist/server/index.js",
+    "start": "node ../dist/server/index.js",
     "dev": "tsx watch index.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
