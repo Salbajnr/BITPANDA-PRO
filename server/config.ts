@@ -14,7 +14,7 @@ export const config = {
   
   // Server settings
   port: process.env.PORT || 5000,
-  nodeEnv: process.env.NODE_ENV || 'development',
+  nodeEnv: process.env.NODE_ENV || 'production',
   
   // Rate limiting
   rateLimitWindow: 15 * 60 * 1000, // 15 minutes
