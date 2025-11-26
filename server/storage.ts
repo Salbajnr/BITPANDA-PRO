@@ -34,7 +34,7 @@ if (!env.success) {
 
 // Now TypeScript knows the shape of process.env
 const DATABASE_URL = env.success ? env.data.DATABASE_URL : process.env.DATABASE_URL;
-const NODE_ENV = (env.success ? env.data.NODE_ENV : process.env.NODE_ENV) || "development";
+const NODE_ENV = (env.success ? env.data.NODE_ENV : process.env.NODE_ENV) || "production";
 
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
