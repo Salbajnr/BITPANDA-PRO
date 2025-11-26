@@ -34,7 +34,7 @@ export const pool = databaseUrl
       ssl:
         process.env.NODE_ENV === "production" ||
         databaseUrl.includes("render.com") ||
-        databaseUrl.includes("neon.tech")
+        databaseUrl.includes("supabase.co")
           ? { rejectUnauthorized: false }
           : false,
     })
