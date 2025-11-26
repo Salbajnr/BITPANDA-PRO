@@ -1,182 +1,201 @@
-// storage.ts (extended with reporting helpers)
+import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
-import { inArray, and, sql } from "drizzle-orm";
-import { InferModel } from "drizzle-orm";
+import { eq, and } from "drizzle-orm/expressions";
 
-// --- Initialize database with self-signed SSL support ---
+// PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // allows self-signed certs
-  },
 });
+export const db: NodePgDatabase = drizzle(pool);
 
-export const db = drizzle(pool);
+// Interfaces for types
+type UserId = string;
+type PortfolioId = string;
+type HoldingId = string;
+type TransactionId = string;
+type WithdrawalId = string;
+type DepositId = string;
 
-// --- Type Definitions ---
-type UserFull = InferModel<typeof schema.users> & {
-  portfolios?: PortfolioFull[];
-  transactions?: TransactionFull[];
-  deposits?: DepositFull[];
-  balanceAdjustments?: BalanceAdjustmentFull[];
-};
-type PortfolioFull = InferModel<typeof schema.portfolios> & { holdings?: HoldingFull[] };
-type HoldingFull = InferModel<typeof schema.holdings>;
-type TransactionFull = InferModel<typeof schema.transactions>;
-type DepositFull = InferModel<typeof schema.deposits>;
-type BalanceAdjustmentFull = InferModel<typeof schema.balanceAdjustments>;
+// ---------------- USERS ----------------
+export class DatabaseStorage {
+  db: NodePgDatabase;
 
-// --- Storage Class ---
-class DatabaseStorage {
-  // --- Get User by ID with all relations ---
-  async getUserById(userId: string): Promise<UserFull | null> {
-    const user = await db.select().from(schema.users).where(schema.users.id.eq(userId)).get();
-    if (!user) return null;
-
-    const portfolios = await db.select().from(schema.portfolios).where(schema.portfolios.userId.eq(userId));
-    const portfolioIds = portfolios.map(p => p.id);
-    const allHoldings = await db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, portfolioIds));
-    const portfoliosWithHoldings = portfolios.map(p => ({
-      ...p,
-      holdings: allHoldings.filter(h => h.portfolioId === p.id),
-    }));
-
-    const transactions = await db.select().from(schema.transactions).where(schema.transactions.userId.eq(userId));
-    const deposits = await db.select().from(schema.deposits).where(schema.deposits.userId.eq(userId));
-    const balanceAdjustments = await db.select().from(schema.balanceAdjustments).where(schema.balanceAdjustments.targetUserId.eq(userId));
-
-    return {
-      ...user,
-      portfolios: portfoliosWithHoldings,
-      transactions,
-      deposits,
-      balanceAdjustments,
-    };
+  constructor(db: NodePgDatabase) {
+    this.db = db;
   }
 
-  // --- Generic Get All with optional filters ---
-  async getAll<T extends keyof typeof schema>(
-    table: T,
-    filter?: Partial<InferModel<typeof schema[T]>>,
-    options?: { limit?: number; offset?: number }
-  ): Promise<any[]> {
-    let query = db.select().from(schema[table]);
-    if (filter) {
-      for (const key in filter) {
-        // @ts-ignore
-        query = query.where(schema[table][key].eq(filter[key]));
-      }
-    }
-    if (options?.limit) query = query.limit(options.limit);
-    if (options?.offset) query = query.offset(options.offset);
-    return query.all();
+  // Users
+  async getUser(id: UserId) {
+    return this.db.select().from(schema.users).where(eq(schema.users.id, id)).get();
   }
 
-  // --- Create/Insert record ---
-  async create<T extends keyof typeof schema>(
-    table: T,
-    data: Partial<InferModel<typeof schema[T]>>
-  ): Promise<any> {
-    return db.insert(schema[table]).values(data).returning().get();
+  async getUserByEmail(email: string) {
+    return this.db.select().from(schema.users).where(eq(schema.users.email, email)).get();
   }
 
-  // --- Update record ---
-  async update<T extends keyof typeof schema>(
-    table: T,
-    id: string,
-    data: Partial<InferModel<typeof schema[T]>>
-  ): Promise<any> {
-    return db.update(schema[table])
-      .set(data)
-      .where(schema[table].id.eq(id))
-      .returning()
-      .get();
+  async updateUser(id: UserId, data: Partial<typeof schema.users._inferModel>) {
+    return this.db.update(schema.users).set(data).where(eq(schema.users.id, id));
   }
 
-  // --- Delete record ---
-  async delete<T extends keyof typeof schema>(table: T, id: string): Promise<void> {
-    await db.delete(schema[table]).where(schema[table].id.eq(id));
+  async deleteUser(id: UserId) {
+    return this.db.delete(schema.users).where(eq(schema.users.id, id));
   }
 
-  // --- Transactional Nested Insert Example ---
-  async createUserFull(userData: Partial<UserFull>, portfoliosData: Partial<PortfolioFull & { holdings?: HoldingFull[] }>[], transactionsData?: Partial<TransactionFull>[], depositsData?: Partial<DepositFull>[], balanceAdjustmentsData?: Partial<BalanceAdjustmentFull>[]) {
-    return db.transaction(async (tx) => {
-      const user = await tx.insert(schema.users).values(userData).returning().get();
-
-      for (const p of portfoliosData) {
-        const portfolio = await tx.insert(schema.portfolios).values({ ...p, userId: user.id }).returning().get();
-        if (p.holdings?.length) {
-          for (const h of p.holdings) {
-            await tx.insert(schema.holdings).values({ ...h, portfolioId: portfolio.id });
-          }
-        }
-      }
-
-      if (transactionsData?.length) {
-        for (const t of transactionsData) {
-          await tx.insert(schema.transactions).values({ ...t, userId: user.id });
-        }
-      }
-
-      if (depositsData?.length) {
-        for (const d of depositsData) {
-          await tx.insert(schema.deposits).values({ ...d, userId: user.id });
-        }
-      }
-
-      if (balanceAdjustmentsData?.length) {
-        for (const b of balanceAdjustmentsData) {
-          await tx.insert(schema.balanceAdjustments).values({ ...b, targetUserId: user.id });
-        }
-      }
-
-      return user;
-    });
+  // User Settings
+  async getUserSettings(userId: UserId) {
+    return this.db.select().from(schema.userSettings).where(eq(schema.userSettings.userId, userId)).get();
   }
 
-  // --- Reporting & Analytics Helpers ---
-
-  // Get transactions by portfolio
-  async getTransactionsByPortfolio(portfolioId: string, options?: { assetType?: string; limit?: number; startDate?: Date; endDate?: Date }) {
-    let query = db.select().from(schema.transactions).where(schema.transactions.portfolioId.eq(portfolioId));
-    if (options?.assetType) query = query.where(schema.transactions.assetType.eq(options.assetType));
-    if (options?.startDate) query = query.where(schema.transactions.createdAt.gte(options.startDate));
-    if (options?.endDate) query = query.where(schema.transactions.createdAt.lte(options.endDate));
-    if (options?.limit) query = query.limit(options.limit);
-    return query.all();
+  async createUserSettings(data: Partial<typeof schema.userSettings._inferModel>) {
+    return this.db.insert(schema.userSettings).values(data).returning();
   }
 
-  // Get deposits by status, user, and date range
-  async getDeposits(options?: { status?: string; userId?: string; startDate?: Date; endDate?: Date }) {
-    let query = db.select().from(schema.deposits);
-    if (options?.status) query = query.where(schema.deposits.status.eq(options.status));
-    if (options?.userId) query = query.where(schema.deposits.userId.eq(options.userId));
-    if (options?.startDate) query = query.where(schema.deposits.createdAt.gte(options.startDate));
-    if (options?.endDate) query = query.where(schema.deposits.createdAt.lte(options.endDate));
-    return query.all();
+  async updateUserSettings(userId: UserId, data: Partial<typeof schema.userSettings._inferModel>) {
+    return this.db.update(schema.userSettings).set(data).where(eq(schema.userSettings.userId, userId));
   }
 
-  // Get portfolio summary (total value & available cash)
-  async getPortfolioSummary(userId: string) {
-    const portfolios = await db.select().from(schema.portfolios).where(schema.portfolios.userId.eq(userId));
-    const portfolioIds = portfolios.map(p => p.id);
-    const holdings = await db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, portfolioIds));
+  // Notifications (placeholder)
+  async getUserNotifications(userId: UserId) {
+    // Implement based on your notifications table
+    return [];
+  }
 
-    const summary = portfolios.map(p => {
-      const portfolioHoldings = holdings.filter(h => h.portfolioId === p.id);
-      const totalHoldingsValue = portfolioHoldings.reduce((sum, h) => sum + parseFloat(h.currentPrice.toString()) * parseFloat(h.amount.toString()), 0);
-      return {
-        portfolioId: p.id,
-        totalValue: parseFloat(p.totalValue.toString()) + totalHoldingsValue,
-        availableCash: parseFloat(p.availableCash.toString()),
-        holdingsCount: portfolioHoldings.length,
-      };
-    });
-    return summary;
+  async markNotificationAsRead(notificationId: string) {
+    // Implement based on your notifications table
+    return true;
+  }
+
+  // ---------------- PORTFOLIOS ----------------
+  async getPortfolio(id: PortfolioId) {
+    return this.db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get();
+  }
+
+  async updatePortfolio(id: PortfolioId, data: Partial<typeof schema.portfolios._inferModel>) {
+    return this.db.update(schema.portfolios).set(data).where(eq(schema.portfolios.id, id));
+  }
+
+  // ---------------- HOLDINGS ----------------
+  async getHolding(id: HoldingId) {
+    return this.db.select().from(schema.holdings).where(eq(schema.holdings.id, id)).get();
+  }
+
+  async upsertHolding(data: Partial<typeof schema.holdings._inferModel>) {
+    return this.db
+      .insert(schema.holdings)
+      .values(data)
+      .onConflictDoUpdate({
+        target: schema.holdings.id,
+        set: data,
+      })
+      .returning();
+  }
+
+  async deleteHolding(id: HoldingId) {
+    return this.db.delete(schema.holdings).where(eq(schema.holdings.id, id));
+  }
+
+  // ---------------- TRANSACTIONS ----------------
+  async getUserTransactions(userId: UserId) {
+    return this.db.select().from(schema.transactions).where(eq(schema.transactions.userId, userId));
+  }
+
+  async createTransaction(data: Partial<typeof schema.transactions._inferModel>) {
+    return this.db.insert(schema.transactions).values(data).returning();
+  }
+
+  // ---------------- WATCHLIST ----------------
+  async getUserWatchlist(userId: UserId) {
+    // Implement based on your watchlist table
+    return [];
+  }
+
+  async addToWatchlist(userId: UserId, symbol: string) {
+    // Implement based on your watchlist table
+    return true;
+  }
+
+  async removeFromWatchlist(userId: UserId, symbol: string) {
+    // Implement based on your watchlist table
+    return true;
+  }
+
+  // ---------------- DEPOSITS ----------------
+  async getDeposit(id: DepositId) {
+    return this.db.select().from(schema.deposits).where(eq(schema.deposits.id, id)).get();
+  }
+
+  async createDeposit(data: Partial<typeof schema.deposits._inferModel>) {
+    return this.db.insert(schema.deposits).values(data).returning();
+  }
+
+  async updateDepositStatus(id: DepositId, status: string, adminNotes?: string) {
+    return this.db
+      .update(schema.deposits)
+      .set({ status, adminNotes })
+      .where(eq(schema.deposits.id, id));
+  }
+
+  // ---------------- WITHDRAWALS ----------------
+  async getUserWithdrawals(userId: UserId) {
+    return this.db.select().from(schema.transactions).where(and(eq(schema.transactions.userId, userId), eq(schema.transactions.type, 'withdrawal')));
+  }
+
+  async getWithdrawalById(id: WithdrawalId) {
+    return this.db.select().from(schema.transactions).where(eq(schema.transactions.id, id)).get();
+  }
+
+  async createWithdrawal(data: Partial<typeof schema.transactions._inferModel>) {
+    return this.db.insert(schema.transactions).values(data).returning();
+  }
+
+  async updateWithdrawalStatus(id: WithdrawalId, status: string) {
+    return this.db.update(schema.transactions).set({ status }).where(eq(schema.transactions.id, id));
+  }
+
+  async calculateWithdrawalFees(amount: number) {
+    // Example: 0.5% fee
+    return amount * 0.005;
+  }
+
+  async getWithdrawalLimits() {
+    // Retrieve from platformSettings table
+    const limit = await this.db.select().from(schema.platformSettings).where(eq(schema.platformSettings.key, 'withdrawal_limit')).get();
+    return limit?.value || '1000';
+  }
+
+  async setWithdrawalLimits(limit: number) {
+    return this.db
+      .update(schema.platformSettings)
+      .set({ value: limit.toString() })
+      .where(eq(schema.platformSettings.key, 'withdrawal_limit'));
+  }
+
+  async getWithdrawalStats() {
+    // Aggregate withdrawals
+    const total = await this.db.select({ total: schema.transactions.amount }).from(schema.transactions).where(eq(schema.transactions.type, 'withdrawal'));
+    return total;
+  }
+
+  // ---------------- METALS ----------------
+  async getMetalPrice(symbol: string) {
+    return this.db.select().from(schema.metalsPricing).where(eq(schema.metalsPricing.symbol, symbol)).get();
+  }
+
+  async updateMetalPrice(symbol: string, price: number) {
+    return this.db.update(schema.metalsPricing).set({ pricePerOunce: price }).where(eq(schema.metalsPricing.symbol, symbol));
+  }
+
+  // ---------------- BALANCE ADJUSTMENTS ----------------
+  async adjustUserBalance(adminId: UserId, targetUserId: UserId, type: 'add' | 'remove' | 'set', amount: number) {
+    return this.db.insert(schema.balanceAdjustments).values({
+      adminId,
+      targetUserId,
+      adjustmentType: type,
+      amount,
+    }).returning();
   }
 }
 
-// --- Export singleton ---
-export const storage = new DatabaseStorage();
+// Export singleton instance
+export const storage = new DatabaseStorage(db);
