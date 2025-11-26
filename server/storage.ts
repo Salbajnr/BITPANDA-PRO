@@ -35,7 +35,8 @@ export class DatabaseStorage {
   }
 
   async updateUser(id: UserId, data: Partial<typeof schema.users._inferModel>) {
-    return this.db.update(schema.users).set(data).where(eq(schema.users.id, id));
+    const result = await this.db.update(schema.users).set(data).where(eq(schema.users.id, id)).returning();
+    return result[0];
   }
 
   async deleteUser(id: UserId) {
@@ -52,7 +53,8 @@ export class DatabaseStorage {
   }
 
   async updateUserSettings(userId: UserId, data: Partial<typeof schema.userSettings._inferModel>) {
-    return this.db.update(schema.userSettings).set(data).where(eq(schema.userSettings.userId, userId));
+    const result = await this.db.update(schema.userSettings).set(data).where(eq(schema.userSettings.userId, userId)).returning();
+    return result[0];
   }
 
   // Notifications (placeholder)
@@ -76,7 +78,11 @@ export class DatabaseStorage {
   }
 
   // ---------------- HOLDINGS ----------------
-  async getHolding(id: HoldingId) {
+  async getHolding(portfolioId: PortfolioId, symbol: string) {
+    return this.db.select().from(schema.holdings).where(and(eq(schema.holdings.portfolioId, portfolioId), eq(schema.holdings.symbol, symbol))).get();
+  }
+
+  async getHoldingById(id: HoldingId) {
     return this.db.select().from(schema.holdings).where(eq(schema.holdings.id, id)).get();
   }
 
@@ -91,8 +97,8 @@ export class DatabaseStorage {
       .returning();
   }
 
-  async deleteHolding(id: HoldingId) {
-    return this.db.delete(schema.holdings).where(eq(schema.holdings.id, id));
+  async deleteHolding(portfolioId: PortfolioId, symbol: string) {
+    return this.db.delete(schema.holdings).where(and(eq(schema.holdings.portfolioId, portfolioId), eq(schema.holdings.symbol, symbol)));
   }
 
   // ---------------- TRANSACTIONS ----------------
@@ -110,9 +116,9 @@ export class DatabaseStorage {
     return [];
   }
 
-  async addToWatchlist(userId: UserId, symbol: string) {
+  async addToWatchlist(userId: UserId, symbol: string, name?: string) {
     // Implement based on your watchlist table
-    return true;
+    return { userId, symbol, name };
   }
 
   async removeFromWatchlist(userId: UserId, symbol: string) {
@@ -141,6 +147,10 @@ export class DatabaseStorage {
     return this.db.select().from(schema.transactions).where(and(eq(schema.transactions.userId, userId), eq(schema.transactions.type, 'withdrawal')));
   }
 
+  async getAllWithdrawals() {
+    return this.db.select().from(schema.transactions).where(eq(schema.transactions.type, 'withdrawal'));
+  }
+
   async getWithdrawalById(id: WithdrawalId) {
     return this.db.select().from(schema.transactions).where(eq(schema.transactions.id, id)).get();
   }
@@ -149,16 +159,41 @@ export class DatabaseStorage {
     return this.db.insert(schema.transactions).values(data).returning();
   }
 
-  async updateWithdrawalStatus(id: WithdrawalId, status: string) {
-    return this.db.update(schema.transactions).set({ status }).where(eq(schema.transactions.id, id));
+  async updateWithdrawalStatus(id: WithdrawalId, status: string, adminNotes?: string) {
+    const updateData: any = { status };
+    if (adminNotes) {
+      updateData.adminNotes = adminNotes;
+    }
+    const result = await this.db.update(schema.transactions).set(updateData).where(eq(schema.transactions.id, id)).returning();
+    return result[0];
   }
 
-  async calculateWithdrawalFees(amount: number) {
-    // Example: 0.5% fee
-    return amount * 0.005;
+  async confirmWithdrawal(userId: UserId, token: string) {
+    // Find withdrawal with matching token and user
+    const withdrawal = await this.db.select().from(schema.transactions)
+      .where(and(
+        eq(schema.transactions.userId, userId),
+        eq(schema.transactions.type, 'withdrawal')
+      ))
+      .get();
+    return withdrawal;
   }
 
-  async getWithdrawalLimits() {
+  async updatePortfolioBalance(userId: UserId, amountChange: number) {
+    const portfolio = await this.db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId)).get();
+    if (portfolio) {
+      const newCash = parseFloat(portfolio.availableCash) + amountChange;
+      await this.updatePortfolio(portfolio.id, { availableCash: newCash.toString() });
+    }
+  }
+
+  async calculateWithdrawalFees(amount: number, method?: string) {
+    // Example: 0.5% fee, can vary by method
+    const feeRate = method === 'crypto_wallet' ? 0.002 : 0.005;
+    return amount * feeRate;
+  }
+
+  async getWithdrawalLimits(userId?: UserId) {
     // Retrieve from platformSettings table
     const limit = await this.db.select().from(schema.platformSettings).where(eq(schema.platformSettings.key, 'withdrawal_limit')).get();
     return limit?.value || '1000';
