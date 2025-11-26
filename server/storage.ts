@@ -1,202 +1,182 @@
-// server/storage.ts
-import dns from "dns";
-dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 ENETUNREACH on Render
+// storage.ts (extended with reporting helpers)
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "@shared/schema";
+import { inArray, and, sql } from "drizzle-orm";
+import { InferModel } from "drizzle-orm";
 
-import dotenv from "dotenv";
-import { z } from "zod";
-import { db, pool } from "./db"; // Shared db instance
-import * as schema from "../shared/schema";
-
-// Load .env if not production
-if (process.env.NODE_ENV !== "production") dotenv.config();
-
-// Environment validation
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  DATABASE_URL: z.string().optional(),
-  JWT_SECRET: z.string().min(32).optional(),
-  SESSION_SECRET: z.string().min(32).optional(),
-  SESSION_SECRET_REFRESH: z.string().min(32).optional(),
-  COINGECKO_API_KEY: z.string().optional(),
-  SENDERGRID_API_KEY: z.string().optional(),
-  METALS_API_KEY: z.string().optional()
+// --- Initialize database with self-signed SSL support ---
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // allows self-signed certs
+  },
 });
 
-const env = envSchema.safeParse(process.env);
-if (!env.success) {
-  console.warn("⚠️ Environment validation warnings:", JSON.stringify(env.error.format(), null, 2));
-  console.log("🎭 Some features may be limited in demo mode");
-}
+export const db = drizzle(pool);
 
-const DATABASE_URL = env.success ? env.data.DATABASE_URL : process.env.DATABASE_URL;
-const NODE_ENV = (env.success ? env.data.NODE_ENV : process.env.NODE_ENV) || "production";
+// --- Type Definitions ---
+type UserFull = InferModel<typeof schema.users> & {
+  portfolios?: PortfolioFull[];
+  transactions?: TransactionFull[];
+  deposits?: DepositFull[];
+  balanceAdjustments?: BalanceAdjustmentFull[];
+};
+type PortfolioFull = InferModel<typeof schema.portfolios> & { holdings?: HoldingFull[] };
+type HoldingFull = InferModel<typeof schema.holdings>;
+type TransactionFull = InferModel<typeof schema.transactions>;
+type DepositFull = InferModel<typeof schema.deposits>;
+type BalanceAdjustmentFull = InferModel<typeof schema.balanceAdjustments>;
 
-// Database type
-type DatabaseType = typeof db;
-
-/**
- * Core database storage class
- * Handles all CRUD operations with proper error handling
- */
+// --- Storage Class ---
 class DatabaseStorage {
-  public db = db;
-  public schema = schema;
+  // --- Get User by ID with all relations ---
+  async getUserById(userId: string): Promise<UserFull | null> {
+    const user = await db.select().from(schema.users).where(schema.users.id.eq(userId)).get();
+    if (!user) return null;
 
-  private async withConnection<T>(fn: (db: DatabaseType) => Promise<T>): Promise<T> {
-    if (!db) throw new Error("Database not initialized.");
-    try {
-      return await fn(db);
-    } catch (err: any) {
-      console.error("Database operation failed:", err);
-      throw err;
+    const portfolios = await db.select().from(schema.portfolios).where(schema.portfolios.userId.eq(userId));
+    const portfolioIds = portfolios.map(p => p.id);
+    const allHoldings = await db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, portfolioIds));
+    const portfoliosWithHoldings = portfolios.map(p => ({
+      ...p,
+      holdings: allHoldings.filter(h => h.portfolioId === p.id),
+    }));
+
+    const transactions = await db.select().from(schema.transactions).where(schema.transactions.userId.eq(userId));
+    const deposits = await db.select().from(schema.deposits).where(schema.deposits.userId.eq(userId));
+    const balanceAdjustments = await db.select().from(schema.balanceAdjustments).where(schema.balanceAdjustments.targetUserId.eq(userId));
+
+    return {
+      ...user,
+      portfolios: portfoliosWithHoldings,
+      transactions,
+      deposits,
+      balanceAdjustments,
+    };
+  }
+
+  // --- Generic Get All with optional filters ---
+  async getAll<T extends keyof typeof schema>(
+    table: T,
+    filter?: Partial<InferModel<typeof schema[T]>>,
+    options?: { limit?: number; offset?: number }
+  ): Promise<any[]> {
+    let query = db.select().from(schema[table]);
+    if (filter) {
+      for (const key in filter) {
+        // @ts-ignore
+        query = query.where(schema[table][key].eq(filter[key]));
+      }
     }
+    if (options?.limit) query = query.limit(options.limit);
+    if (options?.offset) query = query.offset(options.offset);
+    return query.all();
   }
 
-  // ----------------------------
-  // User Methods
-  // ----------------------------
-  async getUser(userId: string) {
-    return this.withConnection(async (db) => {
-      const [user] = await db.select().from(schema.users).where(schema.users.id.eq(userId)).limit(1);
-      if (!user) throw new Error("User not found");
+  // --- Create/Insert record ---
+  async create<T extends keyof typeof schema>(
+    table: T,
+    data: Partial<InferModel<typeof schema[T]>>
+  ): Promise<any> {
+    return db.insert(schema[table]).values(data).returning().get();
+  }
+
+  // --- Update record ---
+  async update<T extends keyof typeof schema>(
+    table: T,
+    id: string,
+    data: Partial<InferModel<typeof schema[T]>>
+  ): Promise<any> {
+    return db.update(schema[table])
+      .set(data)
+      .where(schema[table].id.eq(id))
+      .returning()
+      .get();
+  }
+
+  // --- Delete record ---
+  async delete<T extends keyof typeof schema>(table: T, id: string): Promise<void> {
+    await db.delete(schema[table]).where(schema[table].id.eq(id));
+  }
+
+  // --- Transactional Nested Insert Example ---
+  async createUserFull(userData: Partial<UserFull>, portfoliosData: Partial<PortfolioFull & { holdings?: HoldingFull[] }>[], transactionsData?: Partial<TransactionFull>[], depositsData?: Partial<DepositFull>[], balanceAdjustmentsData?: Partial<BalanceAdjustmentFull>[]) {
+    return db.transaction(async (tx) => {
+      const user = await tx.insert(schema.users).values(userData).returning().get();
+
+      for (const p of portfoliosData) {
+        const portfolio = await tx.insert(schema.portfolios).values({ ...p, userId: user.id }).returning().get();
+        if (p.holdings?.length) {
+          for (const h of p.holdings) {
+            await tx.insert(schema.holdings).values({ ...h, portfolioId: portfolio.id });
+          }
+        }
+      }
+
+      if (transactionsData?.length) {
+        for (const t of transactionsData) {
+          await tx.insert(schema.transactions).values({ ...t, userId: user.id });
+        }
+      }
+
+      if (depositsData?.length) {
+        for (const d of depositsData) {
+          await tx.insert(schema.deposits).values({ ...d, userId: user.id });
+        }
+      }
+
+      if (balanceAdjustmentsData?.length) {
+        for (const b of balanceAdjustmentsData) {
+          await tx.insert(schema.balanceAdjustments).values({ ...b, targetUserId: user.id });
+        }
+      }
+
       return user;
     });
   }
 
-  async getUserByEmail(email: string) {
-    return this.withConnection(async (db) => {
-      const [user] = await db.select().from(schema.users).where(schema.users.email.eq(email)).limit(1);
-      return user || null;
+  // --- Reporting & Analytics Helpers ---
+
+  // Get transactions by portfolio
+  async getTransactionsByPortfolio(portfolioId: string, options?: { assetType?: string; limit?: number; startDate?: Date; endDate?: Date }) {
+    let query = db.select().from(schema.transactions).where(schema.transactions.portfolioId.eq(portfolioId));
+    if (options?.assetType) query = query.where(schema.transactions.assetType.eq(options.assetType));
+    if (options?.startDate) query = query.where(schema.transactions.createdAt.gte(options.startDate));
+    if (options?.endDate) query = query.where(schema.transactions.createdAt.lte(options.endDate));
+    if (options?.limit) query = query.limit(options.limit);
+    return query.all();
+  }
+
+  // Get deposits by status, user, and date range
+  async getDeposits(options?: { status?: string; userId?: string; startDate?: Date; endDate?: Date }) {
+    let query = db.select().from(schema.deposits);
+    if (options?.status) query = query.where(schema.deposits.status.eq(options.status));
+    if (options?.userId) query = query.where(schema.deposits.userId.eq(options.userId));
+    if (options?.startDate) query = query.where(schema.deposits.createdAt.gte(options.startDate));
+    if (options?.endDate) query = query.where(schema.deposits.createdAt.lte(options.endDate));
+    return query.all();
+  }
+
+  // Get portfolio summary (total value & available cash)
+  async getPortfolioSummary(userId: string) {
+    const portfolios = await db.select().from(schema.portfolios).where(schema.portfolios.userId.eq(userId));
+    const portfolioIds = portfolios.map(p => p.id);
+    const holdings = await db.select().from(schema.holdings).where(inArray(schema.holdings.portfolioId, portfolioIds));
+
+    const summary = portfolios.map(p => {
+      const portfolioHoldings = holdings.filter(h => h.portfolioId === p.id);
+      const totalHoldingsValue = portfolioHoldings.reduce((sum, h) => sum + parseFloat(h.currentPrice.toString()) * parseFloat(h.amount.toString()), 0);
+      return {
+        portfolioId: p.id,
+        totalValue: parseFloat(p.totalValue.toString()) + totalHoldingsValue,
+        availableCash: parseFloat(p.availableCash.toString()),
+        holdingsCount: portfolioHoldings.length,
+      };
     });
+    return summary;
   }
-
-  async createUser(data: any) {
-    return this.withConnection(async (db) => {
-      const bcrypt = await import("bcrypt");
-      const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : null;
-      const [user] = await db
-        .insert(schema.users)
-        .values({
-          ...data,
-          password: hashedPassword,
-          role: data.role || "user",
-          isActive: data.isActive ?? true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .returning();
-      if (!user) throw new Error("Failed to create user");
-      return user;
-    });
-  }
-
-  async updateUser(userId: string, updates: any) {
-    return this.withConnection(async (db) => {
-      const [updated] = await db.update(schema.users).set({ ...updates, updatedAt: new Date() }).where(schema.users.id.eq(userId)).returning();
-      if (!updated) throw new Error("User not found");
-      return updated;
-    });
-  }
-
-  // ----------------------------
-  // Investment / Savings Methods
-  // ----------------------------
-  async getInvestmentById(id: string) {
-    return this.withConnection(async (db) => {
-      const [plan] = await db.select().from(schema.savingsPlans).where(schema.savingsPlans.id.eq(id)).limit(1);
-      if (!plan) throw new Error("Investment not found");
-      return plan;
-    });
-  }
-
-  async createInvestment(data: any) {
-    return this.withConnection(async (db) => {
-      const [investment] = await db.insert(schema.savingsPlans).values({
-        ...data,
-        status: data.status || "active",
-        totalSaved: "0",
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
-      if (!investment) throw new Error("Failed to create investment");
-      return investment;
-    });
-  }
-
-  async updateInvestment(id: string, updates: any) {
-    return this.withConnection(async (db) => {
-      const [updated] = await db.update(schema.savingsPlans).set({ ...updates, updatedAt: new Date() }).where(schema.savingsPlans.id.eq(id)).returning();
-      if (!updated) throw new Error("Failed to update investment");
-      return updated;
-    });
-  }
-
-  async deleteInvestment(id: string) {
-    return this.withConnection(async (db) => {
-      const [deleted] = await db.delete(schema.savingsPlans).where(schema.savingsPlans.id.eq(id)).returning();
-      return !!deleted;
-    });
-  }
-
-  async getAllUserSavingsPlans() {
-    return this.withConnection(async (db) => {
-      return await db.select().from(schema.savingsPlans).orderBy(schema.savingsPlans.createdAt.desc());
-    });
-  }
-
-  // ----------------------------
-  // Withdrawal Methods
-  // ----------------------------
-  async getUserWithdrawals(userId: string) {
-    return this.withConnection(async (db) => db.select().from(schema.withdrawals).where(schema.withdrawals.userId.eq(userId)));
-  }
-
-  async createWithdrawal(data: any) {
-    return this.withConnection(async (db) => {
-      const [withdrawal] = await db.insert(schema.withdrawals).values({ ...data, createdAt: new Date() }).returning();
-      return withdrawal;
-    });
-  }
-
-  async updateWithdrawalStatus(id: string, status: string, notes?: string) {
-    return this.withConnection(async (db) => {
-      const [updated] = await db.update(schema.withdrawals).set({ status, adminNotes: notes, updatedAt: new Date() }).where(schema.withdrawals.id.eq(id)).returning();
-      return updated;
-    });
-  }
-
-  // ----------------------------
-  // Portfolio Methods
-  // ----------------------------
-  async getPortfolio(userId: string) {
-    return this.withConnection(async (db) => {
-      const [portfolio] = await db.select().from(schema.portfolios).where(schema.portfolios.userId.eq(userId));
-      return portfolio;
-    });
-  }
-
-  async updatePortfolio(portfolioId: string, updates: any) {
-    return this.withConnection(async (db) => {
-      const [updated] = await db.update(schema.portfolios).set(updates).where(schema.portfolios.id.eq(portfolioId)).returning();
-      return updated;
-    });
-  }
-
-  // ----------------------------
-  // General helpers & stubs
-  // ----------------------------
-  async isDbConnected() {
-    return !!db;
-  }
-  async getAllUsers() { return []; }
-  async getActivePriceAlerts() { return []; }
-  async createNotification(data: any) { return { id: `notif-${Date.now()}`, ...data }; }
-  async getTransactions(userId: string) { return []; }
-
-  // ----------------------------
-  // Extend as needed...
-  // ----------------------------
 }
 
-// Export a singleton storage instance
-export const storage: DatabaseStorage = new DatabaseStorage();
+// --- Export singleton ---
+export const storage = new DatabaseStorage();
