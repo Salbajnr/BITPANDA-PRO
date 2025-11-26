@@ -37,7 +37,7 @@ export default defineConfig(({ command, mode }) => {
   },
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 5000,
     strictPort: false,
     allowedHosts: true,
     // Enable HMR with better error handling
@@ -49,7 +49,13 @@ export default defineConfig(({ command, mode }) => {
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        // Add WebSocket support for HMR
+        // Add WebSocket support for HMR and real-time features
+        ws: true
+      },
+      '/ws': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
         ws: true
       }
     },
