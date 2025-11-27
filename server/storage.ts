@@ -1,13 +1,13 @@
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "@shared/schema";
-import { eq, and } from "drizzle-orm/expressions";
+import { eq, and, or } from "drizzle-orm";
 
 // PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
-export const db: NodePgDatabase = drizzle(pool);
+export const db: NodePgDatabase<typeof schema> = drizzle(pool, { schema });
 
 // Interfaces for types
 type UserId = string;
@@ -19,28 +19,28 @@ type DepositId = string;
 
 // ---------------- USERS ----------------
 export class DatabaseStorage {
-  db: NodePgDatabase;
+  db: NodePgDatabase<typeof schema>;
 
-  constructor(db: NodePgDatabase) {
+  constructor(db: NodePgDatabase<typeof schema>) {
     this.db = db;
   }
 
   // Users
   async getUser(id: UserId) {
-    return this.db.select().from(schema.users).where(eq(schema.users.id, id)).get();
+    return this.db.query.users.findFirst({ where: eq(schema.users.id, id) });
   }
 
   async getUserByEmail(email: string) {
-    return this.db.select().from(schema.users).where(eq(schema.users.email, email)).get();
+    return this.db.query.users.findFirst({ where: eq(schema.users.email, email) });
   }
 
   async getUserByEmailOrUsername(emailOrUsername: string) {
-    return this.db.select().from(schema.users).where(
-      or(
+    return this.db.query.users.findFirst({
+      where: or(
         eq(schema.users.email, emailOrUsername),
         eq(schema.users.username, emailOrUsername)
-      )
-    ).get();
+      ),
+    });
   }
 
   async verifyPassword(userId: string, password: string) {
@@ -51,7 +51,7 @@ export class DatabaseStorage {
     return bcrypt.compare(password, user.password);
   }
 
-  async updateUser(id: UserId, data: Partial<typeof schema.users._inferModel>) {
+  async updateUser(id: UserId, data: Partial<typeof schema.users.$inferSelect>) {
     const result = await this.db.update(schema.users).set(data).where(eq(schema.users.id, id)).returning();
     return result[0];
   }
@@ -62,14 +62,14 @@ export class DatabaseStorage {
 
   // User Settings
   async getUserSettings(userId: UserId) {
-    return this.db.select().from(schema.userSettings).where(eq(schema.userSettings.userId, userId)).get();
+    return this.db.query.userSettings.findFirst({ where: eq(schema.userSettings.userId, userId) });
   }
 
-  async createUserSettings(data: Partial<typeof schema.userSettings._inferModel>) {
+  async createUserSettings(data: Partial<typeof schema.userSettings.$inferSelect>) {
     return this.db.insert(schema.userSettings).values(data).returning();
   }
 
-  async updateUserSettings(userId: UserId, data: Partial<typeof schema.userSettings._inferModel>) {
+  async updateUserSettings(userId: UserId, data: Partial<typeof schema.userSettings.$inferSelect>) {
     const result = await this.db.update(schema.userSettings).set(data).where(eq(schema.userSettings.userId, userId)).returning();
     return result[0];
   }
@@ -87,23 +87,23 @@ export class DatabaseStorage {
 
   // ---------------- PORTFOLIOS ----------------
   async getPortfolio(id: PortfolioId) {
-    return this.db.select().from(schema.portfolios).where(eq(schema.portfolios.id, id)).get();
+    return this.db.query.portfolios.findFirst({ where: eq(schema.portfolios.id, id) });
   }
 
-  async updatePortfolio(id: PortfolioId, data: Partial<typeof schema.portfolios._inferModel>) {
+  async updatePortfolio(id: PortfolioId, data: Partial<typeof schema.portfolios.$inferSelect>) {
     return this.db.update(schema.portfolios).set(data).where(eq(schema.portfolios.id, id));
   }
 
   // ---------------- HOLDINGS ----------------
   async getHolding(portfolioId: PortfolioId, symbol: string) {
-    return this.db.select().from(schema.holdings).where(and(eq(schema.holdings.portfolioId, portfolioId), eq(schema.holdings.symbol, symbol))).get();
+    return this.db.query.holdings.findFirst({ where: and(eq(schema.holdings.portfolioId, portfolioId), eq(schema.holdings.symbol, symbol)) });
   }
 
   async getHoldingById(id: HoldingId) {
-    return this.db.select().from(schema.holdings).where(eq(schema.holdings.id, id)).get();
+    return this.db.query.holdings.findFirst({ where: eq(schema.holdings.id, id) });
   }
 
-  async upsertHolding(data: Partial<typeof schema.holdings._inferModel>) {
+  async upsertHolding(data: Partial<typeof schema.holdings.$inferSelect>) {
     return this.db
       .insert(schema.holdings)
       .values(data)
@@ -120,10 +120,10 @@ export class DatabaseStorage {
 
   // ---------------- TRANSACTIONS ----------------
   async getUserTransactions(userId: UserId) {
-    return this.db.select().from(schema.transactions).where(eq(schema.transactions.userId, userId));
+    return this.db.query.transactions.findMany({ where: eq(schema.transactions.userId, userId) });
   }
 
-  async createTransaction(data: Partial<typeof schema.transactions._inferModel>) {
+  async createTransaction(data: Partial<typeof schema.transactions.$inferSelect>) {
     return this.db.insert(schema.transactions).values(data).returning();
   }
 
@@ -145,10 +145,10 @@ export class DatabaseStorage {
 
   // ---------------- DEPOSITS ----------------
   async getDeposit(id: DepositId) {
-    return this.db.select().from(schema.deposits).where(eq(schema.deposits.id, id)).get();
+    return this.db.query.deposits.findFirst({ where: eq(schema.deposits.id, id) });
   }
 
-  async createDeposit(data: Partial<typeof schema.deposits._inferModel>) {
+  async createDeposit(data: Partial<typeof schema.deposits.$inferSelect>) {
     return this.db.insert(schema.deposits).values(data).returning();
   }
 
@@ -161,18 +161,18 @@ export class DatabaseStorage {
 
   // ---------------- WITHDRAWALS ----------------
   async getUserWithdrawals(userId: UserId) {
-    return this.db.select().from(schema.transactions).where(and(eq(schema.transactions.userId, userId), eq(schema.transactions.type, 'withdrawal')));
+    return this.db.query.transactions.findMany({ where: and(eq(schema.transactions.userId, userId), eq(schema.transactions.type, 'withdrawal')) });
   }
 
   async getAllWithdrawals() {
-    return this.db.select().from(schema.transactions).where(eq(schema.transactions.type, 'withdrawal'));
+    return this.db.query.transactions.findMany({ where: eq(schema.transactions.type, 'withdrawal') });
   }
 
   async getWithdrawalById(id: WithdrawalId) {
-    return this.db.select().from(schema.transactions).where(eq(schema.transactions.id, id)).get();
+    return this.db.query.transactions.findFirst({ where: eq(schema.transactions.id, id) });
   }
 
-  async createWithdrawal(data: Partial<typeof schema.transactions._inferModel>) {
+  async createWithdrawal(data: Partial<typeof schema.transactions.$inferSelect>) {
     return this.db.insert(schema.transactions).values(data).returning();
   }
 
@@ -187,17 +187,17 @@ export class DatabaseStorage {
 
   async confirmWithdrawal(userId: UserId, token: string) {
     // Find withdrawal with matching token and user
-    const withdrawal = await this.db.select().from(schema.transactions)
-      .where(and(
+    const withdrawal = await this.db.query.transactions.findFirst({
+      where: and(
         eq(schema.transactions.userId, userId),
         eq(schema.transactions.type, 'withdrawal')
-      ))
-      .get();
+      ),
+    });
     return withdrawal;
   }
 
   async updatePortfolioBalance(userId: UserId, amountChange: number) {
-    const portfolio = await this.db.select().from(schema.portfolios).where(eq(schema.portfolios.userId, userId)).get();
+    const portfolio = await this.db.query.portfolios.findFirst({ where: eq(schema.portfolios.userId, userId) });
     if (portfolio) {
       const newCash = parseFloat(portfolio.availableCash) + amountChange;
       await this.updatePortfolio(portfolio.id, { availableCash: newCash.toString() });
@@ -212,7 +212,7 @@ export class DatabaseStorage {
 
   async getWithdrawalLimits(userId?: UserId) {
     // Retrieve from platformSettings table
-    const limit = await this.db.select().from(schema.platformSettings).where(eq(schema.platformSettings.key, 'withdrawal_limit')).get();
+    const limit = await this.db.query.platformSettings.findFirst({ where: eq(schema.platformSettings.key, 'withdrawal_limit') });
     return limit?.value || '1000';
   }
 
@@ -231,7 +231,7 @@ export class DatabaseStorage {
 
   // ---------------- METALS ----------------
   async getMetalPrice(symbol: string) {
-    return this.db.select().from(schema.metalsPricing).where(eq(schema.metalsPricing.symbol, symbol)).get();
+    return this.db.query.metalsPricing.findFirst({ where: eq(schema.metalsPricing.symbol, symbol) });
   }
 
   async updateMetalPrice(symbol: string, price: number) {

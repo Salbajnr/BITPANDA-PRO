@@ -57,12 +57,14 @@ export default function Watchlist() {
 
   const { data: watchlistItems = [], isLoading } = useQuery<WatchlistItem[]>({
     queryKey: ["/api/watchlist"],
+    queryFn: () => apiRequest("/api/watchlist"),
     retry: false,
     enabled: !!user,
   });
 
   const { data: priceAlerts = [] } = useQuery<PriceAlert[]>({
     queryKey: ["/api/price-alerts"],
+    queryFn: () => apiRequest("/api/price-alerts"),
     retry: false,
     enabled: !!user,
   });
@@ -74,14 +76,13 @@ export default function Watchlist() {
       if (watchlistItems.length === 0) return [];
       return await CryptoApiService.getTopCryptos(100);
     },
-    enabled: watchlistItems.length > 0,
+    enabled: !!user && watchlistItems.length > 0,
     refetchInterval: 30000, // Refresh every 30 seconds
-    enabled: !!user,
   });
 
   const addToWatchlistMutation = useMutation({
     mutationFn: (data: { symbol: string; name: string; targetPrice?: number }) =>
-      apiRequest('/api/watchlist', { method: 'POST', body: data }),
+      apiRequest('/api/watchlist', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -96,7 +97,6 @@ export default function Watchlist() {
       toast({
         title: "Error",
         description: error.message || "Failed to add to watchlist",
-        variant: "destructive",
       });
     },
   });
@@ -115,14 +115,13 @@ export default function Watchlist() {
       toast({
         title: "Error",
         description: error.message || "Failed to remove from watchlist",
-        variant: "destructive",
       });
     },
   });
 
   const setPriceAlertMutation = useMutation({
     mutationFn: (data: { symbol: string; targetPrice: number; condition: 'above' | 'below' }) =>
-      apiRequest('/api/price-alerts', { method: 'POST', body: data }),
+      apiRequest('/api/price-alerts', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -134,15 +133,14 @@ export default function Watchlist() {
       toast({
         title: "Error",
         description: error.message || "Failed to set price alert",
-        variant: "destructive",
       });
     },
   });
 
-  const filteredCrypto = cryptoData.filter(crypto => 
+  const filteredCrypto: CryptoAsset[] = Array.isArray(cryptoData) ? cryptoData.filter((crypto: CryptoAsset) => 
     crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   const handleAddToWatchlist = (crypto: CryptoAsset) => {
     addToWatchlistMutation.mutate({
@@ -238,7 +236,7 @@ export default function Watchlist() {
 
               {searchTerm && (
                 <div className="max-h-60 overflow-y-auto border rounded-lg">
-                  {filteredCrypto.map((crypto) => (
+                  {filteredCrypto.map((crypto: CryptoAsset) => (
                     <div
                       key={crypto.id}
                       className="flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800 border-b last:border-b-0"
@@ -300,7 +298,7 @@ export default function Watchlist() {
           ) : (
             <div className="space-y-4">
               {watchlistItems.map((item) => {
-                const crypto = cryptoData.find(c => c.symbol === item.symbol.toLowerCase());
+                const crypto = cryptoData.find((c: CryptoAsset) => c.symbol === item.symbol.toLowerCase());
                 return (
                   <div
                     key={item.id}
