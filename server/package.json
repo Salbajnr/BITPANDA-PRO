@@ -4,12 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "build"client: "cross-env NODE_ENV=production vite build",
-    
-    
-    "start": "tsx server/index.js",
-    "dev": "tsx watch index.ts",
+    "build": "tsc --noEmit && echo 'TypeScript check passed'",
+    "dev": "cross-env NODE_ENV=development BACKEND_PORT=3000 NODE_OPTIONS=--max-old-space-size=4096 npx tsx watch index.ts",
+    "start": "npx tsx index.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
