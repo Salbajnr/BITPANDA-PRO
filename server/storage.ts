@@ -34,6 +34,23 @@ export class DatabaseStorage {
     return this.db.select().from(schema.users).where(eq(schema.users.email, email)).get();
   }
 
+  async getUserByEmailOrUsername(emailOrUsername: string) {
+    return this.db.select().from(schema.users).where(
+      or(
+        eq(schema.users.email, emailOrUsername),
+        eq(schema.users.username, emailOrUsername)
+      )
+    ).get();
+  }
+
+  async verifyPassword(userId: string, password: string) {
+    const user = await this.getUser(userId);
+    if (!user || !user.password) return false;
+
+    const bcrypt = await import('bcrypt');
+    return bcrypt.compare(password, user.password);
+  }
+
   async updateUser(id: UserId, data: Partial<typeof schema.users._inferModel>) {
     const result = await this.db.update(schema.users).set(data).where(eq(schema.users.id, id)).returning();
     return result[0];
