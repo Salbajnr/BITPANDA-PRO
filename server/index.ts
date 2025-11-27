@@ -362,9 +362,8 @@ app.use((req, res, next) => {
 });
 
 // Server configuration
-const PORT = process.env.NODE_ENV === "production"
-  ? Number(process.env.PORT) || 5000
-  : Number(process.env.BACKEND_PORT) || 3000;
+// Render sets PORT env var (usually 10000), development uses 3000
+const PORT = Number(process.env.PORT) || (process.env.NODE_ENV === "production" ? 10000 : 3000);
 const HOST = "0.0.0.0";
 
 // === SERVER START ===

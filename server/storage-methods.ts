@@ -184,3 +184,27 @@ export async function getAllTransactions({ page = 1, limit = 50, type }: { page?
   const all = await db.select().from(transactions).limit(limit).offset(offset);
   return { transactions: all, total: all.length };
 }
+
+export const storage = {
+  // User methods
+  getUserByEmail,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+
+  // Price alert methods
+  async getActivePriceAlerts() {
+    // Mock implementation - returns empty array
+    return [];
+  },
+
+  // Audit log methods
+  async createAuditLog(logData: any) {
+    // Mock implementation - logs to console in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Audit log:', logData);
+    }
+    return { id: Date.now(), ...logData };
+  },
+};
