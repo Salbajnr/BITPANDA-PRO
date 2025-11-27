@@ -10,18 +10,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
       - key: DATABASE_URL
         sync: false
-      - key: COOKIE_SECRET
-        generateValue: true
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: SESSION_SECRET_REFRESH
-        generateValue: true
-      - key: JWT_SECRET
-        generateValue: true
       - key: CLIENT_URL
         sync: false
       - key: COINGECKO_API_KEY
@@ -29,8 +19,6 @@ services:
       - key: NEWS_API_KEY
         sync: false
       - key: SENDGRID_API_KEY
-        sync: false
-      - key: FIREBASE_SERVICE_ACCOUNT_PATH
         sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false

@@ -1,17 +1,17 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 
-// Load environment variables from .env file first
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-
 // ESM __dirname shim
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Removed dotenv import and configuration as it's not needed for Render deployment.
+// Environment variables will be accessed directly via process.env.
+// import dotenv from "dotenv";
+// import path from "path";
+// import { fileURLToPath } from "url";
 
-// Load .env file
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -80,12 +80,14 @@ import { initializeFirebase, isFirebaseConfigured } from './firebase-config';
 const app = express();
 
 // === ENVIRONMENT VALIDATION ===
+// This function should now validate against process.env directly.
 validateEnvironment();
 
 // === BASIC CONFIG ===
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// Use process.env directly for COOKIE_SECRET. Fallback if not set.
 app.use(cookieParser(process.env.COOKIE_SECRET || "super-secret-fallback"));
 
 // Session middleware
@@ -108,11 +110,11 @@ app.use((req, res, next) => {
     // Production - Render
     "https://bitpanda-pro.onrender.com",
     "https://bitpanda-pro-frontnd.onrender.com",
-    
+
     // Wildcard domains
     "https://*.onrender.com",
 
-    // Environment variables
+    // Environment variables - Use process.env directly
     ...(process.env.CLIENT_URL?.split(',') || []),
     ...(process.env.ALLOWED_ORIGINS?.split(',') || [])
   ].filter(Boolean);
@@ -171,9 +173,10 @@ app.use((req, res, next) => {
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   // Look for client build in both possible locations
-  let clientBuildPath = path.join(process.cwd(), 'client/dist');
+  // Use process.cwd() to get the current working directory, which is where Render typically runs the app.
+  let clientBuildPath = path.join(process.cwd(), 'dist', 'public'); // Standard build output for Render
   if (!fs.existsSync(clientBuildPath)) {
-    clientBuildPath = path.join(process.cwd(), '../client/dist');
+    clientBuildPath = path.join(process.cwd(), 'client', 'dist'); // Alternative build output
   }
 
   // Check if client build exists
@@ -202,7 +205,7 @@ if (process.env.NODE_ENV === 'production') {
       next();
     });
   } else {
-    console.warn('⚠️  Client build not found. Running in API-only mode.');
+    console.warn('⚠️  Client build not found at', clientBuildPath, '. Running in API-only mode.');
 
     // In production but no client build found, handle non-API routes with 404
     app.use((req, res, next) => {
@@ -346,9 +349,10 @@ app.use((req, res, next) => {
 
   // In production, if we reach here for a non-API route, serve the client's index.html
   // Try common build output locations
+  // Use process.cwd() to get the current working directory
   const possibleIndexPaths = [
-    path.resolve(__dirname, '..', 'dist', 'public', 'index.html'), // Standard build output
-    path.resolve(__dirname, '..', 'client', 'dist', 'index.html')   // Alternative build output
+    path.join(process.cwd(), 'dist', 'public', 'index.html'), // Standard build output for Render
+    path.join(process.cwd(), 'client', 'dist', 'index.html')   // Alternative build output
   ];
 
   for (const index of possibleIndexPaths) {
@@ -441,19 +445,19 @@ const shutdown = async (signal: string) => {
   global.isShuttingDown = true;
 
   const shutdownPromises = [];
-  
+
   try {
     // Shutdown WebSocket connections
     if (webSocketManager) {
       shutdownPromises.push(Promise.resolve(webSocketManager.shutdown()));
       console.log('🔌 WebSocket connections closing...');
     }
-    
+
     if (chatWebSocketManager) {
       shutdownPromises.push(Promise.resolve(chatWebSocketManager.shutdown()));
       console.log('💬 Chat WebSocket connections closing...');
     }
-    
+
     if (adminWebSocketManager) {
       shutdownPromises.push(Promise.resolve(adminWebSocketManager.shutdown()));
       console.log('👨‍💼 Admin WebSocket connections closing...');
@@ -464,17 +468,17 @@ const shutdown = async (signal: string) => {
       shutdownPromises.push(Promise.resolve(realTimePriceService.stop()));
       console.log('📉 Real-time price service stopping...');
     }
-    
+
     if (portfolioRealtimeService && typeof portfolioRealtimeService.stop === 'function') {
       shutdownPromises.push(Promise.resolve(portfolioRealtimeService.stop()));
       console.log('📊 Portfolio realtime service stopping...');
     }
-    
+
     if (liveAnalyticsService && typeof liveAnalyticsService.stop === 'function') {
       shutdownPromises.push(Promise.resolve(liveAnalyticsService.stop()));
       console.log('📈 Live analytics service stopping...');
     }
-    
+
     if (priceMonitor && typeof priceMonitor.stop === 'function') {
       shutdownPromises.push(Promise.resolve(priceMonitor.stop()));
       console.log('🔍 Price monitor stopping...');
@@ -491,10 +495,10 @@ const shutdown = async (signal: string) => {
 
     // Wait for all shutdown operations to complete
     await Promise.allSettled(shutdownPromises);
-    
+
     console.log("👋 Server gracefully shut down.");
     process.exit(0);
-    
+
   } catch (error) {
     console.error('❌ Error during shutdown:', error);
     process.exit(1);

@@ -2,29 +2,41 @@ import crypto from 'crypto';
 
 export function validateEnvironment() {
   const isProduction = process.env.NODE_ENV === 'production';
-  const required = ['COOKIE_SECRET'];
-  const optional = ['DATABASE_URL', 'COINGECKO_API_KEY', 'NEWS_API_KEY', 'METALS_API_KEY'];
-
-  const missing = required.filter(key => !process.env[key]);
-  const optionalMissing = optional.filter(key => !process.env[key]);
-
-  if (missing.includes('COOKIE_SECRET')) {
+  
+  // Auto-generate COOKIE_SECRET if missing
+  if (!process.env.COOKIE_SECRET) {
+    const generatedSecret = crypto.randomBytes(32).toString('hex');
+    process.env.COOKIE_SECRET = generatedSecret;
     if (isProduction) {
-      console.error('❌ Missing required environment variables:', missing);
-      console.error('❌ Application cannot start without these variables.');
-      console.log('🔧 Add them to your environment variables (Render dashboard) to continue');
-      process.exit(1);
+      console.warn('⚠️  COOKIE_SECRET not set, auto-generated one. Set it in Render dashboard for persistence.');
     } else {
-      const devSecret = crypto.randomBytes(32).toString('hex');
-      process.env.COOKIE_SECRET = devSecret;
       console.log('🔧 Development mode: Generated temporary COOKIE_SECRET');
-      console.log('💡 For production, add COOKIE_SECRET to your environment variables');
     }
   }
 
+  // Auto-generate other secrets if missing
+  if (!process.env.SESSION_SECRET) {
+    process.env.SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+    console.warn('⚠️  SESSION_SECRET auto-generated');
+  }
+  
+  if (!process.env.SESSION_SECRET_REFRESH) {
+    process.env.SESSION_SECRET_REFRESH = crypto.randomBytes(32).toString('hex');
+    console.warn('⚠️  SESSION_SECRET_REFRESH auto-generated');
+  }
+  
+  if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = crypto.randomBytes(32).toString('hex');
+    console.warn('⚠️  JWT_SECRET auto-generated');
+  }
+
+  // Check optional variables
+  const optional = ['DATABASE_URL', 'COINGECKO_API_KEY', 'NEWS_API_KEY', 'METALS_API_KEY'];
+  const optionalMissing = optional.filter(key => !process.env[key]);
+
   if (optionalMissing.length > 0) {
     console.log('💡 Optional environment variables not set:', optionalMissing);
-    console.log('🔧 Add these to your environment variables to enable additional features');
+    console.log('🔧 Some features may be limited without these variables');
   }
 
   console.log('✅ Environment validation completed');
