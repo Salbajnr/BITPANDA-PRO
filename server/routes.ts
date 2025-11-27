@@ -23,7 +23,7 @@ import { Router } from "express";
 import bcrypt from 'bcrypt';
 
 // Import new routes
-import todoRoutes from "./todo-routes";
+// Removed non-existent todo-routes import
 import socialRoutes from "./social-routes";
 import notificationRoutes from "./notification-routes";
 
