@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "build"client: "cross-env NODE_ENV=production vite build",
+    
+    
     "start": "tsx server/index.js",
     "dev": "tsx watch index.ts",
     "db:generate": "drizzle-kit generate",
