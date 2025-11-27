@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-   "build": "tsc -p server/tsconfig.json",
+    "build": "npm run build:client",
     "build:client": "cd client && npm install --include=dev && npm run build",
     "build:server": "cd server && npm install --include=dev && npm run build",
-    "start": "tsx server/index.js",
+    "start": "cross-env NODE_ENV=production tsx server/index.ts",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && cross-env NODE_ENV=development BACKEND_PORT=3000 NODE_OPTIONS=--max-old-space-size=4096 npx tsx watch index.ts",
     "dev:client": "cd client && npm run dev",

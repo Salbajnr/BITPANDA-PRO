@@ -98,24 +98,24 @@ app.use(healthRouter);
 app.use((req, res, next) => {
   const allowedOrigins = [
     // Development
-    "http://localhost:5000", // Vite dev server (Replit)
+    "http://localhost:5000",
     "http://127.0.0.1:5000",
-    "http://localhost:5173", // Vite dev server (default)
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 
-    // Production
+    // Production - Render
     "https://bitpanda-pro.onrender.com",
     "https://bitpanda-pro-frontnd.onrender.com",
-
-    // Wildcard domains for subdomains
+    
+    // Wildcard domains
     "https://*.onrender.com",
 
     // Environment variables
     ...(process.env.CLIENT_URL?.split(',') || []),
     ...(process.env.ALLOWED_ORIGINS?.split(',') || [])
-  ].filter(Boolean); // Remove any empty strings
+  ].filter(Boolean);
 
   const origin = req.headers.origin;
   const isAllowed = allowedOrigins.some(allowedOrigin => {
@@ -362,10 +362,8 @@ app.use((req, res, next) => {
 });
 
 // Server configuration
-const PORT = process.env.NODE_ENV === "production"
-  ? Number(process.env.PORT) || 5000
-  : Number(process.env.BACKEND_PORT) || 3000;
-const HOST = "0.0.0.0"; // Use 0.0.0.0 for Render and cloud deployments
+const PORT = Number(process.env.PORT) || 10000; // Render uses PORT=10000
+const HOST = "0.0.0.0"; // Required for Render
 
 // === SERVER START ===
 // In production, serve on PORT (defaults to 5000). In dev, use BACKEND_PORT (3000)
