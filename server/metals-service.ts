@@ -1,3 +1,5 @@
+import { supabaseDB } from './supabase-db-service';
+
 interface MetalPrice {
   symbol: string;
   name: string;
@@ -20,7 +22,7 @@ type MetalSymbol = 'XAU' | 'XAG' | 'XPT' | 'XPD' | 'COPPER' | 'ALUMINUM' | 'ZINC
 
 class MetalsService {
   private cache = new Map<string, { data: any; timestamp: number }>();
-  private readonly CACHE_TTL = 300000; // 5 minutes for metals (less volatile)
+  private readonly CACHE_TTL = 300000;
   private readonly API_BASE = 'https://metals-api.com/api';
   private readonly API_KEY = process.env.METALS_API_KEY;
 
@@ -31,7 +33,6 @@ class MetalsService {
     }
   }
 
-  // Alias for getMarketData to support both method names
   async getMetalsPrices(): Promise<any[]> {
     return this.getMarketData();
   }
@@ -126,12 +127,33 @@ class MetalsService {
     }
   }
 
-  // Get market data for metals dashboard
   async getMarketData(): Promise<any[]> {
     const cacheKey = 'market_data';
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.data;
+    }
+
+    try {
+      // Try to fetch from Supabase database first
+      const dbPrices = await supabaseDB.getMetalsPrices(10);
+      if (dbPrices && dbPrices.length > 0) {
+        const marketData = dbPrices.map(metal => ({
+          id: metal.symbol.toLowerCase(),
+          symbol: metal.symbol,
+          name: metal.name,
+          current_price: parseFloat(metal.price),
+          price_change_percentage_24h: parseFloat(metal.change_24h),
+          unit: metal.unit,
+          market_type: 'metals',
+          last_updated: metal.last_updated
+        }));
+
+        this.cache.set(cacheKey, { data: marketData, timestamp: Date.now() });
+        return marketData;
+      }
+    } catch (error) {
+      console.warn('Database fetch failed, fetching from API:', error);
     }
 
     try {
@@ -146,6 +168,15 @@ class MetalsService {
         market_type: 'metals',
         last_updated: metal.last_updated
       }));
+
+      // Store in database for future use
+      for (const metal of metals) {
+        try {
+          await supabaseDB.updateMetalPrice(metal.symbol, metal);
+        } catch (error) {
+          console.warn(`Failed to store ${metal.symbol} price in database:`, error);
+        }
+      }
 
       this.cache.set(cacheKey, { data: marketData, timestamp: Date.now() });
       return marketData;

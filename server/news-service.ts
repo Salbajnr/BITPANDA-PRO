@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { supabaseDB } from './supabase-db-service';
 
 interface NewsArticle {
   id: string;
@@ -18,7 +19,7 @@ interface NewsArticle {
 
 interface FetchStatus {
   success: boolean;
-  source: 'bitpanda-blog' | 'fallback';
+  source: 'bitpanda-blog' | 'database' | 'fallback';
   lastFetch: string;
   articlesCount: number;
   error?: string;
@@ -34,10 +35,9 @@ class NewsService {
     articlesCount: 0
   };
 
-  // Placeholder for CryptoPanic API key and default image
-  private CRYPTOPANIC_API_KEY = 'YOUR_CRYPTOPANIC_API_KEY'; // Replace with your actual key
+  private CRYPTOPANIC_API_KEY = 'YOUR_CRYPTOPANIC_API_KEY';
   private DEFAULT_IMAGE = 'https://cdn.bitpanda.com/media/dev/artboard-1.png';
-  private cryptoPanicKey: string = ''; // To be initialized
+  private cryptoPanicKey: string = '';
 
   async getNews(limit: number = 10, category?: string): Promise<NewsArticle[]> {
     const cacheKey = `news_${category || 'all'}_${limit}`;
@@ -45,6 +45,24 @@ class NewsService {
 
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.data;
+    }
+
+    // Try to fetch from database first
+    try {
+      const dbArticles = await supabaseDB.getNewsArticles(limit, category);
+      if (dbArticles && dbArticles.length > 0) {
+        const transformed = this.transformDbArticles(dbArticles);
+        this.cache.set(cacheKey, { data: transformed, timestamp: Date.now() });
+        this.fetchStatus = {
+          success: true,
+          source: 'database',
+          lastFetch: new Date().toISOString(),
+          articlesCount: transformed.length
+        };
+        return transformed;
+      }
+    } catch (error) {
+      console.warn('Database fetch failed, falling back to Bitpanda blog:', error);
     }
 
     try {
@@ -428,6 +446,47 @@ class NewsService {
     } catch (error) {
       console.warn('News search failed:', error);
       return [];
+    }
+  }
+
+  private transformDbArticles(articles: any[]): NewsArticle[] {
+    return articles.map((article) => ({
+      id: article.id,
+      title: article.title,
+      description: article.description || article.summary || '',
+      summary: article.summary || article.description || '',
+      url: article.url,
+      imageUrl: article.image_url || this.DEFAULT_IMAGE,
+      urlToImage: article.image_url || this.DEFAULT_IMAGE,
+      publishedAt: article.published_at,
+      createdAt: article.created_at,
+      source: {
+        id: article.source_id || 'database',
+        name: article.source_name || 'Cached News'
+      },
+      category: article.category || 'general',
+      sentiment: article.sentiment || 'neutral',
+      coins: article.coins || []
+    }));
+  }
+
+  async storArticleInDatabase(article: NewsArticle): Promise<void> {
+    try {
+      await supabaseDB.createNewsArticle({
+        title: article.title,
+        description: article.description,
+        summary: article.summary,
+        url: article.url,
+        image_url: article.imageUrl,
+        published_at: article.publishedAt,
+        source_id: article.source.id,
+        source_name: article.source.name,
+        category: article.category,
+        sentiment: article.sentiment,
+        coins: article.coins
+      });
+    } catch (error) {
+      console.warn('Failed to store article in database:', error);
     }
   }
 

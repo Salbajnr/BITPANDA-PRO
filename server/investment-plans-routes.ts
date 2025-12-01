@@ -3,135 +3,99 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth } from './simple-auth';
 import { storage } from './storage';
+import { supabaseDB } from './supabase-db-service';
 
 const router = Router();
 
-// Validation schemas
 const investmentSchema = z.object({
   planId: z.string(),
   amount: z.number().positive(),
 });
 
-// Get available investment plans
 router.get('/', async (req: Request, res: Response) => {
   try {
-    // Mock investment plans data
-    const plans = [
-      {
-        id: 'conservative-growth',
-        name: 'Conservative Growth',
-        description: 'Low-risk investment plan with steady returns',
-        minInvestment: 100,
-        expectedReturn: 7.5,
-        duration: 12,
-        riskLevel: 'low',
-        category: 'Bonds & Fixed Income',
-        features: [
-          'Government bonds and high-grade corporate bonds',
-          'Capital preservation focus',
-          'Quarterly dividends',
-          'Low volatility'
-        ],
-        isActive: true,
-        totalInvested: 2500000,
-        totalInvestors: 1250
-      },
-      {
-        id: 'balanced-portfolio',
-        name: 'Balanced Portfolio',
-        description: 'Diversified mix of stocks and bonds for moderate growth',
-        minInvestment: 500,
-        expectedReturn: 12.0,
-        duration: 18,
-        riskLevel: 'medium',
-        category: 'Mixed Assets',
-        features: [
-          '60% stocks, 40% bonds allocation',
-          'Professional portfolio management',
-          'Monthly rebalancing',
-          'Global diversification'
-        ],
-        isActive: true,
-        totalInvested: 5750000,
-        totalInvestors: 2100
-      },
-      {
-        id: 'growth-equity',
-        name: 'Growth Equity',
-        description: 'High-growth potential with focus on emerging markets',
-        minInvestment: 1000,
-        expectedReturn: 18.5,
-        duration: 24,
-        riskLevel: 'high',
-        category: 'Equity',
-        features: [
-          'Growth stocks and tech companies',
-          'Emerging markets exposure',
-          'Active management strategy',
-          'High potential returns'
-        ],
-        isActive: true,
-        totalInvested: 3200000,
-        totalInvestors: 890
-      },
-      {
-        id: 'crypto-diversified',
-        name: 'Crypto Diversified',
-        description: 'Cryptocurrency portfolio with major digital assets',
-        minInvestment: 250,
-        expectedReturn: 25.0,
-        duration: 12,
-        riskLevel: 'high',
-        category: 'Cryptocurrency',
-        features: [
-          'Bitcoin and Ethereum focus',
-          'DeFi protocol investments',
-          'Institutional custody',
-          'Weekly rebalancing'
-        ],
-        isActive: true,
-        totalInvested: 1800000,
-        totalInvestors: 720
-      },
-      {
-        id: 'dividend-income',
-        name: 'Dividend Income',
-        description: 'Focus on dividend-paying stocks for regular income',
-        minInvestment: 750,
-        expectedReturn: 9.2,
-        duration: 15,
-        riskLevel: 'medium',
-        category: 'Dividend Stocks',
-        features: [
-          'High dividend yield stocks',
-          'Monthly income distribution',
-          'Dividend aristocrats focus',
-          'Reinvestment options'
-        ],
-        isActive: true,
-        totalInvested: 4100000,
-        totalInvestors: 1560
-      },
-      {
-        id: 'esg-sustainable',
-        name: 'ESG Sustainable',
-        description: 'Environmental, social, and governance focused investments',
-        minInvestment: 500,
-        expectedReturn: 11.8,
-        duration: 20,
-        riskLevel: 'medium',
-        category: 'ESG',
-        features: [
-          'Sustainable business practices',
-          'Climate-focused investments',
-          'Social impact measurement',
-          'Long-term value creation'
-        ],
-        isActive: true,
-        totalInvested: 2900000,
-        totalInvestors: 1340
+    let plans = await supabaseDB.getActiveInvestmentPlans();
+
+    if (!plans || plans.length === 0) {
+      const defaultPlans = [
+        {
+          plan_id: 'conservative-growth',
+          name: 'Conservative Growth',
+          description: 'Low-risk investment plan with steady returns',
+          min_investment: 100,
+          expected_return: 7.5,
+          duration_months: 12,
+          risk_level: 'low',
+          category: 'Bonds & Fixed Income',
+          features: ['Government bonds', 'Capital preservation', 'Quarterly dividends', 'Low volatility']
+        },
+        {
+          plan_id: 'balanced-portfolio',
+          name: 'Balanced Portfolio',
+          description: 'Diversified mix of stocks and bonds',
+          min_investment: 500,
+          expected_return: 12.0,
+          duration_months: 18,
+          risk_level: 'medium',
+          category: 'Mixed Assets',
+          features: ['60/40 allocation', 'Professional management', 'Monthly rebalancing', 'Global diversification']
+        },
+        {
+          plan_id: 'growth-equity',
+          name: 'Growth Equity',
+          description: 'High-growth potential with emerging markets focus',
+          min_investment: 1000,
+          expected_return: 18.5,
+          duration_months: 24,
+          risk_level: 'high',
+          category: 'Equity',
+          features: ['Growth stocks', 'Emerging markets', 'Active management', 'High returns']
+        },
+        {
+          plan_id: 'crypto-diversified',
+          name: 'Crypto Diversified',
+          description: 'Cryptocurrency portfolio with major digital assets',
+          min_investment: 250,
+          expected_return: 25.0,
+          duration_months: 12,
+          risk_level: 'high',
+          category: 'Cryptocurrency',
+          features: ['Bitcoin & Ethereum', 'DeFi protocols', 'Institutional custody', 'Weekly rebalancing']
+        },
+        {
+          plan_id: 'dividend-income',
+          name: 'Dividend Income',
+          description: 'Focus on dividend-paying stocks for regular income',
+          min_investment: 750,
+          expected_return: 9.2,
+          duration_months: 15,
+          risk_level: 'medium',
+          category: 'Dividend Stocks',
+          features: ['High yield stocks', 'Monthly distribution', 'Dividend aristocrats', 'Reinvestment options']
+        },
+        {
+          plan_id: 'esg-sustainable',
+          name: 'ESG Sustainable',
+          description: 'Environmental, social, and governance focused investments',
+          min_investment: 500,
+          expected_return: 11.8,
+          duration_months: 20,
+          risk_level: 'medium',
+          category: 'ESG',
+          features: ['Sustainable practices', 'Climate focus', 'Social impact', 'Long-term value']
+        }
+      ];
+
+      for (const plan of defaultPlans) {
+        try {
+          await supabaseDB.createInvestmentPlan(plan);
+        } catch (error) {
+          console.warn(`Failed to create plan ${plan.plan_id}:`, error);
+        }
       }
-    ];
+
+      plans = await supabaseDB.getActiveInvestmentPlans();
+    }
 
     res.json(plans);
   } catch (error) {
@@ -140,16 +104,42 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Create investment
 router.post('/invest', requireAuth, async (req: Request, res: Response) => {
   try {
     const data = investmentSchema.parse(req.body);
     const userId = req.user!.id;
 
-    // Check if user has sufficient balance
+    const portfolio = await storage.getPortfolio(userId);
+    if (!portfolio) {
+      return res.status(400).json({ message: 'Portfolio not found' });
+    }
 
+    const availableCash = parseFloat(portfolio.availableCash);
+    if (availableCash < data.amount) {
+      return res.status(400).json({ message: 'Insufficient balance' });
+    }
 
-// Update investment
+    const investment = await supabaseDB.createUserInvestment({
+      user_id: userId,
+      plan_id: data.planId,
+      invested_amount: data.amount,
+      expected_return: 12.0,
+      start_date: new Date().toISOString(),
+      duration_months: 12
+    });
+
+    const newAvailableCash = availableCash - data.amount;
+    await storage.updatePortfolio(portfolio.id, {
+      availableCash: newAvailableCash.toString()
+    });
+
+    res.json(investment);
+  } catch (error) {
+    console.error('Create investment error:', error);
+    res.status(500).json({ message: 'Failed to create investment' });
+  }
+});
+
 router.put('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -163,9 +153,9 @@ router.put('/my-investments/:id', requireAuth, async (req: Request, res: Respons
 
     const updateData: any = {};
     if (notes !== undefined) updateData.notes = notes;
-    if (autoReinvest !== undefined) updateData.autoReinvest = autoReinvest;
+    if (autoReinvest !== undefined) updateData.auto_reinvest = autoReinvest;
 
-    const updated = await storage.updateInvestment(id, updateData);
+    const updated = await supabaseDB.updateUserInvestment(id, updateData);
     res.json(updated);
   } catch (error) {
     console.error('Update investment error:', error);
@@ -173,7 +163,6 @@ router.put('/my-investments/:id', requireAuth, async (req: Request, res: Respons
   }
 });
 
-// Pause investment
 router.post('/my-investments/:id/pause', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -188,7 +177,7 @@ router.post('/my-investments/:id/pause', requireAuth, async (req: Request, res: 
       return res.status(400).json({ message: 'Only active investments can be paused' });
     }
 
-    const updated = await storage.updateInvestment(id, { status: 'paused' });
+    const updated = await supabaseDB.updateUserInvestment(id, { status: 'paused' });
     res.json(updated);
   } catch (error) {
     console.error('Pause investment error:', error);
@@ -196,7 +185,6 @@ router.post('/my-investments/:id/pause', requireAuth, async (req: Request, res: 
   }
 });
 
-// Resume investment
 router.post('/my-investments/:id/resume', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -211,7 +199,7 @@ router.post('/my-investments/:id/resume', requireAuth, async (req: Request, res:
       return res.status(400).json({ message: 'Only paused investments can be resumed' });
     }
 
-    const updated = await storage.updateInvestment(id, { status: 'active' });
+    const updated = await supabaseDB.updateUserInvestment(id, { status: 'active' });
     res.json(updated);
   } catch (error) {
     console.error('Resume investment error:', error);
@@ -219,7 +207,6 @@ router.post('/my-investments/:id/resume', requireAuth, async (req: Request, res:
   }
 });
 
-// Cancel/Delete investment (only if status allows)
 router.delete('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -230,12 +217,10 @@ router.delete('/my-investments/:id', requireAuth, async (req: Request, res: Resp
       return res.status(404).json({ message: 'Investment not found' });
     }
 
-    // Only allow cancellation if investment is still active and within grace period
     if (investment.status !== 'active') {
       return res.status(400).json({ message: 'Cannot cancel this investment' });
     }
 
-    // Refund the invested amount
     const portfolio = await storage.getPortfolio(userId);
     if (portfolio) {
       const newCash = parseFloat(portfolio.availableCash) + parseFloat(investment.investedAmount);
@@ -252,7 +237,6 @@ router.delete('/my-investments/:id', requireAuth, async (req: Request, res: Resp
   }
 });
 
-// Get single investment details
 router.get('/my-investments/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -270,47 +254,10 @@ router.get('/my-investments/:id', requireAuth, async (req: Request, res: Respons
   }
 });
 
-    const portfolio = await storage.getPortfolio(userId);
-    if (!portfolio) {
-      return res.status(400).json({ message: 'Portfolio not found' });
-    }
-
-    const availableCash = parseFloat(portfolio.availableCash);
-    if (availableCash < data.amount) {
-      return res.status(400).json({ message: 'Insufficient balance' });
-    }
-
-    // Create investment record
-    const investment = await storage.createInvestment({
-      userId,
-      planId: data.planId,
-      investedAmount: data.amount.toString(),
-      currentValue: data.amount.toString(),
-      startDate: new Date(),
-      endDate: new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)), // 1 year from now
-      status: 'active',
-      expectedReturn: '12.0',
-      actualReturn: '0'
-    });
-
-    // Update portfolio balance
-    const newAvailableCash = availableCash - data.amount;
-    await storage.updatePortfolio(portfolio.id, {
-      availableCash: newAvailableCash.toString()
-    });
-
-    res.json(investment);
-  } catch (error) {
-    console.error('Create investment error:', error);
-    res.status(500).json({ message: 'Failed to create investment' });
-  }
-});
-
-// Get user investments
 router.get('/my-investments', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const investments = await storage.getUserInvestments(userId);
+    const investments = await supabaseDB.getUserInvestments(userId);
     res.json(investments);
   } catch (error) {
     console.error('Get user investments error:', error);
