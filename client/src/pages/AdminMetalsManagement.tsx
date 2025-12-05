@@ -118,50 +118,60 @@ export default function AdminMetalsManagement() {
 
   const fetchStats = async () => {
     try {
-      // Mock stats for now - in production, create dedicated endpoint
-      const mockStats: MetalStats = {
-        totalVolume: 1250000,
-        totalTransactions: 847,
-        totalUsers: 234,
-        topMetals: [
-          { symbol: 'XAU', name: 'Gold', volume: 750000, transactions: 456 },
-          { symbol: 'XAG', name: 'Silver', volume: 320000, transactions: 234 },
-          { symbol: 'XPT', name: 'Platinum', volume: 120000, transactions: 98 },
-          { symbol: 'XPD', name: 'Palladium', volume: 60000, transactions: 59 }
-        ]
-      };
-      setStats(mockStats);
+      const response = await fetch('/api/metals-trading/admin/stats', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      } else {
+        console.warn('Stats endpoint not available, using calculated stats');
+        if (transactions.length > 0) {
+          const calculatedStats = calculateStatsFromTransactions(transactions);
+          setStats(calculatedStats);
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
   };
 
+  const calculateStatsFromTransactions = (txs: MetalTransaction[]): MetalStats => {
+    const totalVolume = txs.reduce((sum, tx) => sum + parseFloat(tx.total), 0);
+    const uniqueUsers = new Set(txs.map(tx => tx.userId)).size;
+    const metalMap = new Map<string, { volume: number; transactions: number; name: string }>();
+    
+    txs.forEach(tx => {
+      const existing = metalMap.get(tx.symbol) || { volume: 0, transactions: 0, name: tx.symbol };
+      metalMap.set(tx.symbol, {
+        volume: existing.volume + parseFloat(tx.total),
+        transactions: existing.transactions + 1,
+        name: existing.name
+      });
+    });
+    
+    const topMetals = Array.from(metalMap.entries())
+      .map(([symbol, data]) => ({ symbol, ...data }))
+      .sort((a, b) => b.volume - a.volume)
+      .slice(0, 4);
+    
+    return {
+      totalVolume,
+      totalTransactions: txs.length,
+      totalUsers: uniqueUsers,
+      topMetals
+    };
+  };
+
   const fetchUserHoldings = async () => {
     try {
-      // Mock user holdings for now - in production, create dedicated endpoint
-      const mockHoldings: UserHolding[] = [
-        {
-          userId: '1',
-          username: 'john_doe',
-          email: 'john@example.com',
-          symbol: 'XAU',
-          name: 'Gold',
-          amount: '2.5',
-          value: 5114.18,
-          profitLoss: 234.18
-        },
-        {
-          userId: '2',
-          username: 'jane_smith',
-          email: 'jane@example.com',
-          symbol: 'XAG',
-          name: 'Silver',
-          amount: '50.0',
-          value: 1244.50,
-          profitLoss: -45.50
-        }
-      ];
-      setUserHoldings(mockHoldings);
+      const response = await fetch('/api/metals-trading/admin/holdings', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserHoldings(data.holdings || []);
+      }
     } catch (error) {
       console.error('Failed to fetch user holdings:', error);
     }

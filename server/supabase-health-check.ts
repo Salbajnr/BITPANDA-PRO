@@ -121,7 +121,7 @@ export class SupabaseHealthMonitor {
     const recommendations: string[] = [];
 
     if (!status.configured) {
-      recommendations.push('Configure Supabase environment variables in Replit Secrets');
+      recommendations.push('Configure Supabase environment variables in your deployment environment');
       recommendations.push('Add SUPABASE_URL and SUPABASE_ANON_KEY');
     }
 

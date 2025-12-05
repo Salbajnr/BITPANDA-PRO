@@ -310,7 +310,7 @@ router.post('/execute', requireAuth, async (req: Request, res: Response) => {
       amount: executedAmount.toString(),
       price: executionPrice.toString(),
       total: netTotal.toString(),
-      fee: tradingFee.toString(),
+      fees: tradingFee.toString(),
       orderType: tradeData.orderType,
       status: executionResult.status === 'pending' ? 'pending' : 'completed',
       stopLoss: tradeData.stopLoss || null,
@@ -439,7 +439,7 @@ router.get('/history', requireAuth, async (req: Request, res: Response) => {
     const type = req.query.type as string;
     const status = req.query.status as string;
 
-    const transactions = await storage.getUserTransactions(userId, limit);
+    const transactions = await storage.getUserTransactions(userId);
 
     let filteredTransactions = transactions;
 
@@ -468,12 +468,12 @@ router.get('/history', requireAuth, async (req: Request, res: Response) => {
 router.get('/stats', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const transactions = await storage.getUserTransactions(userId, 1000);
+    const transactions = await storage.getUserTransactions(userId);
 
     const stats = {
       totalTrades: transactions.length,
       totalVolume: transactions.reduce((sum, t) => sum + parseFloat(t.total), 0),
-      totalFees: transactions.reduce((sum, t) => sum + parseFloat(t.fee || '0'), 0),
+      totalFees: transactions.reduce((sum, t) => sum + parseFloat(t.fees || '0'), 0),
       successRate: transactions.filter(t => t.status === 'completed').length / transactions.length * 100,
       averageTradeSize: transactions.length > 0 ?
         transactions.reduce((sum, t) => sum + parseFloat(t.total), 0) / transactions.length : 0,

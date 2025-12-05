@@ -42,42 +42,8 @@ interface PriceAlert {
   isActive: boolean;
 }
 
-// Mock data for demonstration
-const mockCryptoData: CryptoAsset[] = [
-  {
-    id: 'bitcoin',
-    symbol: 'btc',
-    name: 'Bitcoin',
-    current_price: 26200,
-    price_change_24h: 450.25,
-    price_change_percentage_24h: 1.75,
-    market_cap: 509000000000,
-    volume_24h: 12500000000,
-    sparkline_in_7d: { price: [25500, 25800, 26000, 25900, 26100, 26300, 26200] }
-  },
-  {
-    id: 'ethereum',
-    symbol: 'eth',
-    name: 'Ethereum',
-    current_price: 1650,
-    price_change_24h: -15.30,
-    price_change_percentage_24h: -0.92,
-    market_cap: 198000000000,
-    volume_24h: 6200000000,
-    sparkline_in_7d: { price: [1680, 1670, 1660, 1650, 1645, 1655, 1650] }
-  },
-  {
-    id: 'cardano',
-    symbol: 'ada',
-    name: 'Cardano',
-    current_price: 0.294,
-    price_change_24h: 0.0086,
-    price_change_percentage_24h: 3.01,
-    market_cap: 10300000000,
-    volume_24h: 185000000,
-    sparkline_in_7d: { price: [0.285, 0.288, 0.290, 0.292, 0.291, 0.293, 0.294] }
-  }
-];
+// Fetch real crypto data from API
+import { CryptoApiService } from "@/services/cryptoApi";
 
 export default function Watchlist() {
   const { user } = useAuth();
@@ -91,19 +57,32 @@ export default function Watchlist() {
 
   const { data: watchlistItems = [], isLoading } = useQuery<WatchlistItem[]>({
     queryKey: ["/api/watchlist"],
+    queryFn: () => apiRequest("/api/watchlist"),
     retry: false,
     enabled: !!user,
   });
 
   const { data: priceAlerts = [] } = useQuery<PriceAlert[]>({
     queryKey: ["/api/price-alerts"],
+    queryFn: () => apiRequest("/api/price-alerts"),
     retry: false,
     enabled: !!user,
   });
 
+  // Fetch real crypto data for watchlist items
+  const { data: cryptoData = [] } = useQuery<CryptoAsset[]>({
+    queryKey: ["crypto-data", watchlistItems],
+    queryFn: async () => {
+      if (watchlistItems.length === 0) return [];
+      return await CryptoApiService.getTopCryptos(100);
+    },
+    enabled: !!user && watchlistItems.length > 0,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   const addToWatchlistMutation = useMutation({
     mutationFn: (data: { symbol: string; name: string; targetPrice?: number }) =>
-      apiRequest('/api/watchlist', { method: 'POST', body: data }),
+      apiRequest('/api/watchlist', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -118,7 +97,6 @@ export default function Watchlist() {
       toast({
         title: "Error",
         description: error.message || "Failed to add to watchlist",
-        variant: "destructive",
       });
     },
   });
@@ -137,14 +115,13 @@ export default function Watchlist() {
       toast({
         title: "Error",
         description: error.message || "Failed to remove from watchlist",
-        variant: "destructive",
       });
     },
   });
 
   const setPriceAlertMutation = useMutation({
     mutationFn: (data: { symbol: string; targetPrice: number; condition: 'above' | 'below' }) =>
-      apiRequest('/api/price-alerts', { method: 'POST', body: data }),
+      apiRequest('/api/price-alerts', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -156,15 +133,14 @@ export default function Watchlist() {
       toast({
         title: "Error",
         description: error.message || "Failed to set price alert",
-        variant: "destructive",
       });
     },
   });
 
-  const filteredCrypto = mockCryptoData.filter(crypto => 
+  const filteredCrypto: CryptoAsset[] = Array.isArray(cryptoData) ? cryptoData.filter((crypto: CryptoAsset) => 
     crypto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   const handleAddToWatchlist = (crypto: CryptoAsset) => {
     addToWatchlistMutation.mutate({
@@ -260,7 +236,7 @@ export default function Watchlist() {
 
               {searchTerm && (
                 <div className="max-h-60 overflow-y-auto border rounded-lg">
-                  {filteredCrypto.map((crypto) => (
+                  {filteredCrypto.map((crypto: CryptoAsset) => (
                     <div
                       key={crypto.id}
                       className="flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800 border-b last:border-b-0"
@@ -322,7 +298,7 @@ export default function Watchlist() {
           ) : (
             <div className="space-y-4">
               {watchlistItems.map((item) => {
-                const cryptoData = mockCryptoData.find(c => c.symbol === item.symbol.toLowerCase());
+                const crypto = cryptoData.find((c: CryptoAsset) => c.symbol === item.symbol.toLowerCase());
                 return (
                   <div
                     key={item.id}
@@ -346,20 +322,20 @@ export default function Watchlist() {
                     </div>
                     
                     <div className="flex items-center space-x-4">
-                      {cryptoData && (
+                      {crypto && (
                         <div className="text-right">
                           <div className="font-semibold text-slate-900 dark:text-white">
-                            ${cryptoData.current_price.toLocaleString()}
+                            ${crypto.current_price.toLocaleString()}
                           </div>
                           <div className={`text-sm flex items-center ${
-                            cryptoData.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
+                            crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            {cryptoData.price_change_percentage_24h >= 0 ? (
+                            {crypto.price_change_percentage_24h >= 0 ? (
                               <TrendingUpIcon className="h-3 w-3 mr-1" />
                             ) : (
                               <TrendingDownIcon className="h-3 w-3 mr-1" />
                             )}
-                            {cryptoData.price_change_percentage_24h >= 0 ? '+' : ''}{cryptoData.price_change_percentage_24h.toFixed(2)}%
+                            {crypto.price_change_percentage_24h >= 0 ? '+' : ''}{crypto.price_change_percentage_24h.toFixed(2)}%
                           </div>
                         </div>
                       )}
@@ -369,7 +345,7 @@ export default function Watchlist() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            const price = cryptoData?.current_price || 0;
+                            const price = crypto?.current_price || 0;
                             setPriceAlertMutation.mutate({
                               symbol: item.symbol,
                               targetPrice: price * 1.1, // 10% above current price

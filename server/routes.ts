@@ -23,7 +23,7 @@ import { Router } from "express";
 import bcrypt from 'bcrypt';
 
 // Import new routes
-import todoRoutes from "./todo-routes";
+// Removed non-existent todo-routes import
 import socialRoutes from "./social-routes";
 import notificationRoutes from "./notification-routes";
 
@@ -1080,7 +1080,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // All routes are already properly mounted in their respective sections
 
   // Register new routes for TODOs, Social, and Notifications
-  app.use('/api/todos', todoRoutes);
+  // Todo routes removed - not implemented
   app.use('/api/social', socialRoutes);
   app.use('/api/notifications', notificationRoutes);
 

@@ -14,6 +14,8 @@ export default defineConfig(({ command, mode }) => {
   return {
     define: {
       __APP_ENV__: JSON.stringify(env.APP_ENV),
+      global: 'globalThis',
+      'process.env.NODE_ENV': JSON.stringify(mode),
     },
     plugins: [
       react({
@@ -21,11 +23,8 @@ export default defineConfig(({ command, mode }) => {
         jsxRuntime: 'automatic',
         // Enable Fast Refresh
         fastRefresh: true,
-        // Use babel for JSX transform
-        babel: {
-          babelrc: true,
-          configFile: true,
-        }
+        // Don't use babel - use SWC/esbuild instead
+        babel: undefined,
       })
     ],
   resolve: {
@@ -39,7 +38,7 @@ export default defineConfig(({ command, mode }) => {
   server: {
     host: '0.0.0.0',
     port: 5000,
-    strictPort: true,
+    strictPort: false,
     allowedHosts: true,
     // Enable HMR with better error handling
     hmr: {
@@ -47,10 +46,16 @@ export default defineConfig(({ command, mode }) => {
     },
     proxy: {
       '/api': {
-        target: 'http://0.0.0.0:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        // Add WebSocket support for HMR
+        // Add WebSocket support for HMR and real-time features
+        ws: true
+      },
+      '/ws': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
         ws: true
       }
     },
@@ -94,7 +99,10 @@ export default defineConfig(({ command, mode }) => {
         // Better chunking for better caching
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash][ext]'
+        assetFileNames: (assetInfo) => {
+          const ext = assetInfo.name?.split('.').pop()?.toLowerCase() ?? 'misc';
+          return `assets/${ext}/[name]-[hash][extname]`;
+        }
       },
       // Improve build performance
       onwarn(warning, warn) {
@@ -118,23 +126,15 @@ export default defineConfig(({ command, mode }) => {
       'react-router-dom',
       '@tanstack/react-query',
       'axios',
-      'lodash'
+      'lodash',
+      'wouter'
     ],
-    // Enable esbuild optimizations
     esbuildOptions: {
       // Target modern browsers
       target: 'es2020',
       // Enable tree shaking
       treeShaking: true,
-      // Other esbuild options
-      define: {
-        global: 'globalThis',
-      },
     },
-  },
-  // Add environment variables
-  define: {
-    'process.env': {},
-    'import.meta.env': JSON.stringify(process.env),
-  },
-}));
+  }
+};
+});

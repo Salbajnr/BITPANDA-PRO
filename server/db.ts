@@ -1,3 +1,4 @@
+// server/db.ts
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "@shared/schema";
@@ -21,27 +22,26 @@ if (!databaseUrl) {
   }
 }
 
-export const pool = databaseUrl
+export const pool: Pool | null = databaseUrl
   ? new Pool({
       connectionString: databaseUrl,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000, // Increase to 10 seconds
+      connectionTimeoutMillis: 10000,
       application_name: "bitpanda-app",
-      // Keep connections alive to prevent early termination
       keepAlive: true,
       keepAliveInitialDelayMillis: 10000,
       ssl:
         process.env.NODE_ENV === "production" ||
         databaseUrl.includes("render.com") ||
-        databaseUrl.includes("neon.tech")
+        databaseUrl.includes("supabase.co")
           ? { rejectUnauthorized: false }
           : false,
     })
   : null;
 
-// ✅ Use Drizzle ORM when pool is active
-export const db = drizzle(pool, { schema });
+// Safe Drizzle instance (null if no pool)
+export const db = pool ? drizzle(pool, { schema }) : null;
 
 // ✅ Test connection automatically (non-blocking)
 if (pool) {

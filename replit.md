@@ -1,162 +1,178 @@
 # BitpandaPro - Cryptocurrency Trading Platform
 
 ## Overview
-A full-stack cryptocurrency trading platform with real-time price updates, portfolio management, and comprehensive admin dashboard. Fully configured for Replit development and production deployment.
+A full-stack cryptocurrency trading platform built with React, Node.js, Express, and PostgreSQL. This platform features real-time price updates, portfolio management, trading capabilities, an admin dashboard, and multi-language support.
 
-## Recent Changes
-- **2025-10-26**: GitHub project imported and configured for Replit
-  - ✅ Installed all dependencies (root, client, server)
-  - ✅ Configured Vite dev server to allow all hosts (required for Replit proxy)
-  - ✅ Fixed port configuration (frontend: 5000, backend: 3000 in dev mode)
-  - ✅ Added dotenv loading at server startup for environment variables
-  - ✅ Configured development workflow with concurrently running both services
-  - ✅ Set up autoscale deployment configuration
-  - ✅ App running in demo mode (external Supabase database unreachable)
+**Current Status**: Successfully configured and running in Replit environment
+**Last Updated**: November 26, 2025
 
 ## Project Architecture
 
-### Technology Stack
-- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS, Radix UI, Wouter
-- **Backend**: Node.js, Express, TypeScript, Drizzle ORM, PostgreSQL
-- **Real-time**: WebSockets, Server-Sent Events (SSE)
-- **External APIs**: CoinGecko (crypto prices), NewsAPI, Metals API
+### Tech Stack
+**Frontend:**
+- React 18/19 with TypeScript
+- Vite 7.2.4 (dev server and build tool)
+- Tailwind CSS for styling
+- Radix UI for accessible components
+- Wouter for routing
+- React Query for data fetching
+- Recharts for data visualization
+
+**Backend:**
+- Node.js with Express.js
+- TypeScript
+- PostgreSQL (via Drizzle ORM)
+- WebSocket for real-time features
+- Passport.js for authentication (OAuth support for Google, Facebook, Apple)
+- Multer for file uploads
+
+**External APIs:**
+- CoinGecko (cryptocurrency prices)
+- NewsAPI (news aggregation)
+- Metals API (precious metals pricing)
 
 ### Directory Structure
 ```
-project/
-├── client/                     # Vite frontend (React)
-│   ├── src/                   # React components and pages
-│   ├── public/                # Static assets
-│   ├── dist/                  # Build output (after npm run build)
-│   ├── vite.config.js         # Vite configuration
-│   └── package.json           # Client dependencies
-│
-├── server/                     # Express backend (TypeScript)
-│   ├── *.ts                   # Server routes and services
-│   ├── drizzle/               # Database migrations
-│   └── package.json           # Server dependencies
-│
-├── shared/                     # Shared code
-│   └── schema.ts              # Database schema (Drizzle)
-│
-├── package.json                # Root package with build scripts
-└── README.md                   # Documentation
+bitpandapro/
+├── client/              # React frontend application
+│   ├── src/            # Source code
+│   ├── public/         # Static assets
+│   └── vite.config.js  # Vite configuration
+├── server/             # Node.js backend
+│   ├── routes/         # API route handlers
+│   ├── services/       # Business logic services
+│   ├── drizzle/        # Database migrations
+│   └── index.ts        # Server entry point
+├── shared/             # Shared code (schema definitions)
+└── docs/               # Complete documentation
 ```
 
-## Development
-
-### Required Environment Variables
-- `COOKIE_SECRET` - **REQUIRED** - Session signing key (min 32 chars)
-- `DATABASE_URL` - PostgreSQL connection string (Supabase or Replit DB)
-
-### Supabase Authentication (NEW - Fully Integrated)
-The platform now supports comprehensive Supabase Auth with all features:
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_ANON_KEY` - Supabase anonymous key  
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
-
-**Auth Features Available:**
-- ✅ Email/Password signup & signin
-- ✅ Phone number auth with OTP
-- ✅ Social logins: Google, Facebook, Apple, GitHub, Twitter
-- ✅ Email verification & resend
-- ✅ Password reset & update
-- ✅ Session management & refresh
-- ✅ Multi-factor authentication ready
-
-**See `SUPABASE_AUTH_API.md` for complete API documentation**
-
-### Optional Environment Variables
-- `COINGECKO_API_KEY` - For cryptocurrency price data
-- `NEWS_API_KEY` - For news aggregation
-- `METALS_API_KEY` - For precious metals pricing
-- `SENDGRID_API_KEY` - For email notifications
-
-### Running Development Server
-The app uses a unified workflow that runs both frontend and backend:
-```bash
-npm run dev
-```
-
-This concurrently runs:
-- **Frontend** (Vite dev server): `http://localhost:5000`
-- **Backend** (Express API): `http://localhost:3000`
-
-The frontend proxies `/api/*` requests to the backend automatically.
-
-### Building for Production
-```bash
-npm run build
-```
-
-This builds the frontend (Vite) to `client/dist/`. The backend runs with TypeScript using `tsx` (no compilation needed).
-
-### Starting Production Server
-```bash
-npm start
-```
-
-This runs the server in production mode:
-- Serves the built frontend from `client/dist/`
-- Runs the backend API on port 5000
-- Handles client-side routing
-
-## Database
-
-### Schema
-Database schema is defined in `shared/schema.ts` using Drizzle ORM.
-
-### Commands
-```bash
-npm run db:push      # Sync schema to database
-npm run db:generate  # Generate migrations
-npm run db:migrate   # Run migrations
-npm run db:studio    # Open Drizzle Studio
-```
-
-### Demo Mode vs Database Mode
-- **Current State**: Running in demo mode. The external Supabase database configured in the imported project is not reachable.
-- **Without DATABASE_URL**: The app runs in demo mode. Some features will log errors (price alerts, portfolio persistence) but the core UI and real-time price tracking work perfectly.
-- **To enable full functionality**: Set a valid `DATABASE_URL` in Replit Secrets, then run `npm run db:push` to create all required tables.
-
-## Deployment (Replit)
-
-### Deployment Configuration
-- **Type**: Autoscale (stateless web server - suitable for this application)
-- **Build**: `npm run build` (builds client static files)
-- **Run**: `npm start` (serves combined app on port 5000)
-
-### Before Deploying
-1. **Required**: Set `COOKIE_SECRET` in Replit Secrets (32+ character random string)
-2. **Optional**: Add `DATABASE_URL` for full database features
-   - After adding DATABASE_URL, run `npm run db:push` to create tables
-   - Without it, the app runs in demo mode (some features log errors)
-3. **Optional**: Add API keys for external services (COINGECKO_API_KEY, NEWS_API_KEY, METALS_API_KEY)
-
-### Publishing
-Click the "Publish" button in Replit to deploy to production.
-
-## Key Features
-- Real-time cryptocurrency price tracking (100+ coins)
-- Trading interface with buy/sell capabilities
-- Portfolio management and analytics
-- KYC verification system
-- Deposit/withdrawal management
-- Admin dashboard with comprehensive controls
-- Multi-language support (EN, DE, ES, FR, ZH)
-- WebSocket real-time updates
-- News integration and price alerts
-
-## Technical Notes
-
-### Dependency Management
-- **Shared dependencies** (drizzle-orm, drizzle-zod, nanoid) installed at root level
-- Client and server have their own package.json for specific dependencies
-- No duplicate installations to avoid TypeScript type conflicts
+## Replit Configuration
 
 ### Port Configuration
-- **Development**: Frontend (5000), Backend (3000)
-- **Production**: Single server on port 5000 serving both frontend and API
+- **Frontend**: Port 5000 (0.0.0.0) - Configured for Replit webview
+- **Backend**: Port 3000 (localhost) - Internal API server
+- Vite proxy configured to route `/api` requests to backend
 
-### Caching
-The server disables browser caching in development. For production, consider adding cache headers for static assets.
+### Environment Variables
+The application loads environment variables from the root `.env` file (managed via Replit Secrets). The app is configured to run in demo mode without a database. To enable full functionality:
+
+**Required for Development:**
+- `BACKEND_PORT=3000` - Backend server port
+- `COOKIE_SECRET` - Session cookie secret (auto-generated in dev mode if not set)
+
+**Required for Production:**
+- `DATABASE_URL` - PostgreSQL connection string (use Replit Database tool)
+- `COOKIE_SECRET` - Session cookie secret (add via Replit Secrets)
+- `NODE_ENV=production` - Set environment to production
+
+**Optional (Enhanced Features):**
+- `COINGECKO_API_KEY` - Cryptocurrency price data
+- `NEWS_API_KEY` - News aggregation
+- `METALS_API_KEY` - Precious metals pricing
+- OAuth credentials for Google, Facebook, Apple login
+
+**Important Security Notes:**
+- Never commit secrets to the repository
+- Use Replit Secrets to manage all sensitive environment variables
+- The root `.env` file should be managed through Replit's Secrets interface
+- A previous `server/.env` file has been removed for security reasons
+
+### Database Setup
+The app can run in two modes:
+1. **Demo Mode** (Current): No database required, uses mock data
+2. **Full Mode**: Requires PostgreSQL database
+
+To add a database:
+1. Use the Replit Database tool to create a PostgreSQL database
+2. Connection credentials are automatically added as environment variables
+3. Run migrations: `npm run db:push`
+
+### Workflow Configuration
+**Development Server** workflow runs both frontend and backend:
+- Command: `npm run dev`
+- Starts both Vite (port 5000) and Express (port 3000) using concurrently
+- Hot reload enabled for both frontend and backend
+
+## Available Scripts
+
+### Root Level
+- `npm run dev` - Start both frontend and backend servers
+- `npm run build` - Build TypeScript for server
+- `npm run build:client` - Build production frontend
+- `npm run build:server` - Build production backend
+- `npm run start` - Start production server
+- `npm run install:all` - Install all dependencies
+
+### Database Management
+- `npm run db:generate` - Generate database migrations
+- `npm run db:push` - Push schema changes to database
+- `npm run db:migrate` - Run database migrations
+- `npm run db:studio` - Open Drizzle Studio for database management
+
+## Features
+
+### User Features
+- Real-time cryptocurrency prices for 100+ coins
+- Buy/sell trading interface
+- Portfolio management and tracking
+- Multi-language support (EN, DE, ES, FR, ZH)
+- Responsive design (desktop, tablet, mobile)
+- User authentication and KYC verification
+- Investment plans and savings strategies
+- Price alerts and notifications
+- News integration
+
+### Admin Features
+- User management dashboard
+- Transaction monitoring
+- System analytics
+- Content management
+- Support chat system
+- Audit logs
+
+## Development Notes
+
+### Recent Changes (Replit Setup)
+- Updated Vite config to use port 5000 for Replit compatibility
+- Configured proper host settings (0.0.0.0 for frontend, localhost for backend)
+- Set up development workflow with automatic restarts
+- Generated secure cookie secret for sessions
+- Configured deployment settings for Replit deployments
+
+### Known Issues
+- Application runs in demo mode without database (expected behavior)
+- Some real-time features require database connection
+- OAuth features require credential configuration
+
+## Deployment
+The deployment is configured for Replit's autoscale deployment:
+- Build command: `npm run build:client` - Builds the React frontend
+- Run command: `npm run start` - Starts the production server
+- Automatically scales based on traffic
+
+**Production Server Configuration:**
+The production server (`npm run start`) runs on port 5000 (set via `PORT` environment variable) and:
+- Serves the built client files from `client/dist`
+- Provides the backend API on the same port
+- Uses a single unified server (no separate frontend server needed)
+
+**For production deployment, ensure:**
+1. Database is properly configured (use Replit Database tool)
+2. All required environment variables are set via Replit Secrets:
+   - `DATABASE_URL` - PostgreSQL connection string
+   - `COOKIE_SECRET` - Secure random string (32+ characters)
+   - `NODE_ENV=production`
+3. OAuth credentials are added (if using social login)
+4. API keys are configured for external services
+5. Never use `npm run dev` in production (it runs two separate servers)
+
+## Support & Documentation
+- **Quick Start**: See `docs/QUICK_START.md`
+- **Deployment**: See `docs/DEPLOYMENT_STATUS.md`
+- **Authentication**: See `docs/COMPLETE_AUTH_GUIDE.md`
+- **Environment Setup**: See `docs/ENVIRONMENT_SETUP.md`
+- **API Documentation**: See `docs/API_INTEGRATION_STATUS.md`
+
+## License
+MIT License - See LICENSE file for details

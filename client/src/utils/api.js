@@ -1,5 +1,6 @@
 // Base URL from environment variables with fallback
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bitpanda-pro.onrender.com';
+// Use relative URLs for same-origin requests (works with Render deployment)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Request timeout in milliseconds
 const REQUEST_TIMEOUT = 10000;

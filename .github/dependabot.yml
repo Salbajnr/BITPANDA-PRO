@@ -1,0 +1,20 @@
+version: 2 updates:
+
+package-ecosystem: "npm" directory: "/" schedule: interval: "weekly" day: "sunday" open-pull-requests-limit: 10 rebase-strategy: "auto" commit-message: prefix: "deps" labels:
+
+"dependencies"
+"dependabot" reviewers:
+"Salbajnr" assignees:
+"Salbajnr" security-updates: true ignore:
+dependency-name: "*" update-types:
+"version-update:semver-major"
+package-ecosystem: "npm" directory: "/client" schedule: interval: "weekly" day: "sunday" open-pull-requests-limit: 8 rebase-strategy: "auto" labels:
+
+"dependencies"
+"dependabot" security-updates: true ignore:
+dependency-name: "*" update-types:
+"version-update:semver-major"
+package-ecosystem: "github-actions" directory: "/" schedule: interval: "weekly" day: "sunday" open-pull-requests-limit: 5 labels:
+
+"ci"
+"dependabot"

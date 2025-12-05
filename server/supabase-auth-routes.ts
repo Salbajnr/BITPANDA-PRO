@@ -81,7 +81,7 @@ router.post('/signup/email', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -111,7 +111,7 @@ router.post('/signup/phone', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -147,7 +147,7 @@ router.post('/signin/email', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -183,7 +183,7 @@ router.post('/signin/phone', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -245,7 +245,7 @@ router.post('/password/reset-request', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -275,7 +275,7 @@ router.post('/password/update', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -305,7 +305,7 @@ router.post('/email/send-verification', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -341,7 +341,7 @@ router.post('/email/verify', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -371,7 +371,7 @@ router.post('/phone/send-otp', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
@@ -407,7 +407,7 @@ router.post('/phone/verify-otp', requireSupabase, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.errors,
+        details: error.issues,
       });
     }
     res.status(500).json({
