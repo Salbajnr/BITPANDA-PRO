@@ -51,8 +51,7 @@ class PushNotificationService extends EventEmitter {
         userId: notification.userId,
         type: notification.type,
         title: notification.title,
-        message: notification.message,
-        data: notification.data
+        message: notification.message
       });
 
       // Send via SSE

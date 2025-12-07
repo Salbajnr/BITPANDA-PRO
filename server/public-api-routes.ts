@@ -112,8 +112,9 @@ router.post('/v1/orders', async (req, res) => {
 
     const orderData = {
       userId: req.user.id,
-      type: side, // 'buy' or 'sell'
+      type: side as 'buy' | 'sell' | 'deposit' | 'withdrawal',
       symbol,
+      assetType: 'crypto' as const,
       amount: amount.toString(),
       price: price ? price.toString() : '0',
       total: (parseFloat(amount) * (price || 0)).toString(),
@@ -340,9 +341,8 @@ router.post('/v1/alerts', async (req, res) => {
     const alertData = {
       userId: req.user.id,
       symbol,
-      type,
-      targetValue: value.toString(),
-      message: message || `Price alert for ${symbol}`,
+      alertType: type,
+      targetPrice: value.toString(),
       isActive: true
     };
 
@@ -364,7 +364,7 @@ router.post('/v1/alerts', async (req, res) => {
 });
 
 // Portfolio endpoints (require 'read' permission)
-router.get('/v1/portfolio', requireApiPermission('read'), async (req, res) => {
+router.get('/v1/portfolio/detail', requireApiPermission('read'), async (req, res) => {
   try {
     const userId = req.apiKey!.userId;
     const portfolio = await storage.getPortfolio(userId);
@@ -378,7 +378,7 @@ router.get('/v1/portfolio', requireApiPermission('read'), async (req, res) => {
     }
 
     const holdings = await storage.getHoldings(portfolio.id);
-    const transactions = await storage.getTransactions(userId);
+    const transactions = await storage.getUserTransactions(userId);
 
     res.json({
       success: true,
@@ -423,7 +423,8 @@ router.post('/v1/orders', requireApiPermission('trade'), async (req, res) => {
       amount: amount.toString(),
       price: price?.toString() || '0',
       total: (parseFloat(amount) * (parseFloat(price) || 0)).toString(),
-      status: 'completed'
+      status: 'completed',
+      assetType: 'crypto'
     });
 
     res.json({

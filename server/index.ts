@@ -1,17 +1,14 @@
 import dns from "dns";
 dns.setDefaultResultOrder("ipv4first"); // ✅ Avoid IPv6 issues on Render
 
-// Load environment variables from .env file first
-import dotenv from "dotenv";
+// Load environment variables first - MUST be before any other imports
+import "./env-load.ts";
+
 import path from "path";
 import { fileURLToPath } from "url";
 
-// ESM __dirname shim
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Load .env file
-// dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 import express from "express";
 import cookieParser from "cookie-parser";

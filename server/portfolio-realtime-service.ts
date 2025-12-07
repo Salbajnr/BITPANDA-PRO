@@ -118,7 +118,7 @@ class PortfolioRealtimeService extends EventEmitter {
       if (Math.abs(changePercent) > 1 || !previousUpdate) {
         await storage.updatePortfolio(portfolio.id, {
           totalValue: totalValue.toString(),
-          lastUpdated: new Date().toISOString()
+          updatedAt: new Date()
         });
       }
 

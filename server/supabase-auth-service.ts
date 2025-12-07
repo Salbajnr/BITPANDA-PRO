@@ -575,11 +575,9 @@ export class SupabaseAuthService {
       };
 
       if (existingUser) {
-        // Update existing user, preserving existing verification status if already verified
+        // Update existing user, preserving existing balance
         await storage.updateUser(existingUser.id, {
           ...userData,
-          emailVerified: !!email_confirmed_at || existingUser.emailVerified,
-          phoneVerified: !!phone_confirmed_at || existingUser.phoneVerified,
           // Preserve existing balance and other user data
           walletBalance: existingUser.walletBalance || '0',
         });

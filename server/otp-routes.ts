@@ -105,7 +105,7 @@ router.post('/verify', async (req: Request, res: Response) => {
       const user = await storage.getUserByEmail(email);
       if (user) {
         await storage.updateUser(user.id, {
-          emailVerified: true,
+          isActive: true,
         });
       }
     }

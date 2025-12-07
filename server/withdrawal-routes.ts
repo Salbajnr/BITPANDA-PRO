@@ -93,18 +93,12 @@ router.post('/request', requireAuth, async (req, res) => {
     }
 
     // Check withdrawal limits
-    const limits = await storage.getWithdrawalLimits(req.user!.id);
-    const dailyRemaining = parseFloat(limits.dailyLimit) - parseFloat(limits.dailyUsed);
-    const monthlyRemaining = parseFloat(limits.monthlyLimit) - parseFloat(limits.monthlyUsed);
+    const limitValue = await storage.getWithdrawalLimits(req.user!.id);
+    const dailyLimit = parseFloat(limitValue || '1000');
 
-    if (amount > dailyRemaining) {
+    if (amount > dailyLimit) {
       return res.status(400).json({
-        message: `Daily withdrawal limit exceeded. Remaining: $${dailyRemaining.toFixed(2)}`
-      });
-    }
-    if (amount > monthlyRemaining) {
-      return res.status(400).json({
-        message: `Monthly withdrawal limit exceeded. Remaining: $${monthlyRemaining.toFixed(2)}`
+        message: `Withdrawal limit exceeded. Daily limit: $${dailyLimit.toFixed(2)}`
       });
     }
 
@@ -124,7 +118,6 @@ router.post('/request', requireAuth, async (req, res) => {
     const withdrawalResult = await storage.createWithdrawal({
       userId: req.user!.id,
       amount: amount.toString(),
-      currency: validatedData.currency,
       type: 'withdrawal',
       assetType: 'crypto',
       symbol: 'USD',
@@ -196,7 +189,7 @@ router.post('/confirm', requireAuth, async (req, res) => {
         to: req.user!.email,
         transactionType: 'withdrawal',
         amount: withdrawal.amount,
-        currency: withdrawal.currency,
+        currency: 'USD',
         status: 'Under Review',
         transactionId: withdrawal.id
       });
@@ -316,7 +309,7 @@ router.post('/:id/reject', requireAuth, requireAdmin, async (req, res) => {
         to: user.email,
         transactionType: 'withdrawal',
         amount: updatedWithdrawal.amount,
-        currency: updatedWithdrawal.currency,
+        currency: 'USD',
         status: 'Rejected',
         transactionId: id
       });
@@ -368,7 +361,7 @@ router.post('/:id/complete', requireAuth, requireAdmin, async (req, res) => {
         to: user.email,
         transactionType: 'withdrawal',
         amount: updatedWithdrawal.amount,
-        currency: updatedWithdrawal.currency,
+        currency: 'USD',
         status: 'Completed',
         transactionId: id
       });
@@ -421,7 +414,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
         to: req.user!.email,
         transactionType: 'withdrawal',
         amount: updatedWithdrawal.amount,
-        currency: updatedWithdrawal.currency,
+        currency: 'USD',
         status: 'Cancelled',
         transactionId: id
       });

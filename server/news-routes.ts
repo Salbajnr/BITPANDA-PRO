@@ -98,9 +98,9 @@ router.get('/', async (req, res) => {
         let filteredNews = dbNews;
 
         if (category && category !== 'all') {
+          // Filter by source as a category proxy
           filteredNews = dbNews.filter(article =>
-            article.category === category ||
-            (article.coins && article.coins.includes(category))
+            article.source?.toLowerCase().includes(category.toLowerCase())
           );
         }
 
@@ -165,7 +165,7 @@ router.get('/search', async (req, res) => {
       const allNews = await storage.getNewsArticles(100);
       const searchResults = allNews.filter(article =>
         article.title.toLowerCase().includes(query.toLowerCase()) ||
-        article.description.toLowerCase().includes(query.toLowerCase())
+        (article.excerpt && article.excerpt.toLowerCase().includes(query.toLowerCase()))
       );
 
       if (searchResults.length > 0) {
@@ -233,14 +233,12 @@ router.post('/admin/create', requireAdmin, async (req, res) => {
 
     const newsArticle = await storage.createNewsArticle({
       title,
-      description,
-      summary: description.substring(0, 150),
-      url: url || '#',
+      content: description,
+      excerpt: description.substring(0, 150),
+      sourceUrl: url || '#',
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
-      category: category || 'general',
-      coins: coins || [],
-      sentiment: 'neutral',
-      source: { id: 'admin', name: 'Admin' }
+      source: 'admin',
+      publishedAt: new Date()
     });
 
     res.json(newsArticle);
@@ -254,7 +252,7 @@ router.post('/admin/create', requireAdmin, async (req, res) => {
 router.put('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, url, imageUrl, category, coins } = req.body;
+    const { title, content, url, imageUrl } = req.body;
 
     const article = await storage.getNewsArticleById(id);
     if (!article) {
@@ -263,11 +261,9 @@ router.put('/admin/:id', requireAdmin, async (req, res) => {
 
     const updateData: any = {};
     if (title) updateData.title = title;
-    if (description) updateData.description = description;
-    if (url) updateData.url = url;
+    if (content) updateData.content = content;
+    if (url) updateData.sourceUrl = url;
     if (imageUrl) updateData.imageUrl = imageUrl;
-    if (category) updateData.category = category;
-    if (coins) updateData.coins = coins;
 
     const updated = await storage.updateNewsArticle(id, updateData);
     res.json(updated);
@@ -294,20 +290,18 @@ router.get('/admin/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Admin: Update news article
+// Admin: Update news article  
 router.put('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, url, imageUrl, category, coins } = req.body;
+    const { title, content, url, imageUrl } = req.body;
 
     const updatedArticle = await storage.updateNewsArticle(id, {
       title,
-      description,
-      summary: description?.substring(0, 150),
-      url,
-      imageUrl,
-      category,
-      coins
+      content,
+      excerpt: content?.substring(0, 150),
+      sourceUrl: url,
+      imageUrl
     });
 
     if (!updatedArticle) {

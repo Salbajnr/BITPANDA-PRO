@@ -93,13 +93,23 @@ class SupabaseDBService {
 
   constructor() {
     if (!this.db) {
-      throw new Error('Supabase admin client not configured');
+      console.warn('⚠️  Supabase admin client not configured - using fallback mode');
+      // Don't throw error - allow service to exist in fallback mode
     }
+  }
+
+  private checkConnection(): boolean {
+    if (!this.db) {
+      console.warn('⚠️  Supabase client not available for this operation');
+      return false;
+    }
+    return true;
   }
 
   // ============ NEWS ARTICLES ============
 
   async createNewsArticle(article: NewsArticle) {
+    if (!this.checkConnection()) return null;
     const { data, error } = await this.db!
       .from('news_articles')
       .insert([{

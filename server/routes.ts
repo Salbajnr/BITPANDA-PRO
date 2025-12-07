@@ -298,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { emailOrUsername, password } = loginSchema.parse(req.body);
 
       // Find user by email or username
-      const user = await storage.getUserByEmailOrUsername(emailOrUsername, emailOrUsername);
+      const user = await storage.getUserByEmailOrUsername(emailOrUsername);
       if (!user || !user.password) {
         return res.status(401).json({ message: "Invalid admin credentials" });
       }
@@ -755,6 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         type,
         symbol,
+        assetType: 'crypto',
         amount,
         price,
         total,
@@ -775,6 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             portfolioId: portfolio.id,
             symbol: tradeData.symbol,
             name: req.body.name || tradeData.symbol,
+            assetType: 'crypto',
             amount: newAmount.toString(),
             averagePurchasePrice: newAverage.toString(),
             currentPrice: tradeData.price,
@@ -784,6 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             portfolioId: portfolio.id,
             symbol: tradeData.symbol,
             name: req.body.name || tradeData.symbol,
+            assetType: 'crypto',
             amount: tradeData.amount,
             averagePurchasePrice: tradeData.price,
             currentPrice: tradeData.price,
@@ -914,7 +917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         adminId: adminUser.id,
         action: 'balance_simulation',
         targetUserId,
-        details: { adjustmentType, amount, currency, reason },
+        details: JSON.stringify({ adjustmentType, amount, currency, reason }),
         timestamp: new Date()
       });
 

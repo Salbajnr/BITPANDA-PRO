@@ -71,12 +71,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       title: data.title,
       message: data.message,
       type: data.type,
-      priority: data.priority,
-      actionUrl: data.actionUrl,
-      actionLabel: data.actionLabel,
-      metadata: data.metadata,
-      read: false,
-      createdAt: new Date()
+      read: false
     });
 
     // Send real-time notification via SSE
@@ -99,14 +94,13 @@ router.patch('/:id/read', requireAuth, async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = req.user!.id;
 
-    const notification = await storage.getNotificationById(id);
+    const notification = await storage.getNotificationById(parseInt(id));
     if (!notification || notification.userId !== userId) {
       return res.status(404).json({ message: 'Notification not found' });
     }
 
-    const updated = await storage.updateNotification(id, { 
-      read: true,
-      readAt: new Date()
+    const updated = await storage.updateNotification(parseInt(id), { 
+      read: true
     });
 
     res.json(updated);
@@ -134,12 +128,12 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = req.user!.id;
 
-    const notification = await storage.getNotificationById(id);
+    const notification = await storage.getNotificationById(parseInt(id));
     if (!notification || notification.userId !== userId) {
       return res.status(404).json({ message: 'Notification not found' });
     }
 
-    await storage.deleteNotification(id);
+    await storage.deleteNotification(parseInt(id));
     res.json({ message: 'Notification deleted successfully' });
   } catch (error) {
     console.error('Delete notification error:', error);

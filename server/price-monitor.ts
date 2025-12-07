@@ -134,7 +134,7 @@ class PriceMonitorService {
             if (typeof storage.updatePriceAlert === 'function') {
               await storage.updatePriceAlert(alert.id, {
                 isActive: false,
-                triggeredAt: new Date()
+                isTriggered: true
               });
             }
           }
@@ -237,15 +237,8 @@ class PriceMonitorService {
       await storage.createNotification({
         userId: alert.userId,
         type: 'price_alert',
-        title: `Price Alert: ${alert.name}`,
-        message: `${alert.symbol} is now ${alert.condition} $${alert.targetPrice}. Current price: $${currentPrice.toFixed(6)}`,
-        data: {
-          alertId: alert.id,
-          symbol: alert.symbol,
-          currentPrice: currentPrice,
-          targetPrice: parseFloat(alert.targetPrice),
-          condition: alert.condition,
-        },
+        title: `Price Alert: ${alert.symbol}`,
+        message: `${alert.symbol} is now ${alert.alertType} $${alert.targetPrice}. Current price: $${currentPrice.toFixed(6)}`
       });
 
       // Deactivate the alert (one-time trigger)

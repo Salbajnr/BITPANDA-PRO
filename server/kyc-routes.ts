@@ -148,13 +148,11 @@ router.get('/admin/verifications', requireAuth, requireAdmin, async (req: Reques
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const status = req.query.status as string;
-    const search = req.query.search as string;
 
     const verifications = await storage.getAllKycVerifications({
       page,
       limit,
-      status,
-      search
+      status
     });
 
     res.json(verifications);
@@ -221,7 +219,8 @@ router.post('/admin/verifications/:id/review', requireAuth, requireAdmin, async 
       adminId,
       action: `kyc_${status}`,
       targetUserId: verification.userId,
-      details: { kycId: id, rejectionReason, notes },
+      targetId: id,
+      details: JSON.stringify({ kycId: id, rejectionReason, notes }),
       timestamp: new Date()
     });
 
@@ -260,7 +259,8 @@ router.post('/admin/verifications/bulk-review', requireAuth, requireAdmin, async
         await storage.logAdminAction({
           adminId,
           action: `kyc_bulk_${status}`,
-          details: { kycId: id, rejectionReason, notes },
+          targetId: id,
+          details: JSON.stringify({ kycId: id, rejectionReason, notes }),
           timestamp: new Date()
         });
       } catch (error) {

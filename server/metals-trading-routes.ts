@@ -111,7 +111,7 @@ router.post('/buy', requireAuth, async (req, res) => {
       type: 'trade_complete',
       title: 'Metal Purchase Successful',
       message: `Successfully purchased ${tradeData.amount}oz of ${tradeData.name} at $${tradeData.price}/oz`,
-      isRead: false
+      read: false
     });
 
     res.json({
@@ -212,7 +212,7 @@ router.post('/sell', requireAuth, async (req, res) => {
       type: 'trade_complete',
       title: 'Metal Sale Successful',
       message: `Successfully sold ${tradeData.amount}oz of ${holding.name} at $${tradeData.price}/oz`,
-      isRead: false
+      read: false
     });
 
     res.json({
@@ -296,7 +296,8 @@ router.get('/admin/transactions', requireAuth, requireAdmin, async (req, res) =>
       type: 'buy'
     });
 
-    const metalTransactions = transactions.transactions.filter(t => t.assetType === 'metal');
+    // Fix: Access the transactions array directly, not transactions.transactions
+    const metalTransactions = transactions.filter(t => t.assetType === 'metal');
 
     res.json({
       transactions: metalTransactions,
@@ -318,7 +319,7 @@ router.post('/admin/price-override', requireAuth, requireAdmin, async (req, res)
       adminId: req.user!.id,
       action: 'metal_price_override',
       targetId: symbol,
-      details: { symbol, price, reason },
+      details: JSON.stringify({ symbol, price, reason }),
       ipAddress: req.ip || '',
       userAgent: req.get('User-Agent') || ''
     });

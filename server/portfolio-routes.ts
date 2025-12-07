@@ -141,16 +141,17 @@ router.post('/portfolio/add', requireAuth, async (req: Request, res: Response) =
         portfolioId: portfolio.id,
         symbol: symbol.toUpperCase(),
         name: name || symbol.toUpperCase(),
+        assetType: 'crypto',
         amount: newAmount.toString(),
         averagePurchasePrice: newAveragePrice.toString(),
         currentPrice: price.toString()
       });
-    } else {
       // Create new holding
       await storage.upsertHolding({
         portfolioId: portfolio.id,
         symbol: symbol.toUpperCase(),
         name: name || symbol.toUpperCase(),
+        assetType: 'crypto',
         amount: quantity.toString(),
         averagePurchasePrice: price.toString(),
         currentPrice: price.toString()
@@ -180,7 +181,13 @@ router.delete('/portfolio/:id', requireAuth, async (req: Request, res: Response)
       return res.status(404).json({ message: 'Portfolio not found' });
     }
 
-    await storage.deleteHolding(holdingId);
+    // Get the holding to get the symbol
+    const holding = await storage.getHoldingById(holdingId);
+    if (!holding) {
+      return res.status(404).json({ message: 'Holding not found' });
+    }
+
+    await storage.deleteHolding(portfolio.id, holding.symbol);
 
     res.json({ message: 'Holding removed successfully' });
   } catch (error) {

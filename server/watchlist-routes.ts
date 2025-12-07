@@ -22,7 +22,11 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const { symbol, name } = req.body;
 
-    const watchlist = await storage.addToWatchlist(userId, symbol, name);
+    const watchlist = await storage.addToWatchlist({
+      userId,
+      symbol,
+      name: name || symbol
+    });
     res.json(watchlist);
   } catch (error) {
     console.error('Error adding to watchlist:', error);
@@ -33,10 +37,14 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 // Remove from watchlist
 router.delete('/:symbol', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
     const { symbol } = req.params;
+    const userId = req.user!.id;
 
-    await storage.removeFromWatchlist(userId, symbol);
+    // Find and delete the watchlist entry
+    const watchlistItem = await storage.getWatchlistItem(symbol);
+    if (watchlistItem) {
+      await storage.removeFromWatchlist(watchlistItem.id);
+    }
     res.json({ success: true });
   } catch (error) {
     console.error('Error removing from watchlist:', error);
