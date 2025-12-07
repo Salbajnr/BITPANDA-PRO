@@ -12,6 +12,12 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: CLIENT_URL
         sync: false
       - key: COINGECKO_API_KEY
@@ -20,19 +26,11 @@ services:
         sync: false
       - key: SENDGRID_API_KEY
         sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL
         sync: false
       - key: FIREBASE_PRIVATE_KEY
         sync: false
-
-  # PostgreSQL Database
-  - type: pserv
-    name: bitpanda-pro-db
-    env: docker
-    plan: free
-    disk:
-      name: bitpanda-db-data
-      mountPath: /var/lib/postgresql/data
-      sizeGB: 1
