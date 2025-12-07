@@ -224,8 +224,8 @@ export async function generateEmailVerificationLink(email: string) {
       handleCodeInApp: true,
     };
 
-    const link = await auth.generateEmailVerificationLink(email, actionCodeSettings);
-    return link;
+    return await auth.generateEmailVerificationLink(email, actionCodeSettings);
+
   } catch (error) {
     console.error('Failed to generate email verification link:', error);
     throw error;
