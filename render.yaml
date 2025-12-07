@@ -2,7 +2,7 @@ services:
   # Web Service (Backend + Frontend)
   - type: web
     name: bitpanda-pro
-    env: node
+    runtime: node
     region: oregon
     plan: free
     buildCommand: npm run install:all && npm run build
