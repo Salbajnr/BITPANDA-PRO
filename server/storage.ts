@@ -1,13 +1,10 @@
-import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
 import { eq, and, or, sql } from "drizzle-orm";
+import { db as sharedDb } from "./db";
 
-// PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-export const db: NodePgDatabase<typeof schema> = drizzle(pool, { schema });
+// Re-export db from shared instance for backwards compatibility
+export const db = sharedDb;
 
 // Interfaces for types
 type UserId = string;

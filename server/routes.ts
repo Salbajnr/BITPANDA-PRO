@@ -59,9 +59,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(createSessionMiddleware());
 
-  // Initialize passport for OAuth
-  app.use(passport.initialize());
-  app.use(passport.session());
+  // Initialize passport for OAuth (type assertions needed due to conflicting Express types)
+  const passportInit: any = passport.initialize();
+  const passportSession: any = passport.session();
+  app.use(passportInit);
+  app.use(passportSession);
 
   app.use(loadUser);
 
