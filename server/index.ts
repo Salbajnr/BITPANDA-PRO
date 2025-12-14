@@ -165,80 +165,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  // Look for client build in both possible locations
-  let clientBuildPath = path.join(process.cwd(), 'client/dist');
-  if (!fs.existsSync(clientBuildPath)) {
-    clientBuildPath = path.join(process.cwd(), '../client/dist');
-  }
-
-  // Check if client build exists
-  if (fs.existsSync(clientBuildPath)) {
-    console.log('🚀 Serving static files from:', clientBuildPath);
-
-    // Serve static files
-    app.use(express.static(clientBuildPath));
-
-    // Handle admin routes - serve admin.html for /admin and /admin/* routes
-    app.use('/admin', (req, res) => {
-      const adminHtmlPath = path.join(clientBuildPath, 'admin.html');
-      if (fs.existsSync(adminHtmlPath)) {
-        return res.sendFile(adminHtmlPath);
-      }
-      // Fallback to main index.html if admin.html doesn't exist
-      return res.sendFile(path.join(clientBuildPath, 'index.html'));
-    });
-
-    // Handle client-side routing - return index.html for non-API routes
-    app.use((req, res, next) => {
-      if (!req.path.startsWith('/api/')) {
-        return res.sendFile(path.join(clientBuildPath, 'index.html'));
-      }
-      // Continue to next handler for API routes
-      next();
-    });
-  } else {
-    console.warn('⚠️  Client build not found. Running in API-only mode.');
-
-    // In production but no client build found, handle non-API routes with 404
-    app.use((req, res, next) => {
-      if (!req.path.startsWith('/api/')) {
-        return res.status(404).json({
-          status: 'error',
-          message: 'Client not found',
-          details: 'The client application is not available. Please check the deployment.'
-        });
-      }
-      next(); // Continue to API routes
-    });
-  }
-} else {
-  // In development, run in API-only mode, serve non-API routes with 404
-  console.log('🚀 Running in development mode - API-only');
-
-  // Admin routes should be handled by the client dev server
-  app.use('/admin', (req, res) => {
-    res.status(404).json({
-      status: 'error',
-      message: 'Admin Panel - Development Mode',
-      details: 'Admin panel should be accessed through the client development server on port 5000'
-    });
-  });
-
-  app.use((req, res, next) => {
-    if (!req.path.startsWith('/api/')) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Development API Server',
-        details: 'This is an API-only development server. The client should be running separately.'
-      });
-    }
-    next(); // Continue to API routes
-  });
-}
-
 // === ROUTES ===
+// NOTE: Static file serving is done AFTER all API routes to ensure proper routing
 registerRoutes(app);
 
 app.use("/api", csrfRoutes);
@@ -325,38 +253,79 @@ app.use("/api", (req, res, next) => {
   res.status(404).json({ message: "API endpoint not found" });
 });
 
-// === CATCH-ALL FOR NON-API ROUTES ===
-// This should be the very last route handler
-// It's intended for serving the client-side application in production
-// and for development scenarios where the client is handled separately.
-app.use((req, res, next) => {
-  // If the request path starts with '/api/', it should have been handled by API routes or the /api 404 handler
-  if (req.path.startsWith('/api/')) {
-    return next(); // Let the API route handlers or the API 404 handler manage this
-  }
-
-  // In development, we assume the client is served by a separate dev server (e.g., Vite)
-  // So, we pass control to the next middleware, which might be a 404 handler or nothing.
-  if (process.env.NODE_ENV !== 'production') {
-    return next();
-  }
-
-  // In production, if we reach here for a non-API route, serve the client's index.html
-  // Try common build output locations
-  const possibleIndexPaths = [
-    path.resolve(__dirname, '..', 'dist', 'public', 'index.html'), // Standard build output
-    path.resolve(__dirname, '..', 'client', 'dist', 'index.html')   // Alternative build output
+// === STATIC FILE SERVING ===
+// Serve static files AFTER all API routes to ensure API routes are matched first
+if (process.env.NODE_ENV === 'production') {
+  // Look for client build in multiple possible locations
+  const possibleClientPaths = [
+    path.join(process.cwd(), 'client', 'dist'),
+    path.join(process.cwd(), 'dist'),
+    path.resolve(__dirname, '..', 'client', 'dist'),
+    path.resolve(__dirname, '..', 'dist')
   ];
 
-  for (const index of possibleIndexPaths) {
-    if (fs.existsSync(index)) {
-      return res.sendFile(index);
+  let clientBuildPath: string | null = null;
+  for (const p of possibleClientPaths) {
+    if (fs.existsSync(p) && fs.existsSync(path.join(p, 'index.html'))) {
+      clientBuildPath = p;
+      break;
     }
   }
 
-  // If no index.html is found in expected locations
-  res.status(404).send('Client build not found. Make sure the client is built to one of the expected output directories.');
-});
+  if (clientBuildPath) {
+    console.log('🚀 Serving static files from:', clientBuildPath);
+
+    // Serve static assets (JS, CSS, images, etc.)
+    app.use(express.static(clientBuildPath, {
+      maxAge: '1d',
+      etag: true
+    }));
+
+    // Handle admin routes - serve admin.html for /admin paths
+    app.get('/admin', (req, res) => {
+      const adminHtmlPath = path.join(clientBuildPath!, 'admin.html');
+      if (fs.existsSync(adminHtmlPath)) {
+        return res.sendFile(adminHtmlPath);
+      }
+      return res.sendFile(path.join(clientBuildPath!, 'index.html'));
+    });
+
+    app.get('/admin/*', (req, res) => {
+      const adminHtmlPath = path.join(clientBuildPath!, 'admin.html');
+      if (fs.existsSync(adminHtmlPath)) {
+        return res.sendFile(adminHtmlPath);
+      }
+      return res.sendFile(path.join(clientBuildPath!, 'index.html'));
+    });
+
+    // Handle all other routes - serve index.html for client-side routing
+    app.get('*', (req, res) => {
+      // Don't serve index.html for API routes (they should have been handled above)
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ message: 'API endpoint not found' });
+      }
+      res.sendFile(path.join(clientBuildPath!, 'index.html'));
+    });
+  } else {
+    console.warn('⚠️  Client build not found in any expected location. Running in API-only mode.');
+    console.warn('   Searched paths:', possibleClientPaths.join(', '));
+
+    // Return 404 for non-API routes when client build is not found
+    app.get('*', (req, res) => {
+      if (!req.path.startsWith('/api/')) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Client not found',
+          details: 'The client application is not available. Please ensure the client is built.'
+        });
+      }
+      res.status(404).json({ message: 'API endpoint not found' });
+    });
+  }
+} else {
+  console.log('🚀 Running in development mode - API server only');
+  // In development, the client is served by Vite dev server
+}
 
 // Server configuration
 // Render sets PORT env var (usually 10000), development uses 3000

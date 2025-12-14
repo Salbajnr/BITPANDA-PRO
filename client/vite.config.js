@@ -12,6 +12,7 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   
   return {
+    base: '/',
     define: {
       __APP_ENV__: JSON.stringify(env.APP_ENV),
       global: 'globalThis',
@@ -65,6 +66,11 @@ export default defineConfig(({ command, mode }) => {
     cors: true,
     // Enable gzip compression
     compress: true
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 4173,
+    strictPort: false
   },
   build: {
     // Enable minification

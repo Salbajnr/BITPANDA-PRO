@@ -153,7 +153,7 @@ function Routes() {
   return (
     <Switch>
       {/* Public Routes - All wrapped with error boundaries */}
-      <Route path="/" exact component={() => <ErrorBoundary><PublicLayout><Landing /></PublicLayout></ErrorBoundary>} />
+      <Route path="/" component={() => <ErrorBoundary><PublicLayout><Landing /></PublicLayout></ErrorBoundary>} />
       <Route path="/home" component={() => <ErrorBoundary><PublicLayout><Landing /></PublicLayout></ErrorBoundary>} />
       <Route path="/auth" component={() => <ErrorBoundary><PublicLayout><Auth /></PublicLayout></ErrorBoundary>} />
       <Route path="/markets" component={() => <ErrorBoundary><PublicLayout><Markets /></PublicLayout></ErrorBoundary>} />
@@ -220,8 +220,8 @@ function Routes() {
       <Route path="/security" component={() => <ErrorBoundary><PublicLayout><Security /></PublicLayout></ErrorBoundary>} />
       <Route path="/investor-protection" component={() => <ErrorBoundary><PublicLayout><InvestorProtection /></PublicLayout></ErrorBoundary>} />
       <Route path="/forgot-password" component={() => <ErrorBoundary><PublicLayout><ForgotPassword /></PublicLayout></ErrorBoundary>} />
-      <Route path="/verify-otp/:type/:email" component={({ params }) => <ErrorBoundary><PublicLayout><OtpVerification params={params} /></PublicLayout></ErrorBoundary>} />
-      <Route path="/reset-password/:token" component={({ params }) => <ErrorBoundary><PublicLayout><ResetPassword params={params} /></PublicLayout></ErrorBoundary>} />
+      <Route path="/verify-otp/:type/:email" component={() => <ErrorBoundary><PublicLayout><OtpVerification /></PublicLayout></ErrorBoundary>} />
+      <Route path="/reset-password/:token" component={() => <ErrorBoundary><PublicLayout><ResetPassword /></PublicLayout></ErrorBoundary>} />
       <Route path="/api" component={() => <ErrorBoundary><PublicLayout><API /></PublicLayout></ErrorBoundary>} />
       <Route path="/ecosystem" component={() => <ErrorBoundary><PublicLayout><Ecosystem /></PublicLayout></ErrorBoundary>} />
 
@@ -324,6 +324,7 @@ export default function App() {
                 <Router>
                   <div className="min-h-screen bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
                     <Routes />
+                    <Toaster />
                   </div>
                 </Router>
               </MessageModalProvider>
