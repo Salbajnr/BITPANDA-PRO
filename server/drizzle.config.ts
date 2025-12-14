@@ -30,7 +30,7 @@ export default {
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: formattedUrl + (formattedUrl.includes('?') ? '&' : '?') + 'sslmode=require',
+    url: formattedUrl,
   },
   // Only manage the 'public' schema
   schemaFilter: ["public"],

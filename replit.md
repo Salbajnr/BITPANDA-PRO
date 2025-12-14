@@ -4,7 +4,7 @@
 A full-stack cryptocurrency trading platform built with React, Node.js, Express, and PostgreSQL. This platform features real-time price updates, portfolio management, trading capabilities, an admin dashboard, and multi-language support.
 
 **Current Status**: Successfully configured and running in Replit environment
-**Last Updated**: November 26, 2025
+**Last Updated**: December 14, 2025
 
 ## Project Architecture
 
@@ -79,14 +79,10 @@ The application loads environment variables from the root `.env` file (managed v
 - A previous `server/.env` file has been removed for security reasons
 
 ### Database Setup
-The app can run in two modes:
-1. **Demo Mode** (Current): No database required, uses mock data
-2. **Full Mode**: Requires PostgreSQL database
-
-To add a database:
-1. Use the Replit Database tool to create a PostgreSQL database
-2. Connection credentials are automatically added as environment variables
-3. Run migrations: `npm run db:push`
+The app is configured with Replit's PostgreSQL database:
+- Database connection is automatically configured via `DATABASE_URL` environment variable
+- Schema has been pushed successfully with all required tables
+- Run `npm run db:push` to apply any schema changes
 
 ### Workflow Configuration
 **Development Server** workflow runs both frontend and backend:

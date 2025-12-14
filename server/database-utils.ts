@@ -42,7 +42,8 @@ export function formatDatabaseUrl(url: string): string {
  * Checks if the DATABASE_URL is syntactically valid and points to Postgres.
  */
 export function isDatabaseUrlValid(url: string): boolean {
-  // Basic PostgreSQL URL validation - supports various formats including Supabase pooler
-  const pattern = /^postgres(ql)?:\/\/[^:]+:[^@]+@[^:]+:\d+(\/[^?]*)(\?.*)?$/;
+  // Basic PostgreSQL URL validation - supports various formats including Replit, Supabase, Render
+  // Port is optional (e.g., Replit uses hostname without explicit port)
+  const pattern = /^postgres(ql)?:\/\/[^:]+:[^@]+@[^/]+(\/[^?]*)?(\?.*)?$/;
   return pattern.test(url);
 }

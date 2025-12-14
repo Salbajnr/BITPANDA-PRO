@@ -25,15 +25,11 @@ import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 const generateUniqueId = () => nanoid();
 
 // Session storage table for authentication
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
+export const sessions = pgTable("sessions", {
+  sid: varchar("sid").primaryKey(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire").notNull(),
+});
 
 // Enums for the platform
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
@@ -508,10 +504,7 @@ export const priceHistory = pgTable('price_history', {
   symbol: varchar('symbol', { length: 20 }).notNull(),
   price: numeric('price', { precision: 20, scale: 8 }).notNull(),
   timestamp: timestamp('timestamp').defaultNow().notNull(),
-}, (table) => ({
-  symbolIdx: index('price_history_symbol_idx').on(table.symbol),
-  timestampIdx: index('price_history_timestamp_idx').on(table.timestamp),
-}));
+});
 
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const selectNotificationSchema = createSelectSchema(notifications);

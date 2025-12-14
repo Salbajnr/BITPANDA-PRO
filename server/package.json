@@ -20,6 +20,8 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.8",
+    "drizzle-orm": "^0.45.1",
     "express": "^4.21.2",
     "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
