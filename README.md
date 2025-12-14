@@ -11,6 +11,7 @@ All documentation has been moved to the [`docs/`](./docs/) directory for better 
 - **[Authentication Guide](./docs/COMPLETE_AUTH_GUIDE.md)** - OAuth & OTP setup
 - **[Environment Setup](./docs/ENVIRONMENT_SETUP.md)** - All environment variables
 - **[API Integration Status](./docs/API_INTEGRATION_STATUS.md)** - API documentation
+- **[Gmail SMTP Setup](./docs/GMAIL_SMTP_SETUP.md)** - Configure Gmail for OTP email delivery
 
 See the [`docs/`](./docs/) directory for complete documentation.
 

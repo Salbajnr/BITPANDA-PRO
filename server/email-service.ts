@@ -1,7 +1,5 @@
-import sgMail from '@sendgrid/mail';
+// Email service using Gmail SMTP
 import nodemailer from 'nodemailer';
-
-// Email service using SendGrid API and SMTP fallback
 interface EmailParams {
   to: string;
   from: string;
@@ -10,23 +8,23 @@ interface EmailParams {
   html?: string;
 }
 
-// Create SMTP transporter for fallback
+// Create SMTP transporter for Gmail
 const createSMTPTransporter = () => {
   try {
     return nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
+      host: 'smtp.gmail.com',
       port: 587,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_SMTP_KEY || process.env.SENDGRID_API_KEY || ''
+        user: process.env.GMAIL_USER || '',
+        pass: process.env.GMAIL_APP_PASSWORD || ''
       },
       tls: {
         rejectUnauthorized: false
       }
     });
   } catch (error) {
-    console.error('Failed to create SMTP transporter:', error);
+    console.error('Failed to create Gmail SMTP transporter:', error);
     return null;
   }
 };
@@ -59,109 +57,75 @@ const getBaseUrl = () => {
   return process.env.BASE_URL || process.env.CLIENT_URL || 'https://bitpandapro.onrender.com';
 };
 
-// Initialize SendGrid with API key
-const initializeSendGrid = () => {
-  // Force development mode - bypass SendGrid due to credit limits
-  console.warn('⚠️ Running in EMAIL DEVELOPMENT MODE - emails will only be logged to console');
-  console.warn('💡 This bypasses SendGrid to avoid credit limit issues');
-  return false;
-
-  /* Uncomment this when you have SendGrid credits available:
-  const apiKey = process.env.SENDGRID_API_KEY || process.env.SENDGRID_SMTP_KEY;
-
-  if (!apiKey) {
-    console.warn('⚠️ SENDGRID_API_KEY not configured - emails will only be logged');
-    console.warn('⚠️ Set SENDGRID_API_KEY in Secrets to enable email delivery');
-    console.warn('⚠️ To get a free SendGrid API key, visit: https://signup.sendgrid.com/');
-    return false;
-  }
-
-  try {
-    sgMail.setApiKey(apiKey);
-    console.log('✅ SendGrid initialized successfully');
-    console.log('✅ Using API key:', apiKey.substring(0, 10) + '...');
+// Initialize email service with Gmail SMTP
+const initializeEmailService = () => {
+  // Check if Gmail credentials are configured
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+  
+  if (gmailUser && gmailAppPassword) {
+    console.log('✅ Gmail SMTP configured successfully');
     return true;
-  } catch (error) {
-    console.error('❌ Failed to initialize SendGrid:', error);
-    return false;
   }
-  */
+  
+  console.warn('⚠️ Gmail credentials not configured - emails will only be logged');
+  console.warn('⚠️ Set GMAIL_USER and GMAIL_APP_PASSWORD in environment variables');
+  console.warn('⚠️ To use Gmail SMTP:');
+  console.warn('  1. Enable 2-Factor Authentication on your Google account');
+  console.warn('  2. Generate an App Password for this application');
+  console.warn('  3. Set GMAIL_USER and GMAIL_APP_PASSWORD in your environment');
+  return false;
 };
 
-const isSendGridInitialized = initializeSendGrid();
+const isEmailServiceInitialized = initializeEmailService();
 
 export { getBaseUrl };
 
 // Base email sending function with SMTP fallback
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
-    // If SendGrid is not configured, log the email and return success for development
-    if (!isSendGridInitialized) {
+    // Try Gmail SMTP first if configured
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+    
+    if (gmailUser && gmailAppPassword && smtpTransporter) {
+      try {
+        const mailOptions = {
+          from: `"BITPANDA PRO" <${gmailUser}>`,
+          to: params.to,
+          subject: params.subject,
+          text: params.text || '',
+          html: params.html || params.text || ''
+        };
+
+        const info = await smtpTransporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully via Gmail SMTP to:', params.to);
+        console.log('Message ID:', info.messageId);
+        return true;
+      } catch (smtpError: any) {
+        console.error('❌ Gmail SMTP failed:', smtpError.message);
+        throw smtpError;
+      }
+    } else {
+      // Fallback to development mode logging
       console.log('\n📧 ========== EMAIL (Development Mode) ==========');
       console.log('To:', params.to);
       console.log('From:', params.from);
       console.log('Subject:', params.subject);
       console.log('Preview:', params.html?.substring(0, 200) + '...' || params.text?.substring(0, 200) + '...');
       console.log('================================================\n');
-
-      // For development, still return true so auth flow continues
       return true;
-    }
-
-    // Try SendGrid API first
-    try {
-      const msg = {
-        to: params.to,
-        from: {
-          email: params.from,
-          name: 'BITPANDA PRO'
-        },
-        subject: params.subject,
-        text: params.text || '',
-        html: params.html || params.text || '',
-      };
-
-      await sgMail.send(msg);
-      console.log('✅ Email sent successfully via SendGrid API to:', params.to);
-      return true;
-    } catch (apiError: any) {
-      console.warn('⚠️ SendGrid API failed, trying SMTP fallback...');
-      console.warn('API Error:', apiError?.response?.body?.errors || apiError?.message);
-
-      // Try SMTP fallback
-      if (smtpTransporter) {
-        try {
-          const mailOptions = {
-            from: `BITPANDA PRO <${params.from}>`,
-            to: params.to,
-            subject: params.subject,
-            text: params.text || '',
-            html: params.html || params.text || ''
-          };
-
-          const info = await smtpTransporter.sendMail(mailOptions);
-          console.log('✅ Email sent successfully via SMTP to:', params.to);
-          console.log('Message ID:', info.messageId);
-          return true;
-        } catch (smtpError: any) {
-          console.error('❌ SMTP fallback also failed:', smtpError.message);
-          throw smtpError;
-        }
-      } else {
-        throw apiError;
-      }
     }
   } catch (error: any) {
     console.error('❌ All email delivery methods failed:', error?.message || error);
-
+    
     // Log the email content for debugging
     console.log('\n📧 ========== FAILED EMAIL DETAILS ==========');
     console.log('To:', params.to);
     console.log('Subject:', params.subject);
     console.log('Error:', error?.response?.body?.errors || error?.message);
     console.log('===========================================\n');
-
-    // Return true so auth flow continues even if email fails (development fallback)
+    
     return true;
   }
 }

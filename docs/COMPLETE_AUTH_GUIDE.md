@@ -438,11 +438,17 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 
 ### Optional: Email Service (For Production)
 
+The application now uses Gmail SMTP for sending OTP emails. To configure:
+
+1. Follow the [Gmail SMTP Setup Guide](./GMAIL_SMTP_SETUP.md)
+2. Set the required environment variables:
+
 ```bash
-SENDGRID_API_KEY=your-sendgrid-api-key
-EMAIL_FROM=noreply@yourdomain.com
-EMAIL_FROM_NAME=Bitpanda Pro
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-16-character-app-password
 ```
+
+This replaces the previous SendGrid integration.
 
 ---
 

@@ -199,9 +199,9 @@ EMAIL_FROM_NAME=Bitpanda Pro
 | Google OAuth | ❌ No | ✅ Yes | ✅ Yes |
 | Facebook OAuth | ❌ No | ✅ Yes | ✅ Yes |
 | Apple OAuth | ❌ No | ✅ Yes | ✅ Yes |
-| Email Verification (OTP) | ✅ Yes (console) | ✅ Yes | ✅ Yes (email) |
+| Email Verification (OTP) | ✅ Yes (console) | ✅ Yes | ✅ Yes (Gmail SMTP) |
 | Email Verification (Link) | ❌ No | ✅ Yes | ✅ Yes |
-| Password Reset (OTP) | ✅ Yes (console) | ✅ Yes | ✅ Yes (email) |
+| Password Reset (OTP) | ✅ Yes (console) | ✅ Yes | ✅ Yes (Gmail SMTP) |
 | Password Reset (Link) | ❌ No | ✅ Yes | ✅ Yes |
 | Custom Tokens | ❌ No | ✅ Yes | ✅ Yes |
 | Provider Linking | ❌ No | ✅ Yes | ✅ Yes |
@@ -245,9 +245,9 @@ curl http://localhost:3000/api/firebase-auth/status
 
 ### With Email Service (Production)
 
-1. Get SendGrid API key
-2. Set `SENDGRID_API_KEY` and email settings
-3. OTP codes sent via email
+1. Configure Gmail SMTP ([setup guide](./GMAIL_SMTP_SETUP.md))
+2. Set `GMAIL_USER` and `GMAIL_APP_PASSWORD` environment variables
+3. OTP codes sent via Gmail SMTP
 4. Password reset links sent via email
 5. Email verification links sent via email
 
@@ -441,7 +441,7 @@ curl -X POST http://localhost:3000/api/otp/reset-password \
 
 1. ✅ Set up Firebase project
 2. ✅ Configure all OAuth providers
-3. ✅ Set up SendGrid for emails
+3. ✅ Configure Gmail SMTP for emails ([setup guide](./GMAIL_SMTP_SETUP.md))
 4. ✅ Test all authentication flows
 5. ✅ Enable HTTPS
 6. ✅ Configure production URLs

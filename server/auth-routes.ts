@@ -257,19 +257,26 @@ router.post('/verify-otp', async (req, res) => {
       .limit(1);
 
     if (!otpRecord) {
-      // Increment attempts for failed verification
-      await db
-        .update(otpTokens)
-        .set({ attempts: (parseInt(otpRecord?.attempts?.toString() || '0') + 1).toString() })
-        .where(
-          and(
-            eq(otpTokens.email, email),
-            eq(otpTokens.type, type),
-            eq(otpTokens.used, false)
-          )
-        );
-
       return res.status(400).json({ error: 'Invalid or expired OTP code' });
+    }
+
+    // Increment attempts for this OTP
+    const newAttempts = parseInt(otpRecord.attempts.toString()) + 1;
+    await db
+      .update(otpTokens)
+      .set({ attempts: newAttempts.toString() })
+      .where(eq(otpTokens.id, otpRecord.id));
+
+    // Check if max attempts exceeded
+    if (newAttempts >= 5) {
+      return res.status(400).json({ error: 'Maximum verification attempts exceeded. Please request a new OTP.' });
+    }
+
+    // Verify code
+    if (otpRecord.token !== token) {
+      return res.status(400).json({ 
+        error: `Invalid OTP code. ${(5 - newAttempts)} attempts remaining.` 
+      });
     }
 
     // Mark OTP as used

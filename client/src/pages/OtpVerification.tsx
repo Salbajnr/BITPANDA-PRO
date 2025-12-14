@@ -30,10 +30,7 @@ export default function OtpVerification() {
 
   const verifyOtpMutation = useMutation({
     mutationFn: (data: { email: string; token: string; type: string }) =>
-      apiRequest('/api/auth/verify-otp', {
-        method: 'POST',
-        body: data
-      }),
+      apiRequest('POST', '/api/auth/verify-otp', data),
     onSuccess: () => {
       setIsSuccess(true);
       setError(null); // Clear any previous errors on success
@@ -47,17 +44,14 @@ export default function OtpVerification() {
       toast({
         title: "Verification failed",
         description: error.message || "Invalid OTP code. Please try again.",
-        variant: "destructive",
+
       });
     },
   });
 
   const resendOtpMutation = useMutation({
     mutationFn: (data: { email: string; type: string }) =>
-      apiRequest('/api/auth/resend-otp', {
-        method: 'POST',
-        body: data
-      }),
+      apiRequest('POST', '/api/auth/resend-otp', data),
     onSuccess: (data: any) => {
       setTimeLeft(300); // Reset timer
       setOtp(""); // Clear OTP input
@@ -68,7 +62,7 @@ export default function OtpVerification() {
         toast({
           title: "Email Delivery Failed",
           description: `Your verification code is: ${data.otp}`,
-          variant: "default",
+          
         });
       } else {
         toast({
@@ -82,7 +76,7 @@ export default function OtpVerification() {
       toast({
         title: "Failed to resend",
         description: error.message || "Could not resend OTP. Please try again.",
-        variant: "destructive",
+
       });
     },
   });
@@ -96,7 +90,7 @@ export default function OtpVerification() {
       toast({
         title: "Invalid OTP",
         description: "Please enter a 6-digit verification code",
-        variant: "destructive",
+
       });
       return;
     }
@@ -106,7 +100,7 @@ export default function OtpVerification() {
       toast({
         title: "Invalid verification link",
         description: "This verification link is invalid or malformed",
-        variant: "destructive",
+
       });
       return;
     }
@@ -125,7 +119,7 @@ export default function OtpVerification() {
       toast({
         title: "Cannot resend",
         description: "Invalid email or verification type",
-        variant: "destructive",
+
       });
       return;
     }
@@ -144,10 +138,7 @@ export default function OtpVerification() {
         try {
           const registrationData = JSON.parse(pendingRegistrationData);
 
-          const res = await apiRequest('/api/user/auth/register', {
-            method: 'POST',
-            body: registrationData
-          });
+          const res = await apiRequest('POST', '/api/user/auth/register', registrationData);
 
           sessionStorage.removeItem('pendingRegistration');
 
@@ -161,7 +152,7 @@ export default function OtpVerification() {
           toast({
             title: "Registration Failed",
             description: error.message || "Unable to complete registration. Please try again.",
-            variant: "destructive",
+    
           });
 
           setLocation("/auth");

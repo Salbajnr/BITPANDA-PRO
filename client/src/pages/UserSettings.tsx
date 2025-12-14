@@ -94,7 +94,7 @@ export default function UserSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: (data: Partial<UserProfile>) =>
-      apiRequest('/api/auth/profile', { method: 'PATCH', body: JSON.stringify(data) }),
+      apiRequest('PATCH', '/api/auth/profile', data),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -106,14 +106,14 @@ export default function UserSettings() {
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
-        variant: "destructive",
+
       });
     },
   });
 
   const updatePasswordMutation = useMutation({
     mutationFn: (data: typeof passwordForm) =>
-      apiRequest('/api/auth/change-password', { method: 'POST', body: JSON.stringify(data) }),
+      apiRequest('POST', '/api/auth/change-password', data),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -125,7 +125,7 @@ export default function UserSettings() {
       toast({
         title: "Error",
         description: error.message || "Failed to change password",
-        variant: "destructive",
+
       });
     },
   });
@@ -142,7 +142,7 @@ export default function UserSettings() {
       toast({
         title: "Error",
         description: "New passwords do not match",
-        variant: "destructive",
+
       });
       return;
     }
@@ -151,7 +151,7 @@ export default function UserSettings() {
       toast({
         title: "Error",
         description: "Password must be at least 6 characters long",
-        variant: "destructive",
+
       });
       return;
     }

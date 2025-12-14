@@ -66,7 +66,7 @@ export default function Auth() {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const userLoginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
-      const res = await apiRequest("POST", "/api/user/auth/login", data);
+      const res = await apiRequest("POST", "/api/auth/login", data);
       return res;
     },
     onSuccess: async (data) => {
@@ -108,7 +108,6 @@ export default function Auth() {
         toast({
           title: "Email Delivery Failed",
           description: `Your verification code is: ${data.otp}`,
-          variant: "default",
         });
       } else {
         showMessage(
@@ -131,7 +130,7 @@ export default function Auth() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      const res = await apiRequest("POST", "/api/user/auth/register", data);
+      const res = await apiRequest("POST", "/api/auth/register", data);
       return res;
     },
     onSuccess: (data) => {

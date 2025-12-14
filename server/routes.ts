@@ -102,8 +102,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Metals routes
   app.use('/api/metals', metalsRoutes);
 
+  // Auth routes (OTP, registration, login)
+  app.use('/api/auth', authRoutes);
+
   // OAuth routes
-  app.use('/api/auth', oauthRoutes);
+  app.use('/api/auth/oauth', oauthRoutes);
 
   // Metals trading routes
   const metalsTrading = (await import('./metals-trading-routes')).default;
@@ -238,10 +241,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = registerSchema.parse(req.body);
 
       // Check if user already exists
-      const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
-      if (existingUser) {
+      const existingEmailUser = await storage.getUserByEmail(userData.email);
+      if (existingEmailUser) {
         return res.status(400).json({
-          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken'
+          message: 'Email already registered'
+        });
+      }
+      
+      const existingUsernameUser = await storage.getUserByUsername(userData.username);
+      if (existingUsernameUser) {
+        return res.status(400).json({
+          message: 'Username already taken'
         });
       }
 
@@ -598,10 +608,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = registerSchema.parse(req.body);
 
       // Check if user already exists
-      const existingUser = await storage.getUserByEmailOrUsername(userData.email, userData.username);
-      if (existingUser) {
+      const existingEmailUser = await storage.getUserByEmail(userData.email);
+      if (existingEmailUser) {
         return res.status(400).json({
-          message: existingUser.email === userData.email ? 'Email already registered' : 'Username already taken'
+          message: 'Email already registered'
+        });
+      }
+      
+      const existingUsernameUser = await storage.getUserByUsername(userData.username);
+      if (existingUsernameUser) {
+        return res.status(400).json({
+          message: 'Username already taken'
         });
       }
 
@@ -755,7 +772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         type,
         symbol,
-        assetType: 'crypto',
+        assetType: 'crypto' as const,
         amount,
         price,
         total,
@@ -776,7 +793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             portfolioId: portfolio.id,
             symbol: tradeData.symbol,
             name: req.body.name || tradeData.symbol,
-            assetType: 'crypto',
+            assetType: 'crypto' as const,
             amount: newAmount.toString(),
             averagePurchasePrice: newAverage.toString(),
             currentPrice: tradeData.price,
@@ -786,7 +803,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             portfolioId: portfolio.id,
             symbol: tradeData.symbol,
             name: req.body.name || tradeData.symbol,
-            assetType: 'crypto',
+            assetType: 'crypto' as const,
             amount: tradeData.amount,
             averagePurchasePrice: tradeData.price,
             currentPrice: tradeData.price,

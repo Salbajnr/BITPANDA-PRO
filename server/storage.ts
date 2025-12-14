@@ -62,7 +62,7 @@ export class DatabaseStorage {
 
   async createUser(data: typeof schema.users.$inferInsert) {
     const [result] = await this.db.insert(schema.users).values(data).returning();
-    return result;
+    return result as import('@shared/schema').User;
   }
 
   // User Settings
@@ -525,8 +525,8 @@ export class DatabaseStorage {
     return this.db.query.users.findFirst({ where: eq(schema.users.username, username) });
   }
 
-  async getAllUsers() {
-    return this.db.select().from(schema.users);
+  async getAllUsers(): Promise<import('@shared/schema').User[]> {
+    return this.db.select().from(schema.users) as unknown as Promise<import('@shared/schema').User[]>;
   }
 
   async createPortfolio(data: typeof schema.portfolios.$inferInsert) {
